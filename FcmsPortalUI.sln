@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35806.99 d17.13
+VisualStudioVersion = 17.13.35806.99
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FcmsPortalUI", "FcmsPortalUI.csproj", "{901D2FF5-52EF-41F7-BCB9-510D10B0654D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FcmsPortal", "..\NewFcms\FcmsPortal.csproj", "{A3F92BFF-E50F-4244-0C67-BCC45FC5123B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{901D2FF5-52EF-41F7-BCB9-510D10B0654D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{901D2FF5-52EF-41F7-BCB9-510D10B0654D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{901D2FF5-52EF-41F7-BCB9-510D10B0654D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3F92BFF-E50F-4244-0C67-BCC45FC5123B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3F92BFF-E50F-4244-0C67-BCC45FC5123B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3F92BFF-E50F-4244-0C67-BCC45FC5123B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3F92BFF-E50F-4244-0C67-BCC45FC5123B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
