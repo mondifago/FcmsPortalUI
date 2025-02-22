@@ -1,0 +1,106 @@
+﻿@page "/addresses"
+@inject AddressService AddressService
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+<h3>Address Manager</h3>
+
+<!-- Create Form -->
+<div class="mb-3">
+    <h4>Add New Address</h4>
+    <EditForm Model="newAddress" OnValidSubmit="HandleAddAddress">
+        <div class="form-group">
+            <label>Street</label>
+            <InputText class="form-control" @bind-Value="newAddress.Street" />
+        </div>
+        <div class="form-group">
+            <label>City</label>
+            <InputText class="form-control" @bind-Value="newAddress.City" />
+        </div>
+        <div class="form-group">
+            <label>State</label>
+            <InputText class="form-control" @bind-Value="newAddress.State" />
+        </div>
+        <div class="form-group">
+            <label>Postal Code</label>
+            <InputText class="form-control" @bind-Value="newAddress.PostalCode" />
+        </div>
+        <div class="form-group">
+            <label>Country</label>
+            <InputText class="form-control" @bind-Value="newAddress.Country" />
+        </div>
+        <div class="form-group">
+            <label>Address Type</label>
+            <InputSelect class="form-control" @bind-Value="newAddress.AddressType">
+                @foreach (AddressType type in Enum.GetValues(typeof(AddressType)))
+                {
+                    <option value="@type">@type</option>
+                }
+            </InputSelect>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Add Address</button>
+    </EditForm>
+</div>
+
+<!-- Index/View Table -->
+@if (addresses != null && addresses.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Street</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Postal Code</th>
+                <th>Country</th>
+                <th>Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var address in addresses)
+            {
+                <tr>
+                    <td>@address.Id</td>
+                    <td>@address.Street</td>
+                    <td>@address.City</td>
+                    <td>@address.State</td>
+                    <td>@address.PostalCode</td>
+                    <td>@address.Country</td>
+                    <td>@address.AddressType</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteAddress(address.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No addresses found.</p>
+}
+
+@code {
+    private List<Address> addresses = new();
+    private Address newAddress = new();
+
+    protected override void OnInitialized()
+    {
+        addresses = AddressService.GetAddresses();
+    }
+
+    private void HandleAddAddress()
+    {
+        AddressService.AddAddress(newAddress);
+        newAddress = new Address(); // Reset form
+        addresses = AddressService.GetAddresses(); // Refresh list
+    }
+
+    private void DeleteAddress(int id)
+    {
+        AddressService.DeleteAddress(id);
+        addresses = AddressService.GetAddresses(); // Refresh list
+    }
+}
