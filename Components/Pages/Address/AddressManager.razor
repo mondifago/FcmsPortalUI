@@ -3,9 +3,9 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
-<h3>Address Manager</h3>
+@rendermode InteractiveServer
 
-<!-- Create Form -->
+<PageTitle>Addresses</PageTitle>
 <div class="mb-3">
     <h4>Add New Address</h4>
     <EditForm Model="newAddress" OnValidSubmit="HandleAddAddress">
