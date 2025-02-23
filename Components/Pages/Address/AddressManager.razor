@@ -94,13 +94,13 @@ else
     private void HandleAddAddress()
     {
         AddressService.AddAddress(newAddress);
-        newAddress = new Address(); // Reset form
-        addresses = AddressService.GetAddresses(); // Refresh list
+        newAddress = new Address(); 
+        addresses = AddressService.GetAddresses(); 
     }
 
     private void DeleteAddress(int id)
     {
         AddressService.DeleteAddress(id);
-        addresses = AddressService.GetAddresses(); // Refresh list
+        addresses = AddressService.GetAddresses(); 
     }
 }
