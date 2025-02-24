@@ -7,8 +7,10 @@
 
 <PageTitle>Addresses</PageTitle>
 <div class="mb-3">
-    <h4>Address</h4>
+    <h4>Add New Address</h4>
     <EditForm Model="newAddress" OnValidSubmit="HandleAddAddress">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
         <div class="form-group">
             <label>Street</label>
             <InputText class="form-control" @bind-Value="newAddress.Street" />
@@ -47,6 +49,8 @@
     <div class="mb-3">
         <h4>Edit Address</h4>
         <EditForm Model="addressToEdit" OnValidSubmit="HandleUpdateAddress">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
             <div class="form-group">
                 <label>Street</label>
                 <InputText class="form-control" @bind-Value="addressToEdit.Street" />
