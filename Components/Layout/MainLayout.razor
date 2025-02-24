@@ -1,31 +1,28 @@
 ﻿@inherits LayoutComponentBase
-<head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
 
-<div class="top-row">
-    <div class="logo-container">
-        <a href="/" class="home-link">FCMS</a>
+<div class="layout-container">
+    <div class="top-row">
+        <div class="logo-container">
+            <a href="/" class="home-link">FCMS</a>
+        </div>
+        <button class="navbar-toggler" @onclick="ToggleNavMenu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="top-icons">
+            <input type="text" class="search-box" placeholder="Search...">
+            <a href="/messages" class="icon-link"><i class="fas fa-envelope"></i></a>
+            <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
+            <a href="/profile" class="icon-link"><i class="fas fa-user-circle"></i></a>
+        </div>
     </div>
-
-    <div class="top-icons">
-        <input type="text" class="search-box" placeholder="Search...">
-        <a href="/messages" class="icon-link"><i class="fas fa-envelope"></i></a>
-        <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
-        <a href="/profile" class="icon-link"><i class="fas fa-user-circle"></i></a>
+    <div class="page">
+        <NavMenu @ref="navMenu" />
+        <main>
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
     </div>
-</div>
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -33,3 +30,14 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private NavMenu navMenu;
+    private bool collapseNavMenu = true;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+        navMenu?.Toggle(collapseNavMenu);
+    }
+}

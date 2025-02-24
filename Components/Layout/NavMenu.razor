@@ -1,11 +1,7 @@
-﻿
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
-
-<div class="nav-scrollable">
+﻿<div class="nav-scrollable @(collapseNavMenu ? "collapsed" : "")">
     <nav class="nav flex-column">
         <div class="nav-item">
-            <NavLink class="nav-link" href="">Home</NavLink>
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
         </div>
         <div class="nav-item">
             <NavLink class="nav-link" href="addresses">Addresses</NavLink>
@@ -19,6 +15,12 @@
     </nav>
 </div>
 
-<div class="content">
-    
-</div>
+@code {
+    private bool collapseNavMenu = true;
+
+    public void Toggle(bool collapse)
+    {
+        collapseNavMenu = collapse;
+        StateHasChanged();
+    }
+}
