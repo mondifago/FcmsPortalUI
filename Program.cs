@@ -3,6 +3,7 @@ using FcmsPortalUI.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<AddressService>();
+builder.Services.AddSingleton<PaymentService>();
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
