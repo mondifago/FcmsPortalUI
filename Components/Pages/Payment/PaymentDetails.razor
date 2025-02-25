@@ -1,0 +1,64 @@
+﻿@page "/payments/details/{Id:int}"
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<h3>Payment Details</h3>
+
+@if (payment == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">ID</dt>
+        <dd class="col-sm-9">@payment.Id</dd>
+
+        <dt class="col-sm-3">Amount</dt>
+        <dd class="col-sm-9">@payment.Amount.ToString("C")</dd>
+
+        <dt class="col-sm-3">Date</dt>
+        <dd class="col-sm-9">@payment.Date.ToShortDateString()</dd>
+
+        <dt class="col-sm-3">Payment Method</dt>
+        <dd class="col-sm-9">@payment.PaymentMethod</dd>
+
+        <dt class="col-sm-3">Reference</dt>
+        <dd class="col-sm-9">@payment.Reference</dd>
+    </dl>
+
+    <div>
+        <button class="btn btn-primary" @onclick="() => NavigateToEdit(payment.Id)">Edit</button>
+        <button class="btn btn-secondary" @onclick="NavigateToList">Back to List</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Payment payment;
+
+    protected override void OnInitialized()
+    {
+        payment = PaymentService.GetPayment(Id);
+
+        if (payment == null)
+        {
+            NavigationManager.NavigateTo("/payments");
+        }
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/payments/edit/{id}");
+    }
+
+    private void NavigateToList()
+    {
+        NavigationManager.NavigateTo("/payments");
+    }
+}

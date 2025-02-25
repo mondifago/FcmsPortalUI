@@ -1,0 +1,86 @@
+﻿@page "/schoolfees"
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<h3>School Fees</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="NavigateToCreate">Add New School Fees</button>
+</div>
+
+@if (schoolFeesList.Count == 0)
+{
+    <p>No school fees records found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Total Amount</th>
+                <th>Total Paid</th>
+                <th>Balance</th>
+                <th>Payments Count</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var fees in schoolFeesList)
+            {
+                <tr>
+                    <td>@fees.Id</td>
+                    <td>@fees.TotalAmount.ToString("C")</td>
+                    <td>@fees.TotalPaid.ToString("C")</td>
+                    <td>@fees.Balance.ToString("C")</td>
+                    <td>@fees.Payments.Count</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" @onclick="() => NavigateToDetails(fees.Id)">Details</button>
+                        <button class="btn btn-warning btn-sm" @onclick="() => NavigateToEdit(fees.Id)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteSchoolFees(fees.Id)">Delete</button>
+                        <button class="btn btn-primary btn-sm" @onclick="() => NavigateToManagePayments(fees.Id)">Manage Payments</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<SchoolFees> schoolFeesList = new List<SchoolFees>();
+
+    protected override void OnInitialized()
+    {
+        // Load data here from preferred data source
+        schoolFeesList = SchoolFeesService.GetAllSchoolFees();
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/schoolfees/create");
+    }
+
+    private void NavigateToDetails(int id)
+    {
+        NavigationManager.NavigateTo($"/schoolfees/details/{id}");
+    }
+
+    private void NavigateToEdit(int id)
+    {
+        NavigationManager.NavigateTo($"/schoolfees/edit/{id}");
+    }
+
+    private void DeleteSchoolFees(int id)
+    {
+        SchoolFeesService.DeleteSchoolFees(id);
+        schoolFeesList = SchoolFeesService.GetAllSchoolFees();
+    }
+
+    private void NavigateToManagePayments(int id)
+    {
+        NavigationManager.NavigateTo($"/schoolfees/{id}/payments");
+    }
+}

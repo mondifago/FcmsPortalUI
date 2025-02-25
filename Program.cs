@@ -3,7 +3,8 @@ using FcmsPortalUI.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<AddressService>();
-builder.Services.AddSingleton<PaymentService>();
+builder.Services.AddScoped<PaymentService>();
+builder.Services.AddScoped<SchoolFeesService>();
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
