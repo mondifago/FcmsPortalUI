@@ -6,6 +6,7 @@ builder.Services.AddSingleton<AddressService>();
 builder.Services.AddScoped<IFileAttachmentService, FileAttachmentService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<SchoolFeesService>();
+builder.Services.AddScoped<GuardianService>();
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

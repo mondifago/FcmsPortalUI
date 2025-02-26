@@ -109,7 +109,7 @@ namespace FcmsPortalUI.Services
                 ".jpg" => "image/jpeg",
                 ".jpeg" => "image/jpeg",
                 ".gif" => "image/gif",
-                _ => "application/octet-stream" // Default binary stream
+                _ => "application/octet-stream"
             };
 
             return Task.FromResult(mimeType);
