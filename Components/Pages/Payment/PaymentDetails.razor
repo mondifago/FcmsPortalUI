@@ -2,6 +2,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
+@using System.Globalization
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -18,7 +19,7 @@ else
         <dd class="col-sm-9">@payment.Id</dd>
 
         <dt class="col-sm-3">Amount</dt>
-        <dd class="col-sm-9">@payment.Amount.ToString("C")</dd>
+        <dd class="col-sm-9">@payment.Amount.ToString("C", new CultureInfo("en-NG"))</dd>
 
         <dt class="col-sm-3">Date</dt>
         <dd class="col-sm-9">@payment.Date.ToShortDateString()</dd>

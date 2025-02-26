@@ -2,6 +2,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
+@using System.Globalization
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -31,12 +32,12 @@ else
 
                 <div class="form-group mb-3">
                     <label>Total Paid:</label>
-                    <input type="text" value="@schoolFees.TotalPaid.ToString("C")" class="form-control" disabled />
+                    <input type="text" value="@schoolFees.TotalPaid.ToString("C", new CultureInfo("en-NG"))" class="form-control" disabled />
                 </div>
 
                 <div class="form-group mb-3">
                     <label>Balance:</label>
-                    <input type="text" value="@schoolFees.Balance.ToString("C")" class="form-control" disabled />
+                    <input type="text" value="@schoolFees.Balance.ToString("C", new CultureInfo("en-NG"))" class="form-control" disabled />
                 </div>
 
                 <button type="submit" class="btn btn-primary">Save</button>

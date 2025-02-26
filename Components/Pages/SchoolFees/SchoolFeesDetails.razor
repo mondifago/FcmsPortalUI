@@ -2,6 +2,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
+@using System.Globalization
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -18,13 +19,13 @@ else
         <dd class="col-sm-9">@schoolFees.Id</dd>
 
         <dt class="col-sm-3">Total Amount</dt>
-        <dd class="col-sm-9">@schoolFees.TotalAmount.ToString("C")</dd>
+        <dd class="col-sm-9">@schoolFees.TotalAmount.ToString("C", new CultureInfo("en-NG"))</dd>
 
         <dt class="col-sm-3">Total Paid</dt>
-        <dd class="col-sm-9">@schoolFees.TotalPaid.ToString("C")</dd>
+        <dd class="col-sm-9">@schoolFees.TotalPaid.ToString("C", new CultureInfo("en-NG"))</dd>
 
         <dt class="col-sm-3">Balance</dt>
-        <dd class="col-sm-9">@schoolFees.Balance.ToString("C")</dd>
+        <dd class="col-sm-9">@schoolFees.Balance.ToString("C", new CultureInfo("en-NG"))</dd>
     </dl>
 
     <h4>Payments</h4>
@@ -50,7 +51,7 @@ else
                 {
                     <tr>
                         <td>@payment.Id</td>
-                        <td>@payment.Amount.ToString("C")</td>
+                        <td>@payment.Amount.ToString("C", new CultureInfo("en-NG"))</td>
                         <td>@payment.Date.ToShortDateString()</td>
                         <td>@payment.PaymentMethod</td>
                         <td>@payment.Reference</td>

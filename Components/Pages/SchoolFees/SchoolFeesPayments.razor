@@ -2,6 +2,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
+@using System.Globalization
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -18,9 +19,9 @@ else
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Summary</h5>
-                    <p class="card-text">Total Amount: <strong>@schoolFees.TotalAmount.ToString("C")</strong></p>
-                    <p class="card-text">Total Paid: <strong>@schoolFees.TotalPaid.ToString("C")</strong></p>
-                    <p class="card-text">Balance: <strong>@schoolFees.Balance.ToString("C")</strong></p>
+                    <p class="card-text">Total Amount: <strong>@schoolFees.TotalAmount.ToString("C", new CultureInfo("en-NG"))</strong></p>
+                    <p class="card-text">Total Paid: <strong>@schoolFees.TotalPaid.ToString("C", new CultureInfo("en-NG"))</strong></p>
+                    <p class="card-text">Balance: <strong>@schoolFees.Balance.ToString("C", new CultureInfo("en-NG"))</strong></p>
                 </div>
             </div>
         </div>
@@ -87,7 +88,7 @@ else
                         {
                             <tr>
                                 <td>@payment.Id</td>
-                                <td>@payment.Amount.ToString("C")</td>
+                                <td>@payment.Amount.ToString("C", new CultureInfo("en-NG"))</td>
                                 <td>@payment.Date.ToShortDateString()</td>
                                 <td>@payment.PaymentMethod</td>
                                 <td>@payment.Reference</td>

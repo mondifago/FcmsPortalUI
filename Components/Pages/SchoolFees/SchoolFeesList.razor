@@ -2,6 +2,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
+@using System.Globalization
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -33,9 +34,9 @@ else
             {
                 <tr>
                     <td>@fees.Id</td>
-                    <td>@fees.TotalAmount.ToString("C")</td>
-                    <td>@fees.TotalPaid.ToString("C")</td>
-                    <td>@fees.Balance.ToString("C")</td>
+                    <td>@fees.TotalAmount.ToString("C", new CultureInfo("en-NG"))</td>
+                    <td>@fees.TotalPaid.ToString("C", new CultureInfo("en-NG"))</td>
+                    <td>@fees.Balance.ToString("C", new CultureInfo("en-NG"))</td>
                     <td>@fees.Payments.Count</td>
                     <td>
                         <button class="btn btn-info btn-sm" @onclick="() => NavigateToDetails(fees.Id)">Details</button>
