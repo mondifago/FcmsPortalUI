@@ -1,0 +1,352 @@
+﻿@rendermode InteractiveServer
+@using FcmsPortal.Constants
+@using FcmsPortal.Models
+@using FcmsPortalUI.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
+@inject IFileAttachmentService FileService
+@inject IJSRuntime JSRuntime
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">@Title</h5>
+        @if (AllowUpload)
+        {
+            <button class="btn btn-sm btn-primary" @onclick="ToggleUploadForm">
+                <span class="oi oi-plus"></span> Add File
+            </button>
+        }
+    </div>
+
+    <div class="card-body">
+        @if (ShowUploadForm)
+        {
+            <div class="upload-form mb-4 p-3 border rounded">
+                <div class="form-group mb-3">
+                    <InputFile OnChange="OnInputFileChange" multiple="@AllowMultiple" class="form-control" />
+                    <small class="form-text text-muted">Maximum file size: @(FcmsConstants.MAX_FILE_SIZE / (1024 * 1024))MB</small>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-secondary me-2" @onclick="ToggleUploadForm">Cancel</button>
+                    <button class="btn btn-success" @onclick="UploadSelectedFiles" disabled="@(!HasSelectedFiles)">Upload</button>
+                </div>
+
+                @if (SelectedFiles.Count > 0)
+                {
+                    <div class="mt-3">
+                        <h6>Selected Files:</h6>
+                        <ul class="list-group">
+                            @foreach (var file in SelectedFiles)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span>@file.Name</span>
+                                        <small class="text-muted ms-2">(@string.Format("{0:F2}", file.Size / 1024.0 / 1024.0)MB)</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => RemoveSelectedFile(file)">
+                                        <span class="oi oi-x"></span>
+                                    Cancel</button>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (IsLoading)
+        {
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else if (Attachments.Count == 0)
+        {
+            <div class="alert alert-info">
+                No files have been attached yet.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Size</th>
+                            <th>Upload Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var attachment in Attachments)
+                        {
+                            <tr>
+                                <td>@attachment.FileName</td>
+                                <td>@FormatFileSize(attachment.FileSize)</td>
+                                <td>@attachment.UploadDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => DownloadFile(attachment)">
+                                            <span class="oi oi-cloud-download"></span>
+                                        Download</button>
+                                        @if (AllowDelete)
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(attachment)">
+                                                <span class="oi oi-trash"></span>
+                                            Delete</button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger mt-3">
+                @ErrorMessage
+            </div>
+        }
+
+        @if (ShowDeleteConfirmation)
+        {
+            <div class="modal fade show" style="display: block" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Delete</h5>
+                            <button type="button" class="btn-close" @onclick="CancelDelete"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete the file "@(FileToDelete?.FileName)"?</p>
+                            <p class="text-danger">This action cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                            <button type="button" class="btn btn-danger" @onclick="DeleteFile">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade show"></div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "File Attachments";
+    [Parameter] public string Category { get; set; } = "default";
+    [Parameter] public int ReferenceId { get; set; }
+    [Parameter] public bool AllowUpload { get; set; } = true;
+    [Parameter] public bool AllowDelete { get; set; } = true;
+    [Parameter] public bool AllowMultiple { get; set; } = true;
+    [Parameter] public EventCallback<List<FileAttachment>> OnAttachmentsChanged { get; set; }
+
+    private List<FileAttachment> Attachments { get; set; } = new List<FileAttachment>();
+    private List<IBrowserFile> SelectedFiles { get; set; } = new List<IBrowserFile>();
+    private bool ShowUploadForm { get; set; } = false;
+    private bool IsLoading { get; set; } = false;
+    private string ErrorMessage { get; set; } = "";
+    private bool HasSelectedFiles => SelectedFiles.Count > 0;
+    private bool ShowDeleteConfirmation { get; set; } = false;
+    private FileAttachment FileToDelete { get; set; }
+    private bool IsJsInitialized { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAttachments();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !IsJsInitialized)
+        {
+            await EnsureJsFunction();
+            IsJsInitialized = true;
+        }
+    }
+
+    private async Task EnsureJsFunction()
+    {
+        // Register JS download function if not already available
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            window.downloadFileFromStream = function(fileName, contentType, content) {
+                const blob = new Blob([content], { type: contentType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        ");
+    }
+
+    private async Task LoadAttachments()
+    {
+        IsLoading = true;
+        ErrorMessage = "";
+
+        try
+        {
+            Attachments = await FileService.GetAttachmentsAsync(Category, ReferenceId);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading attachments: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ToggleUploadForm()
+    {
+        ShowUploadForm = !ShowUploadForm;
+        SelectedFiles.Clear();
+        ErrorMessage = "";
+    }
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        ErrorMessage = "";
+
+        foreach (var file in e.GetMultipleFiles())
+        {
+            if (file.Size > FcmsConstants.MAX_FILE_SIZE)
+            {
+                ErrorMessage = $"File '{file.Name}' exceeds the maximum allowed size of {FcmsConstants.MAX_FILE_SIZE / (1024 * 1024)}MB.";
+                return;
+            }
+
+            if (!SelectedFiles.Any(f => f.Name == file.Name && f.Size == file.Size))
+            {
+                SelectedFiles.Add(file);
+            }
+        }
+    }
+
+    private void RemoveSelectedFile(IBrowserFile file)
+    {
+        SelectedFiles.Remove(file);
+    }
+
+    private async Task UploadSelectedFiles()
+    {
+        if (!SelectedFiles.Any()) return;
+
+        IsLoading = true;
+        ErrorMessage = "";
+
+        try
+        {
+            foreach (var file in SelectedFiles)
+            {
+                var attachment = await FileService.UploadFileAsync(file, Category);
+                await FileService.SaveAttachmentReferenceAsync(attachment, Category, ReferenceId);
+                Attachments.Add(attachment);
+            }
+
+            SelectedFiles.Clear();
+            ShowUploadForm = false;
+            await OnAttachmentsChanged.InvokeAsync(Attachments);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error uploading files: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task DownloadFile(FileAttachment attachment)
+    {
+        try
+        {
+            IsLoading = true;
+
+            byte[] fileContent = await FileService.GetFileContentAsync(attachment);
+            string contentType = await FileService.GetFileTypeAsync(attachment);
+
+            await JSRuntime.InvokeVoidAsync(
+                "downloadFileFromStream",
+                attachment.FileName,
+                contentType,
+                fileContent);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error downloading file: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void ConfirmDelete(FileAttachment attachment)
+    {
+        FileToDelete = attachment;
+        ShowDeleteConfirmation = true;
+    }
+
+    private void CancelDelete()
+    {
+        FileToDelete = null;
+        ShowDeleteConfirmation = false;
+    }
+
+    private async Task DeleteFile()
+    {
+        if (FileToDelete == null) return;
+
+        IsLoading = true;
+        ErrorMessage = "";
+
+        try
+        {
+            await FileService.DeleteFileAsync(FileToDelete);
+            Attachments.Remove(FileToDelete);
+            ShowDeleteConfirmation = false;
+            FileToDelete = null;
+            await OnAttachmentsChanged.InvokeAsync(Attachments);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error deleting file: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] suffixes = { "B", "KB", "MB", "GB" };
+        int i = 0;
+        double size = bytes;
+
+        while (size >= 1024 && i < suffixes.Length - 1)
+        {
+            size /= 1024;
+            i++;
+        }
+
+        return $"{size:F2} {suffixes[i]}";
+    }
+}

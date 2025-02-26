@@ -1,8 +1,9 @@
-using FcmsPortal.Services;
 using FcmsPortalUI.Components;
+using FcmsPortalUI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<AddressService>();
+builder.Services.AddScoped<IFileAttachmentService, FileAttachmentService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<SchoolFeesService>();
 builder.Services.AddQuickGridEntityFrameworkAdapter();

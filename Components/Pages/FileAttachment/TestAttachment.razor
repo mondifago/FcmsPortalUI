@@ -1,0 +1,39 @@
+﻿@page "/test-attachments"
+@using FcmsPortal.Models
+
+<h3>Test File Attachments</h3>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <FileAttachmentManager Title="Test Attachments"
+                                   Category="test-category"
+                                   ReferenceId="1"
+                                   AllowUpload="true"
+                                   AllowDelete="true"
+                                   AllowMultiple="true"
+                                   OnAttachmentsChanged="HandleAttachmentsChanged" />
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(StatusMessage))
+    {
+        <div class="row mt-3">
+            <div class="col-md-8">
+                <div class="alert alert-info">
+                    @StatusMessage
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string StatusMessage { get; set; } = "";
+
+    private async Task HandleAttachmentsChanged(List<FileAttachment> attachments)
+    {
+        StatusMessage = $"Attachments updated! Total count: {attachments.Count}";
+        await Task.CompletedTask;
+    }
+}
