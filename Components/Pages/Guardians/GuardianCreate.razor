@@ -1,0 +1,294 @@
+﻿@page "/guardians/create"
+@inject GuardianService GuardianService
+@inject AddressService AddressService
+@inject NavigationManager NavigationManager
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Services
+@rendermode InteractiveServer
+
+<PageTitle>Add New Guardian</PageTitle>
+
+<div class="container">
+    <h1>Add New Guardian</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <EditForm Model="newGuardian" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="row">
+                    <div class="col-md-12 mb-4 text-center">
+                        <div class="mb-3">
+                            <label for="profilePicture" class="form-label">Profile Picture</label>
+                            <div class="d-flex justify-content-center">
+                                <div class="position-relative" style="width: 150px; height: 150px;">
+                                    @if (!string.IsNullOrEmpty(profilePictureUrl))
+                                    {
+                                        <img src="@profilePictureUrl" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;" alt="Profile Picture" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light rounded-circle d-flex justify-content-center align-items-center" style="width: 150px; height: 150px;">
+                                            <i class="oi oi-person" style="font-size: 3rem;"></i>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <InputFile OnChange="HandleFileSelection" class="form-control mt-2" accept="image/*" />
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="mb-3">Personal Information</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <InputText id="firstName" class="form-control" @bind-Value="newGuardian.Person.FirstName" />
+                        <ValidationMessage For="@(() => newGuardian.Person.FirstName)" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="middleName" class="form-label">Middle Name</label>
+                        <InputText id="middleName" class="form-control" @bind-Value="newGuardian.Person.MiddleName" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <InputText id="lastName" class="form-control" @bind-Value="newGuardian.Person.LastName" />
+                        <ValidationMessage For="@(() => newGuardian.Person.LastName)" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="gender" class="form-label">Gender</label>
+                        <InputSelect id="gender" class="form-select" @bind-Value="newGuardian.Person.Sex">
+                            <option value="">-- Select Gender --</option>
+                            @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                            {
+                                <option value="@gender">@gender</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => newGuardian.Person.Sex)" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="stateOfOrigin" class="form-label">State of Origin</label>
+                        <InputText id="stateOfOrigin" class="form-control" @bind-Value="newGuardian.Person.StateOfOrigin" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
+                        <InputText id="lgaOfOrigin" class="form-control" @bind-Value="newGuardian.Person.LgaOfOrigin" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <InputText id="email" class="form-control" @bind-Value="newGuardian.Person.Email" />
+                        <ValidationMessage For="@(() => newGuardian.Person.Email)" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                        <InputText id="phoneNumber" class="form-control" @bind-Value="phoneNumber" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="nextOfKinContact" class="form-label">Next of Kin Contact</label>
+                        <InputText id="nextOfKinContact" class="form-control" @bind-Value="newGuardian.Person.NextOfKinContactDetails" />
+                    </div>
+                </div>
+
+                <h4 class="mb-3">Guardian Details</h4>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="relationship" class="form-label">Relationship to Student</label>
+                        <InputSelect id="relationship" class="form-select" @bind-Value="newGuardian.RelationshipToStudent">
+                            <option value="">-- Select Relationship --</option>
+                            @foreach (var relationship in Enum.GetValues(typeof(Relationship)))
+                            {
+                                <option value="@relationship">@relationship</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => newGuardian.RelationshipToStudent)" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="occupation" class="form-label">Occupation</label>
+                        <InputText id="occupation" class="form-control" @bind-Value="newGuardian.Occupation" />
+                        <ValidationMessage For="@(() => newGuardian.Occupation)" />
+                    </div>
+                </div>
+
+                <h4 class="mb-3">Address Information</h4>
+                @if (showAddressForm)
+                {
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Add New Address</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="street" class="form-label">Street</label>
+                                    <InputText id="street" class="form-control" @bind-Value="newAddress.Street" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="city" class="form-label">City</label>
+                                    <InputText id="city" class="form-control" @bind-Value="newAddress.City" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="state" class="form-label">State</label>
+                                    <InputText id="state" class="form-control" @bind-Value="newAddress.State" />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="postalCode" class="form-label">Postal Code</label>
+                                    <InputText id="postalCode" class="form-control" @bind-Value="newAddress.PostalCode" />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="country" class="form-label">Country</label>
+                                    <InputText id="country" class="form-control" @bind-Value="newAddress.Country" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="addressType" class="form-label">Address Type</label>
+                                    <InputSelect id="addressType" class="form-select" @bind-Value="newAddress.AddressType">
+                                        @foreach (AddressType type in Enum.GetValues(typeof(AddressType)))
+                                        {
+                                            <option value="@type">@type</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-success" @onclick="AddAddress">Save Address</button>
+                                <button type="button" class="btn btn-secondary" @onclick="CancelAddAddress">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-outline-primary mb-3" @onclick="ShowAddressForm">
+                        <i class="oi oi-plus"></i> Add Address
+                    </button>
+                }
+
+                @if (addresses.Any())
+                {
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Street</th>
+                                    <th>City</th>
+                                    <th>State</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var address in addresses)
+                                {
+                                    <tr>
+                                        <td>@address.AddressType</td>
+                                        <td>@address.Street</td>
+                                        <td>@address.City</td>
+                                        <td>@address.State</td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveAddress(address)">
+                                                <i class="oi oi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Save Guardian</button>
+                    <a href="/guardians" class="btn btn-secondary">Cancel</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Guardian newGuardian = new Guardian
+        {
+            Person = new Person
+            {
+                Addresses = new List<Address>()
+            }
+        };
+
+    private string phoneNumber = "";
+    private List<Address> addresses = new List<Address>();
+    private Address newAddress = new Address();
+    private bool showAddressForm = false;
+    private string profilePictureUrl = "";
+    private IBrowserFile profilePictureFile;
+
+    private void ShowAddressForm()
+    {
+        showAddressForm = true;
+        newAddress = new Address();
+    }
+
+    private void CancelAddAddress()
+    {
+        showAddressForm = false;
+    }
+
+    private void AddAddress()
+    {
+        addresses.Add(new Address
+            {
+                Street = newAddress.Street,
+                City = newAddress.City,
+                State = newAddress.State,
+                PostalCode = newAddress.PostalCode,
+                Country = newAddress.Country,
+                AddressType = newAddress.AddressType
+            });
+
+        showAddressForm = false;
+    }
+
+    private void RemoveAddress(Address address)
+    {
+        addresses.Remove(address);
+    }
+
+    private async Task HandleFileSelection(InputFileChangeEventArgs e)
+    {
+        profilePictureFile = e.File;
+
+        // Create a temporary URL for display
+        var buffer = new byte[profilePictureFile.Size];
+        await profilePictureFile.OpenReadStream().ReadAsync(buffer);
+        var imageType = profilePictureFile.ContentType;
+        profilePictureUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffer)}";
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (!string.IsNullOrEmpty(phoneNumber))
+        {
+            newGuardian.Person.PhoneNumber = new List<string> { phoneNumber };
+        }
+
+        newGuardian.Person.Addresses = addresses;
+
+        if (profilePictureFile != null)
+        {
+            // In a real application, you would upload the file to a server and get a URL
+            // This is a simplified example
+            newGuardian.Person.ProfilePictureUrl = profilePictureUrl;
+        }
+
+        await GuardianService.AddGuardianAsync(newGuardian);
+        NavigationManager.NavigateTo("/guardians");
+    }
+}
