@@ -101,8 +101,8 @@
                             <InputText id="phoneNumber" class="form-control" @bind-Value="phoneNumber" />
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="nextOfKinContact" class="form-label">Next of Kin Contact</label>
-                            <InputText id="nextOfKinContact" class="form-control" @bind-Value="guardian.Person.NextOfKinContactDetails" />
+                            <label for="EmergencyContact" class="form-label">Emergency Contact</label>
+                            <InputText id="EmergencyContact" class="form-control" @bind-Value="guardian.Person.EmergencyContact" />
                         </div>
                     </div>
 
@@ -262,9 +262,9 @@
         }
         
         // Set the phone number field if available
-        if (guardian.Person.PhoneNumber != null && guardian.Person.PhoneNumber.Any())
+        if (!string.IsNullOrWhiteSpace(guardian.Person.PhoneNumber))
         {
-            phoneNumber = guardian.Person.PhoneNumber.First();
+            phoneNumber = guardian.Person.PhoneNumber;
         }
     }
 
@@ -315,7 +315,7 @@
         // Update phone number
         if (!string.IsNullOrEmpty(phoneNumber))
         {
-            guardian.Person.PhoneNumber = new List<string> { phoneNumber };
+            guardian.Person.PhoneNumber = phoneNumber;
         }
         
         // Update addresses

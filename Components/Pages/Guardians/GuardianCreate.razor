@@ -89,11 +89,12 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="phoneNumber" class="form-label">Phone Number</label>
-                        <InputText id="phoneNumber" class="form-control" @bind-Value="phoneNumber" />
+                        <InputText id="phoneNumber" class="form-control" @bind-Value="newGuardian.Person.PhoneNumber" />
+                        <ValidationMessage For="@(() => newGuardian.Person.PhoneNumber)" />
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="nextOfKinContact" class="form-label">Next of Kin Contact</label>
-                        <InputText id="nextOfKinContact" class="form-control" @bind-Value="newGuardian.Person.NextOfKinContactDetails" />
+                        <label for="EmergencyContact" class="form-label">Emergency Contact</label>
+                        <InputText id="EmergencyContact" class="form-control" @bind-Value="newGuardian.Person.EmergencyContact" />
                     </div>
                 </div>
 
@@ -219,11 +220,11 @@
         {
             Person = new Person
             {
-                Addresses = new List<Address>()
+                Addresses = new List<Address>(),
+                PhoneNumber = ""
             }
         };
 
-    private string phoneNumber = "";
     private List<Address> addresses = new List<Address>();
     private Address newAddress = new Address();
     private bool showAddressForm = false;
@@ -274,11 +275,6 @@
 
     private async Task HandleSubmit()
     {
-        if (!string.IsNullOrEmpty(phoneNumber))
-        {
-            newGuardian.Person.PhoneNumber = new List<string> { phoneNumber };
-        }
-
         newGuardian.Person.Addresses = addresses;
 
         if (profilePictureFile != null)
