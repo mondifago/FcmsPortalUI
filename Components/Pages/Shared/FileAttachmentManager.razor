@@ -15,7 +15,7 @@
         @if (AllowUpload)
         {
             <button class="btn btn-sm btn-primary" @onclick="ToggleUploadForm">
-                <span class="oi oi-plus"></span> Add File
+                <span class="fa fa-plus"></span> Add File
             </button>
         }
     </div>
@@ -98,7 +98,7 @@
                                         @if (AllowDelete)
                                         {
                                             <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(attachment)">
-                                                <span class="oi oi-trash"></span>
+                                                <span class="fa fa-trash"></span>
                                             Delete</button>
                                         }
                                     </div>
