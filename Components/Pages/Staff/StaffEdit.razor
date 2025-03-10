@@ -1,0 +1,54 @@
+﻿@page "/staff/edit/{Id:int}"
+@using FcmsPortal.Models
+@using FcmsPortalUI.Services
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject StaffService StaffService
+
+<h3>Edit Staff</h3>
+
+@if (staff == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <StaffForm Model="@staff"
+               SubmitButtonText="Update Staff"
+               OnSubmit="UpdateStaff"
+               OnCancel="CancelEdit" />
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Staff? staff;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStaffMember();
+    }
+
+    private async Task LoadStaffMember()
+    {
+        staff = await StaffService.GetStaffByIdAsync(Id);
+
+        if (staff == null)
+        {
+            // Handle the case when staff is not found
+            NavigationManager.NavigateTo("/staff");
+        }
+    }
+
+    private async Task UpdateStaff(Staff updatedStaff)
+    {
+        await StaffService.UpdateStaffAsync(updatedStaff);
+        NavigationManager.NavigateTo("/staff");
+    }
+
+    private void CancelEdit()
+    {
+        NavigationManager.NavigateTo("/staff");
+    }
+}
