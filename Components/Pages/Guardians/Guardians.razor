@@ -50,13 +50,14 @@
                                 {
                                     <img src="@guardian.Person.ProfilePictureUrl" class="rounded-circle me-2" style="width: 30px; height: 30px;" alt="Profile" />
                                 }
-                                @GetFullName(guardian.Person)
+                                
                             </td>
+                            <td>@GetFullName(guardian.Person)</td>
                             <td>@guardian.Person.Sex</td>
                             <td>@guardian.RelationshipToStudent</td>
                             <td>@guardian.Occupation</td>
                             <td>@guardian.Person.Email</td>
-                            <td>@(guardian.Person.PhoneNumber?.FirstOrDefault() ?? "-")</td>
+                            <td>@(guardian.Person.PhoneNumber)</td>
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="/guardians/details/@guardian.Id" class="btn btn-info btn-sm">
