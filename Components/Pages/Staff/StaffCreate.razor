@@ -1,0 +1,33 @@
+﻿@page "/staff/create"
+@using FcmsPortal.Models
+@using FcmsPortalUI.Services
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject StaffService StaffService
+
+<h3>Create New Staff</h3>
+
+<StaffForm Model="@newStaff"
+           SubmitButtonText="Create Staff"
+           OnSubmit="CreateStaff"
+           OnCancel="CancelCreate" />
+
+@code {
+    private Staff newStaff = new()
+        {
+            Person = new Person { IsActive = true },
+            Qualifications = new List<string>(),
+            WorkExperience = new List<string>()
+        };
+
+    private async Task CreateStaff(Staff staff)
+    {
+        await StaffService.CreateStaffAsync(staff);
+        NavigationManager.NavigateTo("/staff");
+    }
+
+    private void CancelCreate()
+    {
+        NavigationManager.NavigateTo("/staff");
+    }
+}
