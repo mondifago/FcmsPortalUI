@@ -19,7 +19,7 @@
             <h1>Guardian Details</h1>
             <div>
                 <a href="/guardians/edit/@Id" class="btn btn-warning">
-                    <i class="fa fa-pencil"></i> Edit
+                    <i class="oi oi-pencil"></i> Edit
                 </a>
                 <a href="/guardians" class="btn btn-secondary">
                     <i class="oi oi-arrow-left"></i> Back to List
@@ -42,7 +42,7 @@
                             </div>
                         }
                         <h4>@GetFullName(guardian.Person)</h4>
-                        <p class="text-muted">@(guardian.RelationshipToStudent == 0 ? "Not Specified" : guardian.RelationshipToStudent.ToString())</p>
+                        <p class="text-muted">@guardian.RelationshipToStudent</p>
                     </div>
                 </div>
             </div>
@@ -56,41 +56,21 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <h6 class="text-muted">Gender</h6>
-                                <p>@(guardian.Person.Sex == 0 ? "Not Specified" : guardian.Person.Sex.ToString())</p>
+                                <p>@guardian.Person.Sex</p>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <h6 class="text-muted">Occupation</h6>
-                                <p>@(string.IsNullOrEmpty(guardian.Occupation) ? "Not Specified" : guardian.Occupation)</p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">First Name</h6>
-                                <p>@guardian.Person.FirstName</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Middle Name</h6>
-                                <p>@(string.IsNullOrEmpty(guardian.Person.MiddleName) ? "Not Specified" : guardian.Person.MiddleName)</p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Last Name</h6>
-                                <p>@guardian.Person.LastName</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Active Status</h6>
-                                <p>@(guardian.Person.IsActive ? "Active" : "Inactive")</p>
+                                <p>@guardian.Occupation</p>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <h6 class="text-muted">State of Origin</h6>
-                                <p>@guardian.Person.StateOfOrigin</p>
+                                <p>@(string.IsNullOrEmpty(guardian.Person.StateOfOrigin) ? "Not Specified" : guardian.Person.StateOfOrigin)</p>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <h6 class="text-muted">LGA of Origin</h6>
-                                <p>@guardian.Person.LgaOfOrigin</p>
+                                <p>@(string.IsNullOrEmpty(guardian.Person.LgaOfOrigin) ? "Not Specified" : guardian.Person.LgaOfOrigin)</p>
                             </div>
                         </div>
                     </div>
@@ -107,7 +87,7 @@
                                 <p>@guardian.Person.Email</p>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Phone Number</h6>
+                                <h6 class="text-muted">Phone</h6>
                                 <p>@guardian.Person.PhoneNumber</p>
                             </div>
                         </div>
@@ -120,7 +100,7 @@
                     </div>
                 </div>
 
-                @if (guardian.Person.Addresses.Any())
+                @if (guardian.Person.Addresses != null && guardian.Person.Addresses.Any())
                 {
                     <div class="card">
                         <div class="card-header">
@@ -146,7 +126,6 @@
                                             <div class="accordion-body">
                                                 <div class="row">
                                                     <div class="col-md-12">
-                                                        <p><strong>Type:</strong> @address.AddressType</p>
                                                         <p><strong>Street:</strong> @address.Street</p>
                                                         <p><strong>City:</strong> @address.City</p>
                                                         <p><strong>State:</strong> @address.State</p>
@@ -166,19 +145,28 @@
         </div>
     }
 </div>
+
 @code {
     [Parameter]
     public int Id { get; set; }
 
     private Guardian guardian;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        guardian = GuardianService.GetGuardianById(Id);
+        guardian = await GuardianService.GetGuardianByIdAsync(Id);
+
+        if (guardian == null)
+        {
+            NavigationManager.NavigateTo("/guardians");
+        }
     }
 
     private string GetFullName(Person person)
     {
-        return $"{person.FirstName} {(string.IsNullOrEmpty(person.MiddleName) ? "" : person.MiddleName + " ")}{person.LastName}";
+        if (person == null) return "-";
+
+        string middleName = string.IsNullOrEmpty(person.MiddleName) ? "" : $" {person.MiddleName}";
+        return $"{person.FirstName}{middleName} {person.LastName}";
     }
 }

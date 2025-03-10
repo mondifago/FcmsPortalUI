@@ -32,12 +32,12 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th>ID</th>
+                        <th>Profile</th>
                         <th>Name</th>
-                        <th>Gender</th>
-                        <th>Relationship to Student</th>
-                        <th>Occupation</th>
                         <th>Email</th>
                         <th>Phone</th>
+                        <th>status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -45,6 +45,7 @@
                     @foreach (var guardian in guardians)
                     {
                         <tr>
+                            <td>@guardian.Id</td>
                             <td>
                                 @if (!string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl))
                                 {
@@ -53,11 +54,9 @@
                                 
                             </td>
                             <td>@GetFullName(guardian.Person)</td>
-                            <td>@guardian.Person.Sex</td>
-                            <td>@guardian.RelationshipToStudent</td>
-                            <td>@guardian.Occupation</td>
                             <td>@guardian.Person.Email</td>
-                            <td>@(guardian.Person.PhoneNumber)</td>
+                            <td>@guardian.Person.PhoneNumber</td>
+                            <td>@guardian.Person.IsActive</td>
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="/guardians/details/@guardian.Id" class="btn btn-info btn-sm">
