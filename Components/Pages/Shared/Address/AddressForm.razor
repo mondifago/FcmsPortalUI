@@ -2,9 +2,10 @@
 @using FcmsPortal.Enums
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm Model="@Model" OnValidSubmit="@OnValidSubmit">
+<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
+
     <div class="form-group">
         <label>Street</label>
         <InputText class="form-control" @bind-Value="Model.Street" />
@@ -34,16 +35,38 @@
             }
         </InputSelect>
     </div>
+
     <button type="submit" class="btn btn-primary mt-2">@ButtonText</button>
+    @if (OnCancel.HasValue)
+    {
+        <button type="button" class="btn btn-secondary mt-2" @onclick="CancelEdit">Cancel</button>
+    }
 </EditForm>
 
 @code {
-    [Parameter]
-    public Address Model { get; set; }
+    [Parameter, EditorRequired]
+    public Address Model { get; set; } = new();
+
+    [Parameter, EditorRequired]
+    public EventCallback<Address> OnValidSubmit { get; set; }
 
     [Parameter]
-    public EventCallback OnValidSubmit { get; set; }
+    public EventCallback? OnCancel { get; set; } 
 
     [Parameter]
     public string ButtonText { get; set; } = "Submit";
+
+    private async Task HandleValidSubmit()
+    {
+        await OnValidSubmit.InvokeAsync(Model);
+    }
+
+    private async Task CancelEdit()
+    {
+        if (OnCancel.HasValue)
+        {
+            await OnCancel.Value.InvokeAsync(); 
+        }
+    }
 }
+

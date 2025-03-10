@@ -6,6 +6,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
 @using System.ComponentModel.DataAnnotations;
+@using FcmsPortalUI.Components.Pages.Shared.Address
 @rendermode InteractiveServer
 
 <PageTitle>Add New Guardian</PageTitle>
@@ -118,7 +119,40 @@
                 </div>
 
                 <h4 class="mb-3">Address Information</h4>
-                <Address />
+                <!-- Add Address Form -->
+                <AddressForm Model="newAddress" OnValidSubmit="AddAddress" ButtonText="Add Address" />
+                
+                <!-- List of Added Addresses -->
+                @if (newGuardian.Person.Addresses.Any())
+                {
+                    <table class="table mt-3">
+                        <thead>
+                            <tr>
+                                <th>Street</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Postal Code</th>
+                                <th>Country</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var address in newGuardian.Person.Addresses)
+                            {
+                                <tr>
+                                    <td>@address.Street</td>
+                                    <td>@address.City</td>
+                                    <td>@address.State</td>
+                                    <td>@address.PostalCode</td>
+                                    <td>@address.Country</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" @onclick="() => RemoveAddress(address)">Remove</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
 
                 <div class="d-flex gap-2 mt-4">
                     <button type="submit" class="btn btn-primary">Save Guardian</button>
@@ -133,20 +167,37 @@
     private Guardian newGuardian = new Guardian { Person = new Person { Addresses = new List<Address>(), IsActive = true } };
     private string profilePictureUrl = "";
     private IBrowserFile? profilePictureFile;
+    private Address newAddress = new();
+
+    private void AddAddress()
+    {
+        newGuardian.Person.Addresses.Add(new Address
+            {
+                Street = newAddress.Street,
+                City = newAddress.City,
+                State = newAddress.State,
+                PostalCode = newAddress.PostalCode,
+                Country = newAddress.Country,
+                AddressType = newAddress.AddressType
+            });
+
+        newAddress = new Address(); 
+    }
+
+    private void RemoveAddress(Address address)
+    {
+        newGuardian.Person.Addresses.Remove(address);
+    }
 
     private async Task HandleFileSelection(InputFileChangeEventArgs e)
     {
         profilePictureFile = e.File;
         if (profilePictureFile != null && profilePictureFile.ContentType.StartsWith("image/"))
         {
-            const long maxSize = 1024 * 1024;
-            if (profilePictureFile.Size <= maxSize)
-            {
-                var buffer = new byte[profilePictureFile.Size];
-                await profilePictureFile.OpenReadStream(maxSize).ReadAsync(buffer);
-                profilePictureUrl = $"data:{profilePictureFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
-                newGuardian.Person.ProfilePictureUrl = profilePictureUrl;
-            }
+            var buffer = new byte[profilePictureFile.Size];
+            await profilePictureFile.OpenReadStream().ReadAsync(buffer);
+            profilePictureUrl = $"data:{profilePictureFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+            newGuardian.Person.ProfilePictureUrl = profilePictureUrl;
         }
     }
 
