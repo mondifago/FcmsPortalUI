@@ -1,138 +1,104 @@
 ﻿@page "/guardians"
 @inject GuardianService GuardianService
+@inject NavigationManager NavigationManager
 @using FcmsPortal.Models
-@using FcmsPortal.Enums
 @using FcmsPortalUI.Services
+@using FcmsPortalUI.Components.Pages.Shared.DeleteConfirmation
 @rendermode InteractiveServer
 
 <PageTitle>Guardians</PageTitle>
 
 <div class="container">
-    <h3>Guardians</h3>
+    <h1>Guardians</h1>
 
-    <div class="mb-3">
-        <a href="/guardians/create" class="btn btn-primary">
-            <i class="fa fa-plus"></i> Add New Guardian
-        </a>
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="/guardians/create" class="btn btn-primary">Add New Guardian</a>
+            </div>
+            @if (guardians.Any())
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Profile Picture</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var guardian in guardians)
+                        {
+                            <tr>
+                                <td>@guardian.Id</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl))
+                                    {
+                                        <img src="@guardian.Person.ProfilePictureUrl" class="rounded-circle" style="width: 30px; height: 30px; object-fit: cover;" alt="Profile" />
+                                    }
+                                    else
+                                    {
+                                        <i class="oi oi-person" style="font-size: 1.5rem;"></i>
+                                    }
+                                </td>
+                                <td>@GetFullName(guardian.Person)</td>
+                                <td>@guardian.Person.Email</td>
+                                <td>@guardian.Person.PhoneNumber</td>
+                                <td>@(guardian.Person.IsActive ? "Active" : "Inactive")</td>
+                                <td>
+                                    <a href="/guardians/details/@guardian.Id" class="btn btn-info btn-sm me-2">View</a>
+                                    <a href="/guardians/edit/@guardian.Id" class="btn btn-warning btn-sm me-2">Edit</a>
+                                    <button class="btn btn-danger btn-sm" @onclick="() => ShowDeleteConfirm(guardian.Id)">Delete</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No guardians found.</p>
+            }
+        </div>
     </div>
 
-    @if (guardians == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else if (!guardians.Any())
-    {
-        <div class="alert alert-info">
-            No guardians found. Add a new guardian to get started.
-        </div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Gender</th>
-                        <th>Relationship to Student</th>
-                        <th>Occupation</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var guardian in guardians)
-                    {
-                        <tr>
-                            <td>
-                                @if (!string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl))
-                                {
-                                    <img src="@guardian.Person.ProfilePictureUrl" class="rounded-circle me-2" style="width: 30px; height: 30px;" alt="Profile" />
-                                }
-                                @GetFullName(guardian.Person)
-                            </td>
-                            <td>@guardian.Person.Sex</td>
-                            <td>@guardian.RelationshipToStudent</td>
-                            <td>@guardian.Occupation</td>
-                            <td>@guardian.Person.Email</td>
-                            <td>@(guardian.Person.PhoneNumber ?? "-")</td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="/guardians/details/@guardian.Id" class="btn btn-info btn-sm">
-                                        <i class="fa fa-eye"></i> View
-                                    </a>
-                                    <a href="/guardians/edit/@guardian.Id" class="btn btn-warning btn-sm">
-                                        <i class="fa fa-pencil"></i> Edit
-                                    </a>
-                                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteGuardian(guardian.Id)">
-                                        <i class="fa fa-trash"></i> Delete
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-
-    @if (showDeleteConfirmation)
-    {
-        <div class="modal" tabindex="-1" style="display:block">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirm Delete</h5>
-                        <button type="button" class="btn-close" @onclick="CancelDelete"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to delete this guardian?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
-                        <button type="button" class="btn btn-danger" @onclick="ConfirmDelete">Delete</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-backdrop fade show"></div>
-    }
+    <ConfirmDeleteModal IsVisible="@showDeleteConfirm" OnConfirm="HandleDeleteConfirm" OnCancel="HandleDeleteCancel" Message="Are you sure you want to delete this guardian?" />
 </div>
 
 @code {
-    private List<Guardian> guardians;
+    private List<Guardian> guardians = new();
+    private bool showDeleteConfirm = false;
     private int guardianIdToDelete;
-    private bool showDeleteConfirmation = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        guardians = await GuardianService.GetGuardiansAsync();
+        guardians = GuardianService.GetGuardians();
+    }
+
+    private void ShowDeleteConfirm(int id)
+    {
+        guardianIdToDelete = id;
+        showDeleteConfirm = true;
+    }
+
+    private void HandleDeleteConfirm()
+    {
+        GuardianService.DeleteGuardian(guardianIdToDelete);
+        guardians = GuardianService.GetGuardians();
+        showDeleteConfirm = false;
+    }
+
+    private void HandleDeleteCancel()
+    {
+        showDeleteConfirm = false;
     }
 
     private string GetFullName(Person person)
     {
-        if (person == null) return "-";
-
-        string middleName = string.IsNullOrEmpty(person.MiddleName) ? "" : $" {person.MiddleName}";
-        return $"{person.FirstName}{middleName} {person.LastName}";
-    }
-
-    private void DeleteGuardian(int id)
-    {
-        guardianIdToDelete = id;
-        showDeleteConfirmation = true;
-    }
-
-    private async Task ConfirmDelete()
-    {
-        await GuardianService.DeleteGuardianAsync(guardianIdToDelete);
-        showDeleteConfirmation = false;
-        guardians = await GuardianService.GetGuardiansAsync();
-    }
-
-    private void CancelDelete()
-    {
-        showDeleteConfirmation = false;
+        return $"{person.FirstName} {(string.IsNullOrEmpty(person.MiddleName) ? "" : person.MiddleName + " ")}{person.LastName}";
     }
 }
