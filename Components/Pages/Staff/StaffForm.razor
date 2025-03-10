@@ -1,0 +1,327 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using Microsoft.AspNetCore.Components.Forms
+
+@rendermode InteractiveServer
+
+<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Personal Information</h4>
+            
+            <div class="mb-3">
+                <label for="profilePicture" class="form-label">Profile Picture URL</label>
+                <InputText id="profilePicture" class="form-control" @bind-Value="Model.Person.ProfilePictureUrl" />
+                <ValidationMessage For="@(() => Model.Person.ProfilePictureUrl)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="firstName" class="form-label">First Name</label>
+                <InputText id="firstName" class="form-control" @bind-Value="Model.Person.FirstName" />
+                <ValidationMessage For="@(() => Model.Person.FirstName)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="middleName" class="form-label">Middle Name</label>
+                <InputText id="middleName" class="form-control" @bind-Value="Model.Person.MiddleName" />
+                <ValidationMessage For="@(() => Model.Person.MiddleName)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="lastName" class="form-label">Last Name</label>
+                <InputText id="lastName" class="form-control" @bind-Value="Model.Person.LastName" />
+                <ValidationMessage For="@(() => Model.Person.LastName)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="gender" class="form-label">Gender</label>
+                <InputSelect id="gender" class="form-select" @bind-Value="Model.Person.Sex">
+                    @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                    {
+                        <option value="@gender">@gender</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="mb-3">
+                <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                <InputDate id="dateOfBirth" class="form-control" @bind-Value="Model.Person.DateOfBirth" />
+                <ValidationMessage For="@(() => Model.Person.DateOfBirth)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="stateOfOrigin" class="form-label">State of Origin</label>
+                <InputText id="stateOfOrigin" class="form-control" @bind-Value="Model.Person.StateOfOrigin" />
+                <ValidationMessage For="@(() => Model.Person.StateOfOrigin)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
+                <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Model.Person.LgaOfOrigin" />
+                <ValidationMessage For="@(() => Model.Person.LgaOfOrigin)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <InputText id="email" class="form-control" @bind-Value="Model.Person.Email" />
+                <ValidationMessage For="@(() => Model.Person.Email)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="phoneNumber" class="form-label">Phone Number</label>
+                <InputText id="phoneNumber" class="form-control" @bind-Value="Model.Person.PhoneNumber" />
+                <ValidationMessage For="@(() => Model.Person.PhoneNumber)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                <InputText id="emergencyContact" class="form-control" @bind-Value="Model.Person.EmergencyContact" />
+                <ValidationMessage For="@(() => Model.Person.EmergencyContact)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="educationLevel" class="form-label">Education Level</label>
+                <InputSelect id="educationLevel" class="form-select" @bind-Value="Model.Person.EducationLevel">
+                    @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+                    {
+                        <option value="@level">@level</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="mb-3 form-check">
+                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Model.Person.IsActive" />
+                <label class="form-check-label" for="isActive">Active</label>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h4>Professional Information</h4>
+            
+            <div class="mb-3">
+                <label for="jobRole" class="form-label">Job Role</label>
+                <InputSelect id="jobRole" class="form-select" @bind-Value="Model.JobRole">
+                    @foreach (var role in Enum.GetValues(typeof(JobRole)))
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="mb-3">
+                <label for="jobDescription" class="form-label">Job Description</label>
+                <InputTextArea id="jobDescription" class="form-control" @bind-Value="Model.JobDescription" rows="3" />
+            </div>
+
+            <div class="mb-3">
+                <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
+                <InputText id="areaOfSpecialization" class="form-control" @bind-Value="Model.AreaOfSpecialization" />
+            </div>
+
+            <div class="mb-3">
+                <label for="dateOfEmployment" class="form-label">Date of Employment</label>
+                <InputDate id="dateOfEmployment" class="form-control" @bind-Value="employmentDate" />
+            </div>
+
+            <h5 class="mt-4">Qualifications</h5>
+            @for (int i = 0; i < Model.Qualifications.Count; i++)
+            {
+                var index = i;
+                <div class="mb-2 d-flex">
+                    <InputText class="form-control me-2" @bind-Value="Model.Qualifications[index]" />
+                    <button type="button" class="btn btn-danger" @onclick="() => RemoveQualification(index)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            }
+            <button type="button" class="btn btn-outline-primary mb-3" @onclick="AddQualification">
+                Add Qualification
+            </button>
+
+            <h5 class="mt-4">Work Experience</h5>
+            @for (int i = 0; i < Model.WorkExperience.Count; i++)
+            {
+                var index = i;
+                <div class="mb-2 d-flex">
+                    <InputText class="form-control me-2" @bind-Value="Model.WorkExperience[index]" />
+                    <button type="button" class="btn btn-danger" @onclick="() => RemoveWorkExperience(index)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            }
+            <button type="button" class="btn btn-outline-primary mb-3" @onclick="AddWorkExperience">
+                Add Work Experience
+            </button>
+
+            <h5 class="mt-4">Address</h5>
+            @if (showAddressForm)
+            {
+                <div class="border p-3 mb-3">
+                    <AddressForm 
+                        Model="@currentAddress"
+                        OnValidSubmit="SaveAddress"
+                        OnCancel="CancelAddressEdit"
+                        ButtonText="Add Address" />
+                </div>
+            }
+            else
+            {
+                <button type="button" class="btn btn-outline-primary mb-3" @onclick="ShowAddressForm">
+                    Add New Address
+                </button>
+            }
+
+            @if (Model.Person.Addresses.Any())
+            {
+                <div class="list-group mb-3">
+                    @foreach (var address in Model.Person.Addresses)
+                    {
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6>@address.AddressType</h6>
+                                    <p class="mb-0">
+                                        @address.Street, @address.City, @address.State, @address.PostalCode, @address.Country
+                                    </p>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            @onclick="() => RemoveAddress(address)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <button type="submit" class="btn btn-primary me-2">@SubmitButtonText</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public Staff Model { get; set; } = new()
+    {
+        Person = new Person(),
+        Qualifications = new List<string>(),
+        WorkExperience = new List<string>()
+    };
+
+    [Parameter]
+    public string SubmitButtonText { get; set; } = "Save";
+
+    [Parameter, EditorRequired]
+    public EventCallback<Staff> OnSubmit { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnCancel { get; set; }
+
+    private DateTime employmentDate;
+    private bool showAddressForm = false;
+    private Address currentAddress = new();
+
+    protected override void OnInitialized()
+    {
+        // Initialize employment date from DateOnly
+        if (Model.DateOfEmployment != default)
+        {
+            employmentDate = new DateTime(
+                Model.DateOfEmployment.Year,
+                Model.DateOfEmployment.Month,
+                Model.DateOfEmployment.Day
+            );
+        }
+        else
+        {
+            employmentDate = DateTime.Today;
+        }
+
+        // Initialize lists if null
+        if (Model.Qualifications == null)
+            Model.Qualifications = new List<string>();
+            
+        if (Model.WorkExperience == null)
+            Model.WorkExperience = new List<string>();
+            
+        if (Model.Person.Addresses == null)
+            Model.Person.Addresses = new List<Address>();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // Convert DateTime to DateOnly for employment date
+        Model.DateOfEmployment = new DateOnly(
+            employmentDate.Year,
+            employmentDate.Month,
+            employmentDate.Day
+        );
+
+        await OnSubmit.InvokeAsync(Model);
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
+    private void AddQualification()
+    {
+        Model.Qualifications.Add(string.Empty);
+    }
+
+    private void RemoveQualification(int index)
+    {
+        if (index >= 0 && index < Model.Qualifications.Count)
+        {
+            Model.Qualifications.RemoveAt(index);
+        }
+    }
+
+    private void AddWorkExperience()
+    {
+        Model.WorkExperience.Add(string.Empty);
+    }
+
+    private void RemoveWorkExperience(int index)
+    {
+        if (index >= 0 && index < Model.WorkExperience.Count)
+        {
+            Model.WorkExperience.RemoveAt(index);
+        }
+    }
+
+    private void ShowAddressForm()
+    {
+        currentAddress = new Address();
+        showAddressForm = true;
+    }
+
+    private void SaveAddress(Address address)
+    {
+        Model.Person.Addresses.Add(address);
+        showAddressForm = false;
+        currentAddress = new Address();
+    }
+
+    private void CancelAddressEdit()
+    {
+        showAddressForm = false;
+        currentAddress = new Address();
+    }
+
+    private void RemoveAddress(Address address)
+    {
+        Model.Person.Addresses.Remove(address);
+    }
+}
