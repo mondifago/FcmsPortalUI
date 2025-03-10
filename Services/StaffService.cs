@@ -1,6 +1,6 @@
 ﻿using FcmsPortal.Models;
 
-namespace FcmsPortal.Services
+namespace FcmsPortalUI.Services
 {
     public class StaffService
     {
