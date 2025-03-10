@@ -41,7 +41,7 @@
                                         else
                                         {
                                             <div class="bg-light rounded-circle d-flex justify-content-center align-items-center" style="width: 150px; height: 150px;">
-                                                <i class="oi oi-person" style="font-size: 3rem;"></i>
+                                                <i class="fa fa-person" style="font-size: 3rem;"></i>
                                             </div>
                                         }
                                     </div>
@@ -125,6 +125,10 @@
                             <InputText id="occupation" class="form-control" @bind-Value="guardian.Occupation" />
                             <ValidationMessage For="@(() => guardian.Occupation)" />
                         </div>
+                        <div class="form-check form-switch mb-3">
+                            <InputCheckbox id="isActive" class="form-check-input" @bind-Value="guardian.Person.IsActive" />
+                            <label class="form-check-label" for="isActive">Is Active</label>
+                        </div>
                     </div>
                     
                     <h4 class="mb-3">Address Information</h4>
@@ -178,7 +182,7 @@
                     else
                     {
                         <button type="button" class="btn btn-outline-primary mb-3" @onclick="ShowAddressForm">
-                            <i class="oi oi-plus"></i> Add Address
+                            <i class="fa fa-plus"></i> Add Address
                         </button>
                     }
                     
@@ -205,7 +209,7 @@
                                             <td>@address.State</td>
                                             <td>
                                                 <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveAddress(address)">
-                                                    <i class="oi oi-trash"></i>
+                                                    <i class="fa fa-trash"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -248,7 +252,6 @@
             return;
         }
         
-        // Set up temporary lists for editing
         if (guardian.Person.Addresses != null)
         {
             addresses = guardian.Person.Addresses.Select(a => new Address
@@ -263,7 +266,6 @@
             }).ToList();
         }
         
-        // Set the phone number field if available
         if (guardian.Person.PhoneNumber != null && guardian.Person.PhoneNumber.Any())
         {
             phoneNumber = guardian.Person.PhoneNumber;

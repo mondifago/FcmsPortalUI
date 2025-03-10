@@ -47,7 +47,7 @@
                                         <small class="text-muted ms-2">(@string.Format("{0:F2}", file.Size / 1024.0 / 1024.0)MB)</small>
                                     </div>
                                     <button class="btn btn-sm btn-danger" @onclick="() => RemoveSelectedFile(file)">
-                                        <span class="oi oi-x"></span>
+                                        <span class="fa fa-x"></span>
                                     Cancel</button>
                                 </li>
                             }
@@ -93,7 +93,7 @@
                                 <td>
                                     <div class="btn-group">
                                         <button class="btn btn-sm btn-outline-primary" @onclick="() => DownloadFile(attachment)">
-                                            <span class="oi oi-cloud-download"></span>
+                                            <span class="fa fa-cloud-download"></span>
                                         Download</button>
                                         @if (AllowDelete)
                                         {
