@@ -1,9 +1,8 @@
 ﻿@page "/staff/edit/{Id:int}"
 @using FcmsPortal.Models
-@using FcmsPortalUI.Services
+@using FcmsPortal.Enums
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
-@inject StaffService StaffService
 
 <h3>Edit Staff</h3>
 
@@ -25,25 +24,60 @@ else
 
     private Staff? staff;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadStaffMember();
+        // In a real application, you would fetch from a service
+        // For this example, we'll create a sample staff member
+        LoadStaffMember();
     }
 
-    private async Task LoadStaffMember()
+    private void LoadStaffMember()
     {
-        staff = await StaffService.GetStaffByIdAsync(Id);
-
-        if (staff == null)
-        {
-            // Handle the case when staff is not found
-            NavigationManager.NavigateTo("/staff");
-        }
+        // Simulate loading a staff member from a database
+        staff = new Staff
+            {
+                Id = Id,
+                Person = new Person
+                {
+                    Id = Id,
+                    ProfilePictureUrl = "https://example.com/profile1.jpg",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Email = "john.doe@example.com",
+                    PhoneNumber = "+2347012345678",
+                    StateOfOrigin = "Lagos",
+                    LgaOfOrigin = "Ikeja",
+                    EducationLevel = EducationLevel.SeniorCollege,
+                    IsActive = true,
+                    Sex = Gender.Male,
+                    DateOfBirth = new DateTime(1985, 5, 15),
+                    EmergencyContact = "Jane Doe: +2347098765432",
+                    Addresses = new List<Address>
+                {
+                    new Address
+                    {
+                        Street = "123 School Lane",
+                        City = "Lagos",
+                        State = "Lagos",
+                        PostalCode = "100001",
+                        Country = "Nigeria",
+                        AddressType = AddressType.Home
+                    }
+                }
+                },
+                JobRole = JobRole.Teacher,
+                JobDescription = "Mathematics Teacher",
+                Qualifications = new List<string> { "B.Sc Mathematics", "PGDE" },
+                WorkExperience = new List<string> { "5 years teaching experience" },
+                DateOfEmployment = new DateOnly(2020, 1, 15),
+                AreaOfSpecialization = "Mathematics"
+            };
     }
 
-    private async Task UpdateStaff(Staff updatedStaff)
+    private void UpdateStaff(Staff updatedStaff)
     {
-        await StaffService.UpdateStaffAsync(updatedStaff);
+        // In a real application, you would save to a database
+        // For this example, we'll just navigate back to the list
         NavigationManager.NavigateTo("/staff");
     }
 

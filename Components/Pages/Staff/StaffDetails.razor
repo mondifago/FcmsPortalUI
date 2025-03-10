@@ -1,0 +1,278 @@
+﻿@page "/staff/details/{Id:int}"
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<h3>Staff Details</h3>
+
+@if (staff == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>@GetFullName(staff.Person)</h4>
+            <div>
+                <button class="btn btn-primary me-2" @onclick="NavigateToEdit">Edit</button>
+                <button class="btn btn-secondary" @onclick="BackToList">Back to List</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center mb-4">
+                    @if (!string.IsNullOrEmpty(staff.Person.ProfilePictureUrl))
+                    {
+                        <img src="@staff.Person.ProfilePictureUrl" alt="Profile Picture"
+                             class="img-fluid rounded-circle mb-3" style="max-width: 200px;" />
+                    }
+                    else
+                    {
+                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+                             style="width: 200px; height: 200px; border-radius: 50%; font-size: 72px;">
+                            @(staff.Person.FirstName[0])@(staff.Person.LastName[0])
+                        </div>
+                    }
+                    <div>
+                        <span class="badge @(staff.Person.IsActive ? "bg-success" : "bg-danger") fs-6 mb-2">
+                            @(staff.Person.IsActive ? "Active" : "Inactive")
+                        </span>
+                        <h5>@staff.JobRole</h5>
+                        <p class="text-muted">@staff.AreaOfSpecialization</p>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Personal Information</h5>
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <th>Full Name</th>
+                                        <td>@GetFullName(staff.Person)</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Gender</th>
+                                        <td>@staff.Person.Sex</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date of Birth</th>
+                                        <td>@staff.Person.DateOfBirth.ToShortDateString() (@staff.Person.Age years)</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email</th>
+                                        <td>@staff.Person.Email</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Phone</th>
+                                        <td>@staff.Person.PhoneNumber</td>
+                                    </tr>
+                                    <tr>
+                                        <th>State of Origin</th>
+                                        <td>@staff.Person.StateOfOrigin</td>
+                                    </tr>
+                                    <tr>
+                                        <th>LGA of Origin</th>
+                                        <td>@staff.Person.LgaOfOrigin</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Education Level</th>
+                                        <td>@staff.Person.EducationLevel</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Emergency Contact</th>
+                                        <td>@staff.Person.EmergencyContact</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>Employment Information</h5>
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <th>Staff ID</th>
+                                        <td>@staff.Id</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Job Role</th>
+                                        <td>@staff.JobRole</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date of Employment</th>
+                                        <td>@staff.DateOfEmployment.ToString("MMMM d, yyyy")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Area of Specialization</th>
+                                        <td>@staff.AreaOfSpecialization</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h5 class="mt-4">Job Description</h5>
+                            <p>@staff.JobDescription</p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h5>Qualifications</h5>
+                            @if (staff.Qualifications != null && staff.Qualifications.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var qualification in staff.Qualifications)
+                                    {
+                                        <li class="list-group-item">@qualification</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p>No qualifications recorded.</p>
+                            }
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>Work Experience</h5>
+                            @if (staff.WorkExperience != null && staff.WorkExperience.Any())
+                            {
+                                <ul class="list-group">
+                                    @foreach (var experience in staff.WorkExperience)
+                                    {
+                                        <li class="list-group-item">@experience</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p>No work experience recorded.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h5>Addresses</h5>
+                    @if (staff.Person.Addresses != null && staff.Person.Addresses.Any())
+                    {
+                        <div class="row">
+                            @foreach (var address in staff.Person.Addresses)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            @address.AddressType Address
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-1">@address.Street</p>
+                                            <p class="mb-1">@address.City, @address.State @address.PostalCode</p>
+                                            <p class="mb-0">@address.Country</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p>No addresses recorded.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Staff? staff;
+
+    protected override void OnInitialized()
+    {
+        // In a real application, you would fetch from a service
+        // For this example, we'll create a sample staff member
+        LoadStaffMember();
+    }
+
+    private void LoadStaffMember()
+    {
+        // Simulate loading a staff member from a database
+        staff = new Staff
+            {
+                Id = Id,
+                Person = new Person
+                {
+                    Id = Id,
+                    ProfilePictureUrl = "https://example.com/profile1.jpg",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Email = "john.doe@example.com",
+                    PhoneNumber = "+2347012345678",
+                    StateOfOrigin = "Lagos",
+                    LgaOfOrigin = "Ikeja",
+                    EducationLevel = EducationLevel.SeniorCollege,
+                    IsActive = true,
+                    Sex = Gender.Male,
+                    DateOfBirth = new DateTime(1985, 5, 15),
+                    EmergencyContact = "Jane Doe: +2347098765432",
+                    Addresses = new List<Address>
+                {
+                    new Address
+                    {
+                        Street = "123 School Lane",
+                        City = "Lagos",
+                        State = "Lagos",
+                        PostalCode = "100001",
+                        Country = "Nigeria",
+                        AddressType = AddressType.Office
+                    },
+                    new Address
+                    {
+                        Street = "456 Main Avenue",
+                        City = "Lagos",
+                        State = "Lagos",
+                        PostalCode = "100001",
+                        Country = "Nigeria",
+                        AddressType = AddressType.Home
+                    }
+                }
+                },
+                JobRole = JobRole.Teacher,
+                JobDescription = "Mathematics Teacher for senior classes. Responsible for curriculum development and student assessments.",
+                Qualifications = new List<string> { "B.Sc Mathematics", "PGDE", "M.Ed Educational Technology" },
+                WorkExperience = new List<string> {
+                "5 years teaching experience at Lagos Model College",
+                "2 years as Head of Mathematics Department at Federal Government College"
+            },
+                DateOfEmployment = new DateOnly(2020, 1, 15),
+                AreaOfSpecialization = "Mathematics"
+            };
+    }
+
+    private string GetFullName(Person person)
+    {
+        if (string.IsNullOrEmpty(person.MiddleName))
+        {
+            return $"{person.FirstName} {person.LastName}";
+        }
+        return $"{person.FirstName} {person.MiddleName} {person.LastName}";
+    }
+
+    private void NavigateToEdit()
+    {
+        NavigationManager.NavigateTo($"/staff/edit/{Id}");
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/staff");
+    }
+}
