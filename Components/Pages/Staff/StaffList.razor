@@ -1,8 +1,11 @@
 ﻿@page "/staff"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortalUI.Services
+@namespace FcmsPortalUI.Components.Pages.Shared.DeleteConfirmation
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
+@inject StaffService StaffService
 
 <h3>Staff List</h3>
 
@@ -59,13 +62,13 @@ else
                         </td>
                         <td>
                             <button class="btn btn-sm btn-info me-1" @onclick="() => NavigateToDetails(staff.Id)">
-                                <i class="bi bi-eye"></i>
+                                <i class="fa fa-eye"></i>
                             </button>
                             <button class="btn btn-sm btn-primary me-1" @onclick="() => NavigateToEdit(staff.Id)">
-                                <i class="bi bi-pencil"></i>
+                                <i class="fa fa-pencil"></i>
                             </button>
                             <button class="btn btn-sm btn-danger" @onclick="() => ShowDeleteConfirmation(staff)">
-                                <i class="bi bi-trash"></i>
+                                <i class="fa fa-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -75,7 +78,7 @@ else
     </div>
 }
 
-<ConfirmDelete 
+<ConfirmDeleteModal 
     IsVisible="showConfirmDelete"
     Title="Delete Staff"
     Message="@($"Are you sure you want to delete {staffToDelete?.Person?.FirstName} {staffToDelete?.Person?.LastName}?")"
