@@ -197,61 +197,7 @@ else
 
     protected override void OnInitialized()
     {
-        LoadStaffMember();
-    }
-
-    private void LoadStaffMember()
-    {
-        staff = new Staff
-            {
-                Id = Id,
-                Person = new Person
-                {
-                    Id = Id,
-                    ProfilePictureUrl = "https://example.com/profile1.jpg",
-                    FirstName = "John",
-                    LastName = "Doe",
-                    Email = "john.doe@example.com",
-                    PhoneNumber = "+2347012345678",
-                    StateOfOrigin = "Lagos",
-                    LgaOfOrigin = "Ikeja",
-                    EducationLevel = EducationLevel.SeniorCollege,
-                    IsActive = true,
-                    Sex = Gender.Male,
-                    DateOfBirth = new DateTime(1985, 5, 15),
-                    EmergencyContact = "Jane Doe: +2347098765432",
-                    Addresses = new List<Address>
-                {
-                    new Address
-                    {
-                        Street = "123 School Lane",
-                        City = "Lagos",
-                        State = "Lagos",
-                        PostalCode = "100001",
-                        Country = "Nigeria",
-                        AddressType = AddressType.Office
-                    },
-                    new Address
-                    {
-                        Street = "456 Main Avenue",
-                        City = "Lagos",
-                        State = "Lagos",
-                        PostalCode = "100001",
-                        Country = "Nigeria",
-                        AddressType = AddressType.Home
-                    }
-                }
-                },
-                JobRole = JobRole.Teacher,
-                JobDescription = "Mathematics Teacher for senior classes. Responsible for curriculum development and student assessments.",
-                Qualifications = new List<string> { "B.Sc Mathematics", "PGDE", "M.Ed Educational Technology" },
-                WorkExperience = new List<string> {
-                "5 years teaching experience at Lagos Model College",
-                "2 years as Head of Mathematics Department at Federal Government College"
-            },
-                DateOfEmployment = new DateOnly(2020, 1, 15),
-                AreaOfSpecialization = "Mathematics"
-            };
+       
     }
 
     private string GetFullName(Person person)
