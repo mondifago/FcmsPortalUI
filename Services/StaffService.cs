@@ -6,65 +6,58 @@ namespace FcmsPortalUI.Services
     public class StaffService
     {
         private readonly List<Staff> _staffList = new();
+        private int _nextId = 4;
 
         public StaffService()
         {
-            // Create admin staff
-            Staff staff1 = new Staff
+            _staffList.AddRange(new[]
             {
-                Id = 1,
-                Person = new Person
+                new Staff
                 {
-                    FirstName = "Mr. Fin",
-                    MiddleName = "F",
-                    LastName = "Fen",
-                    Email = "fin@fcms.com",
-                    PhoneNumber = "08012345678",
+                    Id = 1,
+                    Person = new Person
+                    {
+                        FirstName = "Mr. Fin",
+                        MiddleName = "F",
+                        LastName = "Fen",
+                        Email = "fin@fcms.com",
+                        PhoneNumber = "08012345678"
+                    },
+                    JobRole = JobRole.Admin,
+                    JobDescription = "Principal"
                 },
-                JobRole = JobRole.Admin,
-                JobDescription = "Principal"
-            };
-
-            // Create Biology teacher
-            Staff staff2 = new Staff
-            {
-                Id = 2,
-                Person = new Person
+                new Staff
                 {
-                    FirstName = "Mr Eric",
-                    MiddleName = "E",
-                    LastName = "Een",
-                    EducationLevel = EducationLevel.SeniorCollege,
-                    ClassLevel = ClassLevel.SC_3
+                    Id = 2,
+                    Person = new Person
+                    {
+                        FirstName = "Mr Eric",
+                        MiddleName = "E",
+                        LastName = "Een",
+                        EducationLevel = EducationLevel.SeniorCollege,
+                        ClassLevel = ClassLevel.SC_3
+                    },
+                    JobRole = JobRole.Teacher,
+                    JobDescription = "Biology Teacher",
+                    AreaOfSpecialization = CourseDefaults.GetCourseNames(EducationLevel.SeniorCollege)[3]
                 },
-                JobRole = JobRole.Teacher,
-                JobDescription = "Biology Teacher",
-                AreaOfSpecialization = CourseDefaults.GetCourseNames(EducationLevel.SeniorCollege)[3]
-            };
-
-            // Create Geography teacher
-            Staff staff3 = new Staff
-            {
-                Id = 3,
-                Person = new Person
+                new Staff
                 {
-                    FirstName = "Mrs Qin",
-                    MiddleName = "Q",
-                    LastName = "Que",
-                    EducationLevel = EducationLevel.SeniorCollege,
-                    ClassLevel = ClassLevel.SC_3
-                },
-                JobRole = JobRole.Teacher,
-                JobDescription = "Geography Teacher",
-                AreaOfSpecialization = CourseDefaults.GetCourseNames(EducationLevel.SeniorCollege)[12]
-            };
-
-            _staffList.Add(staff1);
-            _staffList.Add(staff2);
-            _staffList.Add(staff3);
+                    Id = 3,
+                    Person = new Person
+                    {
+                        FirstName = "Mrs Qin",
+                        MiddleName = "Q",
+                        LastName = "Que",
+                        EducationLevel = EducationLevel.SeniorCollege,
+                        ClassLevel = ClassLevel.SC_3
+                    },
+                    JobRole = JobRole.Teacher,
+                    JobDescription = "Geography Teacher",
+                    AreaOfSpecialization = CourseDefaults.GetCourseNames(EducationLevel.SeniorCollege)[12]
+                }
+            });
         }
-
-        private int _nextId = 1;
 
         public async Task<List<Staff>> GetStaffAsync()
         {
@@ -74,8 +67,7 @@ namespace FcmsPortalUI.Services
 
         public Task<Staff?> GetStaffByIdAsync(int id)
         {
-            var staff = _staffList.FirstOrDefault(s => s.Id == id);
-            return Task.FromResult(staff);
+            return Task.FromResult(_staffList.FirstOrDefault(s => s.Id == id));
         }
 
         public async Task<Staff> AddStaffAsync(Staff staff)
@@ -88,35 +80,38 @@ namespace FcmsPortalUI.Services
             await Task.Delay(100);
 
             staff.Id = _nextId++;
-            staff.Person.Id = _nextId;
+            staff.Person.Id = staff.Id;
 
             _staffList.Add(staff);
             return staff;
         }
 
-        public Task<bool> UpdateStaffAsync(Staff staff)
+        public async Task<bool> UpdateStaffAsync(Staff staff)
         {
+            if (staff == null)
+                return false;
+
+            await Task.Delay(100);
+
             var existingStaff = _staffList.FirstOrDefault(s => s.Id == staff.Id);
             if (existingStaff == null)
-            {
-                return Task.FromResult(false);
-            }
+                return false;
 
             var index = _staffList.IndexOf(existingStaff);
             _staffList[index] = staff;
-            return Task.FromResult(true);
+            return true;
         }
 
-        public Task<bool> DeleteStaffAsync(int id)
+        public async Task<bool> DeleteStaffAsync(int id)
         {
+            await Task.Delay(100);
+
             var staff = _staffList.FirstOrDefault(s => s.Id == id);
             if (staff == null)
-            {
-                return Task.FromResult(false);
-            }
+                return false;
 
             _staffList.Remove(staff);
-            return Task.FromResult(true);
+            return true;
         }
     }
 }

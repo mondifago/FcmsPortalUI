@@ -1,8 +1,10 @@
 ﻿@page "/staff/details/{Id:int}"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortalUI.Services
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
+@inject StaffService StaffService
 
 <h3>Staff Details</h3>
 
@@ -195,9 +197,9 @@ else
 
     private Staff? staff;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-       
+        staff = await StaffService.GetStaffByIdAsync(Id);
     }
 
     private string GetFullName(Person person)

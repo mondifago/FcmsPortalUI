@@ -1,8 +1,10 @@
 ﻿@page "/staff/edit/{Id:int}"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortalUI.Services
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
+@inject StaffService StaffService
 
 <h3>Edit Staff</h3>
 
@@ -24,14 +26,22 @@ else
 
     private Staff? staff;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-       
+        staff = await StaffService.GetStaffByIdAsync(Id);
     }
 
-    private void UpdateStaff(Staff updatedStaff)
+    private async Task UpdateStaff(Staff updatedStaff)
     {
-        NavigationManager.NavigateTo("/staff");
+        bool success = await StaffService.UpdateStaffAsync(updatedStaff);
+        if (success)
+        {
+            NavigationManager.NavigateTo("/staff");
+        }
+        else
+        {
+            
+        }
     }
 
     private void CancelEdit()
