@@ -46,7 +46,7 @@ else
                             else
                             {
                                 <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
-                                     style="width: 40px; height: 40px; border-radius: 50%;">
+                                style="width: 40px; height: 40px; border-radius: 50%;">
                                     @(staff.Person.FirstName[0])@(staff.Person.LastName[0])
                                 </div>
                             }
@@ -79,20 +79,20 @@ else
 }
 
 <ConfirmDeleteModal 
-    IsVisible="showConfirmDelete"
-    Title="Delete Staff"
-    Message="@($"Are you sure you want to delete {staffToDelete?.Person?.FirstName} {staffToDelete?.Person?.LastName}?")"
-    OnConfirm="DeleteStaff"
-    OnCancel="CancelDelete" />
+IsVisible="showConfirmDelete"
+Title="Delete Staff"
+Message="@($"Are you sure you want to delete {staffToDelete?.Person?.FirstName} {staffToDelete?.Person?.LastName}?")"
+OnConfirm="DeleteStaff"
+OnCancel="CancelDelete" />
 
 @code {
     private List<Staff> staffList = new();
     private bool showConfirmDelete = false;
     private Staff? staffToDelete;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-       
+        staffList = await StaffService.GetStaffAsync();
     }
 
     private string GetFullName(Person person)

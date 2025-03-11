@@ -66,7 +66,7 @@ namespace FcmsPortalUI.Services
 
         private int _nextId = 1;
 
-        public async Task<List<Staff>> GetAllStaffAsync()
+        public async Task<List<Staff>> GetStaffAsync()
         {
             await Task.Delay(100);
             return _staffList;
@@ -78,13 +78,20 @@ namespace FcmsPortalUI.Services
             return Task.FromResult(staff);
         }
 
-        public Task<Staff> CreateStaffAsync(Staff staff)
+        public async Task<Staff> AddStaffAsync(Staff staff)
         {
+            if (staff == null)
+                throw new ArgumentNullException(nameof(staff));
+
+            staff.Person ??= new Person();
+
+            await Task.Delay(100);
+
             staff.Id = _nextId++;
             staff.Person.Id = _nextId;
 
             _staffList.Add(staff);
-            return Task.FromResult(staff);
+            return staff;
         }
 
         public Task<bool> UpdateStaffAsync(Staff staff)
