@@ -7,16 +7,10 @@ namespace FcmsPortalUI.Services
         private List<Staff> _staffList = new();
         private int _nextId = 1;
 
-        public StaffService()
+        public async Task<List<Staff>> GetGuardiansAsync()
         {
-            // Initialize with some sample data
-            InitializeSampleData();
-        }
-
-        private void InitializeSampleData()
-        {
-            // Sample data initialization will go here
-            // This would typically be removed in a production application with a real database
+            await Task.Delay(100);
+            return _staffList;
         }
 
         public Task<List<Staff>> GetAllStaffAsync()
