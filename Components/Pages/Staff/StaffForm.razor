@@ -103,16 +103,6 @@
                 <ValidationMessage For="@(() => Model.Person.EmergencyContact)" />
             </div>
 
-            <div class="mb-3">
-                <label for="educationLevel" class="form-label">Education Level</label>
-                <InputSelect id="educationLevel" class="form-select" @bind-Value="Model.Person.EducationLevel">
-                    @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
-                    {
-                        <option value="@level">@level</option>
-                    }
-                </InputSelect>
-            </div>
-
             <div class="form-check form-switch mb-3">
                 <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Model.Person.IsActive" />
                 <label class="form-check-label" for="isActive">Status</label>
@@ -138,15 +128,25 @@
             </div>
 
             <div class="mb-3">
-                <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
-                <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Model.AreaOfSpecialization">
-                    <option value="">-- Select Area of Specialization --</option>
-                    @foreach (var course in availableCourses)
+                <label for="educationLevel" class="form-label">Education Level</label>
+                <InputSelect id="educationLevel" class="form-select" @bind-Value="Model.Person.EducationLevel" @onchange="HandleEducationLevelChange">
+                    @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
                     {
-                        <option value="@course">@course</option>
+                        <option value="@level">@level</option>
                     }
                 </InputSelect>
             </div>
+
+           <div class="mb-3">
+    <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
+    <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Model.AreaOfSpecialization">
+        <option value="">-- Select Area of Specialization --</option>
+        @foreach (var course in availableCourses)
+        {
+            <option value="@course">@course</option>
+        }
+    </InputSelect>
+</div>
 
             <div class="mb-3">
                 <label for="dateOfEmployment" class="form-label">Date of Employment</label>
@@ -311,9 +311,10 @@
 
     private void HandleEducationLevelChange(ChangeEventArgs e)
     {
-        selectedEducationLevel = (EducationLevel)Enum.Parse(typeof(EducationLevel), e.Value.ToString());
-        Model.Person.EducationLevel = selectedEducationLevel.Value; 
-        availableCourses = CourseDefaults.GetCourseNames(selectedEducationLevel.Value);
+        var selectedLevel = (EducationLevel)Enum.Parse(typeof(EducationLevel), e.Value.ToString());
+        Model.Person.EducationLevel = selectedLevel;
+        availableCourses = CourseDefaults.GetCourseNames(selectedLevel);
+        Model.AreaOfSpecialization = "";
         StateHasChanged();
     }
 
