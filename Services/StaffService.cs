@@ -21,7 +21,8 @@ namespace FcmsPortalUI.Services
                         MiddleName = "F",
                         LastName = "Fen",
                         Email = "fin@fcms.com",
-                        PhoneNumber = "08012345678"
+                        PhoneNumber = "08012345678",
+                        IsActive = true
                     },
                     JobRole = JobRole.Admin,
                     JobDescription = "Principal"
