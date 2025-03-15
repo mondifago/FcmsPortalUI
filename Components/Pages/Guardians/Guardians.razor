@@ -1,5 +1,7 @@
 ﻿@page "/guardians"
 @inject GuardianService GuardianService
+@inject ISchoolDataService SchoolDataService
+@using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
@@ -105,13 +107,15 @@
 </div>
 
 @code {
-    private List<Guardian> guardians;
+    private IEnumerable<Guardian> guardians;
+    //private List<Guardian> guardians;
     private int guardianIdToDelete;
     private bool showDeleteConfirmation = false;
 
     protected override async Task OnInitializedAsync()
     {
-        guardians = await GuardianService.GetGuardiansAsync();
+        guardians = SchoolDataService.GetGuardians();
+        //guardians = await GuardianService.GetGuardiansAsync();
     }
 
     private string GetFullName(Person person)
