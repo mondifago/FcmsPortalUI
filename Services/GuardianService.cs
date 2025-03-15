@@ -4,8 +4,8 @@ namespace FcmsPortalUI.Services
 {
     public class GuardianService
     {
-        private readonly List<Guardian> _guardians = new();
-        private int _nextId = 1;
+        private static List<Guardian> _guardians = new List<Guardian>();
+        private static int _nextId = 1;
 
         public async Task<List<Guardian>> GetGuardiansAsync()
         {
@@ -13,7 +13,7 @@ namespace FcmsPortalUI.Services
             return _guardians;
         }
 
-        public async Task<Guardian?> GetGuardianByIdAsync(int id)
+        public async Task<Guardian> GetGuardianByIdAsync(int id)
         {
             await Task.Delay(100);
             return _guardians.FirstOrDefault(g => g.Id == id);
