@@ -1,6 +1,8 @@
 ﻿@page "/guardians/details/{Id:int}"
 @inject GuardianService GuardianService
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
+@using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
@@ -154,7 +156,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        guardian = await GuardianService.GetGuardianByIdAsync(Id);
+        guardian = SchoolDataService.GetGuardianById(Id);
+        //guardian = await GuardianService.GetGuardianByIdAsync(Id);
 
         if (guardian == null)
         {

@@ -1,0 +1,140 @@
+﻿@page "/school"
+@inject GuardianService GuardianService
+@inject AddressService AddressService
+@inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Services
+@rendermode InteractiveServer
+
+<h1>School Overview</h1>
+
+@if (school != null)
+{
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3>@school.Name</h3>
+            <button class="btn btn-primary" @onclick="() => NavigationManager.NavigateTo($"/school/edit")">Edit School</button>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Contact Information</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Email:</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrEmpty(school.Email) ? "Not specified" : school.Email)</dd>
+                        
+                        <dt class="col-sm-4">Phone:</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrEmpty(school.PhoneNumber) ? "Not specified" : school.PhoneNumber)</dd>
+                        
+                        <dt class="col-sm-4">Website:</dt>
+                        <dd class="col-sm-8">
+                            @if (string.IsNullOrEmpty(school.WebsiteUrl))
+                            {
+                                <span>Not specified</span>
+                            }
+                            else
+                            {
+                                <a href="@school.WebsiteUrl" target="_blank">@school.WebsiteUrl</a>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <h4>Address</h4>
+                    @if (school.Address != null)
+                    {
+                        <address>
+                            @school.Address.Street<br />
+                            @school.Address.City, @school.Address.State @school.Address.PostalCode<br />
+                            @school.Address.Country
+                        </address>
+                    }
+                    else
+                    {
+                        <p>No address specified</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Students</h4>
+                </div>
+                <div class="card-body">
+                    <p>Total Students: @school.Students.Count</p>
+                    <a href="/students" class="btn btn-outline-primary">View All Students</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Staff</h4>
+                </div>
+                <div class="card-body">
+                    <p>Total Staff: @school.Staff.Count</p>
+                    <a href="/staff" class="btn btn-outline-primary">View All Staff</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Guardians</h4>
+                </div>
+                <div class="card-body">
+                    <p>Total Guardians: @school.Guardians.Count</p>
+                    <a href="/guardians" class="btn btn-outline-primary">View All Guardians</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Calendars</h4>
+                </div>
+                <div class="card-body">
+                    <p>Total Calendars: @school.SchoolCalendar.Count</p>
+                    <a href="/calendars" class="btn btn-outline-primary">View School Calendar</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Curricula</h4>
+                </div>
+                <div class="card-body">
+                    <p>Total Curricula: @(school.Curricula?.Count ?? 0)</p>
+                    <a href="/curricula" class="btn btn-outline-primary">View Curricula</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <p>Loading school information...</p>
+}
+
+@code {
+    private School school;
+    
+    protected override void OnInitialized()
+    {
+        school = SchoolDataService.GetSchool();
+    }
+}
