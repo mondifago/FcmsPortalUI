@@ -2,6 +2,8 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
+@inject ISchoolDataService SchoolDataService
+@using FcmsPortal.Services
 @namespace FcmsPortalUI.Components.Pages.Shared.DeleteConfirmation
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
@@ -85,13 +87,15 @@ OnConfirm="DeleteStaff"
 OnCancel="CancelDelete" />
 
 @code {
-    private List<Staff> staffList = new();
+    //private List<Staff> staffList = new();
     private bool showConfirmDelete = false;
     private Staff? staffToDelete;
+    private IEnumerable<Staff> staffList;
 
     protected override async Task OnInitializedAsync()
     {
-        staffList = await StaffService.GetStaffAsync();
+        //staffList = await StaffService.GetStaffAsync();
+        staffList = SchoolDataService.GetStaff();
     }
 
     private string GetFullName(Person person)
@@ -130,15 +134,32 @@ OnCancel="CancelDelete" />
         staffToDelete = null;
     }
 
-    private void DeleteStaff()
+    /*private void DeleteStaff()
     {
+        
         if (staffToDelete != null)
         {
             staffList.Remove(staffToDelete);
-            // In a real application, you would call a service to delete from database
             showConfirmDelete = false;
             staffToDelete = null;
             StateHasChanged();
         }
+    }*/
+
+    private async Task DeleteStaff()
+    {
+        if (staffToDelete != null)
+        {
+            var result = await SchoolDataService.DeleteStaff(staffToDelete.Id, isHardDelete: true);
+            if (result)
+            {
+                staffList = SchoolDataService.GetStaff();
+                showConfirmDelete = false;
+                staffToDelete = null;
+                StateHasChanged();
+            }
+        }
     }
+
+
 }
