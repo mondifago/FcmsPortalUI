@@ -130,6 +130,30 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Education Levels</h4>
+                </div>
+                <div class="card-body">
+                    <p>Total Education Levels: @(educationLevels?.Count ?? 0)</p>
+                    <a href="/educationlevels" class="btn btn-outline-primary">View Education Levels</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Class Levels</h4>
+                </div>
+                <div class="card-body">
+                    <p>Total Class Levels: @(classlevels?.Count ?? 0)</p>
+                    <a href="/classlevels" class="btn btn-outline-primary">View Class Levels</a>
+                </div>
+            </div>
+        </div>
     </div>
 }
 else
@@ -141,6 +165,8 @@ else
     private FcmsPortal.Models.School school;
     private string logoUrl = "";
     private IBrowserFile logoFile;
+    private List<EducationLevel> educationLevels;
+    private IList<ClassLevel> classlevels;
     
     protected override void OnInitialized()
     {
@@ -150,6 +176,8 @@ else
         {
             logoUrl = school.LogoUrl;
         }
+        educationLevels = FcmsPortal.LogicMethods.GetExistingEducationLevels(school);
+        classlevels = FcmsPortal.LogicMethods.GetExistingClassLevels(school);
     }
 
      private void EditSchool()
