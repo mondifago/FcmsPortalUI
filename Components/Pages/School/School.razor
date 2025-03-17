@@ -7,21 +7,28 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
+@using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
 
-<h1>School Overview</h1>
+<div class="school-logo-container">
+    <InputFile OnChange="HandleFileUpload" accept="image/*" class="hidden-file-input" id="fileInput" />
+    <label for="fileInput" class="logo-label">
+        <img src="@logoUrl" alt="School Logo" class="school-logo @(string.IsNullOrEmpty(logoUrl) ? "hidden" : "")" />
+        <i class="fa fa-school placeholder-icon @(string.IsNullOrEmpty(logoUrl) ? "" : "hidden")"></i>
+    </label>
+    <h3 class="school-name">@school.Name</h3>
+</div>
 
 @if (school != null)
 {
     <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h3>@school.Name</h3>
+                <h4>Contact Informantion</h4>
                 <button class="btn btn-primary" @onclick="EditSchool">Edit School</button>
             </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <h4>Contact Information</h4>
                     <dl class="row">
                         <dt class="col-sm-4">Email:</dt>
                         <dd class="col-sm-8">@(string.IsNullOrEmpty(school.Email) ? "Not specified" : school.Email)</dd>
@@ -132,14 +139,64 @@ else
 
 @code {
     private FcmsPortal.Models.School school;
+    private string logoUrl = "";
+    private IBrowserFile logoFile;
     
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
+        // TODO: Initialize logoUrl with the school's existing logo 
+        if (!string.IsNullOrEmpty(school.LogoUrl))
+        {
+            logoUrl = school.LogoUrl;
+        }
     }
 
      private void EditSchool()
     {
         NavigationManager.NavigateTo("/school/edit");
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file != null)
+            {
+                // Limit file size to 2MB
+                //var maxFileSize = 2 * 1024 * 1024;
+
+                // Create a resized image file stream
+                var resizedImageFile = await file.RequestImageFileAsync("image/jpeg", 400, 400);
+
+                // Read the file content
+                using var stream = resizedImageFile.OpenReadStream(/*TODO: maxFileSize*/);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var imageBytes = ms.ToArray();
+
+                // Convert to base64 for preview
+                var base64String = Convert.ToBase64String(imageBytes);
+                logoUrl = $"data:image/jpeg;base64,{base64String}";
+
+                // TODO: Upload file to server
+                // Example: await SchoolDataService.UploadLogoAsync(school.Id, imageBytes);
+
+                // Update the school model
+                school.LogoUrl = logoUrl;
+
+                // Save changes
+                // Example: await SchoolDataService.UpdateSchoolAsync(school);
+
+                // Force UI refresh
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle the exception (log it, show user error, etc.)
+            Console.WriteLine($"Error uploading file: {ex.Message}");
+        }
     }
 }
