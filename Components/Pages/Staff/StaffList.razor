@@ -52,7 +52,7 @@ else
                                 </div>
                             }
                         </td>
-                        <td>@GetFullName(staff.Person)</td>
+                        <td>@Util.GetFullName(staff.Person)</td>
                         <td>@staff.Person.Email</td>
                         <td>@staff.Person.PhoneNumber</td>
                         <td>@staff.JobRole</td>
@@ -96,15 +96,6 @@ OnCancel="CancelDelete" />
     {
         //staffList = await StaffService.GetStaffAsync();
         staffList = SchoolDataService.GetStaff();
-    }
-
-    private string GetFullName(Person person)
-    {
-        if (string.IsNullOrEmpty(person.MiddleName))
-        {
-            return $"{person.FirstName} {person.LastName}";
-        }
-        return $"{person.FirstName} {person.MiddleName} {person.LastName}";
     }
 
     private void NavigateToCreate()

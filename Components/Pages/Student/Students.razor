@@ -4,6 +4,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
+@using FcmsPortalUI.Components.Pages.Shared
 @rendermode InteractiveServer
 
 <PageTitle>Students</PageTitle>
@@ -50,11 +51,11 @@
                             <td>
                                 @if (!string.IsNullOrEmpty(student.Person.ProfilePictureUrl))
                                 {
-                                    <img src="@student.Person.ProfilePictureUrl" class="rounded-circle me-2" style="width: 30px; height: 30px;" alt="Profile" />
+                                    <ProfileThumbnail Person="student.Person" />                               
                                 }
                                 
                             </td>
-                            <td>@GetFullName(student.Person)</td>
+                            <td>@Util.GetFullName(student.Person)</td>
                             <td>@student.Person.Age</td>
                             <td>@student.Person.EducationLevel</td>
                             <td>@student.Person.ClassLevel</td>
@@ -88,13 +89,7 @@
        
     }
 
-    private string GetFullName(Person person)
-    {
-        if (person == null) return "-";
 
-        string middleName = string.IsNullOrEmpty(person.MiddleName) ? "" : $" {person.MiddleName}";
-        return $"{person.FirstName}{middleName} {person.LastName}";
-    }
 
     private async Task DeleteStudent(int studentId)
     {

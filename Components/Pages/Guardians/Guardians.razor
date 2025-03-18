@@ -1,10 +1,10 @@
 ﻿@page "/guardians"
-@inject GuardianService GuardianService
 @inject ISchoolDataService SchoolDataService
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
+@using FcmsPortalUI.Components.Pages.Shared
 @rendermode InteractiveServer
 
 <PageTitle>Guardians</PageTitle>
@@ -51,11 +51,11 @@
                             <td>
                                 @if (!string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl))
                                 {
-                                    <img src="@guardian.Person.ProfilePictureUrl" class="rounded-circle me-2" style="width: 30px; height: 30px;" alt="Profile" />
+                                    <ProfileThumbnail Person="guardian.Person" />
                                 }
-                                
+
                             </td>
-                            <td>@GetFullName(guardian.Person)</td>
+                            <td>@Util.GetFullName(guardian.Person)</td>
                             <td>@guardian.Person.Email</td>
                             <td>@guardian.Person.PhoneNumber</td>
                             <td>
@@ -83,47 +83,21 @@
         </div>
     }
 
-    @if (showDeleteConfirmation)
-    {
-        <div class="modal" tabindex="-1" style="display:block">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Confirm Delete</h5>
-                        <button type="button" class="btn-close" @onclick="CancelDelete"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to delete this guardian?</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
-                        <button type="button" class="btn btn-danger" @onclick="ConfirmDelete">Delete</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-backdrop fade show"></div>
-    }
+    <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                        Title="Confirm Delete"
+                        Message="Are you sure you want to delete this guardian?"
+                        OnConfirm="ConfirmDelete"
+                        OnCancel="CancelDelete" />
 </div>
 
 @code {
     private IEnumerable<Guardian> guardians;
-    //private List<Guardian> guardians;
     private int guardianIdToDelete;
     private bool showDeleteConfirmation = false;
 
     protected override async Task OnInitializedAsync()
     {
         guardians = SchoolDataService.GetGuardians();
-        //guardians = await GuardianService.GetGuardiansAsync();
-    }
-
-    private string GetFullName(Person person)
-    {
-        if (person == null) return "-";
-
-        string middleName = string.IsNullOrEmpty(person.MiddleName) ? "" : $" {person.MiddleName}";
-        return $"{person.FirstName}{middleName} {person.LastName}";
     }
 
     private void DeleteGuardian(int id)
@@ -132,15 +106,19 @@
         showDeleteConfirmation = true;
     }
 
-    private async Task ConfirmDelete()
-    {
-        await GuardianService.DeleteGuardianAsync(guardianIdToDelete);
-        showDeleteConfirmation = false;
-        guardians = await GuardianService.GetGuardiansAsync();
-    }
-
     private void CancelDelete()
     {
         showDeleteConfirmation = false;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        var result = await SchoolDataService.DeleteGuardian(guardianIdToDelete, isHardDelete: true);
+        if (result)
+        {
+            guardians = SchoolDataService.GetGuardians();
+            showDeleteConfirmation = false;
+            StateHasChanged();
+        }
     }
 }

@@ -6,6 +6,7 @@
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal
 @using FcmsPortalUI.Services
 @using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
@@ -22,20 +23,20 @@
 @if (school != null)
 {
     <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4>Contact Informantion</h4>
-                <button class="btn btn-primary" @onclick="EditSchool">Edit School</button>
-            </div>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>Contact Informantion</h4>
+            <button class="btn btn-primary" @onclick="EditSchool">Edit School</button>
+        </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
                     <dl class="row">
                         <dt class="col-sm-4">Email:</dt>
                         <dd class="col-sm-8">@(string.IsNullOrEmpty(school.Email) ? "Not specified" : school.Email)</dd>
-                        
+
                         <dt class="col-sm-4">Phone:</dt>
                         <dd class="col-sm-8">@(string.IsNullOrEmpty(school.PhoneNumber) ? "Not specified" : school.PhoneNumber)</dd>
-                        
+
                         <dt class="col-sm-4">Website:</dt>
                         <dd class="col-sm-8">
                             @if (string.IsNullOrEmpty(school.WebsiteUrl))
@@ -80,7 +81,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-header">
@@ -92,7 +93,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-header">
@@ -118,7 +119,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-6">
             <div class="card mb-4">
                 <div class="card-header">

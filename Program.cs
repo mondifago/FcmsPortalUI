@@ -9,8 +9,6 @@ builder.Services.AddScoped<SchoolFeesService>();
 builder.Services.AddScoped<GuardianService>();
 builder.Services.AddScoped<StaffService>();
 
-var school = FcmsPortal.Program.CreateTestSchool();
-builder.Services.AddSingleton(school);
 builder.Services.AddSingleton<ISchoolDataService, SchoolDataService>();
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
