@@ -1,7 +1,19 @@
 ﻿@page "/"
+@inject ISchoolDataService SchoolDataService
+@using FcmsPortal.Services
 @using FcmsPortal.Models
-<PageTitle>Home</PageTitle>
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Services
+@rendermode InteractiveServer
 
-<h1>Hello, world!</h1>
+<PageTitle>Schools</PageTitle>
 
-Welcome to your new app.
+<div class="container">
+    <h1>Welcome <!-- @User --></h1>
+
+    <div class="mb-3">
+        <a href="/school/create" class="btn btn-primary">
+            <i class="fa fa-plus"></i> Add New School
+        </a>
+    </div>
+</div>
