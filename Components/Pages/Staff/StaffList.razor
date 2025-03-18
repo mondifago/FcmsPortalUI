@@ -1,156 +1,130 @@
 ﻿@page "/staff"
+@inject ISchoolDataService SchoolDataService
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
-@inject ISchoolDataService SchoolDataService
 @using FcmsPortal.Services
-@namespace FcmsPortalUI.Components.Pages.Shared.DeleteConfirmation
+@using FcmsPortalUI.Components.Pages.Shared
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
-@inject StaffService StaffService
 
-<h3>Staff List</h3>
+<PageTitle>Staff</PageTitle>
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="NavigateToCreate">Add New Staff</button>
+<div class="container">
+    <h1>Staff Management</h1>
+
+    <div class="mb-3">
+        <a href="/staff/create" class="btn btn-primary">
+            <i class="fa fa-plus"></i> Add New Staff
+        </a>
+    </div>
+
+    @if (staffList == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else if (!staffList.Any())
+    {
+        <div class="alert alert-info">
+            No staff found. Add a new staff member to get started.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Staff ID</th>
+                        <th>Profile</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Job Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var staff in staffList)
+                    {
+                        <tr>
+                            <td>@staff.Id</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(staff.Person.ProfilePictureUrl))
+                                {
+                                    <ProfileThumbnail Person="staff.Person" />
+                                }
+                                else
+                                {
+                                    <ProfilePicAlternative Person="staff.Person" />
+                                }
+                            </td>
+                            <td>@Util.GetFullName(staff.Person)</td>
+                            <td>@staff.Person.Email</td>
+                            <td>@staff.Person.PhoneNumber</td>
+                            <td>@staff.JobRole</td>
+                            <td>
+                                <span class="badge @(staff.Person.IsActive ? "bg-success" : "bg-danger")">
+                                    @(staff.Person.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="/staff/details/@staff.Id" class="btn btn-info btn-sm">
+                                        <i class="fa fa-eye"></i> View
+                                    </a>
+                                    <a href="/staff/edit/@staff.Id" class="btn btn-warning btn-sm">
+                                        <i class="fa fa-pencil"></i> Edit
+                                    </a>
+                                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteStaff(staff.Id)">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                        Title="Confirm Delete"
+                        Message="Are you sure you want to delete this staff member?"
+                        OnConfirm="ConfirmDelete"
+                        OnCancel="CancelDelete" />
 </div>
 
-@if (staffList == null || !staffList.Any())
-{
-    <p>No staff records found.</p>
-}
-else
-{
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Staff ID</th>
-                    <th>Profile Picture</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Job Role</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var staff in staffList)
-                {
-                    <tr>
-                        <td>@staff.Id</td>
-                        <td>
-                            @if (!string.IsNullOrEmpty(staff.Person.ProfilePictureUrl))
-                            {
-                                <img src="@staff.Person.ProfilePictureUrl" class="rounded-circle" width="40" height="40" alt="Profile Picture" />
-                            }
-                            else
-                            {
-                                <div class="bg-light rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
-                                    <i class="fa fa-person"></i>
-                                </div>
-                            }
-                        </td>
-                        <td>@Util.GetFullName(staff.Person)</td>
-                        <td>@staff.Person.Email</td>
-                        <td>@staff.Person.PhoneNumber</td>
-                        <td>@staff.JobRole</td>
-                        <td>
-                            <span class="badge @(staff.Person.IsActive ? "bg-success" : "bg-danger")">
-                                @(staff.Person.IsActive ? "Active" : "Inactive")
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-info me-1" @onclick="() => NavigateToDetails(staff.Id)">
-                                <i class="fa fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-primary me-1" @onclick="() => NavigateToEdit(staff.Id)">
-                                <i class="fa fa-pencil"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => ShowDeleteConfirmation(staff)">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
-
-<ConfirmDeleteModal 
-IsVisible="showConfirmDelete"
-Title="Delete Staff"
-Message="@($"Are you sure you want to delete {staffToDelete?.Person?.FirstName} {staffToDelete?.Person?.LastName}?")"
-OnConfirm="DeleteStaff"
-OnCancel="CancelDelete" />
-
 @code {
-    //private List<Staff> staffList = new();
-    private bool showConfirmDelete = false;
-    private Staff? staffToDelete;
     private IEnumerable<Staff> staffList;
+    private int staffIdToDelete;
+    private bool showDeleteConfirmation = false;
 
     protected override async Task OnInitializedAsync()
     {
-        //staffList = await StaffService.GetStaffAsync();
         staffList = SchoolDataService.GetStaff();
     }
 
-    private void NavigateToCreate()
+    private void DeleteStaff(int id)
     {
-        NavigationManager.NavigateTo("/staff/create");
-    }
-
-    private void NavigateToDetails(int id)
-    {
-        NavigationManager.NavigateTo($"/staff/details/{id}");
-    }
-
-    private void NavigateToEdit(int id)
-    {
-        NavigationManager.NavigateTo($"/staff/edit/{id}");
-    }
-
-    private void ShowDeleteConfirmation(Staff staff)
-    {
-        staffToDelete = staff;
-        showConfirmDelete = true;
+        staffIdToDelete = id;
+        showDeleteConfirmation = true;
     }
 
     private void CancelDelete()
     {
-        showConfirmDelete = false;
-        staffToDelete = null;
+        showDeleteConfirmation = false;
     }
 
-    /*private void DeleteStaff()
+    private async Task ConfirmDelete()
     {
-        
-        if (staffToDelete != null)
+        var result = await SchoolDataService.DeleteStaff(staffIdToDelete, isHardDelete: true);
+        if (result)
         {
-            staffList.Remove(staffToDelete);
-            showConfirmDelete = false;
-            staffToDelete = null;
+            staffList = SchoolDataService.GetStaff();
+            showDeleteConfirmation = false;
             StateHasChanged();
         }
-    }*/
-
-    private async Task DeleteStaff()
-    {
-        if (staffToDelete != null)
-        {
-            var result = await SchoolDataService.DeleteStaff(staffToDelete.Id, isHardDelete: true);
-            if (result)
-            {
-                staffList = SchoolDataService.GetStaff();
-                showConfirmDelete = false;
-                staffToDelete = null;
-                StateHasChanged();
-            }
-        }
     }
-
-
 }
