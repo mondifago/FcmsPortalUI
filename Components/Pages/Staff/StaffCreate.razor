@@ -1,9 +1,10 @@
 ﻿@page "/staff/create"
 @using FcmsPortal.Models
+@using FcmsPortal.Services
 @using FcmsPortalUI.Services
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
-@inject StaffService StaffService
+@inject ISchoolDataService SchoolDataService
 
 <h3>Create New Staff</h3>
 
@@ -14,15 +15,15 @@
 
 @code {
     private Staff newStaff = new()
-    {
-        Person = new Person {IsActive = true},
-        Qualifications = new List<string>(),
-        WorkExperience = new List<string>()
-    };
+        {
+            Person = new Person { IsActive = true },
+            Qualifications = new List<string>(),
+            WorkExperience = new List<string>()
+        };
 
-    private async Task CreateStaff(Staff staff)
+    private void CreateStaff(Staff staff)
     {
-        await StaffService.AddStaffAsync(staff);
+        SchoolDataService.AddStaff(staff);
         NavigationManager.NavigateTo("/staff");
     }
 
