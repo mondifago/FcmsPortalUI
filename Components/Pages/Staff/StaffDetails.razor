@@ -18,7 +18,7 @@ else
 {
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4>@GetFullName(staff.Person)</h4>
+            <h4>@Util.GetFullName(staff.Person)</h4>
             <div>
                 <button class="btn btn-primary me-2" @onclick="NavigateToEdit">Edit</button>
                 <button class="btn btn-secondary" @onclick="BackToList">Back to List</button>
@@ -56,7 +56,7 @@ else
                                 <tbody>
                                     <tr>
                                         <th>Full Name</th>
-                                        <td>@GetFullName(staff.Person)</td>
+                                        <td>@Util.GetFullName(staff.Person)</td>
                                     </tr>
                                     <tr>
                                         <th>Gender</th>
@@ -208,15 +208,6 @@ else
             NavigationManager.NavigateTo("/staff");
             return;
         }
-    }
-
-    private string GetFullName(Person person)
-    {
-        if (string.IsNullOrEmpty(person.MiddleName))
-        {
-            return $"{person.FirstName} {person.LastName}";
-        }
-        return $"{person.FirstName} {person.MiddleName} {person.LastName}";
     }
 
     private void NavigateToEdit()

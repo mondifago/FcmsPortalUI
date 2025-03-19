@@ -6,7 +6,6 @@
 @inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
-@inject StaffService StaffService
 
 <h3>Edit Staff</h3>
 
@@ -41,15 +40,9 @@ else
 
     private async Task UpdateStaff(Staff updatedStaff)
     {
-        bool success = await StaffService.UpdateStaffAsync(updatedStaff);
-        if (success)
-        {
-            NavigationManager.NavigateTo("/staff");
-        }
-        else
-        {
-            
-        }
+        updatedStaff.Id = Id;
+        SchoolDataService.UpdateStaff(updatedStaff);
+        NavigationManager.NavigateTo("/staff");
     }
 
     private void CancelEdit()
