@@ -117,9 +117,9 @@
         showDeleteConfirmation = false;
     }
 
-    private async Task ConfirmDelete()
+    private void ConfirmDelete()
     {
-        var result = await SchoolDataService.DeleteStaff(staffIdToDelete, isHardDelete: true);
+        var result = SchoolDataService.DeleteStaff(staffIdToDelete);
         if (result)
         {
             staffList = SchoolDataService.GetStaff();
