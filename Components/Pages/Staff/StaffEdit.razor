@@ -2,6 +2,8 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
+@inject ISchoolDataService SchoolDataService
+@using FcmsPortal.Services
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject StaffService StaffService
@@ -28,7 +30,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        staff = await StaffService.GetStaffByIdAsync(Id);
+        staff = SchoolDataService.GetStaffById(Id);
+
+        if (staff == null)
+        {
+            NavigationManager.NavigateTo("/staff");
+            return;
+        }
+
+        
     }
 
     private async Task UpdateStaff(Staff updatedStaff)
