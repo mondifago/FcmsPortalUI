@@ -115,9 +115,9 @@
         showDeleteConfirmation = false;
     }
 
-    private async Task ConfirmDelete()
+    private void ConfirmDelete()
     {
-        var result = await SchoolDataService.DeleteGuardian(guardianIdToDelete, isHardDelete: true);
+        var result = SchoolDataService.DeleteGuardian(guardianIdToDelete);
         if (result)
         {
             guardians = SchoolDataService.GetGuardians();
