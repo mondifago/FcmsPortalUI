@@ -2,8 +2,8 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
-@inject ISchoolDataService SchoolDataService
 @using FcmsPortal.Services
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject StaffService StaffService
@@ -36,9 +36,7 @@ else
         {
             NavigationManager.NavigateTo("/staff");
             return;
-        }
-
-        
+        } 
     }
 
     private async Task UpdateStaff(Staff updatedStaff)
