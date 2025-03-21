@@ -1,0 +1,20 @@
+﻿@using FcmsPortal.Models
+
+@if (!string.IsNullOrEmpty(Person.ProfilePictureUrl))
+{
+    <img src="@Person.ProfilePictureUrl" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" alt="Profile Picture" />
+}
+else
+{
+    <div class="bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+         style="width: 200px; height: 200px; border-radius: 50%; font-size: 72px;">
+        @(Person.FirstName[0])@(Person.LastName[0])
+    </div>
+}
+<h4>@Util.GetFullName(Person)</h4>
+
+@code {
+    [Parameter]
+    public Person Person { get; set; }
+
+}

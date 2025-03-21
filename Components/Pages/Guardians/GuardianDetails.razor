@@ -2,10 +2,12 @@
 @inject GuardianService GuardianService
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
+@using FcmsPortalUI.Components.Pages.Shared
 @rendermode InteractiveServer
 
 <PageTitle>Guardian Details</PageTitle>
@@ -33,17 +35,9 @@
             <div class="col-md-4 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        @if (!string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl))
-                        {
-                            <img src="@guardian.Person.ProfilePictureUrl" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" alt="Profile Picture" />
-                        }
-                        else
-                        {
-                            <div class="bg-light rounded-circle mx-auto d-flex justify-content-center align-items-center mb-3" style="width: 150px; height: 150px;">
-                                <i class="fa fa-person" style="font-size: 3rem;"></i>
-                            </div>
-                        }
-                        <h4>@GetFullName(guardian.Person)</h4>
+
+                         <ProfileThumbnailDetail Person="guardian.Person" />
+                       
                         <p class="text-muted">@guardian.RelationshipToStudent</p>
                     </div>
                 </div>
