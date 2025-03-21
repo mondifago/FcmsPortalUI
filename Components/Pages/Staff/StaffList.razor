@@ -51,14 +51,7 @@
                         <tr>
                             <td>@staff.Id</td>
                             <td>
-                                @if (!string.IsNullOrEmpty(staff.Person.ProfilePictureUrl))
-                                {
-                                    <ProfileThumbnailList Person="staff.Person" />
-                                }
-                                else
-                                {
-                                    <ProfilePicAlternative Person="staff.Person" />
-                                }
+                                <ProfileThumbnailList Person="staff.Person" />
                             </td>
                             <td>@Util.GetFullName(staff.Person)</td>
                             <td>@staff.Person.Email</td>

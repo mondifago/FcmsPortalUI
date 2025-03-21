@@ -49,15 +49,7 @@
                         <tr>
                             <td>@guardian.Id</td>
                             <td>
-                                @if (!string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl))
-                                {
-                                    <ProfileThumbnail Person="guardian.Person" />
-                                }
-                                else
-                                {
-                                    <ProfilePicAlternative Person="guardian.Person" />
-                                }
-
+                                <ProfileThumbnailList Person="guardian.Person" />
                             </td>
                             <td>@Util.GetFullName(guardian.Person)</td>
                             <td>@guardian.Person.Email</td>

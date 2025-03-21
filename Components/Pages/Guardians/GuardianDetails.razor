@@ -151,19 +151,9 @@
     protected override async Task OnInitializedAsync()
     {
         guardian = SchoolDataService.GetGuardianById(Id);
-        //guardian = await GuardianService.GetGuardianByIdAsync(Id);
-
         if (guardian == null)
         {
             NavigationManager.NavigateTo("/guardians");
         }
-    }
-
-    private string GetFullName(Person person)
-    {
-        if (person == null) return "-";
-
-        string middleName = string.IsNullOrEmpty(person.MiddleName) ? "" : $" {person.MiddleName}";
-        return $"{person.FirstName}{middleName} {person.LastName}";
     }
 }

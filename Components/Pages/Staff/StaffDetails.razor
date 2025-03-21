@@ -3,6 +3,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
 @using FcmsPortal.Services
+@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -26,18 +27,7 @@ else
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4 text-center mb-4">
-                    @if (!string.IsNullOrEmpty(staff.Person.ProfilePictureUrl))
-                    {
-                        <img src="@staff.Person.ProfilePictureUrl" alt="Profile Picture"
-                             class="img-fluid rounded-circle mb-3" style="max-width: 200px;" />
-                    }
-                    else
-                    {
-                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
-                             style="width: 200px; height: 200px; border-radius: 50%; font-size: 72px;">
-                            @(staff.Person.FirstName[0])@(staff.Person.LastName[0])
-                        </div>
-                    }
+                  <ProfileThumbnailDetail Person="staff.Person" />
                     <div>
                         <span class="badge @(staff.Person.IsActive ? "bg-success" : "bg-danger") fs-6 mb-2">
                             @(staff.Person.IsActive ? "Active" : "Inactive")
