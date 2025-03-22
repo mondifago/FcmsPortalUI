@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@using FcmsPortal
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
@@ -33,12 +34,37 @@
 
         <div class="row">
             <div class="col-md-4 mb-4">
-                <div class="card">
+                <div class="card mb-4">
                     <div class="card-body text-center">
+                        <ProfileThumbnailDetail Person="guardian.Person" />
 
-                         <ProfileThumbnailDetail Person="guardian.Person" />
-                       
                         <p class="text-muted">@guardian.RelationshipToStudent</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Wards</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (associatedStudents != null && associatedStudents.Any())
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var student in associatedStudents)
+                                {
+                                    <li class="list-group-item px-0">
+                                        <a href="/students/details/@student.Id">
+                                            @Util.GetFullName(student.Person)
+                                        </a>
+                                        <span class="badge bg-info float-end">@student.Person.ClassLevel</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No wards associated with this guardian.</p>
+                        }
                     </div>
                 </div>
             </div>
@@ -113,12 +139,12 @@
                                     <div class="accordion-item">
                                         <h2 class="accordion-header" id="@headingId">
                                             <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse"
-                                                    data-bs-target="#@collapseId" aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="@collapseId">
+                                            data-bs-target="#@collapseId" aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="@collapseId">
                                                 @address.AddressType Address
                                             </button>
                                         </h2>
                                         <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")"
-                                             aria-labelledby="@headingId" data-bs-parent="#addressAccordion">
+                                        aria-labelledby="@headingId" data-bs-parent="#addressAccordion">
                                             <div class="accordion-body">
                                                 <div class="row">
                                                     <div class="col-md-12">
@@ -147,13 +173,24 @@
     public int Id { get; set; }
 
     private Guardian guardian;
+    private List<Student> associatedStudents;
+    private FcmsPortal.Models.School school;
 
     protected override async Task OnInitializedAsync()
     {
+        // Get the school first
+        school = SchoolDataService.GetSchool();
+
+        // Get the guardian by ID
         guardian = SchoolDataService.GetGuardianById(Id);
+
         if (guardian == null)
         {
             NavigationManager.NavigateTo("/guardians");
+        }
+        else
+        {
+            associatedStudents = FcmsPortal.LogicMethods.GetStudentsByGuardianId(school, Id);
         }
     }
 }
