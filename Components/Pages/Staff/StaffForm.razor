@@ -186,9 +186,9 @@
             {
                 <div class="border p-3 mb-3">
                     <AddressForm 
-                    Model="@currentAddress"
+                    Address="@currentAddress"
                     OnValidSubmit="SaveAddress"
-
+                    OnCancel="CancelAddressEdit"
                     ButtonText="Add Address" />
                 </div>
             }

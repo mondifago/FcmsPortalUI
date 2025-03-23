@@ -2,33 +2,37 @@
 @using FcmsPortal.Enums
 @using Microsoft.AspNetCore.Components.Forms
 
-<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+<EditForm Model="@Address" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
-    <ValidationSummary />
 
     <div class="form-group">
         <label>Street</label>
-        <InputText class="form-control" @bind-Value="Model.Street" />
+        <InputText class="form-control" @bind-Value="Address.Street" />
+        <ValidationMessage For="@(() => Address.Street)" />
     </div>
     <div class="form-group">
         <label>City</label>
-        <InputText class="form-control" @bind-Value="Model.City" />
+        <InputText class="form-control" @bind-Value="Address.City" />
+        <ValidationMessage For="@(() => Address.City)" />
     </div>
     <div class="form-group">
         <label>State</label>
-        <InputText class="form-control" @bind-Value="Model.State" />
+        <InputText class="form-control" @bind-Value="Address.State" />
+        <ValidationMessage For="@(() => Address.State)" />
     </div>
     <div class="form-group">
         <label>Postal Code</label>
-        <InputText class="form-control" @bind-Value="Model.PostalCode" />
+        <InputText class="form-control" @bind-Value="Address.PostalCode" />
+        <ValidationMessage For="@(() => Address.PostalCode)" />
     </div>
     <div class="form-group">
         <label>Country</label>
-        <InputText class="form-control" @bind-Value="Model.Country" />
+        <InputText class="form-control" @bind-Value="Address.Country" />
+        <ValidationMessage For="@(() => Address.Country)" />
     </div>
     <div class="form-group">
         <label>Address Type</label>
-        <InputSelect class="form-control" @bind-Value="Model.AddressType">
+        <InputSelect class="form-control" @bind-Value="Address.AddressType">
             @foreach (AddressType type in Enum.GetValues(typeof(AddressType)))
             {
                 <option value="@type">@type</option>
@@ -37,36 +41,30 @@
     </div>
 
     <button type="submit" class="btn btn-primary mt-2">@ButtonText</button>
-    @if (OnCancel.HasValue)
-    {
-        <button type="button" class="btn btn-secondary mt-2" @onclick="CancelEdit">Cancel</button>
-    }
+    <button type="button" class="btn btn-secondary mt-2" @onclick="CancelEdit">Cancel</button>
 </EditForm>
 
 @code {
     [Parameter, EditorRequired]
-    public Address Model { get; set; } = new();
+    public Address Address { get; set; } 
 
     [Parameter, EditorRequired]
     public EventCallback<Address> OnValidSubmit { get; set; }
 
-    [Parameter]
-    public EventCallback? OnCancel { get; set; } 
+    [Parameter, EditorRequired]
+    public EventCallback OnCancel { get; set; }
 
     [Parameter]
     public string ButtonText { get; set; } = "Submit";
 
     private async Task HandleValidSubmit()
     {
-        await OnValidSubmit.InvokeAsync(Model);
+        await OnValidSubmit.InvokeAsync(Address);
     }
 
     private async Task CancelEdit()
     {
-        if (OnCancel.HasValue)
-        {
-            await OnCancel.Value.InvokeAsync(); 
-        }
+        await OnCancel.InvokeAsync();
     }
 }
 
