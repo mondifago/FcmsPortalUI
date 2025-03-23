@@ -6,7 +6,7 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-<EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+<EditForm Model="@Staff" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -39,25 +39,25 @@
 
             <div class="mb-3">
                 <label for="firstName" class="form-label">First Name</label>
-                <InputText id="firstName" class="form-control" @bind-Value="Model.Person.FirstName" />
-                <ValidationMessage For="@(() => Model.Person.FirstName)" />
+                <InputText id="firstName" class="form-control" @bind-Value="Staff.Person.FirstName" />
+                <ValidationMessage For="@(() => Staff.Person.FirstName)" />
             </div>
 
             <div class="mb-3">
                 <label for="middleName" class="form-label">Middle Name</label>
-                <InputText id="middleName" class="form-control" @bind-Value="Model.Person.MiddleName" />
-                <ValidationMessage For="@(() => Model.Person.MiddleName)" />
+                <InputText id="middleName" class="form-control" @bind-Value="Staff.Person.MiddleName" />
+                <ValidationMessage For="@(() => Staff.Person.MiddleName)" />
             </div>
 
             <div class="mb-3">
                 <label for="lastName" class="form-label">Last Name</label>
-                <InputText id="lastName" class="form-control" @bind-Value="Model.Person.LastName" />
-                <ValidationMessage For="@(() => Model.Person.LastName)" />
+                <InputText id="lastName" class="form-control" @bind-Value="Staff.Person.LastName" />
+                <ValidationMessage For="@(() => Staff.Person.LastName)" />
             </div>
 
             <div class="mb-3">
                 <label for="gender" class="form-label">Gender</label>
-                <InputSelect id="gender" class="form-select" @bind-Value="Model.Person.Sex">
+                <InputSelect id="gender" class="form-select" @bind-Value="Staff.Person.Sex">
                     @foreach (var gender in Enum.GetValues(typeof(Gender)))
                     {
                         <option value="@gender">@gender</option>
@@ -67,42 +67,42 @@
 
             <div class="mb-3">
                 <label for="dateOfBirth" class="form-label">Date of Birth</label>
-                <InputDate id="dateOfBirth" class="form-control" @bind-Value="Model.Person.DateOfBirth" />
-                <ValidationMessage For="@(() => Model.Person.DateOfBirth)" />
+                <InputDate id="dateOfBirth" class="form-control" @bind-Value="Staff.Person.DateOfBirth" />
+                <ValidationMessage For="@(() => Staff.Person.DateOfBirth)" />
             </div>
 
             <div class="mb-3">
                 <label for="stateOfOrigin" class="form-label">State of Origin</label>
-                <InputText id="stateOfOrigin" class="form-control" @bind-Value="Model.Person.StateOfOrigin" />
-                <ValidationMessage For="@(() => Model.Person.StateOfOrigin)" />
+                <InputText id="stateOfOrigin" class="form-control" @bind-Value="Staff.Person.StateOfOrigin" />
+                <ValidationMessage For="@(() => Staff.Person.StateOfOrigin)" />
             </div>
 
             <div class="mb-3">
                 <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
-                <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Model.Person.LgaOfOrigin" />
-                <ValidationMessage For="@(() => Model.Person.LgaOfOrigin)" />
+                <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Staff.Person.LgaOfOrigin" />
+                <ValidationMessage For="@(() => Staff.Person.LgaOfOrigin)" />
             </div>
 
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <InputText id="email" class="form-control" @bind-Value="Model.Person.Email" />
-                <ValidationMessage For="@(() => Model.Person.Email)" />
+                <InputText id="email" class="form-control" @bind-Value="Staff.Person.Email" />
+                <ValidationMessage For="@(() => Staff.Person.Email)" />
             </div>
 
             <div class="mb-3">
                 <label for="phoneNumber" class="form-label">Phone Number</label>
-                <InputText id="phoneNumber" class="form-control" @bind-Value="Model.Person.PhoneNumber" />
-                <ValidationMessage For="@(() => Model.Person.PhoneNumber)" />
+                <InputText id="phoneNumber" class="form-control" @bind-Value="Staff.Person.PhoneNumber" />
+                <ValidationMessage For="@(() => Staff.Person.PhoneNumber)" />
             </div>
 
             <div class="mb-3">
                 <label for="emergencyContact" class="form-label">Emergency Contact</label>
-                <InputText id="emergencyContact" class="form-control" @bind-Value="Model.Person.EmergencyContact" />
-                <ValidationMessage For="@(() => Model.Person.EmergencyContact)" />
+                <InputText id="emergencyContact" class="form-control" @bind-Value="Staff.Person.EmergencyContact" />
+                <ValidationMessage For="@(() => Staff.Person.EmergencyContact)" />
             </div>
 
             <div class="form-check form-switch mb-3">
-                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Model.Person.IsActive" />
+                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Staff.Person.IsActive" />
                 <label class="form-check-label" for="isActive">Status</label>
             </div>
         </div>
@@ -112,7 +112,7 @@
 
             <div class="mb-3">
                 <label for="jobRole" class="form-label">Job Role</label>
-                <InputSelect id="jobRole" class="form-select" @bind-Value="Model.JobRole">
+                <InputSelect id="jobRole" class="form-select" @bind-Value="Staff.JobRole">
                     @foreach (var role in Enum.GetValues(typeof(JobRole)))
                     {
                         <option value="@role">@role</option>
@@ -122,12 +122,12 @@
 
             <div class="mb-3">
                 <label for="jobDescription" class="form-label">Job Description</label>
-                <InputTextArea id="jobDescription" class="form-control" @bind-Value="Model.JobDescription" rows="3" />
+                <InputTextArea id="jobDescription" class="form-control" @bind-Value="Staff.JobDescription" rows="3" />
             </div>
 
             <div class="mb-3">
                 <label for="educationLevel" class="form-label">Education Level</label>
-                <InputSelect id="educationLevel" class="form-select" @bind-Value="Model.Person.EducationLevel" @onchange="HandleEducationLevelChange">
+                <InputSelect id="educationLevel" class="form-select" @bind-Value="Staff.Person.EducationLevel" @onchange="HandleEducationLevelChange">
                     @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
                     {
                         <option value="@level">@level</option>
@@ -135,16 +135,16 @@
                 </InputSelect>
             </div>
 
-           <div class="mb-3">
-    <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
-    <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Model.AreaOfSpecialization">
-        <option value="">-- Select Area of Specialization --</option>
-        @foreach (var course in availableCourses)
-        {
-            <option value="@course">@course</option>
-        }
-    </InputSelect>
-</div>
+            <div class="mb-3">
+                <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
+                <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Staff.AreaOfSpecialization">
+                    <option value="">-- Select Area of Specialization --</option>
+                    @foreach (var course in availableCourses)
+                    {
+                        <option value="@course">@course</option>
+                    }
+                </InputSelect>
+            </div>
 
             <div class="mb-3">
                 <label for="dateOfEmployment" class="form-label">Date of Employment</label>
@@ -152,11 +152,11 @@
             </div>
 
             <h5 class="mt-4">Qualifications</h5>
-            @for (int i = 0; i < Model.Qualifications.Count; i++)
+            @for (int i = 0; i < Staff.Qualifications.Count; i++)
             {
                 var index = i;
                 <div class="mb-2 d-flex">
-                    <InputText class="form-control me-2" @bind-Value="Model.Qualifications[index]" />
+                    <InputText class="form-control me-2" @bind-Value="Staff.Qualifications[index]" />
                     <button type="button" class="btn btn-danger" @onclick="() => RemoveQualification(index)">
                         <i class="fa fa-trash"></i>
                     </button>
@@ -167,11 +167,11 @@
             </button>
 
             <h5 class="mt-4">Work Experience</h5>
-            @for (int i = 0; i < Model.WorkExperience.Count; i++)
+            @for (int i = 0; i < Staff.WorkExperience.Count; i++)
             {
                 var index = i;
                 <div class="mb-2 d-flex">
-                    <InputText class="form-control me-2" @bind-Value="Model.WorkExperience[index]" />
+                    <InputText class="form-control me-2" @bind-Value="Staff.WorkExperience[index]" />
                     <button type="button" class="btn btn-danger" @onclick="() => RemoveWorkExperience(index)">
                         <i class="fa fa-trash"></i>
                     </button>
@@ -185,11 +185,10 @@
             @if (showAddressForm)
             {
                 <div class="border p-3 mb-3">
-                    <AddressForm 
-                    Address="@currentAddress"
-                    OnValidSubmit="SaveAddress"
-                    OnCancel="CancelAddressEdit"
-                    ButtonText="Add Address" />
+                    <AddressForm Address="@currentAddress"
+                                 OnValidSubmit="SaveAddress"
+                                 OnCancel="CancelAddressEdit"
+                                 ButtonText="Add Address" />
                 </div>
             }
             else
@@ -199,10 +198,10 @@
                 </button>
             }
 
-            @if (Model.Person.Addresses.Any())
+            @if (Staff.Person.Addresses.Any())
             {
                 <div class="list-group mb-3">
-                    @foreach (var address in Model.Person.Addresses)
+                    @foreach (var address in Staff.Person.Addresses)
                     {
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between">
@@ -213,8 +212,8 @@
                                     </p>
                                 </div>
                                 <div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                                    @onclick="() => RemoveAddress(address)">
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            @onclick="() => RemoveAddress(address)">
                                         <i class="fa fa-trash"></i>
                                     </button>
                                 </div>
@@ -236,15 +235,15 @@
 
 @code {
     [Parameter, EditorRequired]
-    public Staff Model { get; set; } = new()
-    {
-        Person = new Person()
+    public Staff Staff { get; set; } = new()
         {
+            Person = new Person()
+            {
                 IsActive = true
-        },
-        Qualifications = new List<string>(),
-        WorkExperience = new List<string>()
-    };
+            },
+            Qualifications = new List<string>(),
+            WorkExperience = new List<string>()
+        };
 
     [Parameter]
     public string SubmitButtonText { get; set; } = "Save";
@@ -265,12 +264,12 @@
 
     protected override void OnInitialized()
     {
-        if (Model.DateOfEmployment != default)
+        if (Staff.DateOfEmployment != default)
         {
             employmentDate = new DateTime(
-                Model.DateOfEmployment.Year,
-                Model.DateOfEmployment.Month,
-                Model.DateOfEmployment.Day
+                Staff.DateOfEmployment.Year,
+                Staff.DateOfEmployment.Month,
+                Staff.DateOfEmployment.Day
             );
         }
         else
@@ -278,23 +277,23 @@
             employmentDate = DateTime.Today;
         }
 
-        if (Model.Qualifications == null)
-            Model.Qualifications = new List<string>();
+        if (Staff.Qualifications == null)
+            Staff.Qualifications = new List<string>();
 
-        if (Model.WorkExperience == null)
-            Model.WorkExperience = new List<string>();
+        if (Staff.WorkExperience == null)
+            Staff.WorkExperience = new List<string>();
 
-        if (Model.Person.Addresses == null)
-            Model.Person.Addresses = new List<Address>();
+        if (Staff.Person.Addresses == null)
+            Staff.Person.Addresses = new List<Address>();
 
-        selectedEducationLevel = Model.Person.EducationLevel;
+        selectedEducationLevel = Staff.Person.EducationLevel;
 
         if (selectedEducationLevel != null)
         {
             availableCourses = CourseDefaults.GetCourseNames(selectedEducationLevel.Value);
         }
 
-        profilePictureUrl = Model.Person.ProfilePictureUrl;
+        profilePictureUrl = Staff.Person.ProfilePictureUrl;
     }
 
     private async Task HandleFileSelection(InputFileChangeEventArgs e)
@@ -304,29 +303,29 @@
         await profilePictureFile.OpenReadStream().ReadAsync(buffer);
         var imageType = profilePictureFile.ContentType;
         profilePictureUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffer)}";
-        StateHasChanged(); 
+        StateHasChanged();
     }
 
     private void HandleEducationLevelChange(ChangeEventArgs e)
     {
         var selectedLevel = (EducationLevel)Enum.Parse(typeof(EducationLevel), e.Value.ToString());
-        Model.Person.EducationLevel = selectedLevel;
+        Staff.Person.EducationLevel = selectedLevel;
         availableCourses = CourseDefaults.GetCourseNames(selectedLevel);
-        Model.AreaOfSpecialization = "";
+        Staff.AreaOfSpecialization = "";
         StateHasChanged();
     }
 
     private async Task HandleValidSubmit()
     {
-        Model.Person.ProfilePictureUrl = profilePictureUrl;
-        
-        Model.DateOfEmployment = new DateOnly(
+        Staff.Person.ProfilePictureUrl = profilePictureUrl;
+
+        Staff.DateOfEmployment = new DateOnly(
             employmentDate.Year,
             employmentDate.Month,
             employmentDate.Day
         );
 
-        await OnSubmit.InvokeAsync(Model);
+        await OnSubmit.InvokeAsync(Staff);
     }
 
     private async Task Cancel()
@@ -336,27 +335,27 @@
 
     private void AddQualification()
     {
-        Model.Qualifications.Add(string.Empty);
+        Staff.Qualifications.Add(string.Empty);
     }
 
     private void RemoveQualification(int index)
     {
-        if (index >= 0 && index < Model.Qualifications.Count)
+        if (index >= 0 && index < Staff.Qualifications.Count)
         {
-            Model.Qualifications.RemoveAt(index);
+            Staff.Qualifications.RemoveAt(index);
         }
     }
 
     private void AddWorkExperience()
     {
-        Model.WorkExperience.Add(string.Empty);
+        Staff.WorkExperience.Add(string.Empty);
     }
 
     private void RemoveWorkExperience(int index)
     {
-        if (index >= 0 && index < Model.WorkExperience.Count)
+        if (index >= 0 && index < Staff.WorkExperience.Count)
         {
-            Model.WorkExperience.RemoveAt(index);
+            Staff.WorkExperience.RemoveAt(index);
         }
     }
 
@@ -368,7 +367,7 @@
 
     private void SaveAddress(Address address)
     {
-        Model.Person.Addresses.Add(address);
+        Staff.Person.Addresses.Add(address);
         showAddressForm = false;
         currentAddress = new Address();
     }
@@ -381,6 +380,6 @@
 
     private void RemoveAddress(Address address)
     {
-        Model.Person.Addresses.Remove(address);
+        Staff.Person.Addresses.Remove(address);
     }
 }
