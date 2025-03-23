@@ -1,0 +1,49 @@
+﻿@using FcmsPortal.Models
+
+
+@if (Person.Addresses != null && Person.Addresses.Any())
+{
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Addresses</h5>
+        </div>
+        <div class="card-body">
+            <div class="accordion" id="addressAccordion">
+                @for (int i = 0; i < Person.Addresses.Count; i++)
+                {
+                    var address = Person.Addresses[i];
+                    var headingId = $"heading{i}";
+                    var collapseId = $"collapse{i}";
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="@headingId">
+                            <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#@collapseId" aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="@collapseId">
+                                @address.AddressType Address
+                            </button>
+                        </h2>
+                        <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")"
+                             aria-labelledby="@headingId" data-bs-parent="#addressAccordion">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <p><strong>Street:</strong> @address.Street</p>
+                                        <p><strong>City:</strong> @address.City</p>
+                                        <p><strong>State:</strong> @address.State</p>
+                                        <p><strong>Postal Code:</strong> @address.PostalCode</p>
+                                        <p><strong>Country:</strong> @address.Country</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+@code {
+    [Parameter]
+    public Person Person { get; set; }
+
+}
