@@ -1,0 +1,258 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@using FcmsPortalUI.Components.Pages.Shared
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Services
+@rendermode InteractiveServer
+
+<EditForm Model="@Guardian" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12 mb-4 text-center">
+                    <ProfileThumbnailForm ImageUrl="@profilePictureUrl"
+                                          ImageUrlChanged="HandleProfilePictureChanged" />
+                </div>
+            </div>
+
+            <h4 class="mb-3">Personal Information</h4>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <InputText id="firstName" class="form-control" @bind-Value="Guardian.Person.FirstName" />
+                    <ValidationMessage For="@(() => Guardian.Person.FirstName)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="middleName" class="form-label">Middle Name</label>
+                    <InputText id="middleName" class="form-control" @bind-Value="Guardian.Person.MiddleName" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <InputText id="lastName" class="form-control" @bind-Value="Guardian.Person.LastName" />
+                    <ValidationMessage For="@(() => Guardian.Person.LastName)" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="gender" class="form-label">Gender</label>
+                    <InputSelect id="gender" class="form-select" @bind-Value="Guardian.Person.Sex">
+                        <option value="">-- Select Gender --</option>
+                        @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                        {
+                            <option value="@gender">@gender</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Guardian.Person.Sex)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="stateOfOrigin" class="form-label">State of Origin</label>
+                    <InputText id="stateOfOrigin" class="form-control" @bind-Value="Guardian.Person.StateOfOrigin" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
+                    <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Guardian.Person.LgaOfOrigin" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <InputText id="email" class="form-control" @bind-Value="Guardian.Person.Email" />
+                    <ValidationMessage For="@(() => Guardian.Person.Email)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <InputText id="phoneNumber" class="form-control" @bind-Value="phoneNumber" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                    <InputText id="emergencyContact" class="form-control" @bind-Value="Guardian.Person.EmergencyContact" />
+                </div>
+            </div>
+
+            <h4 class="mb-3">Guardian Details</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="relationship" class="form-label">Relationship to Student</label>
+                    <InputSelect id="relationship" class="form-select" @bind-Value="Guardian.RelationshipToStudent">
+                        <option value="">-- Select Relationship --</option>
+                        @foreach (var relationship in Enum.GetValues(typeof(Relationship)))
+                        {
+                            <option value="@relationship">@relationship</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Guardian.RelationshipToStudent)" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="occupation" class="form-label">Occupation</label>
+                    <InputText id="occupation" class="form-control" @bind-Value="Guardian.Occupation" />
+                    <ValidationMessage For="@(() => Guardian.Occupation)" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="dateOfEnrollment" class="form-label">Date of Enrollment</label>
+                    <InputDate id="dateOfEnrollment" class="form-control" @bind-Value="enrollmentDate" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-check form-switch mt-4">
+                        <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Guardian.Person.IsActive" />
+                        <label class="form-check-label" for="isActive">Status</label>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mb-3">Address Information</h4>
+            @if (showAddressForm)
+            {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Add New Address</h5>
+                        <AddressForm Address="@currentAddress"
+                                     OnValidSubmit="SaveAddress"
+                                     OnCancel="CancelAddressEdit"
+                                     ButtonText="Save Address" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                <button type="button" class="btn btn-outline-primary mb-3" @onclick="ShowAddressForm">
+                    <i class="fa fa-plus"></i> Add Address
+                </button>
+            }
+
+            @if (Guardian.Person.Addresses.Any())
+            {
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Street</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var address in Guardian.Person.Addresses)
+                            {
+                                <tr>
+                                    <td>@address.AddressType</td>
+                                    <td>@address.Street</td>
+                                    <td>@address.City</td>
+                                    <td>@address.State</td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveAddress(address)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public Guardian Guardian { get; set; } = new()
+        {
+            Person = new Person()
+            {
+                IsActive = true,
+                Addresses = new List<Address>()
+            }
+        };
+
+    [Parameter]
+    public string SubmitButtonText { get; set; } = "Save";
+
+    [Parameter, EditorRequired]
+    public EventCallback<Guardian> OnSubmit { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnCancel { get; set; }
+
+    private string profilePictureUrl = "";
+    private string phoneNumber = "";
+    private DateTime enrollmentDate;
+    private bool showAddressForm = false;
+    private Address currentAddress = new();
+
+    protected override void OnInitialized()
+    {
+        if (Guardian.Person.DateOfEnrollment != default)
+        {
+            enrollmentDate = Guardian.Person.DateOfEnrollment;
+        }
+        else
+        {
+            enrollmentDate = DateTime.Today;
+        }
+
+        if (Guardian.Person.Addresses == null)
+            Guardian.Person.Addresses = new List<Address>();
+
+        profilePictureUrl = Guardian.Person.ProfilePictureUrl ?? "";
+        phoneNumber = Guardian.Person.PhoneNumber ?? "";
+    }
+
+    private void HandleProfilePictureChanged(string newImageUrl)
+    {
+        profilePictureUrl = newImageUrl;
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        Guardian.Person.ProfilePictureUrl = profilePictureUrl;
+        Guardian.Person.PhoneNumber = phoneNumber;
+        Guardian.Person.DateOfEnrollment = enrollmentDate;
+
+        await OnSubmit.InvokeAsync(Guardian);
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+
+    private void ShowAddressForm()
+    {
+        currentAddress = new Address();
+        showAddressForm = true;
+    }
+
+    private void SaveAddress(Address address)
+    {
+        Guardian.Person.Addresses.Add(address);
+        showAddressForm = false;
+        currentAddress = new Address();
+    }
+
+    private void CancelAddressEdit()
+    {
+        showAddressForm = false;
+        currentAddress = new Address();
+    }
+
+    private void RemoveAddress(Address address)
+    {
+        Guardian.Person.Addresses.Remove(address);
+    }
+}
