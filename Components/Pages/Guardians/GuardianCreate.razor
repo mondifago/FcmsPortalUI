@@ -1,8 +1,9 @@
 ﻿@page "/guardians/create"
-@inject GuardianService GuardianService
 @inject AddressService AddressService
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
+@using Microsoft.AspNetCore.Components.Forms
+@using FcmsPortalUI.Components.Pages.Shared
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
@@ -277,11 +278,11 @@
         profilePictureUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffer)}";
     }
 
-    private async Task HandleSubmit()
+    private void HandleSubmit()
     {
         if (!string.IsNullOrEmpty(phoneNumber))
         {
-            newGuardian.Person.PhoneNumber = phoneNumber ;
+            newGuardian.Person.PhoneNumber = phoneNumber;
         }
 
         newGuardian.Person.Addresses = addresses;
@@ -291,7 +292,7 @@
             newGuardian.Person.ProfilePictureUrl = profilePictureUrl;
         }
 
-        await GuardianService.AddGuardianAsync(newGuardian);
+        SchoolDataService.AddGuardian(newGuardian);
         NavigationManager.NavigateTo("/guardians");
     }
 }
