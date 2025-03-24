@@ -120,45 +120,10 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <h5 class="card-title">Add New Address</h5>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="street" class="form-label">Street</label>
-                                    <InputText id="street" class="form-control" @bind-Value="newAddress.Street" />
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="city" class="form-label">City</label>
-                                    <InputText id="city" class="form-control" @bind-Value="newAddress.City" />
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="state" class="form-label">State</label>
-                                    <InputText id="state" class="form-control" @bind-Value="newAddress.State" />
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="postalCode" class="form-label">Postal Code</label>
-                                    <InputText id="postalCode" class="form-control" @bind-Value="newAddress.PostalCode" />
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="country" class="form-label">Country</label>
-                                    <InputText id="country" class="form-control" @bind-Value="newAddress.Country" />
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="addressType" class="form-label">Address Type</label>
-                                    <InputSelect id="addressType" class="form-select" @bind-Value="newAddress.AddressType">
-                                        @foreach (AddressType type in Enum.GetValues(typeof(AddressType)))
-                                        {
-                                            <option value="@type">@type</option>
-                                        }
-                                    </InputSelect>
-                                </div>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-success" @onclick="AddAddress">Save Address</button>
-                                <button type="button" class="btn btn-secondary" @onclick="CancelAddAddress">Cancel</button>
-                            </div>
+                            <AddressForm Address="@newAddress"
+                                         OnValidSubmit="SaveAddress"
+                                         OnCancel="CancelAddAddress"
+                                         ButtonText="Save Address" />
                         </div>
                     </div>
                 }
@@ -227,7 +192,7 @@
     private Address newAddress = new Address();
     private bool showAddressForm = false;
     private string profilePictureUrl = "";
-    
+
     private void ShowAddressForm()
     {
         showAddressForm = true;
@@ -239,17 +204,17 @@
         showAddressForm = false;
     }
 
-    private void AddAddress()
+    private void SaveAddress(Address address)
     {
         addresses.Add(new Address
-        {
-           Street = newAddress.Street,
-           City = newAddress.City,
-           State = newAddress.State,
-           PostalCode = newAddress.PostalCode,
-           Country = newAddress.Country,
-           AddressType = newAddress.AddressType
-        });
+            {
+                Street = address.Street,
+                City = address.City,
+                State = address.State,
+                PostalCode = address.PostalCode,
+                Country = address.Country,
+                AddressType = address.AddressType
+            });
         showAddressForm = false;
     }
 

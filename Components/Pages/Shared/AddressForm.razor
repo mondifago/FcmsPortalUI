@@ -5,32 +5,32 @@
 <EditForm Model="@Address" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
 
-    <div class="col-md-6 mb-3">
+    <div class="form-group">
         <label for="street" class="form-label">Street</label>
         <InputText class="form-control" @bind-Value="Address.Street" />
         <ValidationMessage For="@(() => Address.Street)" />
     </div>
-    <div class="col-md-6 mb-3">
+    <div class="form-group">
         <label for="city" class="form-label">City</label>
         <InputText class="form-control" @bind-Value="Address.City" />
         <ValidationMessage For="@(() => Address.City)" />
     </div>
-    <div class="col-md-6 mb-3">
+    <div class="form-group">
         <label for="state" class="form-label">State</label>
         <InputText class="form-control" @bind-Value="Address.State" />
         <ValidationMessage For="@(() => Address.State)" />
     </div>
-    <div class="col-md-6 mb-3">
+    <div class="form-group">
         <label for="postalCode" class="form-label">Postal Code</label>
         <InputText class="form-control" @bind-Value="Address.PostalCode" />
         <ValidationMessage For="@(() => Address.PostalCode)" />
     </div>
-    <div class="col-md-6 mb-3">
+    <div class="form-group">
         <label for="country" class="form-label">Country</label>
         <InputText class="form-control" @bind-Value="Address.Country" />
         <ValidationMessage For="@(() => Address.Country)" />
     </div>
-    <div class="col-md-6 mb-3">
+    <div class="form-group">
         <label for="addressType" class="form-label">Address Type</label>
         <InputSelect class="form-control" @bind-Value="Address.AddressType">
             @foreach (AddressType type in Enum.GetValues(typeof(AddressType)))
