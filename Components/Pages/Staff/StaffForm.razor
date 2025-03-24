@@ -27,7 +27,7 @@
                                 else
                                 {
                                     <div class="bg-light rounded-circle d-flex justify-content-center align-items-center" style="width: 150px; height: 150px;">
-                                        <i class="fa fa-person"></i>
+                                    <i class="fa fa-user" style="font-size: 5rem;"></i>
                                     </div>
                                 }
                             </div>
@@ -186,9 +186,9 @@
             {
                 <div class="border p-3 mb-3">
                     <AddressForm Address="@currentAddress"
-                                 OnValidSubmit="SaveAddress"
-                                 OnCancel="CancelAddressEdit"
-                                 ButtonText="Add Address" />
+                    OnValidSubmit="SaveAddress"
+                    OnCancel="CancelAddressEdit"
+                    ButtonText="Add Address" />
                 </div>
             }
             else
@@ -213,7 +213,7 @@
                                 </div>
                                 <div>
                                     <button type="button" class="btn btn-sm btn-outline-danger"
-                                            @onclick="() => RemoveAddress(address)">
+                                    @onclick="() => RemoveAddress(address)">
                                         <i class="fa fa-trash"></i>
                                     </button>
                                 </div>
@@ -261,6 +261,7 @@
     private Address currentAddress = new();
     private EducationLevel? selectedEducationLevel;
     private List<string> availableCourses = new();
+
 
     protected override void OnInitialized()
     {
