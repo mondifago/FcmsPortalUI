@@ -118,6 +118,12 @@
                         <InputText id="occupation" class="form-control" @bind-Value="newGuardian.Occupation" />
                         <ValidationMessage For="@(() => newGuardian.Occupation)" />
                     </div>
+
+                    <div class="mb-3">
+                        <label for="dateOfEnrollment" class="form-label">Date of Enrollment</label>
+                        <InputDate id="dateOfEnrollment" class="form-control" @bind-Value="newGuardian.Person.DateOfEnrollment" />
+                    </div>
+
                     <div class="form-check form-switch mb-3">
                         <InputCheckbox id="isActive" class="form-check-input" @bind-Value="newGuardian.Person.IsActive" />
                         <label class="form-check-label" for="isActive">Status</label>
@@ -227,6 +233,7 @@
             Person = new Person
             {
                 Addresses = new List<Address>(),
+                DateOfEnrollment = DateTime.Now,
                 IsActive = true
             }
         };
@@ -237,6 +244,12 @@
     private bool showAddressForm = false;
     private string profilePictureUrl = "";
     private IBrowserFile profilePictureFile;
+
+    protected override void OnInitialized()
+    {
+        
+    }
+
 
     private void ShowAddressForm()
     {
