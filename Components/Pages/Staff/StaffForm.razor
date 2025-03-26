@@ -16,10 +16,8 @@
 
             <div class="row">
                 <div class="col-md-12 mb-4 text-center">
-                    <ProfileThumbnailForm 
-                        ImageUrl="@profilePictureUrl" 
-                        ImageUrlChanged="HandleProfilePictureChanged" 
-                    />
+                    <ProfileThumbnailForm ImageUrl="@profilePictureUrl"
+                    ImageUrlChanged="HandleProfilePictureChanged" />
                 </div>
             </div>
 
@@ -113,7 +111,7 @@
 
             <div class="mb-3">
                 <label for="educationLevel" class="form-label">Education Level</label>
-                <InputSelect id="educationLevel" class="form-select" @bind-Value="Staff.Person.EducationLevel" @onchange="HandleEducationLevelChange">
+                <InputSelect id="educationLevel" class="form-select" @bind-Value="Staff.Person.EducationLevel" @bind-Value:after="HandleEducationLevelChange">
                     @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
                     {
                         <option value="@level">@level</option>
@@ -245,7 +243,7 @@
     private bool showAddressForm = false;
     private Address currentAddress = new();
     private EducationLevel? selectedEducationLevel;
-    private List<string> availableCourses = new();
+    private List<string> availableCourses { get; set; } = new();
 
 
     protected override void OnInitialized()
@@ -288,10 +286,9 @@
         StateHasChanged();
     }
 
-    private void HandleEducationLevelChange(ChangeEventArgs e)
+    private void HandleEducationLevelChange()
     {
-        var selectedLevel = (EducationLevel)Enum.Parse(typeof(EducationLevel), e.Value.ToString());
-        Staff.Person.EducationLevel = selectedLevel;
+        var selectedLevel = Staff.Person.EducationLevel;
         availableCourses = CourseDefaults.GetCourseNames(selectedLevel);
         Staff.AreaOfSpecialization = "";
         StateHasChanged();
