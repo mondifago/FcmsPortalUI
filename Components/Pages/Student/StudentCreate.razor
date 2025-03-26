@@ -1,0 +1,42 @@
+﻿@page "/students/create"
+@using FcmsPortal.Models
+@using FcmsPortal.Services
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
+
+<PageTitle>Add New Student</PageTitle>
+
+<div class="container">
+    <h1>Add New Student</h1>
+
+    <StudentForm Student="@newStudent"
+                 SubmitButtonText="Create Student"
+                 OnSubmit="CreateStudent"
+                 OnCancel="CancelCreate" />
+</div>
+
+@code {
+    private Student newStudent = new Student
+        {
+            Person = new Person
+            {
+                DateOfEnrollment = DateTime.Now,
+                IsActive = true
+            }
+        };
+
+    private FcmsPortal.Models.School school;
+    private Guardian assotiatedguardian;
+
+    private void CreateStudent(Student student)
+    {
+        SchoolDataService.AddStudent(student);
+        NavigationManager.NavigateTo("/students");
+    }
+
+    private void CancelCreate()
+    {
+        NavigationManager.NavigateTo("/students");
+    }
+}
