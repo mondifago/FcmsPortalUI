@@ -239,7 +239,7 @@
     public EventCallback OnCancel { get; set; }
 
     private string profilePictureUrl = "";
-    private DateTime employmentDate;
+    private DateTime employmentDate = DateTime.Today;
     private bool showAddressForm = false;
     private Address currentAddress = new();
     private EducationLevel? selectedEducationLevel;
@@ -248,19 +248,6 @@
 
     protected override void OnInitialized()
     {
-        if (Staff.DateOfEmployment != default)
-        {
-            employmentDate = new DateTime(
-                Staff.DateOfEmployment.Year,
-                Staff.DateOfEmployment.Month,
-                Staff.DateOfEmployment.Day
-            );
-        }
-        else
-        {
-            employmentDate = DateTime.Today;
-        }
-
         if (Staff.Qualifications == null)
             Staff.Qualifications = new List<string>();
 
@@ -297,13 +284,6 @@
     private async Task HandleValidSubmit()
     {
         Staff.Person.ProfilePictureUrl = profilePictureUrl;
-
-        Staff.DateOfEmployment = new DateOnly(
-            employmentDate.Year,
-            employmentDate.Month,
-            employmentDate.Day
-        );
-
         await OnSubmit.InvokeAsync(Staff);
     }
 
