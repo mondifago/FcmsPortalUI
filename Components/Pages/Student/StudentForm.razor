@@ -1,0 +1,192 @@
+﻿@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.Forms
+@using FcmsPortalUI.Components.Pages.Shared
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+@rendermode InteractiveServer
+
+<EditForm Model="@Student" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12 mb-4 text-center">
+                    <ProfileThumbnailForm ImageUrl="@profilePictureUrl"
+                                          ImageUrlChanged="HandleProfilePictureChanged" />
+                </div>
+            </div>
+
+            <h4 class="mb-3">Personal Information</h4>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <InputText id="firstName" class="form-control" @bind-Value="Student.Person.FirstName" />
+                    <ValidationMessage For="@(() => Student.Person.FirstName)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="middleName" class="form-label">Middle Name</label>
+                    <InputText id="middleName" class="form-control" @bind-Value="Student.Person.MiddleName" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <InputText id="lastName" class="form-control" @bind-Value="Student.Person.LastName" />
+                    <ValidationMessage For="@(() => Student.Person.LastName)" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="gender" class="form-label">Gender</label>
+                    <InputSelect id="gender" class="form-select" @bind-Value="Student.Person.Sex">
+                        <option value="">-- Select Gender --</option>
+                        @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                        {
+                            <option value="@gender">@gender</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Student.Person.Sex)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                    <InputDate id="dateOfBirth" class="form-control" @bind-Value="Student.Person.DateOfBirth" />
+                    <ValidationMessage For="@(() => Student.Person.DateOfBirth)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="positionAmongSiblings" class="form-label">Position Among Siblings</label>
+                    <InputNumber id="positionAmongSiblings" class="form-control" @bind-Value="Student.PositionAmongSiblings" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="stateOfOrigin" class="form-label">State of Origin</label>
+                    <InputText id="stateOfOrigin" class="form-control" @bind-Value="Student.Person.StateOfOrigin" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
+                    <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Student.Person.LgaOfOrigin" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="lastSchoolAttended" class="form-label">Last School Attended</label>
+                    <InputText id="lastSchoolAttended" class="form-control" @bind-Value="Student.LastSchoolAttended" />
+                </div>
+            </div>
+
+            <h4 class="mb-3">Academic Information</h4>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="educationLevel" class="form-label">Education Level</label>
+                    <InputSelect id="educationLevel" class="form-select" @bind-Value="Student.Person.EducationLevel">
+                        <option value="">-- Select Education Level --</option>
+                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Student.Person.EducationLevel)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="classLevel" class="form-label">Class Level</label>
+                    <InputSelect id="classLevel" class="form-select" @bind-Value="Student.Person.ClassLevel">
+                        <option value="">-- Select Class Level --</option>
+                        @foreach (var level in Enum.GetValues(typeof(ClassLevel)))
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Student.Person.ClassLevel)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="dateOfEnrollment" class="form-label">Date of Enrollment</label>
+                    <InputDate id="dateOfEnrollment" class="form-control" @bind-Value="Student.Person.DateOfEnrollment" />
+                    <ValidationMessage For="@(() => Student.Person.DateOfEnrollment)" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="guardian" class="form-label">Guardian</label>
+                    <InputSelect id="guardian" class="form-select" @bind-Value="Student.GuardianId">
+                        <option value="0">-- Select Guardian --</option>
+                        @foreach (var guardian in guardians)
+                        {
+                            <option value="@guardian.Id">@guardian.Person.FirstName @guardian.Person.LastName</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                    <InputText id="emergencyContact" class="form-control" @bind-Value="Student.Person.EmergencyContact" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Student.Person.IsActive" />
+                    <label class="form-check-label" for="isActive">Active Status</label>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public Student Student { get; set; } = new()
+        {
+            Person = new Person()
+            {
+                IsActive = true
+            }
+        };
+
+    [Parameter]
+    public string SubmitButtonText { get; set; } = "Save";
+
+    [Parameter, EditorRequired]
+    public EventCallback<Student> OnSubmit { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnCancel { get; set; }
+
+    private string profilePictureUrl = "";
+    private List<Guardian> guardians = new();
+    private FcmsPortal.Models.School school;
+
+    protected override async Task OnInitializedAsync()
+    {
+        school = SchoolDataService.GetSchool();
+        guardians = FcmsPortal.LogicMethods.GetAllGuardians(school);
+
+        if (Student.Person.DateOfEnrollment == default)
+            Student.Person.DateOfEnrollment = DateTime.Today;
+
+        profilePictureUrl = Student.Person.ProfilePictureUrl ?? "";
+    }
+
+    private void HandleProfilePictureChanged(string newImageUrl)
+    {
+        profilePictureUrl = newImageUrl;
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        Student.Person.ProfilePictureUrl = profilePictureUrl;
+        await OnSubmit.InvokeAsync(Student);
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}
