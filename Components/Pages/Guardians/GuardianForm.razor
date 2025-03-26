@@ -68,10 +68,6 @@
                     <label for="phoneNumber" class="form-label">Phone Number</label>
                     <InputText id="phoneNumber" class="form-control" @bind-Value="phoneNumber" />
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label for="emergencyContact" class="form-label">Emergency Contact</label>
-                    <InputText id="emergencyContact" class="form-control" @bind-Value="Guardian.Person.EmergencyContact" />
-                </div>
             </div>
 
             <h4 class="mb-3">Guardian Details</h4>
@@ -171,13 +167,14 @@
 @code {
     [Parameter, EditorRequired]
     public Guardian Guardian { get; set; } = new()
-        {
-            Person = new Person()
-            {
-                IsActive = true,
-                Addresses = new List<Address>()
-            }
-        };
+    {
+       Person = new Person()
+       {
+           IsActive = true,
+           Addresses = new List<Address>()
+       },
+       Wards = new List<Student>()
+    };
 
     [Parameter]
     public string SubmitButtonText { get; set; } = "Save";
