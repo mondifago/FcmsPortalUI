@@ -28,10 +28,12 @@
 
     private FcmsPortal.Models.School school;
     private Guardian assotiatedguardian;
-
+    
     private void CreateStudent(Student student)
     {
-        SchoolDataService.AddStudent(student);
+        var createdStudent = SchoolDataService.AddStudent(student);
+        var assotiatedguardian = SchoolDataService.GetGuardianById(student.GuardianId);
+        FcmsPortal.LogicMethods.AddStudentToGuardianWards(assotiatedguardian, createdStudent);
         NavigationManager.NavigateTo("/students");
     }
 
