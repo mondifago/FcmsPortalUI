@@ -26,9 +26,25 @@
             }
         };
 
-    private FcmsPortal.Models.School school;
-    private Guardian assotiatedguardian;
+    //private FcmsPortal.Models.School school;
+    //private Guardian assotiatedguardian;
     
+    protected override void OnInitialized()
+    {
+        // Check if a guardian ID was passed in the query string
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+
+        if (int.TryParse(queryParams["guardianId"], out int guardianId))
+        {
+            var selectedGuardian = SchoolDataService.GetGuardianById(guardianId);
+            if (selectedGuardian != null)
+            {
+                newStudent.GuardianId = selectedGuardian.Id;
+            }
+        }
+    }
+
     private void CreateStudent(Student student)
     {
         var createdStudent = SchoolDataService.AddStudent(student);
