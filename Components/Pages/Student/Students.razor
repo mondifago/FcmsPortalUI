@@ -110,9 +110,22 @@
 
     private void ConfirmDelete()
     {
+        var guardianToUpdate = SchoolDataService.GetGuardianByStudentId(studentIdToDelete);
         var result = SchoolDataService.DeleteStudent(studentIdToDelete);
+
         if (result)
         {
+            // If the student was associated with a guardian, remove the student from their wards
+            if (guardianToUpdate != null)
+            {
+                var studentToRemove = guardianToUpdate.Wards.FirstOrDefault(s => s.Id == studentIdToDelete);
+
+                if (studentToRemove != null)
+                {
+                    guardianToUpdate.Wards.Remove(studentToRemove);
+                }
+            }
+
             students = SchoolDataService.GetStudents();
             showDeleteConfirmation = false;
             StateHasChanged();

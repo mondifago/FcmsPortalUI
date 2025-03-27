@@ -1,0 +1,69 @@
+﻿@page "/students/edit/{Id:int}"
+@using FcmsPortal.Models
+@using FcmsPortal.Services
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
+
+<PageTitle>Edit Student</PageTitle>
+
+<div class="container">
+    <h1>Edit Student</h1>
+
+    @if (student != null)
+    {
+        <StudentForm Student="@student"
+                     SubmitButtonText="Update Student"
+                     OnSubmit="UpdateStudent"
+                     OnCancel="CancelEdit" />
+    }
+    else
+    {
+        <p>Loading student information...</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Student student;
+
+    protected override async Task OnInitializedAsync()
+    {
+        student = SchoolDataService.GetStudentById(Id);
+
+        if (student == null)
+        {
+            NavigationManager.NavigateTo("/students");
+        }
+    }
+
+    private void UpdateStudent(Student updatedStudent)
+    {
+        SchoolDataService.UpdateStudent(updatedStudent);
+
+        // If the guardian has changed, update guardian associations
+        if (updatedStudent.GuardianId > 0)
+        {
+            var previousGuardian = SchoolDataService.GetGuardianByStudentId(updatedStudent.Id);
+            var newGuardian = SchoolDataService.GetGuardianById(updatedStudent.GuardianId);
+
+            if (previousGuardian != null && previousGuardian.Id != newGuardian.Id)
+            {
+                // Remove student from previous guardian's wards
+                FcmsPortal.LogicMethods.RemoveStudentFromGuardianWards(previousGuardian, updatedStudent);
+            }
+
+            // Add student to new guardian's wards
+            FcmsPortal.LogicMethods.AddStudentToGuardianWards(newGuardian, updatedStudent);
+        }
+
+        NavigationManager.NavigateTo("/students");
+    }
+
+    private void CancelEdit()
+    {
+        NavigationManager.NavigateTo("/students");
+    }
+}
