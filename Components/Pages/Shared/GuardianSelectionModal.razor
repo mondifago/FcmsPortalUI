@@ -1,0 +1,134 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Services
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+
+<div class="modal @(IsVisible ? "show d-block" : "")" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Student's Guardian</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="guardianOption" id="existingGuardian"
+                               @onchange="@(() => guardianSelectionMode = GuardianSelectionMode.Existing)"
+                               checked="@(guardianSelectionMode == GuardianSelectionMode.Existing)">
+                        <label class="form-check-label" for="existingGuardian">
+                            Select Existing Guardian
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guardianOption" id="newGuardian"
+                               @onchange="@(() => guardianSelectionMode = GuardianSelectionMode.New)">
+                        <label class="form-check-label" for="newGuardian">
+                            Create New Guardian
+                        </label>
+                    </div>
+                </div>
+
+                @if (guardianSelectionMode == GuardianSelectionMode.Existing)
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Search Guardian</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control"
+                                   placeholder="Search by last name"
+                                   @oninput="FilterGuardians"
+                                   value="@searchTerm" />
+                        </div>
+                    </div>
+
+                    @if (filteredGuardians.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var guardian in filteredGuardians)
+                            {
+                                <button class="list-group-item list-group-item-action"
+                                        @onclick="() => SelectGuardian(guardian)">
+                                    @guardian.Person.LastName, @guardian.Person.FirstName
+                                    (ID: @guardian.Id)
+                                    <small class="text-muted d-block">
+                                        Contact: @guardian.Person.PhoneNumber
+                                    </small>
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            No guardians found matching the search term.
+                        </div>
+                    }
+                }
+            </div>
+            <div class="modal-footer">
+                @if (guardianSelectionMode == GuardianSelectionMode.Existing)
+                {
+                    <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                }
+                @if (guardianSelectionMode == GuardianSelectionMode.New)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="NavigateToGuardianCreation">
+                        Create Guardian
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<Guardian> OnGuardianSelected { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private IEnumerable<Guardian> allGuardians = Enumerable.Empty<Guardian>();
+    private IEnumerable<Guardian> filteredGuardians = Enumerable.Empty<Guardian>();
+    private string searchTerm = "";
+    private GuardianSelectionMode guardianSelectionMode = GuardianSelectionMode.Existing;
+
+    protected override void OnInitialized()
+    {
+        allGuardians = SchoolDataService.GetGuardians();
+        filteredGuardians = allGuardians;
+    }
+
+    private void FilterGuardians(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        filteredGuardians = allGuardians
+            .Where(g => string.IsNullOrEmpty(searchTerm) ||
+                   g.Person.LastName.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private void SelectGuardian(Guardian guardian)
+    {
+        OnGuardianSelected.InvokeAsync(guardian);
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+
+    private void NavigateToGuardianCreation()
+    {
+        NavigationManager.NavigateTo("/guardians/create?returnUrl=/students/create");
+    }
+
+    private enum GuardianSelectionMode
+    {
+        Existing,
+        New
+    }
+}
