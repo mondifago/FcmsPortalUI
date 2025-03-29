@@ -41,6 +41,7 @@
                         <th>Age</th>
                         <th>Education Level</th>
                         <th>Class Level</th>
+                        <th>status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -60,6 +61,11 @@
                             <td>@student.Person.Age</td>
                             <td>@student.Person.EducationLevel</td>
                             <td>@student.Person.ClassLevel</td>
+                            <td>
+                                <span class="badge @(student.Person.IsActive ? "bg-success" : "bg-danger")">
+                                    @(student.Person.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="/students/details/@student.Id" class="btn btn-info btn-sm">
