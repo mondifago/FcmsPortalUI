@@ -3,8 +3,8 @@
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 
-<div class="modal @(IsVisible ? "show d-block" : "")" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal @(IsVisible ? "show" : "")" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Select Student's Guardian</h5>
