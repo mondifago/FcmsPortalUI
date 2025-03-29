@@ -131,6 +131,59 @@
                 </div>
             </div>
 
+            <h4 class="mb-3">Address Information</h4>
+            @if (showAddressForm)
+            {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Add New Address</h5>
+                        <AddressForm Address="@currentAddress"
+                                     OnValidSubmit="SaveAddress"
+                                     OnCancel="CancelAddressEdit"
+                                     ButtonText="Save Address" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                <button type="button" class="btn btn-outline-primary mb-3" @onclick="ShowAddressForm">
+                    <i class="fa fa-plus"></i> Add Address
+                </button>
+            }
+
+            @if (Student.Person.Addresses.Any())
+            {
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Street</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var address in Student.Person.Addresses)
+                            {
+                                <tr>
+                                    <td>@address.AddressType</td>
+                                    <td>@address.Street</td>
+                                    <td>@address.City</td>
+                                    <td>@address.State</td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveAddress(address)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
                 <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
@@ -161,6 +214,8 @@
     private string profilePictureUrl = "";
     private List<Guardian> guardians = new();
     private FcmsPortal.Models.School school;
+    private bool showAddressForm = false;
+    private Address currentAddress = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -170,6 +225,9 @@
         if (Student.Person.DateOfEnrollment == default)
             Student.Person.DateOfEnrollment = DateTime.Today;
 
+        if (Student.Person.Addresses == null)
+            Student.Person.Addresses = new List<Address>();
+
         profilePictureUrl = Student.Person.ProfilePictureUrl ?? "";
     }
 
@@ -177,6 +235,30 @@
     {
         profilePictureUrl = newImageUrl;
         StateHasChanged();
+    }
+
+    private void ShowAddressForm()
+    {
+        currentAddress = new Address();
+        showAddressForm = true;
+    }
+
+    private void SaveAddress(Address address)
+    {
+        Student.Person.Addresses.Add(address);
+        showAddressForm = false;
+        currentAddress = new Address();
+    }
+
+    private void CancelAddressEdit()
+    {
+        showAddressForm = false;
+        currentAddress = new Address();
+    }
+
+    private void RemoveAddress(Address address)
+    {
+        Student.Person.Addresses.Remove(address);
     }
 
     private async Task HandleValidSubmit()
