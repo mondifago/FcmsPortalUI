@@ -1,0 +1,189 @@
+﻿@page "/students/details/{Id:int}"
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@using FcmsPortal
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Components.Pages.Shared
+@rendermode InteractiveServer
+
+<PageTitle>Student Details</PageTitle>
+
+<div class="container">
+    @if (student == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Student Details</h1>
+            <div>
+                <a href="/students/edit/@Id" class="btn btn-warning">
+                    <i class="fa fa-pencil"></i> Edit
+                </a>
+                <a href="/students" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <ProfileThumbnailDetail Person="student.Person" />
+
+                        <p class="text-muted">@student.Person.ClassLevel</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Guardian</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (guardian != null)
+                        {
+                            <div class="d-flex align-items-center mb-2">
+                                <a href="/guardians/details/@guardian.Id">
+                                    @Util.GetFullName(guardian.Person)
+                                </a>
+                                <span class="badge bg-info ms-2">@guardian.RelationshipToStudent</span>
+                            </div>
+                            <div class="small text-muted">
+                                <div><i class="fa fa-envelope me-1"></i> @guardian.Person.Email</div>
+                                <div><i class="fa fa-phone me-1"></i> @guardian.Person.PhoneNumber</div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No guardian associated with this student.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Personal Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Gender</h6>
+                                <p>@student.Person.Sex</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Date of Birth</h6>
+                                <p>@student.Person.DateOfBirth.ToString("MMMM d, yyyy")</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">State of Origin</h6>
+                                <p>@(string.IsNullOrEmpty(student.Person.StateOfOrigin) ? "Not Specified" : student.Person.StateOfOrigin)</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">LGA of Origin</h6>
+                                <p>@(string.IsNullOrEmpty(student.Person.LgaOfOrigin) ? "Not Specified" : student.Person.LgaOfOrigin)</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Position Among Siblings</h6>
+                                <p>@(string.IsNullOrEmpty(student.PositionAmongSiblings) ? "Not Specified" : student.PositionAmongSiblings)</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Last School Attended</h6>
+                                <p>@(string.IsNullOrEmpty(student.LastSchoolAttended) ? "Not Specified" : student.LastSchoolAttended)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Academic Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Education Level</h6>
+                                <p>@student.Person.EducationLevel</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Class Level</h6>
+                                <p>@student.Person.ClassLevel</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Date of Enrollment</h6>
+                                <p>@student.Person.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Status</h6>
+                                <p>
+                                    @if (student.Person.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactive</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Contact Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Emergency Contact</h6>
+                                <p>@(string.IsNullOrEmpty(student.Person.EmergencyContact) ? "Not Specified" : student.Person.EmergencyContact)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <AddressDetails Person="student.Person" />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Student student;
+    private Guardian guardian;
+    private FcmsPortal.Models.School school;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Get the school first
+        school = SchoolDataService.GetSchool();
+
+        // Get the student by ID
+        student = SchoolDataService.GetStudentById(Id);
+
+        if (student == null)
+        {
+            NavigationManager.NavigateTo("/students");
+        }
+        else if (student.GuardianId > 0)
+        {
+            guardian = SchoolDataService.GetGuardianById(student.GuardianId);
+        }
+    }
+}

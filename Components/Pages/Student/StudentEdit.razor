@@ -53,10 +53,9 @@
             {
                 // Remove student from previous guardian's wards
                 FcmsPortal.LogicMethods.RemoveStudentFromGuardianWards(previousGuardian, updatedStudent);
+                // Add student to new guardian's wards
+                FcmsPortal.LogicMethods.AddStudentToGuardianWards(newGuardian, updatedStudent);
             }
-
-            // Add student to new guardian's wards
-            FcmsPortal.LogicMethods.AddStudentToGuardianWards(newGuardian, updatedStudent);
         }
 
         NavigationManager.NavigateTo("/students");
