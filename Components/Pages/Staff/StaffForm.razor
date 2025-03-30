@@ -10,209 +10,224 @@
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <div class="row">
-        <div class="col-md-6">
-            <h4>Personal Information</h4>
-
+    <div class="card">
+        <div class="card-body">
             <div class="row">
                 <div class="col-md-12 mb-4 text-center">
                     <ProfileThumbnailForm ImageUrl="@profilePictureUrl"
-                    ImageUrlChanged="HandleProfilePictureChanged" />
+                                          ImageUrlChanged="HandleProfilePictureChanged" />
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label for="firstName" class="form-label">First Name</label>
-                <InputText id="firstName" class="form-control" @bind-Value="Staff.Person.FirstName" />
-                <ValidationMessage For="@(() => Staff.Person.FirstName)" />
+            <h4 class="mb-3">Personal Information</h4>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <InputText id="firstName" class="form-control" @bind-Value="Staff.Person.FirstName" />
+                    <ValidationMessage For="@(() => Staff.Person.FirstName)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="middleName" class="form-label">Middle Name</label>
+                    <InputText id="middleName" class="form-control" @bind-Value="Staff.Person.MiddleName" />
+                    <ValidationMessage For="@(() => Staff.Person.MiddleName)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <InputText id="lastName" class="form-control" @bind-Value="Staff.Person.LastName" />
+                    <ValidationMessage For="@(() => Staff.Person.LastName)" />
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="middleName" class="form-label">Middle Name</label>
-                <InputText id="middleName" class="form-control" @bind-Value="Staff.Person.MiddleName" />
-                <ValidationMessage For="@(() => Staff.Person.MiddleName)" />
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="gender" class="form-label">Gender</label>
+                    <InputSelect id="gender" class="form-select" @bind-Value="Staff.Person.Sex">
+                        <option value="">-- Select Gender --</option>
+                        @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                        {
+                            <option value="@gender">@gender</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                    <InputDate id="dateOfBirth" class="form-control" @bind-Value="Staff.Person.DateOfBirth" />
+                    <ValidationMessage For="@(() => Staff.Person.DateOfBirth)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <InputText id="email" class="form-control" @bind-Value="Staff.Person.Email" />
+                    <ValidationMessage For="@(() => Staff.Person.Email)" />
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="lastName" class="form-label">Last Name</label>
-                <InputText id="lastName" class="form-control" @bind-Value="Staff.Person.LastName" />
-                <ValidationMessage For="@(() => Staff.Person.LastName)" />
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="stateOfOrigin" class="form-label">State of Origin</label>
+                    <InputText id="stateOfOrigin" class="form-control" @bind-Value="Staff.Person.StateOfOrigin" />
+                    <ValidationMessage For="@(() => Staff.Person.StateOfOrigin)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
+                    <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Staff.Person.LgaOfOrigin" />
+                    <ValidationMessage For="@(() => Staff.Person.LgaOfOrigin)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <InputText id="phoneNumber" class="form-control" @bind-Value="Staff.Person.PhoneNumber" />
+                    <ValidationMessage For="@(() => Staff.Person.PhoneNumber)" />
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="gender" class="form-label">Gender</label>
-                <InputSelect id="gender" class="form-select" @bind-Value="Staff.Person.Sex">
-                    @foreach (var gender in Enum.GetValues(typeof(Gender)))
-                    {
-                        <option value="@gender">@gender</option>
-                    }
-                </InputSelect>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                    <InputText id="emergencyContact" class="form-control" @bind-Value="Staff.Person.EmergencyContact" />
+                    <ValidationMessage For="@(() => Staff.Person.EmergencyContact)" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-check form-switch mt-4">
+                        <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Staff.Person.IsActive" />
+                        <label class="form-check-label" for="isActive">Status</label>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="dateOfBirth" class="form-label">Date of Birth</label>
-                <InputDate id="dateOfBirth" class="form-control" @bind-Value="Staff.Person.DateOfBirth" />
-                <ValidationMessage For="@(() => Staff.Person.DateOfBirth)" />
+            <h4 class="mb-3">Professional Information</h4>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="jobRole" class="form-label">Job Role</label>
+                    <InputSelect id="jobRole" class="form-select" @bind-Value="Staff.JobRole">
+                        <option value="">-- Select Job Role --</option>
+                        @foreach (var role in Enum.GetValues(typeof(JobRole)))
+                        {
+                            <option value="@role">@role</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="dateOfEmployment" class="form-label">Date of Employment</label>
+                    <InputDate id="dateOfEmployment" class="form-control" @bind-Value="employmentDate" />
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="stateOfOrigin" class="form-label">State of Origin</label>
-                <InputText id="stateOfOrigin" class="form-control" @bind-Value="Staff.Person.StateOfOrigin" />
-                <ValidationMessage For="@(() => Staff.Person.StateOfOrigin)" />
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label for="jobDescription" class="form-label">Job Description</label>
+                    <InputTextArea id="jobDescription" class="form-control" @bind-Value="Staff.JobDescription" rows="3" />
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
-                <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Staff.Person.LgaOfOrigin" />
-                <ValidationMessage For="@(() => Staff.Person.LgaOfOrigin)" />
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="educationLevel" class="form-label">Education Level</label>
+                    <InputSelect id="educationLevel" class="form-select" @bind-Value="Staff.Person.EducationLevel" @bind-Value:after="HandleEducationLevelChange">
+                        <option value="">-- Select Education Level --</option>
+                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
+                    <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Staff.AreaOfSpecialization">
+                        <option value="">-- Select Area of Specialization --</option>
+                        @foreach (var course in availableCourses)
+                        {
+                            <option value="@course">@course</option>
+                        }
+                    </InputSelect>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <InputText id="email" class="form-control" @bind-Value="Staff.Person.Email" />
-                <ValidationMessage For="@(() => Staff.Person.Email)" />
-            </div>
-
-            <div class="mb-3">
-                <label for="phoneNumber" class="form-label">Phone Number</label>
-                <InputText id="phoneNumber" class="form-control" @bind-Value="Staff.Person.PhoneNumber" />
-                <ValidationMessage For="@(() => Staff.Person.PhoneNumber)" />
-            </div>
-
-            <div class="mb-3">
-                <label for="emergencyContact" class="form-label">Emergency Contact</label>
-                <InputText id="emergencyContact" class="form-control" @bind-Value="Staff.Person.EmergencyContact" />
-                <ValidationMessage For="@(() => Staff.Person.EmergencyContact)" />
-            </div>
-
-            <div class="form-check form-switch mb-3">
-                <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Staff.Person.IsActive" />
-                <label class="form-check-label" for="isActive">Status</label>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <h4>Professional Information</h4>
-
-            <div class="mb-3">
-                <label for="jobRole" class="form-label">Job Role</label>
-                <InputSelect id="jobRole" class="form-select" @bind-Value="Staff.JobRole">
-                    @foreach (var role in Enum.GetValues(typeof(JobRole)))
-                    {
-                        <option value="@role">@role</option>
-                    }
-                </InputSelect>
-            </div>
-
-            <div class="mb-3">
-                <label for="jobDescription" class="form-label">Job Description</label>
-                <InputTextArea id="jobDescription" class="form-control" @bind-Value="Staff.JobDescription" rows="3" />
-            </div>
-
-            <div class="mb-3">
-                <label for="educationLevel" class="form-label">Education Level</label>
-                <InputSelect id="educationLevel" class="form-select" @bind-Value="Staff.Person.EducationLevel" @bind-Value:after="HandleEducationLevelChange">
-                    @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
-                    {
-                        <option value="@level">@level</option>
-                    }
-                </InputSelect>
-            </div>
-
-            <div class="mb-3">
-                <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
-                <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Staff.AreaOfSpecialization">
-                    <option value="">-- Select Area of Specialization --</option>
-                    @foreach (var course in availableCourses)
-                    {
-                        <option value="@course">@course</option>
-                    }
-                </InputSelect>
-            </div>
-
-            <div class="mb-3">
-                <label for="dateOfEmployment" class="form-label">Date of Employment</label>
-                <InputDate id="dateOfEmployment" class="form-control" @bind-Value="employmentDate" />
-            </div>
-
-            <h5 class="mt-4">Qualifications</h5>
+            <h5 class="mb-3">Qualifications</h5>
             @for (int i = 0; i < Staff.Qualifications.Count; i++)
             {
                 var index = i;
                 <div class="mb-2 d-flex">
                     <InputText class="form-control me-2" @bind-Value="Staff.Qualifications[index]" />
-                    <button type="button" class="btn btn-danger" @onclick="() => RemoveQualification(index)">
+                    <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveQualification(index)">
                         <i class="fa fa-trash"></i>
                     </button>
                 </div>
             }
             <button type="button" class="btn btn-outline-primary mb-3" @onclick="AddQualification">
-                Add Qualification
+                <i class="fa fa-plus"></i> Add Qualification
             </button>
 
-            <h5 class="mt-4">Work Experience</h5>
+            <h5 class="mb-3 mt-4">Work Experience</h5>
             @for (int i = 0; i < Staff.WorkExperience.Count; i++)
             {
                 var index = i;
                 <div class="mb-2 d-flex">
                     <InputText class="form-control me-2" @bind-Value="Staff.WorkExperience[index]" />
-                    <button type="button" class="btn btn-danger" @onclick="() => RemoveWorkExperience(index)">
+                    <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveWorkExperience(index)">
                         <i class="fa fa-trash"></i>
                     </button>
                 </div>
             }
             <button type="button" class="btn btn-outline-primary mb-3" @onclick="AddWorkExperience">
-                Add Work Experience
+                <i class="fa fa-plus"></i> Add Work Experience
             </button>
 
-            <h5 class="mt-4">Address</h5>
+            <h5 class="mb-3 mt-4">Address Information</h5>
             @if (showAddressForm)
             {
-                <div class="border p-3 mb-3">
-                    <AddressForm Address="@currentAddress"
-                    OnValidSubmit="SaveAddress"
-                    OnCancel="CancelAddressEdit"
-                    ButtonText="Add Address" />
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Add New Address</h5>
+                        <AddressForm Address="@currentAddress"
+                                     OnValidSubmit="SaveAddress"
+                                     OnCancel="CancelAddressEdit"
+                                     ButtonText="Save Address" />
+                    </div>
                 </div>
             }
             else
             {
                 <button type="button" class="btn btn-outline-primary mb-3" @onclick="ShowAddressForm">
-                    Add New Address
+                    <i class="fa fa-plus"></i> Add Address
                 </button>
             }
 
             @if (Staff.Person.Addresses.Any())
             {
-                <div class="list-group mb-3">
-                    @foreach (var address in Staff.Person.Addresses)
-                    {
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6>@address.AddressType</h6>
-                                    <p class="mb-0">
-                                        @address.Street, @address.City, @address.State, @address.PostalCode, @address.Country
-                                    </p>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                    @onclick="() => RemoveAddress(address)">
-                                        <i class="fa fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    }
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Street</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var address in Staff.Person.Addresses)
+                            {
+                                <tr>
+                                    <td>@address.AddressType</td>
+                                    <td>@address.Street</td>
+                                    <td>@address.City</td>
+                                    <td>@address.State</td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveAddress(address)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             }
-        </div>
-    </div>
 
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <button type="submit" class="btn btn-primary me-2">@SubmitButtonText</button>
-            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            </div>
         </div>
     </div>
 </EditForm>
