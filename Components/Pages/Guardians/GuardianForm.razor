@@ -21,7 +21,7 @@
             <h4 class="mb-3">Personal Information</h4>
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="firstName" class="form-label">First Name</label>
+                    <label for="firstName" class="form-label">First Name<span class="text-danger">*</span></label>
                     <InputText id="firstName" class="form-control" @bind-Value="Guardian.Person.FirstName" />
                     <ValidationMessage For="@(() => Guardian.Person.FirstName)" />
                 </div>
@@ -30,7 +30,7 @@
                     <InputText id="middleName" class="form-control" @bind-Value="Guardian.Person.MiddleName" />
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="lastName" class="form-label">Last Name</label>
+                    <label for="lastName" class="form-label">Last Name<span class="text-danger">*</span></label>
                     <InputText id="lastName" class="form-control" @bind-Value="Guardian.Person.LastName" />
                     <ValidationMessage For="@(() => Guardian.Person.LastName)" />
                 </div>
@@ -46,27 +46,29 @@
                             <option value="@gender">@gender</option>
                         }
                     </InputSelect>
-                    <ValidationMessage For="@(() => Guardian.Person.Sex)" />
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="stateOfOrigin" class="form-label">State of Origin</label>
+                    <label for="stateOfOrigin" class="form-label">State of Origin<span class="text-danger">*</span></label>
                     <InputText id="stateOfOrigin" class="form-control" @bind-Value="Guardian.Person.StateOfOrigin" />
+                    <ValidationMessage For="@(() => Guardian.Person.StateOfOrigin)" />
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
+                    <label for="lgaOfOrigin" class="form-label">LGA of Origin<span class="text-danger">*</span></label>
                     <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Guardian.Person.LgaOfOrigin" />
+                    <ValidationMessage For="@(() => Guardian.Person.LgaOfOrigin)" />
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">Email<span class="text-danger">*</span></label>
                     <InputText id="email" class="form-control" @bind-Value="Guardian.Person.Email" />
                     <ValidationMessage For="@(() => Guardian.Person.Email)" />
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <label for="phoneNumber" class="form-label">Phone Number<span class="text-danger">*</span></label>
                     <InputText id="phoneNumber" class="form-control" @bind-Value="phoneNumber" />
+                    <ValidationMessage For="@(() => Guardian.Person.PhoneNumber)" />
                 </div>
             </div>
 
@@ -81,10 +83,9 @@
                             <option value="@relationship">@relationship</option>
                         }
                     </InputSelect>
-                    <ValidationMessage For="@(() => Guardian.RelationshipToStudent)" />
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="occupation" class="form-label">Occupation</label>
+                    <label for="occupation" class="form-label">Occupation<span class="text-danger">*</span></label>
                     <InputText id="occupation" class="form-control" @bind-Value="Guardian.Occupation" />
                     <ValidationMessage For="@(() => Guardian.Occupation)" />
                 </div>
