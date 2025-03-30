@@ -7,7 +7,7 @@
 
     <div class="form-group">
         <label for="street" class="form-label">Street<span class="text-danger">*</span></label>
-        <InputText class="form-control" @bind-Value="Address.Street" placeholder="You can add postal address here too, e.g., P.O. Box 250" />
+        <InputText class="form-control" @bind-Value="Address.Street" />
         <ValidationMessage For="@(() => Address.Street)" />
     </div>
     <div class="form-group">
@@ -22,7 +22,7 @@
     </div>
     <div class="form-group">
         <label for="postalCode" class="form-label">Postal Code<span class="text-danger">*</span></label>
-        <InputText class="form-control" @bind-Value="Address.PostalCode" />
+        <InputText class="form-control" @bind-Value="Address.PostalCode" placeholder="This could also be postal address, e.g., P.O. Box 250" />
         <ValidationMessage For="@(() => Address.PostalCode)" />
     </div>
     <div class="form-group">
