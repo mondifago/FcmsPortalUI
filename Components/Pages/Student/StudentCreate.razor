@@ -41,6 +41,9 @@
             if (selectedGuardian != null)
             {
                 newStudent.GuardianId = selectedGuardian.Id;
+                newStudent.Person.Addresses = selectedGuardian.Person.Addresses;
+                newStudent.Person.StateOfOrigin = selectedGuardian.Person.StateOfOrigin;
+                newStudent.Person.LgaOfOrigin = selectedGuardian.Person.LgaOfOrigin;
             }
         }
     }
