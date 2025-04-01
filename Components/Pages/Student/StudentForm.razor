@@ -225,6 +225,9 @@
         if (Student.Person.DateOfEnrollment == default)
             Student.Person.DateOfEnrollment = DateTime.Today;
 
+        if (Student.Person.DateOfBirth == default)
+            Student.Person.DateOfBirth = DateTime.Today;
+
         if (Student.Person.Addresses == null)
             Student.Person.Addresses = new List<Address>();
 
