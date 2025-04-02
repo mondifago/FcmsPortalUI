@@ -66,7 +66,7 @@
                 </div>
                 <div class="col-md-4 mb-3">
                     <label for="phoneNumber" class="form-label">Phone Number<span class="text-danger">*</span></label>
-                    <InputText id="phoneNumber" class="form-control" @bind-Value="phoneNumber" />
+                    <InputText id="phoneNumber" class="form-control" @bind-Value="Guardian.Person.PhoneNumber" />
                     <ValidationMessage For="@(() => Guardian.Person.PhoneNumber)" />
                 </div>
             </div>
@@ -186,11 +186,9 @@
     public EventCallback OnCancel { get; set; }
 
     private string profilePictureUrl = "";
-    private string phoneNumber = "";
     private DateTime enrollmentDate;
     private bool showAddressForm = false;
     private Address currentAddress = new();
-
     protected override void OnInitialized()
     {
         if (Guardian.Person.DateOfEnrollment != default)
@@ -206,7 +204,6 @@
             Guardian.Person.Addresses = new List<Address>();
 
         profilePictureUrl = Guardian.Person.ProfilePictureUrl ?? "";
-        phoneNumber = Guardian.Person.PhoneNumber ?? "";
     }
 
     private void HandleProfilePictureChanged(string newImageUrl)
@@ -218,7 +215,6 @@
     private async Task HandleValidSubmit()
     {
         Guardian.Person.ProfilePictureUrl = profilePictureUrl;
-        Guardian.Person.PhoneNumber = phoneNumber;
         Guardian.Person.DateOfEnrollment = enrollmentDate;
 
         await OnSubmit.InvokeAsync(Guardian);

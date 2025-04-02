@@ -101,6 +101,16 @@
                                 <p>@(string.IsNullOrEmpty(student.LastSchoolAttended) ? "Not Specified" : student.LastSchoolAttended)</p>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Email</h6>
+                                <p>@(string.IsNullOrEmpty(student.Person.Email) ? "Not Specified" : student.Person.Email)</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Phone Number</h6>
+                                <p>@(string.IsNullOrEmpty(student.Person.PhoneNumber) ? "Not Specified" : student.Person.PhoneNumber)</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
