@@ -9,89 +9,13 @@
 
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h2>Schools</h2>
-        <a href="/school/create" class="btn btn-primary">
-            <i class="fa fa-plus"></i> Add New School
-        </a>
+        <h2>Welcome</h2>
+        
     </div>
 
-
-
-
-
-    
-       
-
-
-
-
-
-
-
-
-
-
-    <div class=" card-body">
-        <div class="row">
-
-            @if (Schools == null)
-            {
-                <div class="loading-container">
-                    <div class="spinner"></div>
-                </div>
-            }
-            else if (!Schools.Any())
-            {
-                <div class="no-data-message">
-                    <p>No schools have been added yet.</p>
-                    <p>Click "Add New School" to get started.</p>
-                </div>
-            }
-            else
-            {
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach (var school in Schools)
-                    {
-                        <div class="school-thumbnail" @onclick="() => NavigateToSchoolDetails(school.Id)">
-                            <div class="school-logo-container">
-                                @if (!string.IsNullOrEmpty(school.LogoUrl))
-                                {
-                                    <img src="@school.LogoUrl" alt="@school.Name Logo" class="school-logo" />
-                                }
-                                else
-                                {
-                                    <div class="text-4xl font-bold text-gray-400">@school.Name.Substring(0, 1)</div>
-                                }
-                            </div>
-                            <div class="school-details">
-                                <h3 class="school-name">@school.Name</h3>
-                                <p class="school-address">@(school.Address)</p>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-
-        </div>
-    </div>
-   
 </div>
 
 @code {
-    private List<FcmsPortal.Models.School> Schools { get; set; }
-
-    protected override void OnInitialized()
-    {
-        Schools = SchoolDataService.GetSchools();
-    }
-
-    private void NavigateToAddSchool()
-    {
-        NavigationManager.NavigateTo("/school/create");
-    }
-
-    private void NavigateToSchoolDetails(int schoolId)
-    {
-        NavigationManager.NavigateTo($"/school/{schoolId}");
-    }
+    
+    
 }

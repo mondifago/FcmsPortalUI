@@ -171,9 +171,10 @@ else
 }
 
 @code {
-    private FcmsPortal.Models.School school;
+    private FcmsPortal.Models.School school { get; set; }
     private List<EducationLevel> educationLevels;
     private IList<ClassLevel> classlevels;
+
 
     protected override void OnInitialized()
     {
@@ -181,7 +182,6 @@ else
         educationLevels = FcmsPortal.LogicMethods.GetExistingEducationLevels(school);
         classlevels = FcmsPortal.LogicMethods.GetExistingClassLevels(school);
     }
-
     private void EditSchool()
     {
         NavigationManager.NavigateTo("/school/edit");
