@@ -287,3 +287,87 @@ main {
 .modal.show .modal-dialog {
     transform: translate(0, 0);
 }
+
+/* School thumbnail styles */
+.school-thumbnail {
+    background-color: #dbeafe; /* Light blue background */
+    border-radius: 12px; /* Rounded edges */
+    padding: 16px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    cursor: pointer;
+    margin: 10px;
+}
+
+    .school-thumbnail:hover {
+        transform: translateY(-3px);
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+.school-logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px; 
+    width: 100%; 
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 10px;
+}
+.school-logo {
+    max-height: 80px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.school-details {
+    text-align: center;
+    margin-top: 12px;
+}
+
+.school-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1e3a8a; /* Dark blue text */
+}
+
+.school-address {
+    font-size: 0.9rem;
+    color: #475569; /* Grayish text */
+}
+
+/* Style for the School Logo Card */
+.school-logo-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    width: 200px; /* Adjust based on logo size */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo Image */
+.school-logo {
+    max-height: 100px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* Placeholder Icon */
+.placeholder-icon {
+    font-size: 40px;
+    color: #ccc;
+}
+
+/* Hidden elements */
+.hidden {
+    display: none;
+}
+
+/* Centering the text below the logo */
+.text-muted {
+    display: block;
+    margin-top: 5px;
+}
+
