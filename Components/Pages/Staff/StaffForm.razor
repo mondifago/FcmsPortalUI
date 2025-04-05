@@ -15,14 +15,14 @@
             <div class="row">
                 <div class="col-md-12 mb-4 text-center">
                     <ProfileThumbnailForm ImageUrl="@profilePictureUrl"
-                                          ImageUrlChanged="HandleProfilePictureChanged" />
+                    ImageUrlChanged="HandleProfilePictureChanged" />
                 </div>
             </div>
 
             <h4 class="mb-3">Personal Information</h4>
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="firstName" class="form-label">First Name</label>
+                    <label for="firstName" class="form-label">First Name<span class="text-danger">*</span></label>
                     <InputText id="firstName" class="form-control" @bind-Value="Staff.Person.FirstName" />
                     <ValidationMessage For="@(() => Staff.Person.FirstName)" />
                 </div>
@@ -32,7 +32,7 @@
                     <ValidationMessage For="@(() => Staff.Person.MiddleName)" />
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="lastName" class="form-label">Last Name</label>
+                    <label for="lastName" class="form-label">Last Name<span class="text-danger">*</span></label>
                     <InputText id="lastName" class="form-control" @bind-Value="Staff.Person.LastName" />
                     <ValidationMessage For="@(() => Staff.Person.LastName)" />
                 </div>
@@ -50,12 +50,12 @@
                     </InputSelect>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                    <label for="dateOfBirth" class="form-label">Date of Birth<span class="text-danger">*</span></label>
                     <InputDate id="dateOfBirth" class="form-control" @bind-Value="Staff.Person.DateOfBirth" />
                     <ValidationMessage For="@(() => Staff.Person.DateOfBirth)" />
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">Email<span class="text-danger">*</span></label>
                     <InputText id="email" class="form-control" @bind-Value="Staff.Person.Email" />
                     <ValidationMessage For="@(() => Staff.Person.Email)" />
                 </div>
@@ -63,17 +63,17 @@
 
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="stateOfOrigin" class="form-label">State of Origin</label>
+                    <label for="stateOfOrigin" class="form-label">State of Origin<span class="text-danger">*</span></label>
                     <InputText id="stateOfOrigin" class="form-control" @bind-Value="Staff.Person.StateOfOrigin" />
                     <ValidationMessage For="@(() => Staff.Person.StateOfOrigin)" />
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="lgaOfOrigin" class="form-label">LGA of Origin</label>
+                    <label for="lgaOfOrigin" class="form-label">LGA of Origin<span class="text-danger">*</span></label>
                     <InputText id="lgaOfOrigin" class="form-control" @bind-Value="Staff.Person.LgaOfOrigin" />
                     <ValidationMessage For="@(() => Staff.Person.LgaOfOrigin)" />
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <label for="phoneNumber" class="form-label">Phone Number<span class="text-danger">*</span></label>
                     <InputText id="phoneNumber" class="form-control" @bind-Value="Staff.Person.PhoneNumber" />
                     <ValidationMessage For="@(() => Staff.Person.PhoneNumber)" />
                 </div>
@@ -81,7 +81,7 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="emergencyContact" class="form-label">Emergency Contact</label>
+                    <label for="emergencyContact" class="form-label">Emergency Contact<span class="text-danger">*</span></label>
                     <InputText id="emergencyContact" class="form-control" @bind-Value="Staff.Person.EmergencyContact" />
                     <ValidationMessage For="@(() => Staff.Person.EmergencyContact)" />
                 </div>
@@ -96,7 +96,7 @@
             <h4 class="mb-3">Professional Information</h4>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="jobRole" class="form-label">Job Role</label>
+                    <label for="jobRole" class="form-label">Job Role<span class="text-danger">*</span></label>
                     <InputSelect id="jobRole" class="form-select" @bind-Value="Staff.JobRole">
                         <option value="">-- Select Job Role --</option>
                         @foreach (var role in Enum.GetValues(typeof(JobRole)))
@@ -106,7 +106,7 @@
                     </InputSelect>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="dateOfEmployment" class="form-label">Date of Employment</label>
+                    <label for="dateOfEmployment" class="form-label">Date of Employment<span class="text-danger">*</span></label>
                     <InputDate id="dateOfEmployment" class="form-control" @bind-Value="employmentDate" />
                 </div>
             </div>
@@ -171,16 +171,16 @@
                 <i class="fa fa-plus"></i> Add Work Experience
             </button>
 
-            <h5 class="mb-3 mt-4">Address Information</h5>
+            <h5 class="mb-3 mt-4">Address Information<span class="text-danger">*</span></h5>
             @if (showAddressForm)
             {
                 <div class="card mb-3">
                     <div class="card-body">
                         <h5 class="card-title">Add New Address</h5>
                         <AddressForm Address="@currentAddress"
-                                     OnValidSubmit="SaveAddress"
-                                     OnCancel="CancelAddressEdit"
-                                     ButtonText="Save Address" />
+                        OnValidSubmit="SaveAddress"
+                        OnCancel="CancelAddressEdit"
+                        ButtonText="Save Address" />
                     </div>
                 </div>
             }
@@ -271,6 +271,8 @@
 
         if (Staff.Person.Addresses == null)
             Staff.Person.Addresses = new List<Address>();
+
+        Staff.Person.DateOfBirth = DateTime.Today;
 
         selectedEducationLevel = Staff.Person.EducationLevel;
 
