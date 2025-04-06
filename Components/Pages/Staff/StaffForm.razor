@@ -118,28 +118,11 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="educationLevel" class="form-label">Education Level</label>
-                    <InputSelect id="educationLevel" class="form-select" @bind-Value="Staff.Person.EducationLevel" @bind-Value:after="HandleEducationLevelChange">
-                        <option value="">-- Select Education Level --</option>
-                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
-                        {
-                            <option value="@level">@level</option>
-                        }
-                    </InputSelect>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
-                    <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Staff.AreaOfSpecialization">
-                        <option value="">-- Select Area of Specialization --</option>
-                        @foreach (var course in availableCourses)
-                        {
-                            <option value="@course">@course</option>
-                        }
-                    </InputSelect>
-                </div>
-            </div>
+            <EducationLevelAndCourseSelector 
+                EducationLevel="@Staff.Person.EducationLevel"
+                EducationLevelChanged="value => Staff.Person.EducationLevel = value"
+                AreaOfSpecialization="@Staff.AreaOfSpecialization"
+                AreaOfSpecializationChanged="value => Staff.AreaOfSpecialization = value" />
 
             <h5 class="mb-3">Qualifications</h5>
             @for (int i = 0; i < Staff.Qualifications.Count; i++)
@@ -257,9 +240,6 @@
     private DateTime employmentDate = DateTime.Today;
     private bool showAddressForm = false;
     private Address currentAddress = new();
-    private EducationLevel? selectedEducationLevel;
-    private List<string> availableCourses { get; set; } = new();
-
 
     protected override void OnInitialized()
     {
@@ -273,28 +253,12 @@
             Staff.Person.Addresses = new List<Address>();
 
         Staff.Person.DateOfBirth = DateTime.Today;
-
-        selectedEducationLevel = Staff.Person.EducationLevel;
-
-        if (selectedEducationLevel != null)
-        {
-            availableCourses = CourseDefaults.GetCourseNames(selectedEducationLevel.Value);
-        }
-
         profilePictureUrl = Staff.Person.ProfilePictureUrl;
     }
 
     private void HandleProfilePictureChanged(string newImageUrl)
     {
         profilePictureUrl = newImageUrl;
-        StateHasChanged();
-    }
-
-    private void HandleEducationLevelChange()
-    {
-        var selectedLevel = Staff.Person.EducationLevel;
-        availableCourses = CourseDefaults.GetCourseNames(selectedLevel);
-        Staff.AreaOfSpecialization = "";
         StateHasChanged();
     }
 
