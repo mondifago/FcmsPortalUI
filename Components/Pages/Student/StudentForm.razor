@@ -90,29 +90,13 @@
             </div>
 
             <h4 class="mb-3">Academic Information</h4>
+
+            <EducationClassLevelSelector EducationLevel="@Student.Person.EducationLevel"
+                                         EducationLevelChanged="@((value) => Student.Person.EducationLevel = value)"
+                                         ClassLevel="@Student.Person.ClassLevel"
+                                         ClassLevelChanged="@((value) => Student.Person.ClassLevel = value)" />
+
             <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
-                    <InputSelect id="educationLevel" class="form-select" @bind-Value="Student.Person.EducationLevel">
-                        <option value="">-- Select Education Level --</option>
-                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
-                        {
-                            <option value="@level">@level</option>
-                        }
-                    </InputSelect>
-                    <ValidationMessage For="@(() => Student.Person.EducationLevel)" />
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
-                    <InputSelect id="classLevel" class="form-select" @bind-Value="Student.Person.ClassLevel">
-                        <option value="">-- Select Class Level --</option>
-                        @foreach (var level in Enum.GetValues(typeof(ClassLevel)))
-                        {
-                            <option value="@level">@level</option>
-                        }
-                    </InputSelect>
-                    <ValidationMessage For="@(() => Student.Person.ClassLevel)" />
-                </div>
                 <div class="col-md-4 mb-3">
                     <label for="dateOfEnrollment" class="form-label">Date of Enrollment</label>
                     <InputDate id="dateOfEnrollment" class="form-control" @bind-Value="Student.Person.DateOfEnrollment" />

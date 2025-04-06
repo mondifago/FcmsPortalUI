@@ -1,0 +1,68 @@
+﻿@inject ISchoolDataService SchoolDataService
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
+        <InputSelect id="educationLevel" class="form-select" @bind-Value="EducationLevel" @bind-Value:after="OnEducationLevelChanged">
+            <option value="">-- Select Education Level --</option>
+            @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+            {
+                <option value="@level">@level</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => EducationLevel)" />
+    </div>
+    <div class="col-md-6 mb-3">
+        <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
+        <InputSelect id="classLevel" class="form-select" @bind-Value="ClassLevel">
+            <option value="@FcmsPortal.Enums.ClassLevel.None">-- Select Class Level --</option>
+            @foreach (var level in availableClassLevels)
+            {
+                <option value="@level">@level</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => ClassLevel)" />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EducationLevel EducationLevel { get; set; }
+
+    [Parameter]
+    public EventCallback<EducationLevel> EducationLevelChanged { get; set; }
+
+    [Parameter]
+    public ClassLevel ClassLevel { get; set; }
+
+    [Parameter]
+    public EventCallback<ClassLevel> ClassLevelChanged { get; set; }
+
+    private List<ClassLevel> availableClassLevels = new();
+    private ClassLevelMapping classLevelMappingService = new();
+    private Dictionary<EducationLevel, List<ClassLevel>> classLevelMappings = new();
+
+    protected override void OnInitialized()
+    {
+        classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
+        availableClassLevels = GetAvailableClassLevels(EducationLevel);
+    }
+
+    private async Task OnEducationLevelChanged()
+    {
+        await EducationLevelChanged.InvokeAsync(EducationLevel);
+        ClassLevel = FcmsPortal.Enums.ClassLevel.None;
+        await ClassLevelChanged.InvokeAsync(ClassLevel);
+        availableClassLevels = GetAvailableClassLevels(EducationLevel);
+    }
+
+    private List<ClassLevel> GetAvailableClassLevels(EducationLevel educationLevel)
+    {
+        return classLevelMappings.TryGetValue(educationLevel, out var levels)
+            ? levels
+            : new List<ClassLevel>();
+    }
+}
