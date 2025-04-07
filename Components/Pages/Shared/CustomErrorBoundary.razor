@@ -1,0 +1,19 @@
+﻿@inherits ErrorBoundary
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public EventCallback<Exception> OnExceptionHandled { get; set; }
+
+    protected override Task OnErrorAsync(Exception exception)
+    {
+        // Log the error
+        Console.WriteLine($"Error caught by ErrorBoundary: {exception.Message}");
+
+        // Notify parent components
+        return OnExceptionHandled.InvokeAsync(exception);
+    }
+}
