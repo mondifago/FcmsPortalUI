@@ -10,6 +10,7 @@ builder.Services.AddScoped<GuardianService>();
 builder.Services.AddScoped<StaffService>();
 
 builder.Services.AddSingleton<ISchoolDataService, SchoolDataService>();
+builder.Services.AddScoped<ExceptionHandlerService>();
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
