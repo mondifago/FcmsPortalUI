@@ -1,0 +1,154 @@
+﻿@using FcmsPortal
+@using FcmsPortal.Models
+@using FcmsPortal.Services
+@using FcmsPortalUI.Services
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-comments me-2"></i>Discussion Thread
+        </h5>
+    </div>
+    <div class="card-body">
+        @if (Thread == null)
+        {
+            <p>Loading discussion thread...</p>
+        }
+        else
+        {
+            <!-- Original Post -->
+            <div class="border-bottom pb-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>@Util.GetFullName(Thread.FirstPost.Author)</strong>
+                        <small class="text-muted ms-2">(@Thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
+                        @if (Thread.FirstPost.EditedAt.HasValue)
+                        {
+                            <small class="text-muted"> (Edited: @Thread.FirstPost.EditedAt.Value.ToString("MMM dd, yyyy HH:mm"))</small>
+                        }
+                    </div>
+                </div>
+                <p class="mt-2">@Thread.FirstPost.Comment</p>
+            </div>
+
+            <!-- File Attachments -->
+            @if (Thread.Attachments.Any())
+            {
+                <div class="mb-3">
+                    <h6><i class="fas fa-paperclip me-1"></i>Attachments</h6>
+                    <div class="list-group">
+                        @foreach (var attachment in Thread.Attachments)
+                        {
+                            <a href="@attachment.FilePath" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" target="_blank">
+                                <span><i class="fas fa-file me-2"></i>@attachment.FileName</span>
+                                <span class="badge bg-secondary">@FormatFileSize(attachment.FileSize)</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- File Attachment Manager -->
+            <FileAttachmentManager Title="Thread Attachments"
+                                   Category="@($"DiscussionThread-{Thread.Id}")"
+                                   ReferenceId="Thread.Id"
+                                   AllowUpload="AllowAttachments"
+                                   AllowDelete="AllowAttachments"
+                                   AllowMultiple="true"
+                                   OnAttachmentsChanged="HandleAttachmentsChanged" />
+
+            <!-- Replies Section -->
+            @if (Thread.Replies.Any())
+            {
+                <h6 class="mt-4"><i class="fas fa-reply me-1"></i>Replies (@Thread.Replies.Count)</h6>
+                <div class="replies-container">
+                    @foreach (var reply in Thread.Replies.OrderBy(r => r.CreatedAt))
+                    {
+                        <div class="reply-item border-bottom pb-3 mb-3 ps-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>@Util.GetFullName(reply.Author)</strong>
+                                    <small class="text-muted ms-2">(@reply.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
+                                    @if (reply.EditedAt.HasValue)
+                                    {
+                                        <small class="text-muted"> (Edited: @reply.EditedAt.Value.ToString("MMM dd, yyyy HH:mm"))</small>
+                                    }
+                                </div>
+                            </div>
+                            <p class="mt-2">@reply.Comment</p>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>No replies yet. Be the first to respond!
+                </div>
+            }
+
+            <!-- Add Reply Form -->
+            @if (AllowReplies)
+            {
+                <div class="mt-4">
+                    <h6><i class="fas fa-plus-circle me-1"></i>Add a Reply</h6>
+                    <EditForm Model="newReply" OnValidSubmit="HandleAddReply">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <div class="mb-3">
+                            <InputTextArea class="form-control" @bind-Value="newReply.Comment" rows="3" placeholder="Type your reply here..." />
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Post Reply
+                        </button>
+                    </EditForm>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public DiscussionThread Thread { get; set; }
+    [Parameter] public bool AllowReplies { get; set; } = true;
+    [Parameter] public bool AllowAttachments { get; set; } = true;
+    [Parameter] public Person CurrentUser { get; set; }
+    [Parameter] public EventCallback<DiscussionThread> OnThreadUpdated { get; set; }
+
+    private DiscussionPost newReply = new();
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        int order = 0;
+        double size = bytes;
+        while (size >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            size /= 1024;
+        }
+        return $"{Math.Round(size, 2)} {sizes[order]}";
+    }
+
+    private async Task HandleAddReply()
+    {
+        if (!string.IsNullOrWhiteSpace(newReply.Comment) && CurrentUser != null)
+        {
+            int replyId = await SchoolDataService.GetNextPostId();
+            LogicMethods.AddReply(Thread, replyId, CurrentUser, newReply.Comment);
+            newReply = new();
+            await SchoolDataService.UpdateDiscussionThread(Thread);
+            await OnThreadUpdated.InvokeAsync(Thread);
+        }
+    }
+
+    private async Task HandleAttachmentsChanged(List<FileAttachment> updatedAttachments)
+    {
+        Thread.Attachments = updatedAttachments;
+        Thread.UpdateLastUpdated();
+        await SchoolDataService.UpdateDiscussionThread(Thread);
+        await OnThreadUpdated.InvokeAsync(Thread);
+    }
+}
