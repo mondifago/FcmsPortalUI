@@ -1,13 +1,10 @@
 ﻿@rendermode InteractiveServer
 @using FcmsPortal.Constants
 @using FcmsPortal.Models
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @using Microsoft.AspNetCore.Components.Forms
 @using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Components.Web
-@using Microsoft.JSInterop
-@inject IFileAttachmentService FileService
-@inject IJSRuntime JSRuntime
+@inject ISchoolDataService SchoolDataService
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -48,7 +45,8 @@
                                     </div>
                                     <button class="btn btn-sm btn-danger" @onclick="() => RemoveSelectedFile(file)">
                                         <span class="fa fa-x"></span>
-                                    Cancel</button>
+                                        Cancel
+                                    </button>
                                 </li>
                             }
                         </ul>
@@ -92,14 +90,15 @@
                                 <td>@attachment.UploadDate.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => DownloadFile(attachment)">
-                                            <span class="fa fa-cloud-download"></span>
-                                        Download</button>
+                                        <a href="@attachment.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <span class="fa fa-cloud-download"></span> Download
+                                        </a>
                                         @if (AllowDelete)
                                         {
                                             <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(attachment)">
                                                 <span class="fa fa-trash"></span>
-                                            Delete</button>
+                                                Delete
+                                            </button>
                                         }
                                     </div>
                                 </td>
@@ -159,38 +158,10 @@
     private bool HasSelectedFiles => SelectedFiles.Count > 0;
     private bool ShowDeleteConfirmation { get; set; } = false;
     private FileAttachment FileToDelete { get; set; }
-    private bool IsJsInitialized { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadAttachments();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && !IsJsInitialized)
-        {
-            await EnsureJsFunction();
-            IsJsInitialized = true;
-        }
-    }
-
-    private async Task EnsureJsFunction()
-    {
-        // Register JS download function if not already available
-        await JSRuntime.InvokeVoidAsync("eval", @"
-            window.downloadFileFromStream = function(fileName, contentType, content) {
-                const blob = new Blob([content], { type: contentType });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileName;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-        ");
     }
 
     private async Task LoadAttachments()
@@ -200,7 +171,7 @@
 
         try
         {
-            Attachments = await FileService.GetAttachmentsAsync(Category, ReferenceId);
+            Attachments = await SchoolDataService.GetAttachmentsAsync(Category, ReferenceId);
         }
         catch (Exception ex)
         {
@@ -254,8 +225,8 @@
         {
             foreach (var file in SelectedFiles)
             {
-                var attachment = await FileService.UploadFileAsync(file, Category);
-                await FileService.SaveAttachmentReferenceAsync(attachment, Category, ReferenceId);
+                var attachment = await SchoolDataService.UploadFileAsync(file, Category);
+                await SchoolDataService.SaveAttachmentReferenceAsync(attachment, Category, ReferenceId);
                 Attachments.Add(attachment);
             }
 
@@ -266,31 +237,6 @@
         catch (Exception ex)
         {
             ErrorMessage = $"Error uploading files: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    private async Task DownloadFile(FileAttachment attachment)
-    {
-        try
-        {
-            IsLoading = true;
-
-            byte[] fileContent = await FileService.GetFileContentAsync(attachment);
-            string contentType = await FileService.GetFileTypeAsync(attachment);
-
-            await JSRuntime.InvokeVoidAsync(
-                "downloadFileFromStream",
-                attachment.FileName,
-                contentType,
-                fileContent);
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Error downloading file: {ex.Message}";
         }
         finally
         {
@@ -319,7 +265,7 @@
 
         try
         {
-            await FileService.DeleteFileAsync(FileToDelete);
+            await SchoolDataService.DeleteFileAsync(FileToDelete);
             Attachments.Remove(FileToDelete);
             ShowDeleteConfirmation = false;
             FileToDelete = null;

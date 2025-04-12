@@ -3,7 +3,7 @@ using FcmsPortalUI.Components;
 using FcmsPortalUI.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<AddressService>();
-builder.Services.AddScoped<IFileAttachmentService, FileAttachmentService>();
+//builder.Services.AddScoped<IFileAttachmentService, FileAttachmentService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<SchoolFeesService>();
 builder.Services.AddScoped<GuardianService>();
@@ -29,7 +29,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
     app.UseMigrationsEndPoint();
 }
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 
