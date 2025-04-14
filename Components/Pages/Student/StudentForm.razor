@@ -91,10 +91,30 @@
 
             <h4 class="mb-3">Academic Information</h4>
 
-            <EducationClassLevelSelector EducationLevel="@Student.Person.EducationLevel"
-                                         EducationLevelChanged="@((value) => Student.Person.EducationLevel = value)"
-                                         ClassLevel="@Student.Person.ClassLevel"
-                                         ClassLevelChanged="@((value) => Student.Person.ClassLevel = value)" />
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
+                    <InputSelect id="educationLevel" class="form-select" @bind-Value="Student.Person.EducationLevel" @bind-Value:after="OnEducationLevelChanged">
+                        <option value="">-- Select Education Level --</option>
+                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => Student.Person.EducationLevel)" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
+                    <select id="classLevel" @bind="Student.Person.ClassLevel" class="form-select">
+                        <option value="@ClassLevel.None">-- Select Class Level --</option>
+                        @foreach (var level in availableClassLevels)
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </select>
+                    <ValidationMessage For="@(() => Student.Person.ClassLevel)" />
+                </div>
+            </div>
 
             <div class="row">
                 <div class="col-md-4 mb-3">
@@ -214,6 +234,11 @@
     private bool showAddressForm = false;
     private Address currentAddress = new();
 
+    // Added for class level mapping
+    private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
+    private ClassLevelMapping classLevelMappingService = new ClassLevelMapping();
+    private Dictionary<EducationLevel, List<ClassLevel>> classLevelMappings = new Dictionary<EducationLevel, List<ClassLevel>>();
+
     protected override async Task OnInitializedAsync()
     {
         school = SchoolDataService.GetSchool();
@@ -229,6 +254,27 @@
             Student.Person.Addresses = new List<Address>();
 
         profilePictureUrl = Student.Person.ProfilePictureUrl ?? "";
+
+        // Initialize class level mappings
+        classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
+        availableClassLevels = GetAvailableClassLevels(Student.Person.EducationLevel);
+    }
+
+    private async Task OnEducationLevelChanged()
+    {
+        // Reset class level when education level changes
+        Student.Person.ClassLevel = ClassLevel.None;
+
+        // Update available class levels
+        availableClassLevels = GetAvailableClassLevels(Student.Person.EducationLevel);
+        StateHasChanged();
+    }
+
+    private List<ClassLevel> GetAvailableClassLevels(EducationLevel educationLevel)
+    {
+        return classLevelMappings.TryGetValue(educationLevel, out var levels)
+            ? levels
+            : new List<ClassLevel>();
     }
 
     private void HandleProfilePictureChanged(string newImageUrl)

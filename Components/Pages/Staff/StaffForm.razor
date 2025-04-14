@@ -3,8 +3,9 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using FcmsPortalUI.Components.Pages.Shared
 @using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @inject NavigationManager NavigationManager
-@rendermode InteractiveServer
+@inject ISchoolDataService SchoolDataService
 
 <EditForm Model="@Staff" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -15,7 +16,7 @@
             <div class="row">
                 <div class="col-md-12 mb-4 text-center">
                     <ProfileThumbnailForm ImageUrl="@profilePictureUrl"
-                    ImageUrlChanged="HandleProfilePictureChanged" />
+                                          ImageUrlChanged="HandleProfilePictureChanged" />
                 </div>
             </div>
 
@@ -118,11 +119,29 @@
                 </div>
             </div>
 
-            <EducationLevelAndCourseSelector 
-                EducationLevel="@Staff.Person.EducationLevel"
-                EducationLevelChanged="value => Staff.Person.EducationLevel = value"
-                AreaOfSpecialization="@Staff.AreaOfSpecialization"
-                AreaOfSpecializationChanged="value => Staff.AreaOfSpecialization = value" />
+            <!-- Integrated EducationLevelAndCourseSelector -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
+                    <InputSelect id="educationLevel" class="form-select" @bind-Value="Staff.Person.EducationLevel" @bind-Value:after="HandleEducationLevelChange">
+                        <option value="">-- Select Education Level --</option>
+                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="areaOfSpecialization" class="form-label">Area of Specialization<span class="text-danger">*</span></label>
+                    <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Staff.AreaOfSpecialization">
+                        <option value="">-- Select Area of Specialization --</option>
+                        @foreach (var course in availableCourses)
+                        {
+                            <option value="@course">@course</option>
+                        }
+                    </InputSelect>
+                </div>
+            </div>
 
             <h5 class="mb-3">Qualifications</h5>
             @for (int i = 0; i < Staff.Qualifications.Count; i++)
@@ -161,9 +180,9 @@
                     <div class="card-body">
                         <h5 class="card-title">Add New Address</h5>
                         <AddressForm Address="@currentAddress"
-                        OnValidSubmit="SaveAddress"
-                        OnCancel="CancelAddressEdit"
-                        ButtonText="Save Address" />
+                                     OnValidSubmit="SaveAddress"
+                                     OnCancel="CancelAddressEdit"
+                                     ButtonText="Save Address" />
                     </div>
                 </div>
             }
@@ -240,6 +259,7 @@
     private DateTime employmentDate = DateTime.Today;
     private bool showAddressForm = false;
     private Address currentAddress = new();
+    private List<string> availableCourses { get; set; } = new();
 
     protected override void OnInitialized()
     {
@@ -254,6 +274,16 @@
 
         Staff.Person.DateOfBirth = DateTime.Today;
         profilePictureUrl = Staff.Person.ProfilePictureUrl;
+
+        // Initialize available courses based on current education level
+        availableCourses = CourseDefaults.GetCourseNames(Staff.Person.EducationLevel);
+    }
+
+    private void HandleEducationLevelChange()
+    {
+        availableCourses = CourseDefaults.GetCourseNames(Staff.Person.EducationLevel);
+        Staff.AreaOfSpecialization = "";
+        StateHasChanged();
     }
 
     private void HandleProfilePictureChanged(string newImageUrl)

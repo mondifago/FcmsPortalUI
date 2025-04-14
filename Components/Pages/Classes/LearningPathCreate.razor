@@ -1,5 +1,264 @@
-﻿<h3>LearningPathCreate</h3>
+﻿@page "/learningpath/create"
+@rendermode InteractiveServer
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+@using FcmsPortal
+@using FcmsPortalUI.Components.Pages.Shared
+@using System.Globalization
+
+<h3>Create Learning Path</h3>
+
+<div class="row">
+    <div class="col-md-8">
+        <EditForm Model="learningPath" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
+                            <InputSelect id="educationLevel" class="form-select" @bind-Value="learningPath.EducationLevel" @bind-Value:after="OnEducationLevelChanged">
+                                <option value="">-- Select Education Level --</option>
+                                @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+                                {
+                                    <option value="@level">@level</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => learningPath.EducationLevel)" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
+                            <select @bind="learningPath.ClassLevel" @bind:after="OnClassLevelChanged" class="form-select">
+                                <option value="@ClassLevel.None">-- Select Class Level --</option>
+                                @foreach (var level in availableClassLevels)
+                                {
+                                    <option value="@level">@level</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => learningPath.ClassLevel)" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="semester" class="form-label">Semester*</label>
+                            <InputSelect id="semester" @bind-Value="learningPath.Semester" class="form-select">
+                                <option value="0">-- Select Semester --</option>
+                                @foreach (var semester in Enum.GetValues(typeof(Semester)))
+                                {
+                                    <option value="@semester">@semester</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="feePerSemester" class="form-label">Fee Per Semester (₦)*</label>
+                        <InputNumber id="feePerSemester" @bind-Value="learningPath.FeePerSemester" class="form-control" />
+                        <small class="form-text text-muted">
+                            Fee in Nigerian Naira: @learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            @if (availableStudents != null && availableStudents.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Students</h5>
+                        <p class="small text-muted mb-0">
+                            Select students to enroll in this learning path
+                        </p>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-2"
+                                            @onclick="SelectAllStudents">
+                                        Select All
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            @onclick="UnselectAllStudents">
+                                        Unselect All
+                                    </button>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info">@selectedStudentIds.Count selected</span>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 50px;"></th>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Education Level</th>
+                                            <th>Class Level</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var student in availableStudents)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input type="checkbox"
+                                                               class="form-check-input"
+                                                               checked="@IsStudentSelected(student.Id)"
+                                                               @onchange="(e) => ToggleStudentSelection(student.Id, e.Value)" />
+                                                    </div>
+                                                </td>
+                                                <td>@student.Id</td>
+                                                <td>@student.Person.FirstName @student.Person.LastName</td>
+                                                <td>@student.Person.EducationLevel</td>
+                                                <td>@student.Person.ClassLevel</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (learningPath.EducationLevel != 0 && learningPath.ClassLevel != ClassLevel.None)
+            {
+                <div class="alert alert-info">
+                    No students found for the selected Education Level and Class Level.
+                </div>
+            }
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Create Learning Path</button>
+                <button type="button" class="btn btn-secondary ms-2" @onclick="NavigateToList">Cancel</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    private LearningPath learningPath = new LearningPath();
+    private List<Student> availableStudents = new List<Student>();
+    private List<int> selectedStudentIds = new List<int>(); // Changed from Dictionary to List
+    private School school;
 
+    // Added for class level mapping
+    private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
+    private ClassLevelMapping classLevelMappingService = new ClassLevelMapping();
+    private Dictionary<EducationLevel, List<ClassLevel>> classLevelMappings = new Dictionary<EducationLevel, List<ClassLevel>>();
+
+    protected override void OnInitialized()
+    {
+        school = SchoolDataService.GetSchool();
+        // Initialize collections
+        learningPath.Students = new List<Student>();
+        learningPath.StudentsPaymentSuccessful = new List<Student>();
+        learningPath.Schedule = new List<ScheduleEntry>();
+        learningPath.GradesList = new Dictionary<Student, CourseGrade>();
+
+        // Initialize class level mappings
+        classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
+        availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
+    }
+
+    private async Task OnEducationLevelChanged()
+    {
+        // Reset ClassLevel when EducationLevel changes
+        learningPath.ClassLevel = ClassLevel.None;
+
+        // Update available class levels
+        availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
+
+        // Update available students
+        UpdateAvailableStudents();
+        StateHasChanged(); // Trigger UI update
+    }
+
+    private async Task OnClassLevelChanged()
+    {
+        UpdateAvailableStudents();
+        StateHasChanged(); // Trigger UI update
+    }
+
+    private List<ClassLevel> GetAvailableClassLevels(EducationLevel educationLevel)
+    {
+        return classLevelMappings.TryGetValue(educationLevel, out var levels)
+            ? levels
+            : new List<ClassLevel>();
+    }
+
+    private void UpdateAvailableStudents()
+    {
+        if (learningPath.EducationLevel != 0 && learningPath.ClassLevel != ClassLevel.None)
+        {
+            availableStudents = LogicMethods.GetStudentsByLevel(school, learningPath.EducationLevel, learningPath.ClassLevel);
+
+            // Reset selections when available students change
+            selectedStudentIds.Clear();
+        }
+        else
+        {
+            availableStudents.Clear();
+            selectedStudentIds.Clear();
+        }
+    }
+
+    // Changed functions to use List<int> instead of Dictionary<int, bool>
+    private void SelectAllStudents()
+    {
+        selectedStudentIds = availableStudents.Select(s => s.Id).ToList();
+    }
+
+    private void UnselectAllStudents()
+    {
+        selectedStudentIds.Clear();
+    }
+
+    private bool IsStudentSelected(int studentId)
+    {
+        return selectedStudentIds.Contains(studentId);
+    }
+
+    private void ToggleStudentSelection(int studentId, object isChecked)
+    {
+        if (isChecked is bool checkedValue)
+        {
+            if (checkedValue && !selectedStudentIds.Contains(studentId))
+            {
+                selectedStudentIds.Add(studentId);
+            }
+            else if (!checkedValue && selectedStudentIds.Contains(studentId))
+            {
+                selectedStudentIds.Remove(studentId);
+            }
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        // Get the selected students based on selectedStudentIds
+        learningPath.Students = availableStudents
+            .Where(s => selectedStudentIds.Contains(s.Id))
+            .ToList();
+
+        // Create the learning path
+        SchoolDataService.AddLearningPath(learningPath);
+
+        // Navigate back to the list
+        NavigateToList();
+    }
+
+    private void NavigateToList()
+    {
+        NavigationManager.NavigateTo("/classes");
+    }
 }

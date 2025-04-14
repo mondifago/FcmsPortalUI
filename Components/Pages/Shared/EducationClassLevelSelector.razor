@@ -17,13 +17,13 @@
     </div>
     <div class="col-md-6 mb-3">
         <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
-        <InputSelect id="classLevel" class="form-select" @bind-Value="ClassLevel">
-            <option value="@FcmsPortal.Enums.ClassLevel.None">-- Select Class Level --</option>
+        <select @bind="ClassLevel" class="form-select">
+            <option value="@ClassLevel.None">-- Select Class Level --</option>
             @foreach (var level in availableClassLevels)
             {
                 <option value="@level">@level</option>
             }
-        </InputSelect>
+        </select>
         <ValidationMessage For="@(() => ClassLevel)" />
     </div>
 </div>
