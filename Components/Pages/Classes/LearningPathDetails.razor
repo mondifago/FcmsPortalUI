@@ -1,0 +1,458 @@
+﻿@page "/learningpaths/details/{Id:int}"
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal
+@using System.Globalization
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+
+<div class="container-fluid mt-3">
+    @if (learningPath == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-3">
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2>Learning Path Details</h2>
+                    <div>
+                        <a href="/learningpaths/edit/@learningPath.Id" class="btn btn-warning me-2">
+                            <i class="fa fa-pencil"></i> Edit
+                        </a>
+                        <a href="/classes" class="btn btn-secondary">
+                            <i class="fa fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Column: Basic Info and Calendar -->
+            <div class="col-md-8">
+                <!-- Basic Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Basic Information</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Education Level:</dt>
+                                    <dd class="col-sm-7">@learningPath.EducationLevel</dd>
+
+                                    <dt class="col-sm-5">Class Level:</dt>
+                                    <dd class="col-sm-7">@learningPath.ClassLevel</dd>
+
+                                    <dt class="col-sm-5">Semester:</dt>
+                                    <dd class="col-sm-7">@learningPath.Semester</dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Fee per Semester:</dt>
+                                    <dd class="col-sm-7">@learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</dd>
+
+                                    <dt class="col-sm-5">Approval Status:</dt>
+                                    <dd class="col-sm-7">
+                                        <span class="@GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">
+                                            @learningPath.ApprovalStatus
+                                        </span>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending && IsCurrentUserPrincipal())
+                        {
+                            <div class="mt-3">
+                                <button class="btn btn-success me-2" @onclick="() => UpdateApprovalStatus(PrincipalApprovalStatus.Approved)">
+                                    <i class="fa fa-check"></i> Approve
+                                </button>
+                                <button class="btn btn-danger" @onclick="() => UpdateApprovalStatus(PrincipalApprovalStatus.Rejected)">
+                                    <i class="fa fa-times"></i> Reject
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Schedule Calendar Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Class Schedule</h4>
+                        <div>
+                            <button class="btn btn-sm btn-light me-2" @onclick="PreviousMonth">
+                                <i class="fa fa-chevron-left"></i>
+                            </button>
+                            <span class="text-white">@currentDate.ToString("MMMM yyyy")</span>
+                            <button class="btn btn-sm btn-light ms-2" @onclick="NextMonth">
+                                <i class="fa fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <a href="/classsession/create/@learningPath.Id" class="btn btn-success">
+                                <i class="fa fa-plus"></i> Add Class Session
+                            </a>
+                        </div>
+
+                        <!-- Calendar -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered calendar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sun</th>
+                                        <th>Mon</th>
+                                        <th>Tue</th>
+                                        <th>Wed</th>
+                                        <th>Thu</th>
+                                        <th>Fri</th>
+                                        <th>Sat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int week = 0; week < 6; week++)
+                                    {
+                                        <tr style="height: 100px;">
+                                            @for (int day = 0; day < 7; day++)
+                                            {
+                                                int displayDay = week * 7 + day - firstDayOfMonth + 1;
+                                                bool isCurrentMonth = displayDay > 0 && displayDay <= daysInMonth;
+                                                var date = new DateTime(currentDate.Year, currentDate.Month, isCurrentMonth ? displayDay : 1);
+                                                var sessionsOnDay = isCurrentMonth ? GetSessionsForDate(date) : new List<ScheduleEntry>();
+
+                                                <td class="@(!isCurrentMonth ? "bg-light" : "")">
+                                                    @if (isCurrentMonth)
+                                                    {
+                                                        <div class="d-flex justify-content-end">
+                                                            <span class="badge bg-secondary">@displayDay</span>
+                                                        </div>
+                                                        <div class="calendar-events">
+                                                            @foreach (var session in sessionsOnDay)
+                                                            {
+                                                                <div class="calendar-event" @onclick="() => ShowSessionDetails(session)">
+                                                                    <div class="card bg-info text-white mb-1 p-1">
+                                                                        <small>
+                                                                            @session.DateTime.ToString("HH:mm") - @session.Title
+                                                                        </small>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </td>
+                                            }
+                                        </tr>
+                                    }
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Students and Payment Information -->
+            <div class="col-md-4">
+                <!-- Enrolled Students Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @if (learningPath.Students == null || !learningPath.Students.Any())
+                            {
+                                <div class="list-group-item">
+                                    <p class="text-muted mb-0">No students enrolled</p>
+                                </div>
+                            }
+                            else
+                            {
+                                @foreach (var student in learningPath.Students)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fa fa-user me-2"></i>
+                                            @student.Person.FirstName @student.Person.LastName
+                                        </div>
+                                        <span class="@(IsPaymentSuccessful(student) ? "badge bg-success" : "badge bg-warning")">
+                                            @(IsPaymentSuccessful(student) ? "Paid" : "Unpaid")
+                                        </span>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Status Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">Payment Successful (@learningPath.StudentsPaymentSuccessful.Count)</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @if (learningPath.StudentsPaymentSuccessful == null || !learningPath.StudentsPaymentSuccessful.Any())
+                            {
+                                <div class="list-group-item">
+                                    <p class="text-muted mb-0">No successful payments yet</p>
+                                </div>
+                            }
+                            else
+                            {
+                                @foreach (var student in learningPath.StudentsPaymentSuccessful)
+                                {
+                                    <div class="list-group-item">
+                                        <i class="fa fa-user-check me-2"></i>
+                                        @student.Person.FirstName @student.Person.LastName
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Payment Button -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <button class="btn btn-primary w-100" @onclick="ShowRecordPaymentModal">
+                            <i class="fa fa-money-bill"></i> Record Payment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Details Modal -->
+        @if (selectedSession != null)
+        {
+            <div class="modal fade show" style="display: block;" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title">@selectedSession.Title</h5>
+                            <button type="button" class="btn-close" @onclick="CloseSessionModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">Date & Time:</dt>
+                                <dd class="col-sm-8">@selectedSession.DateTime.ToString("dddd, MMMM d, yyyy h:mm tt")</dd>
+                                
+                                <dt class="col-sm-4">Duration:</dt>
+                                <dd class="col-sm-8">@selectedSession.Duration.TotalMinutes minutes</dd>
+                                
+                                <dt class="col-sm-4">Venue:</dt>
+                                <dd class="col-sm-8">@selectedSession.Venue</dd>
+                                
+                                @if (selectedSession.ClassSession != null)
+                                {
+                                    <dt class="col-sm-4">Course:</dt>
+                                    <dd class="col-sm-8">@selectedSession.ClassSession.Course</dd>
+                                    
+                                    <dt class="col-sm-4">Topic:</dt>
+                                    <dd class="col-sm-8">@selectedSession.ClassSession.Topic</dd>
+                                    
+                                    <dt class="col-sm-4">Teacher:</dt>
+                                    <dd class="col-sm-8">
+                                        @if (selectedSession.ClassSession.Teacher != null)
+                                        {
+                                            @selectedSession.ClassSession.Teacher.Person.FirstName @selectedSession.ClassSession.Teacher.Person.LastName
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No teacher assigned</span>
+                                        }
+                                    </dd>
+                                }
+                            </dl>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseSessionModal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade show"></div>
+        }
+
+        <!-- Record Payment Modal -->
+        @if (showPaymentModal)
+        {
+            <div class="modal fade show" style="display: block;" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">Record Payment</h5>
+                            <button type="button" class="btn-close" @onclick="ClosePaymentModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Select Student</label>
+                                <select class="form-select" @bind="selectedStudentId">
+                                    <option value="0">-- Select Student --</option>
+                                    @foreach (var student in GetUnpaidStudents())
+                                    {
+                                        <option value="@student.Id">@student.Person.FirstName @student.Person.LastName</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Amount</label>
+                                <input type="number" class="form-control" readonly value="@learningPath.FeePerSemester" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="ClosePaymentModal">Cancel</button>
+                            <button type="button" class="btn btn-success" @onclick="RecordPayment" disabled="@(selectedStudentId == 0)">
+                                Record Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade show"></div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    
+    private LearningPath learningPath;
+    private DateTime currentDate = DateTime.Now;
+    private int daysInMonth;
+    private int firstDayOfMonth;
+    private ScheduleEntry selectedSession;
+    private bool showPaymentModal = false;
+    private int selectedStudentId = 0;
+    
+    protected override void OnInitialized()
+    {
+        learningPath = SchoolDataService.GetLearningPathById(Id);
+        UpdateCalendarInfo();
+    }
+    
+    private void UpdateCalendarInfo()
+    {
+        daysInMonth = DateTime.DaysInMonth(currentDate.Year, currentDate.Month);
+        firstDayOfMonth = (int)new DateTime(currentDate.Year, currentDate.Month, 1).DayOfWeek;
+    }
+    
+    private void PreviousMonth()
+    {
+        currentDate = currentDate.AddMonths(-1);
+        UpdateCalendarInfo();
+    }
+    
+    private void NextMonth()
+    {
+        currentDate = currentDate.AddMonths(1);
+        UpdateCalendarInfo();
+    }
+    
+    private List<ScheduleEntry> GetSessionsForDate(DateTime date)
+    {
+        if (learningPath.Schedule == null)
+            return new List<ScheduleEntry>();
+            
+        return learningPath.Schedule
+            .Where(s => s.DateTime.Date == date.Date)
+            .OrderBy(s => s.DateTime.TimeOfDay)
+            .ToList();
+    }
+    
+    private string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
+    {
+        return status switch
+        {
+            PrincipalApprovalStatus.Approved => "badge bg-success",
+            PrincipalApprovalStatus.Rejected => "badge bg-danger",
+            PrincipalApprovalStatus.Pending => "badge bg-warning",
+            _ => "badge bg-secondary"
+        };
+    }
+    
+    private bool IsCurrentUserPrincipal()
+    {
+        // In a real application, this would check if the current user is a principal
+        // For this demo, we'll return true to allow the approval functionality
+        return true;
+    }
+    
+    private void UpdateApprovalStatus(PrincipalApprovalStatus status)
+    {
+        if (learningPath != null)
+        {
+            learningPath.ApprovalStatus = status;
+            // In a real application, we would call a method to save the changes to the database
+            StateHasChanged();
+        }
+    }
+    
+    private void ShowSessionDetails(ScheduleEntry session)
+    {
+        selectedSession = session;
+    }
+    
+    private void CloseSessionModal()
+    {
+        selectedSession = null;
+    }
+    
+    private bool IsPaymentSuccessful(Student student)
+    {
+        return learningPath.StudentsPaymentSuccessful != null && 
+               learningPath.StudentsPaymentSuccessful.Any(s => s.Id == student.Id);
+    }
+    
+    private List<Student> GetUnpaidStudents()
+    {
+        if (learningPath.Students == null)
+            return new List<Student>();
+            
+        return learningPath.Students
+            .Where(s => !IsPaymentSuccessful(s))
+            .ToList();
+    }
+    
+    private void ShowRecordPaymentModal()
+    {
+        selectedStudentId = 0;
+        showPaymentModal = true;
+    }
+    
+    private void ClosePaymentModal()
+    {
+        showPaymentModal = false;
+    }
+    
+    private void RecordPayment()
+    {
+        if (selectedStudentId > 0)
+        {
+            var student = learningPath.Students.FirstOrDefault(s => s.Id == selectedStudentId);
+            if (student != null && !IsPaymentSuccessful(student))
+            {
+                if (learningPath.StudentsPaymentSuccessful == null)
+                    learningPath.StudentsPaymentSuccessful = new List<Student>();
+                    
+                learningPath.StudentsPaymentSuccessful.Add(student);
+                // In a real application, we would call a method to save the changes to the database
+            }
+        }
+        
+        showPaymentModal = false;
+    }
+}

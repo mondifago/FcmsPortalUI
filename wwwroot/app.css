@@ -371,3 +371,23 @@ main {
     margin-top: 5px;
 }
 
+.calendar-table th, .calendar-table td {
+    text-align: center;
+    padding: 5px;
+}
+
+.calendar-table td {
+    vertical-align: top;
+    height: 100px;
+    width: 14.28%;
+}
+
+.calendar-events {
+    overflow-y: auto;
+    max-height: 80px;
+}
+
+.calendar-event {
+    cursor: pointer;
+}
+
