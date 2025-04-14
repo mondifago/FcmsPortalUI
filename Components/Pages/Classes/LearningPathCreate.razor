@@ -59,7 +59,7 @@
 
                     <div class="mb-3">
                         <label for="feePerSemester" class="form-label">Fee Per Semester (₦)*</label>
-                        <InputNumber id="feePerSemester" @bind-Value="learningPath.FeePerSemester" class="form-control" />
+                        <InputNumber id="feePerSemester" @bind-Value="learningPath.FeePerSemester" @bind-Value:after="OnFeePerSemesterChanged" class="form-control" />
                         <small class="form-text text-muted">
                             Fee: @learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))
                         </small>
@@ -230,6 +230,14 @@
         }
     }
 
+    private void OnFeePerSemesterChanged()
+    {
+        if (learningPath.Students != null && learningPath.Students.Any())
+        {
+            LogicMethods.SetStudentFeesForLearningPath(learningPath);
+        }
+    }
+
     private void HandleValidSubmit()
     {
         learningPath.Students = availableStudents
@@ -237,6 +245,7 @@
             .ToList();
 
         SchoolDataService.AddLearningPath(learningPath);
+        LogicMethods.SetStudentFeesForLearningPath(learningPath);
         NavigateToList();
     }
 
