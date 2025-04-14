@@ -1,0 +1,128 @@
+﻿@page "/classes"
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+
+<h3>Learning Paths</h3>
+
+<div class="mb-3">
+    <a href="/learningpaths/create" class="btn btn-primary">
+        <span class="oi oi-plus"></span> Add New Learning Path
+    </a>
+</div>
+
+@if (learningPaths == null)
+{
+    <p>Loading...</p>
+}
+else if (!learningPaths.Any())
+{
+    <p>No learning paths found.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Education Level</th>
+                    <th>Class Level</th>
+                    <th>Semester</th>
+                    <th>Approval Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var learningPath in learningPaths)
+                {
+                    <tr>
+                        <td>@learningPath.Id</td>
+                        <td>@learningPath.EducationLevel</td>
+                        <td>@learningPath.ClassLevel</td>
+                        <td>@learningPath.Semester</td>
+                        <td>
+                            <span class="@GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">
+                                @learningPath.ApprovalStatus
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="/learningpaths/details/@learningPath.Id" class="btn btn-sm btn-info">
+                                    <span class="fa fa-eye"></span> Details
+                                </a>
+                                <a href="/learningpaths/edit/@learningPath.Id" class="btn btn-sm btn-warning">
+                                    <span class="fa fa-pencil"></span> Edit
+                                </a>
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteConfirmation(learningPath)">
+                                    <span class="fa fa-trash"></span> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                    Title="Confirm Delete"
+                    Message="Are you sure you want to delete this Student?"
+                    OnConfirm="DeleteLearningPath"
+                    OnCancel="CancelDelete" />
+
+
+@code {
+    private IEnumerable<LearningPath> learningPaths;
+    private bool showDeleteConfirmation = false;
+    private LearningPath learningPathToDelete;
+
+    protected override void OnInitialized()
+    {
+        LoadLearningPaths();
+    }
+
+    private void LoadLearningPaths()
+    {
+        learningPaths = SchoolDataService.GetAllLearningPaths();
+    }
+
+    private string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
+    {
+        return status switch
+        {
+            PrincipalApprovalStatus.Approved => "badge bg-success",
+            PrincipalApprovalStatus.Rejected => "badge bg-danger",
+            PrincipalApprovalStatus.Pending => "badge bg-warning",
+            _ => "badge bg-secondary"
+        };
+    }
+
+    private void DeleteConfirmation(LearningPath learningPath)
+    {
+        learningPathToDelete = learningPath;
+        showDeleteConfirmation = true;
+    }
+
+    private void CancelDelete()
+    {
+        learningPathToDelete = null;
+        showDeleteConfirmation = false;
+    }
+
+    private void DeleteLearningPath()
+    {
+        if (learningPathToDelete != null)
+        {
+            SchoolDataService.DeleteLearningPath(learningPathToDelete.Id);
+            LoadLearningPaths();
+        }
+
+        showDeleteConfirmation = false;
+        learningPathToDelete = null;
+    }
+}

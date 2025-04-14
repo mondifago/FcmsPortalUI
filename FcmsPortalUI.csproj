@@ -21,8 +21,4 @@
     <ProjectReference Include="..\NewFcms\FcmsPortal.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Components\Pages\Classes\" />
-  </ItemGroup>
-
 </Project>
