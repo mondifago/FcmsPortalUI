@@ -61,7 +61,7 @@
                         <label for="feePerSemester" class="form-label">Fee Per Semester (₦)*</label>
                         <InputNumber id="feePerSemester" @bind-Value="learningPath.FeePerSemester" class="form-control" />
                         <small class="form-text text-muted">
-                            Fee in Nigerian Naira: @learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))
+                            Fee: @learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))
                         </small>
                     </div>
                 </div>
@@ -148,10 +148,8 @@
 @code {
     private LearningPath learningPath = new LearningPath();
     private List<Student> availableStudents = new List<Student>();
-    private List<int> selectedStudentIds = new List<int>(); // Changed from Dictionary to List
+    private List<int> selectedStudentIds = new List<int>(); 
     private School school;
-
-    // Added for class level mapping
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
     private ClassLevelMapping classLevelMappingService = new ClassLevelMapping();
     private Dictionary<EducationLevel, List<ClassLevel>> classLevelMappings = new Dictionary<EducationLevel, List<ClassLevel>>();
@@ -159,34 +157,26 @@
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
-        // Initialize collections
         learningPath.Students = new List<Student>();
         learningPath.StudentsPaymentSuccessful = new List<Student>();
         learningPath.Schedule = new List<ScheduleEntry>();
         learningPath.GradesList = new Dictionary<Student, CourseGrade>();
-
-        // Initialize class level mappings
         classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
         availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
     }
 
     private async Task OnEducationLevelChanged()
     {
-        // Reset ClassLevel when EducationLevel changes
         learningPath.ClassLevel = ClassLevel.None;
-
-        // Update available class levels
         availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
-
-        // Update available students
         UpdateAvailableStudents();
-        StateHasChanged(); // Trigger UI update
+        StateHasChanged(); 
     }
 
     private async Task OnClassLevelChanged()
     {
         UpdateAvailableStudents();
-        StateHasChanged(); // Trigger UI update
+        StateHasChanged(); 
     }
 
     private List<ClassLevel> GetAvailableClassLevels(EducationLevel educationLevel)
@@ -201,8 +191,6 @@
         if (learningPath.EducationLevel != 0 && learningPath.ClassLevel != ClassLevel.None)
         {
             availableStudents = LogicMethods.GetStudentsByLevel(school, learningPath.EducationLevel, learningPath.ClassLevel);
-
-            // Reset selections when available students change
             selectedStudentIds.Clear();
         }
         else
@@ -212,7 +200,6 @@
         }
     }
 
-    // Changed functions to use List<int> instead of Dictionary<int, bool>
     private void SelectAllStudents()
     {
         selectedStudentIds = availableStudents.Select(s => s.Id).ToList();
@@ -245,15 +232,11 @@
 
     private void HandleValidSubmit()
     {
-        // Get the selected students based on selectedStudentIds
         learningPath.Students = availableStudents
             .Where(s => selectedStudentIds.Contains(s.Id))
             .ToList();
 
-        // Create the learning path
         SchoolDataService.AddLearningPath(learningPath);
-
-        // Navigate back to the list
         NavigateToList();
     }
 
