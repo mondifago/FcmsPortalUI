@@ -61,6 +61,15 @@ else
                                     }
                                 </InputSelect>
                             </div>
+                            <div class="col-md-6">
+                                <label for="academicYearStart" class="form-label">Academic Year<span class="text-danger">*</span></label>
+                                <select id="academicYearStart" @bind="academicYearStartYear" class="form-select">
+                                    @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
+                                    {
+                                        <option value="@year">@year-@(year + 1)</option>
+                                    }
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -216,6 +225,7 @@ else
     private LearningPath learningPath;
     private List<Student> availableStudents = new List<Student>();
     private List<int> selectedStudentIds = new List<int>();
+    private int academicYearStartYear;
     private School school;
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
     private ClassLevelMapping classLevelMappingService = new ClassLevelMapping();
@@ -225,8 +235,6 @@ else
     {
         school = SchoolDataService.GetSchool();
         classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
-
-        // Get the learning path by ID
         learningPath = SchoolDataService.GetLearningPathById(Id);
 
         if (learningPath == null)
@@ -235,7 +243,6 @@ else
             return;
         }
 
-        // Initialize collections if they're null
         if (learningPath.Students == null)
             learningPath.Students = new List<Student>();
 
@@ -248,14 +255,12 @@ else
         if (learningPath.GradesList == null)
             learningPath.GradesList = new Dictionary<Student, CourseGrade>();
 
-        // Setup available class levels based on education level
         availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
 
-        // Load available students and set selected students
         UpdateAvailableStudents();
 
-        // Initialize the selected student IDs from the existing learning path students
         selectedStudentIds = learningPath.Students.Select(s => s.Id).ToList();
+        academicYearStartYear = learningPath.AcademicYearStart.Year;
     }
 
     private async Task OnEducationLevelChanged()
@@ -322,6 +327,15 @@ else
         }
     }
 
+    private void HandleAcademicYearChange()
+    {
+        learningPath.AcademicYearStart = new DateTime(
+            academicYearStartYear,
+            learningPath.AcademicYearStart.Month,
+            learningPath.AcademicYearStart.Day
+        );
+    }
+
     private void HandleValidSubmit()
     {
         var previousStudents = new List<Student>(learningPath.Students);
@@ -340,6 +354,7 @@ else
             }
         }
 
+        HandleAcademicYearChange();
         LogicMethods.SetStudentFeesForLearningPath(learningPath);
         SchoolDataService.UpdateLearningPath(learningPath);
         NavigateToList();

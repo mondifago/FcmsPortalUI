@@ -32,6 +32,7 @@ else
                     <th>Education Level</th>
                     <th>Class Level</th>
                     <th>Semester</th>
+                    <th>Academic Year</th>
                     <th>Approval Status</th>
                     <th>Actions</th>
                 </tr>
@@ -44,6 +45,7 @@ else
                         <td>@learningPath.EducationLevel</td>
                         <td>@learningPath.ClassLevel</td>
                         <td>@learningPath.Semester</td>
+                        <td>@learningPath.AcademicYear</td>
                         <td>
                             <span class="@GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">
                                 @learningPath.ApprovalStatus

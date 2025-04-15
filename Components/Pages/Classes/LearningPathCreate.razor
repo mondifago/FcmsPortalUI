@@ -55,6 +55,15 @@
                                 }
                             </InputSelect>
                         </div>
+                        <div class="col-md-6">
+                            <label for="academicYearStart" class="form-label">Academic Year<span class="text-danger">*</span></label>
+                            <select id="academicYearStart" @bind="academicYearStartYear" class="form-select">
+                                @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
+                                {
+                                    <option value="@year">@year-@(year + 1)</option>
+                                }
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -81,11 +90,11 @@
                             <div class="d-flex justify-content-between mb-2">
                                 <div>
                                     <button type="button" class="btn btn-sm btn-outline-primary me-2"
-                                            @onclick="SelectAllStudents">
+                                    @onclick="SelectAllStudents">
                                         Select All
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-secondary"
-                                            @onclick="UnselectAllStudents">
+                                    @onclick="UnselectAllStudents">
                                         Unselect All
                                     </button>
                                 </div>
@@ -112,9 +121,9 @@
                                                 <td>
                                                     <div class="form-check">
                                                         <input type="checkbox"
-                                                               class="form-check-input"
-                                                               checked="@IsStudentSelected(student.Id)"
-                                                               @onchange="(e) => ToggleStudentSelection(student.Id, e.Value)" />
+                                                        class="form-check-input"
+                                                        checked="@IsStudentSelected(student.Id)"
+                                                        @onchange="(e) => ToggleStudentSelection(student.Id, e.Value)" />
                                                     </div>
                                                 </td>
                                                 <td>@student.Id</td>
@@ -149,6 +158,7 @@
     private LearningPath learningPath = new LearningPath();
     private List<Student> availableStudents = new List<Student>();
     private List<int> selectedStudentIds = new List<int>(); 
+    private int academicYearStartYear;
     private School school;
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
     private ClassLevelMapping classLevelMappingService = new ClassLevelMapping();
@@ -163,6 +173,7 @@
         learningPath.GradesList = new Dictionary<Student, CourseGrade>();
         classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
         availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
+        academicYearStartYear = learningPath.AcademicYearStart.Year;
     }
 
     private async Task OnEducationLevelChanged()
@@ -238,8 +249,19 @@
         }
     }
 
+    private void HandleAcademicYearChange()
+    {
+        learningPath.AcademicYearStart = new DateTime(
+            academicYearStartYear,
+            learningPath.AcademicYearStart.Month,
+            learningPath.AcademicYearStart.Day
+        );
+    }
+
+
     private void HandleValidSubmit()
     {
+        HandleAcademicYearChange();
         learningPath.Students = availableStudents
             .Where(s => selectedStudentIds.Contains(s.Id))
             .ToList();
