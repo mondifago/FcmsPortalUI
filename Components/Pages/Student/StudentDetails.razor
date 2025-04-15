@@ -20,6 +20,9 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Student Details</h1>
             <div>
+                <button class="btn btn-success" @onclick="ShowLearningPathModal">
+                    <i class="fa fa-graduation-cap"></i> Add to Learning Path
+                </button>
                 <a href="/students/edit/@Id" class="btn btn-warning">
                     <i class="fa fa-pencil"></i> Edit
                 </a>
@@ -209,13 +212,59 @@
     }
 </div>
 
+@if (showLearningPathModal)
+{
+    <div class="modal show" style="display: block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Student to Learning Path</h5>
+                    <button type="button" class="btn-close" @onclick="CloseLearningPathModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (availableLearningPaths == null || !availableLearningPaths.Any())
+                    {
+                        <p>No matching learning paths available for this student.</p>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label for="selectedLearningPath" class="form-label">Select Learning Path</label>
+                            <select id="selectedLearningPath" class="form-select" @bind="selectedLearningPathId">
+                                <option value="0">-- Select Learning Path --</option>
+                                @foreach (var lp in availableLearningPaths)
+                                {
+                                    <option value="@lp.Id">
+                                        @lp.EducationLevel - @lp.ClassLevel (@lp.AcademicYear) Semester @lp.Semester
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseLearningPathModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="AddStudentToSelectedLearningPath"
+                            disabled="@(selectedLearningPathId == 0)">
+                        Add Student
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 @code {
     [Parameter]
     public int Id { get; set; }
-
+    private FcmsPortal.Models.School school;
     private Student student;
     private Guardian guardian;
-    private FcmsPortal.Models.School school;
+    private bool showLearningPathModal = false;
+    private int selectedLearningPathId = 0;
+    private List<LearningPath> availableLearningPaths = new List<LearningPath>();
+  
 
     protected override async Task OnInitializedAsync()
     {
@@ -232,6 +281,42 @@
         else if (student.GuardianId > 0)
         {
             guardian = SchoolDataService.GetGuardianById(student.GuardianId);
+        }
+    }
+
+    private void ShowLearningPathModal()
+    {
+        // Get learning paths matching the student's education level and class level
+        availableLearningPaths = SchoolDataService.GetAllLearningPaths()
+            .Where(lp =>
+                lp.EducationLevel == student.Person.EducationLevel &&
+                lp.ClassLevel == student.Person.ClassLevel)
+            .ToList();
+
+        selectedLearningPathId = 0;
+        showLearningPathModal = true;
+    }
+
+    private void CloseLearningPathModal()
+    {
+        showLearningPathModal = false;
+    }
+
+    private void AddStudentToSelectedLearningPath()
+    {
+        if (selectedLearningPathId == 0)
+            return;
+
+        var learningPath = SchoolDataService.GetLearningPathById(selectedLearningPathId);
+        if (learningPath != null)
+        {
+            LogicMethods.AddStudentToLearningPath(learningPath, student);
+            SchoolDataService.UpdateLearningPath(learningPath);
+            SchoolDataService.UpdateStudent(student);
+
+            CloseLearningPathModal();
+
+            // Show success message or refresh data as needed
         }
     }
 }
