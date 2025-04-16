@@ -365,6 +365,7 @@ else
         if (learningPath.Students != null && learningPath.Students.Any())
         {
             LogicMethods.SetStudentFeesForLearningPath(learningPath);
+            LogicMethods.HandleFeeChangeForLearningPath(learningPath, learningPath.FeePerSemester);
         }
     }
 

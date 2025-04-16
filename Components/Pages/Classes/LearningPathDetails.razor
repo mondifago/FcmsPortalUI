@@ -23,6 +23,9 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h2>Learning Path Details</h2>
                     <div>
+                        <button class="btn btn-success" @onclick="ShowAddStudentsModal">
+                            <i class="fa fa-user-plus"></i> Add Students
+                        </button>
                         <a href="/learningpath/edit/@learningPath.Id" class="btn btn-warning me-2">
                             <i class="fa fa-pencil"></i> Edit
                         </a>
@@ -329,6 +332,87 @@
     }
 </div>
 
+@if (showAddStudentsModal)
+{
+    <div class="modal show" style="display: block" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Students to Learning Path</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddStudentsModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (availableStudents == null || !availableStudents.Any())
+                    {
+                        <p>No eligible students found for this learning path.</p>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-2"
+                                            @onclick="SelectAllStudents">
+                                        Select All
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            @onclick="UnselectAllStudents">
+                                        Unselect All
+                                    </button>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info">@selectedStudentIds.Count selected</span>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 50px;"></th>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Education Level</th>
+                                            <th>Class Level</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var student in availableStudents)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input type="checkbox"
+                                                               class="form-check-input"
+                                                               checked="@IsStudentSelected(student.Id)"
+                                                               @onchange="(e) => ToggleStudentSelection(student.Id, e.Value)" />
+                                                    </div>
+                                                </td>
+                                                <td>@student.Id</td>
+                                                <td>@student.Person.FirstName @student.Person.LastName</td>
+                                                <td>@student.Person.EducationLevel</td>
+                                                <td>@student.Person.ClassLevel</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseAddStudentsModal">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="AddSelectedStudents"
+                            disabled="@(!selectedStudentIds.Any())">
+                        Add Students
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -340,6 +424,9 @@
     private ScheduleEntry selectedSession;
     private bool showPaymentModal = false;
     private int selectedStudentId = 0;
+    private bool showAddStudentsModal = false;
+    private List<Student> availableStudents = new List<Student>();
+    private List<int> selectedStudentIds = new List<int>();
     
     protected override void OnInitialized()
     {
@@ -457,5 +544,79 @@
         }
         
         showPaymentModal = false;
+    }
+
+    private void ShowAddStudentsModal()
+    {
+        // Get eligible students (matching education/class level but not already in this learning path)
+        var allEligibleStudents = LogicMethods.GetStudentsByLevel(
+            SchoolDataService.GetSchool(),
+            learningPath.EducationLevel,
+            learningPath.ClassLevel);
+
+        // Filter out students already in the learning path
+        availableStudents = allEligibleStudents
+            .Where(s => !learningPath.Students.Any(existingStudent => existingStudent.Id == s.Id))
+            .ToList();
+
+        selectedStudentIds.Clear();
+        showAddStudentsModal = true;
+    }
+
+    private void CloseAddStudentsModal()
+    {
+        showAddStudentsModal = false;
+    }
+
+    private bool IsStudentSelected(int studentId)
+    {
+        return selectedStudentIds.Contains(studentId);
+    }
+
+    private void ToggleStudentSelection(int studentId, object isChecked)
+    {
+        if (isChecked is bool checkedValue)
+        {
+            if (checkedValue && !selectedStudentIds.Contains(studentId))
+            {
+                selectedStudentIds.Add(studentId);
+            }
+            else if (!checkedValue && selectedStudentIds.Contains(studentId))
+            {
+                selectedStudentIds.Remove(studentId);
+            }
+        }
+    }
+
+    private void SelectAllStudents()
+    {
+        selectedStudentIds = availableStudents.Select(s => s.Id).ToList();
+    }
+
+    private void UnselectAllStudents()
+    {
+        selectedStudentIds.Clear();
+    }
+
+    private void AddSelectedStudents()
+    {
+        if (!selectedStudentIds.Any())
+            return;
+
+        // Get the selected students
+        var studentsToAdd = availableStudents
+            .Where(s => selectedStudentIds.Contains(s.Id))
+            .ToList();
+
+        // Add the students to the learning path
+        LogicMethods.AddMultipleStudentsToLearningPath(learningPath, studentsToAdd);
+
+        // Update the learning path
+        SchoolDataService.UpdateLearningPath(learningPath);
+
+        // Refresh the page data
+        learningPath = SchoolDataService.GetLearningPathById(Id);
+
+        CloseAddStudentsModal();
     }
 }
