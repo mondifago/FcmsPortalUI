@@ -95,7 +95,7 @@
                 <div class="col-md-6 mb-3">
                     <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
                     <InputSelect id="educationLevel" class="form-select" @bind-Value="Student.Person.EducationLevel" @bind-Value:after="OnEducationLevelChanged">
-                        <option value="">-- Select Education Level --</option>
+                        <option value="@EducationLevel.None">-- Select Education Level --</option>
                         @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
                         {
                             <option value="@level">@level</option>
@@ -272,6 +272,9 @@
 
     private List<ClassLevel> GetAvailableClassLevels(EducationLevel educationLevel)
     {
+        if (educationLevel == EducationLevel.None)
+            return new List<ClassLevel>();
+
         return classLevelMappings.TryGetValue(educationLevel, out var levels)
             ? levels
             : new List<ClassLevel>();
