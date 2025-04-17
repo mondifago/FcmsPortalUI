@@ -34,8 +34,6 @@
     private List<int> selectedStudentIds = new List<int>();
     private School school;
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
-    private ClassLevelMapping classLevelMappingService = new ClassLevelMapping();
-    private Dictionary<EducationLevel, List<ClassLevel>> classLevelMappings = new Dictionary<EducationLevel, List<ClassLevel>>();
     private int academicYearStartYear = DateTime.Now.Year;
 
     protected override void OnInitialized()
@@ -46,14 +44,13 @@
         learningPath.Schedule = new List<ScheduleEntry>();
         learningPath.GradesList = new Dictionary<Student, CourseGrade>();
         learningPath.AcademicYearStart = DateTime.Now;
-        classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
-        availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(learningPath.EducationLevel);
     }
 
     private async Task OnEducationLevelChanged()
     {
         learningPath.ClassLevel = ClassLevel.None;
-        availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(learningPath.EducationLevel);
         UpdateAvailableStudents();
         StateHasChanged();
     }
@@ -75,16 +72,6 @@
     private async Task HandleAcademicYearChanged(int year)
     {
         academicYearStartYear = year;
-    }
-
-    private List<ClassLevel> GetAvailableClassLevels(EducationLevel educationLevel)
-    {
-        if (educationLevel == EducationLevel.None)
-            return new List<ClassLevel>();
-
-        return classLevelMappings.TryGetValue(educationLevel, out var levels)
-            ? levels
-            : new List<ClassLevel>();
     }
 
     private void UpdateAvailableStudents()

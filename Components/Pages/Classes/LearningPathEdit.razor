@@ -44,16 +44,11 @@ else
     private List<int> selectedStudentIds = new List<int>();
     private School school;
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
-    private ClassLevelMapping classLevelMappingService = new ClassLevelMapping();
-    private Dictionary<EducationLevel, List<ClassLevel>> classLevelMappings = new Dictionary<EducationLevel, List<ClassLevel>>();
     private int academicYearStartYear = DateTime.Now.Year;
 
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
-        classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
-
-        // Get the learning path by ID
         learningPath = SchoolDataService.GetLearningPathById(Id);
 
         if (learningPath == null)
@@ -62,7 +57,6 @@ else
             return;
         }
 
-        // Initialize collections if they're null
         if (learningPath.Students == null)
             learningPath.Students = new List<Student>();
 
@@ -82,8 +76,7 @@ else
         // Set the academic year
         academicYearStartYear = learningPath.AcademicYearStart.Year;
 
-        // Setup available class levels based on education level
-        availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(learningPath.EducationLevel);
 
         // Load available students and set selected students
         UpdateAvailableStudents();
@@ -95,7 +88,7 @@ else
     private async Task OnEducationLevelChanged()
     {
         learningPath.ClassLevel = ClassLevel.None;
-        availableClassLevels = GetAvailableClassLevels(learningPath.EducationLevel);
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(learningPath.EducationLevel);
         UpdateAvailableStudents();
         StateHasChanged();
     }
@@ -117,16 +110,6 @@ else
     private async Task HandleAcademicYearChanged(int year)
     {
         academicYearStartYear = year;
-    }
-
-    private List<ClassLevel> GetAvailableClassLevels(EducationLevel educationLevel)
-    {
-        if (educationLevel == EducationLevel.None)
-            return new List<ClassLevel>();
-
-        return classLevelMappings.TryGetValue(educationLevel, out var levels)
-            ? levels
-            : new List<ClassLevel>();
     }
 
     private void UpdateAvailableStudents()

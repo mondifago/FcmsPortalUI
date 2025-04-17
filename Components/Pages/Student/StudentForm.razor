@@ -5,6 +5,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
+@using FcmsPortal
 @rendermode InteractiveServer
 
 <EditForm Model="@Student" OnValidSubmit="HandleValidSubmit">
@@ -233,11 +234,7 @@
     private FcmsPortal.Models.School school;
     private bool showAddressForm = false;
     private Address currentAddress = new();
-
-    // Added for class level mapping
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
-    private ClassLevelMapping classLevelMappingService = new ClassLevelMapping();
-    private Dictionary<EducationLevel, List<ClassLevel>> classLevelMappings = new Dictionary<EducationLevel, List<ClassLevel>>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -254,30 +251,14 @@
             Student.Person.Addresses = new List<Address>();
 
         profilePictureUrl = Student.Person.ProfilePictureUrl ?? "";
-
-        // Initialize class level mappings
-        classLevelMappings = classLevelMappingService.GetClassLevelsByEducationLevel();
-        availableClassLevels = GetAvailableClassLevels(Student.Person.EducationLevel);
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(Student.Person.EducationLevel);
     }
 
     private async Task OnEducationLevelChanged()
     {
-        // Reset class level when education level changes
         Student.Person.ClassLevel = ClassLevel.None;
-
-        // Update available class levels
-        availableClassLevels = GetAvailableClassLevels(Student.Person.EducationLevel);
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(Student.Person.EducationLevel);
         StateHasChanged();
-    }
-
-    private List<ClassLevel> GetAvailableClassLevels(EducationLevel educationLevel)
-    {
-        if (educationLevel == EducationLevel.None)
-            return new List<ClassLevel>();
-
-        return classLevelMappings.TryGetValue(educationLevel, out var levels)
-            ? levels
-            : new List<ClassLevel>();
     }
 
     private void HandleProfilePictureChanged(string newImageUrl)
