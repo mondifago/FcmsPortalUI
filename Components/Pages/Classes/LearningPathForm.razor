@@ -18,9 +18,11 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
-                    <InputSelect id="educationLevel" class="form-select" @bind-Value="LearningPath.EducationLevel" @bind-Value:after="async () => await OnEducationLevelChanged.InvokeAsync()">
+                    <InputSelect id="educationLevel" class="form-select" @bind-Value="LearningPath.EducationLevel" @bind-Value:after="OnEducationLevelChanged">
                         <option value="@EducationLevel.None">-- Select Education Level --</option>
-                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+                        @foreach (var level in Enum.GetValues(typeof(EducationLevel))
+                        .Cast<EducationLevel>()
+                        .Where(l => l != EducationLevel.None))
                         {
                             <option value="@level">@level</option>
                         }
@@ -29,9 +31,9 @@
                 </div>
                 <div class="col-md-6">
                     <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
-                    <select @bind="LearningPath.ClassLevel" @bind:after="async () => await OnClassLevelChanged.InvokeAsync()" class="form-select">
+                    <select @bind="LearningPath.ClassLevel" @bind:after="OnClassLevelChanged" class="form-select">
                         <option value="@ClassLevel.None">-- Select Class Level --</option>
-                        @foreach (var level in AvailableClassLevels)
+                        @foreach (var level in availableClassLevels)
                         {
                             <option value="@level">@level</option>
                         }
@@ -53,7 +55,7 @@
                 </div>
                 <div class="col-md-6">
                     <label for="academicYearStart" class="form-label">Academic Year<span class="text-danger">*</span></label>
-                    <select id="academicYearStart" @bind="AcademicYearStartYear" class="form-select">
+                    <select id="academicYearStart" @bind="academicYearStartYear" @bind:after="() => OnAcademicYearChanged()" class="form-select">
                         @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
                         {
                             <option value="@year">@year-@(year + 1)</option>
@@ -64,34 +66,31 @@
 
             <div class="mb-3">
                 <label for="feePerSemester" class="form-label">Fee Per Semester (₦)*</label>
-                <InputNumber id="feePerSemester" @bind-Value="LearningPath.FeePerSemester" @bind-Value:after="async () => await OnFeePerSemesterChanged.InvokeAsync()" class="form-control" />
+                <InputNumber id="feePerSemester" @bind-Value="LearningPath.FeePerSemester" @bind-Value:after="OnFeePerSemesterChanged" class="form-control" />
                 <small class="form-text text-muted">
                     Fee: @LearningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))
                 </small>
             </div>
 
-            @if (!IsEditing)
-            {
-                <div class="mb-3">
-                    <label for="approvalStatus" class="form-label">Approval Status</label>
-                    <InputSelect id="approvalStatus" @bind-Value="LearningPath.ApprovalStatus" class="form-select">
-                        @foreach (var status in Enum.GetValues(typeof(PrincipalApprovalStatus)))
-                        {
-                            <option value="@status">@status</option>
-                        }
-                    </InputSelect>
-                </div>
-            }
+            <div class="mb-3">
+                <label for="approvalStatus" class="form-label">Approval Status</label>
+                <InputSelect id="approvalStatus" @bind-Value="LearningPath.ApprovalStatus" class="form-select">
+                    @foreach (var status in Enum.GetValues(typeof(PrincipalApprovalStatus)))
+                    {
+                        <option value="@status">@status</option>
+                    }
+                </InputSelect>
+            </div>
         </div>
     </div>
 
-    @if (AvailableStudents != null && AvailableStudents.Any())
+    @if (availableStudents != null && availableStudents.Any())
     {
         <div class="card mb-4">
             <div class="card-header">
                 <h5>Students</h5>
                 <p class="small text-muted mb-0">
-                    @(IsEditing ? "Select students enrolled in this learning path" : "Select students to enroll in this learning path")
+                    Select students to enroll in this learning path
                 </p>
             </div>
             <div class="card-body">
@@ -108,7 +107,7 @@
                             </button>
                         </div>
                         <div>
-                            <span class="badge bg-info">@SelectedStudentIds.Count selected</span>
+                            <span class="badge bg-info">@selectedStudentIds.Count selected</span>
                         </div>
                     </div>
 
@@ -124,7 +123,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var student in AvailableStudents)
+                                @foreach (var student in availableStudents)
                                 {
                                     <tr>
                                         <td>
@@ -148,14 +147,14 @@
             </div>
         </div>
     }
-    else if (LearningPath.EducationLevel != 0 && LearningPath.ClassLevel != ClassLevel.None)
+    else if (LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
     {
         <div class="alert alert-info">
             No students found for the selected Education Level and Class Level.
         </div>
     }
 
-    @if (IsEditing && LearningPath.Schedule != null && LearningPath.Schedule.Any())
+    @if (LearningPath.Schedule != null && LearningPath.Schedule.Any())
     {
         <div class="card mb-4">
             <div class="card-header">
@@ -207,18 +206,6 @@
     public LearningPath LearningPath { get; set; }
 
     [Parameter]
-    public bool IsEditing { get; set; } = false;
-
-    [Parameter]
-    public List<Student> AvailableStudents { get; set; } = new List<Student>();
-
-    [Parameter]
-    public List<ClassLevel> AvailableClassLevels { get; set; } = new List<ClassLevel>();
-
-    [Parameter]
-    public List<int> SelectedStudentIds { get; set; } = new List<int>();
-
-    [Parameter]
     public string SubmitButtonText { get; set; } = "Save";
 
     [Parameter]
@@ -227,63 +214,130 @@
     [Parameter]
     public EventCallback OnCancel { get; set; }
 
-    [Parameter]
-    public EventCallback OnEducationLevelChanged { get; set; }
+    private School school;
+    private List<Student> availableStudents = new List<Student>();
+    private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
+    private List<int> selectedStudentIds = new List<int>();
+    private int academicYearStartYear = DateTime.Now.Year;
 
-    [Parameter]
-    public EventCallback OnClassLevelChanged { get; set; }
-
-    [Parameter]
-    public EventCallback OnFeePerSemesterChanged { get; set; }
-
-    [Parameter]
-    public int AcademicYearStartYear { get; set; } = DateTime.Now.Year;
-
-    [Parameter]
-    public EventCallback<int> AcademicYearStartYearChanged { get; set; }
-
-    private void HandleValidSubmit()
+    protected override void OnInitialized()
     {
-        // Update the AcademicYearStart before submitting
-        LearningPath.AcademicYearStart = new DateTime(
-            AcademicYearStartYear,
-            LearningPath.AcademicYearStart.Month,
-            LearningPath.AcademicYearStart.Day
-        );
+        school = SchoolDataService.GetSchool();
 
-        OnSubmit.InvokeAsync(LearningPath);
+        if (LearningPath.Students == null)
+            LearningPath.Students = new List<Student>();
+
+        if (LearningPath.StudentsPaymentSuccessful == null)
+            LearningPath.StudentsPaymentSuccessful = new List<Student>();
+
+        if (LearningPath.Schedule == null)
+            LearningPath.Schedule = new List<ScheduleEntry>();
+
+        if (LearningPath.GradesList == null)
+            LearningPath.GradesList = new Dictionary<Student, CourseGrade>();
+
+        if (LearningPath.AcademicYearStart == default)
+            LearningPath.AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1);
+
+        academicYearStartYear = LearningPath.AcademicYearStart.Year;
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(LearningPath.EducationLevel);
+        UpdateAvailableStudents();
+        selectedStudentIds = LearningPath.Students.Select(s => s.Id).ToList();
+    }
+
+    private async Task OnEducationLevelChanged()
+    {
+        LearningPath.ClassLevel = ClassLevel.None;
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(LearningPath.EducationLevel);
+        UpdateAvailableStudents();
+        StateHasChanged();
+    }
+
+    private async Task OnClassLevelChanged()
+    {
+        UpdateAvailableStudents();
+        StateHasChanged();
+    }
+
+    private void UpdateAvailableStudents()
+    {
+        if (LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
+        {
+            availableStudents = LogicMethods.GetStudentsByLevel(school, LearningPath.EducationLevel, LearningPath.ClassLevel);
+
+            var existingIds = LearningPath.Students.Select(s => s.Id).ToList();
+            selectedStudentIds = selectedStudentIds
+                .Where(id => availableStudents.Any(s => s.Id == id))
+                .Union(existingIds.Where(id => availableStudents.Any(s => s.Id == id)))
+                .ToList();
+        }
+        else
+        {
+            availableStudents.Clear();
+            selectedStudentIds.Clear();
+        }
+    }
+
+    private async Task OnFeePerSemesterChanged()
+    {
+        // Any fee-related processing can go here
+        StateHasChanged();
+    }
+
+    private void OnAcademicYearChanged()
+    {
+        LearningPath.AcademicYearStart = new DateTime(
+            academicYearStartYear,
+            LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : 9,
+            LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : 1
+        );
     }
 
     private bool IsStudentSelected(int studentId)
     {
-        return SelectedStudentIds.Contains(studentId);
+        return selectedStudentIds.Contains(studentId);
     }
 
     private void ToggleStudentSelection(int studentId, object isChecked)
     {
         if (isChecked is bool checkedValue)
         {
-            if (checkedValue && !SelectedStudentIds.Contains(studentId))
+            if (checkedValue && !selectedStudentIds.Contains(studentId))
             {
-                SelectedStudentIds.Add(studentId);
+                selectedStudentIds.Add(studentId);
             }
-            else if (!checkedValue && SelectedStudentIds.Contains(studentId))
+            else if (!checkedValue && selectedStudentIds.Contains(studentId))
             {
-                SelectedStudentIds.Remove(studentId);
+                selectedStudentIds.Remove(studentId);
             }
         }
     }
 
     private void SelectAllStudents()
     {
-        SelectedStudentIds.Clear();
-        SelectedStudentIds.AddRange(AvailableStudents.Select(s => s.Id));
+        selectedStudentIds.Clear();
+        selectedStudentIds.AddRange(availableStudents.Select(s => s.Id));
         StateHasChanged();
     }
 
     private void UnselectAllStudents()
     {
-        SelectedStudentIds.Clear();
+        selectedStudentIds.Clear();
         StateHasChanged();
+    }
+
+    private void HandleValidSubmit()
+    {
+        LearningPath.Students = availableStudents
+            .Where(s => selectedStudentIds.Contains(s.Id))
+            .ToList();
+
+        LearningPath.AcademicYearStart = new DateTime(
+            academicYearStartYear,
+            LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : 9,
+            LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : 1
+        );
+
+        OnSubmit.InvokeAsync(LearningPath);
     }
 }
