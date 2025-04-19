@@ -19,18 +19,9 @@ else
     <div class="row">
         <div class="col-md-8">
             <LearningPathForm LearningPath="learningPath"
-                              IsEditing="true"
-                              AvailableStudents="availableStudents"
-                              AvailableClassLevels="availableClassLevels"
-                              SelectedStudentIds="selectedStudentIds"
                               SubmitButtonText="Update Learning Path"
                               OnSubmit="HandleValidSubmit"
-                              OnCancel="NavigateToList"
-                              OnEducationLevelChanged="OnEducationLevelChanged"
-                              OnClassLevelChanged="OnClassLevelChanged"
-                              OnFeePerSemesterChanged="OnFeePerSemesterChanged"
-                              AcademicYearStartYear="academicYearStartYear"
-                              AcademicYearStartYearChanged="HandleAcademicYearChanged" />
+                              OnCancel="NavigateToList" />
         </div>
     </div>
 }
@@ -40,15 +31,9 @@ else
     public int Id { get; set; }
 
     private LearningPath learningPath;
-    private List<Student> availableStudents = new List<Student>();
-    private List<int> selectedStudentIds = new List<int>();
-    private School school;
-    private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
-    private int academicYearStartYear = DateTime.Now.Year;
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
         learningPath = SchoolDataService.GetLearningPathById(Id);
 
         if (learningPath == null)
@@ -69,78 +54,17 @@ else
         if (learningPath.GradesList == null)
             learningPath.GradesList = new Dictionary<Student, CourseGrade>();
 
-        // Initialize AcademicYearStart if it's the default
         if (learningPath.AcademicYearStart == default)
-            learningPath.AcademicYearStart = DateTime.Now;
-
-        // Set the academic year
-        academicYearStartYear = learningPath.AcademicYearStart.Year;
-
-        availableClassLevels = LogicMethods.GetAvailableClassLevels(learningPath.EducationLevel);
-
-        // Load available students and set selected students
-        UpdateAvailableStudents();
-
-        // Initialize the selected student IDs from the existing learning path students
-        selectedStudentIds = learningPath.Students.Select(s => s.Id).ToList();
-    }
-
-    private async Task OnEducationLevelChanged()
-    {
-        learningPath.ClassLevel = ClassLevel.None;
-        availableClassLevels = LogicMethods.GetAvailableClassLevels(learningPath.EducationLevel);
-        UpdateAvailableStudents();
-        StateHasChanged();
-    }
-
-    private async Task OnClassLevelChanged()
-    {
-        UpdateAvailableStudents();
-        StateHasChanged();
-    }
-
-    private async Task OnFeePerSemesterChanged()
-    {
-        if (learningPath.Students != null && learningPath.Students.Any())
-        {
-            LogicMethods.SetStudentFeesForLearningPath(learningPath);
-        }
-    }
-
-    private async Task HandleAcademicYearChanged(int year)
-    {
-        academicYearStartYear = year;
-    }
-
-    private void UpdateAvailableStudents()
-    {
-        if (learningPath.EducationLevel != 0 && learningPath.ClassLevel != ClassLevel.None)
-        {
-            // Get all students matching the education level and class level
-            availableStudents = LogicMethods.GetStudentsByLevel(school, learningPath.EducationLevel, learningPath.ClassLevel);
-        }
-        else
-        {
-            availableStudents.Clear();
-        }
+            learningPath.AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1);
     }
 
     private void HandleValidSubmit(LearningPath submittedLearningPath)
     {
-        // Store previous students to handle fee adjustments for removed students
         var previousStudents = new List<Student>(learningPath.Students);
-
-        // Update the students in the learning path based on selected student IDs
-        learningPath.Students = availableStudents
-            .Where(s => selectedStudentIds.Contains(s.Id))
-            .ToList();
-
-        // Clear fees for students removed from this learning path
         foreach (var student in previousStudents)
         {
-            if (!learningPath.Students.Contains(student))
+            if (!submittedLearningPath.Students.Contains(student))
             {
-                // Reset fees for removed students
                 if (student.Person.SchoolFees != null)
                 {
                     student.Person.SchoolFees.TotalAmount = 0;
@@ -148,20 +72,8 @@ else
             }
         }
 
-        // Set the academic year
-        learningPath.AcademicYearStart = new DateTime(
-            academicYearStartYear,
-            learningPath.AcademicYearStart.Month,
-            learningPath.AcademicYearStart.Day
-        );
-
-        // Apply fees to current students
-        LogicMethods.SetStudentFeesForLearningPath(learningPath);
-
-        // Update the learning path
-        SchoolDataService.UpdateLearningPath(learningPath);
-
-        // Navigate back to the list
+        LogicMethods.SetStudentFeesForLearningPath(submittedLearningPath);
+        SchoolDataService.UpdateLearningPath(submittedLearningPath);
         NavigateToList();
     }
 
