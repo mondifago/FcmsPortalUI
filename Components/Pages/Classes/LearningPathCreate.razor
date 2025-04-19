@@ -13,101 +13,28 @@
 <div class="row">
     <div class="col-md-8">
         <LearningPathForm LearningPath="learningPath"
-                          IsEditing="false"
-                          AvailableStudents="availableStudents"
-                          AvailableClassLevels="availableClassLevels"
-                          SelectedStudentIds="selectedStudentIds"
                           SubmitButtonText="Create Learning Path"
                           OnSubmit="HandleValidSubmit"
-                          OnCancel="NavigateToList"
-                          OnEducationLevelChanged="OnEducationLevelChanged"
-                          OnClassLevelChanged="OnClassLevelChanged"
-                          OnFeePerSemesterChanged="OnFeePerSemesterChanged"
-                          AcademicYearStartYear="academicYearStartYear"
-                          AcademicYearStartYearChanged="HandleAcademicYearChanged" />
+                          OnCancel="NavigateToList" />
     </div>
 </div>
 
 @code {
     private LearningPath learningPath = new LearningPath();
-    private List<Student> availableStudents = new List<Student>();
-    private List<int> selectedStudentIds = new List<int>();
-    private School school;
-    private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
-    private int academicYearStartYear = DateTime.Now.Year;
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
         learningPath.Students = new List<Student>();
         learningPath.StudentsPaymentSuccessful = new List<Student>();
         learningPath.Schedule = new List<ScheduleEntry>();
         learningPath.GradesList = new Dictionary<Student, CourseGrade>();
-        learningPath.AcademicYearStart = DateTime.Now;
-        availableClassLevels = LogicMethods.GetAvailableClassLevels(learningPath.EducationLevel);
-    }
-
-    private async Task OnEducationLevelChanged()
-    {
-        learningPath.ClassLevel = ClassLevel.None;
-        availableClassLevels = LogicMethods.GetAvailableClassLevels(learningPath.EducationLevel);
-        UpdateAvailableStudents();
-        StateHasChanged();
-    }
-
-    private async Task OnClassLevelChanged()
-    {
-        UpdateAvailableStudents();
-        StateHasChanged();
-    }
-
-    private async Task OnFeePerSemesterChanged()
-    {
-        if (learningPath.Students != null && learningPath.Students.Any())
-        {
-            LogicMethods.SetStudentFeesForLearningPath(learningPath);
-        }
-    }
-
-    private async Task HandleAcademicYearChanged(int year)
-    {
-        academicYearStartYear = year;
-    }
-
-    private void UpdateAvailableStudents()
-    {
-        if (learningPath.EducationLevel != 0 && learningPath.ClassLevel != ClassLevel.None)
-        {
-            availableStudents = LogicMethods.GetStudentsByLevel(school, learningPath.EducationLevel, learningPath.ClassLevel);
-            selectedStudentIds.Clear();
-        }
-        else
-        {
-            availableStudents.Clear();
-            selectedStudentIds.Clear();
-        }
+        learningPath.AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1);
     }
 
     private void HandleValidSubmit(LearningPath submittedLearningPath)
     {
-        // Update the learning path with selected students
-        learningPath.Students = availableStudents
-            .Where(s => selectedStudentIds.Contains(s.Id))
-            .ToList();
-
-        // Set the academic year
-        learningPath.AcademicYearStart = new DateTime(
-            academicYearStartYear,
-            learningPath.AcademicYearStart.Month,
-            learningPath.AcademicYearStart.Day
-        );
-
-        // Add the learning path to the school
-        SchoolDataService.AddLearningPath(learningPath);
-
-        // Apply fees to all students in the learning path
-        LogicMethods.SetStudentFeesForLearningPath(learningPath);
-
+        SchoolDataService.AddLearningPath(submittedLearningPath);
+        LogicMethods.SetStudentFeesForLearningPath(submittedLearningPath);
         NavigateToList();
     }
 
