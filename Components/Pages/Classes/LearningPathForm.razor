@@ -280,7 +280,11 @@
 
     private async Task OnFeePerSemesterChanged()
     {
-        // Any fee-related processing can go here
+        if (LearningPath.Students != null && LearningPath.Students.Any())
+        {
+            LogicMethods.HandleFeeChangeForLearningPath(LearningPath, LearningPath.FeePerSemester);
+        }
+
         StateHasChanged();
     }
 
