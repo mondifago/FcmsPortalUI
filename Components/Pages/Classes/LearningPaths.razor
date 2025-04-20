@@ -98,7 +98,7 @@ else
         return status switch
         {
             PrincipalApprovalStatus.Approved => "badge bg-success",
-            PrincipalApprovalStatus.Rejected => "badge bg-danger",
+            PrincipalApprovalStatus.Review => "badge bg-danger",
             PrincipalApprovalStatus.Pending => "badge bg-warning",
             _ => "badge bg-secondary"
         };

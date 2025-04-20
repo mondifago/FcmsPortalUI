@@ -77,17 +77,22 @@
                             </div>
                         </div>
 
-                        @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending && IsCurrentUserPrincipal())
+                        @if (isTeacher && learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending)
                         {
-                            <div class="mt-3">
-                                <button class="btn btn-success me-2" @onclick="() => UpdateApprovalStatus(PrincipalApprovalStatus.Approved)">
-                                    <i class="fa fa-check"></i> Approve
-                                </button>
-                                <button class="btn btn-danger" @onclick="() => UpdateApprovalStatus(PrincipalApprovalStatus.Rejected)">
-                                    <i class="fa fa-times"></i> Reject
-                                </button>
-                            </div>
+                            <button class="btn btn-primary" @onclick="SubmitForReview">
+                                <i class="fa fa-check-circle"></i> Submit
+                            </button>
                         }
+                        @if (isPrincipal && learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
+                        {
+                            <button class="btn btn-success" @onclick="ApproveLearnignPath">
+                                <i class="fa fa-thumbs-up"></i> Approve
+                            </button>
+                            <button class="btn btn-secondary" @onclick="RestoreLearningPath">
+                                <i class="fa fa-undo"></i> Restore
+                            </button>
+                        }
+
                     </div>
                 </div>
 
@@ -418,6 +423,9 @@
     public int Id { get; set; }
     
     private LearningPath learningPath;
+    private bool isTeacher = true; 
+    private bool isPrincipal = true; 
+
     private DateTime currentDate = DateTime.Now;
     private int daysInMonth;
     private int firstDayOfMonth;
@@ -465,10 +473,10 @@
     
     private string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
     {
-        return status switch
+        return learningPath.ApprovalStatus switch
         {
             PrincipalApprovalStatus.Approved => "badge bg-success",
-            PrincipalApprovalStatus.Rejected => "badge bg-danger",
+            PrincipalApprovalStatus.Review => "badge bg-info",
             PrincipalApprovalStatus.Pending => "badge bg-warning",
             _ => "badge bg-secondary"
         };
@@ -619,4 +627,26 @@
 
         CloseAddStudentsModal();
     }
+
+    private void SubmitForReview()
+    {
+        // Update the status to Review
+        learningPath.ApprovalStatus = PrincipalApprovalStatus.Review;
+        SchoolDataService.UpdateLearningPath(learningPath);
+    }
+
+    private void ApproveLearnignPath()
+    {
+        // Approve the learning path
+        learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
+        SchoolDataService.UpdateLearningPath(learningPath);
+    }
+
+    private void RestoreLearningPath()
+    {
+        // Restore to pending state
+        learningPath.ApprovalStatus = PrincipalApprovalStatus.Pending;
+        SchoolDataService.UpdateLearningPath(learningPath);
+    }
+
 }
