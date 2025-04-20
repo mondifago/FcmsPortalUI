@@ -1,0 +1,306 @@
+﻿@page "/learningpath/{LearningPathId:int}/schedules"
+@page "/learningpath/{LearningPathId:int}/schedules/{Date:datetime}"
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using System.Globalization
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    @if (filterDate.HasValue)
+                    {
+                        <span>Schedule Entries for @filterDate.Value.ToString("MMMM d, yyyy")</span>
+                    }
+                    else
+                    {
+                        <span>All Schedule Entries</span>
+                    }
+                </h2>
+                <div>
+                    <a href="/classsession/create/@LearningPathId" class="btn btn-success me-2">
+                        <i class="fa fa-plus"></i> Add Class Session
+                    </a>
+                    <a href="/learningpaths/details/@LearningPathId" class="btn btn-secondary">
+                        <i class="fa fa-arrow-left"></i> Back to Learning Path
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (learningPath == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!scheduleEntries.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fa fa-info-circle me-2"></i>
+            @if (filterDate.HasValue)
+            {
+                <span>No schedule entries found for @filterDate.Value.ToString("MMMM d, yyyy").</span>
+            }
+            else
+            {
+                <span>No schedule entries found for this learning path.</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Date & Time</th>
+                                <th>Duration</th>
+                                <th>Venue</th>
+                                <th>Course</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var schedule in scheduleEntries)
+                            {
+                                <tr>
+                                    <td>@schedule.Id</td>
+                                    <td>@schedule.Title</td>
+                                    <td>@schedule.DateTime.ToString("MMM d, yyyy h:mm tt")</td>
+                                    <td>@schedule.Duration.ToString(@"hh\:mm")</td>
+                                    <td>@schedule.Venue</td>
+                                    <td>
+                                        @if (schedule.ClassSession != null)
+                                        {
+                                            <a href="/classsession/details/@schedule.ClassSession.Id">
+                                                @(schedule.ClassSession.Course ?? "N/A")
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span>N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-info" @onclick="() => ShowScheduleDetails(schedule)">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteScheduleEntry(schedule)">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (showDeleteConfirmation)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" @onclick="CancelDelete"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this schedule entry?</p>
+                    @if (scheduleToDelete?.ClassSession != null)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fa fa-exclamation-triangle me-2"></i>
+                            <span>This will also delete the associated class session: <strong>@scheduleToDelete.ClassSession.Topic</strong></span>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteSchedule">
+                        <i class="fa fa-trash me-1"></i>Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (showDetailsModal && selectedSchedule != null)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">@selectedSchedule.Title Details</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDetailsModal"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Date & Time:</dt>
+                        <dd class="col-sm-8">@selectedSchedule.DateTime.ToString("dddd, MMMM d, yyyy h:mm tt")</dd>
+
+                        <dt class="col-sm-4">Duration:</dt>
+                        <dd class="col-sm-8">@selectedSchedule.Duration.TotalMinutes minutes</dd>
+
+                        <dt class="col-sm-4">Venue:</dt>
+                        <dd class="col-sm-8">@selectedSchedule.Venue</dd>
+
+                        @if (selectedSchedule.ClassSession != null)
+                        {
+                            <dt class="col-sm-4">Course:</dt>
+                            <dd class="col-sm-8">@selectedSchedule.ClassSession.Course</dd>
+
+                            <dt class="col-sm-4">Topic:</dt>
+                            <dd class="col-sm-8">@selectedSchedule.ClassSession.Topic</dd>
+
+                            <dt class="col-sm-4">Description:</dt>
+                            <dd class="col-sm-8">@selectedSchedule.ClassSession.Description</dd>
+
+                            <dt class="col-sm-4">Teacher:</dt>
+                            <dd class="col-sm-8">
+                                @if (selectedSchedule.ClassSession.Teacher != null)
+                                {
+                                    <span>@selectedSchedule.ClassSession.Teacher.Person.FirstName @selectedSchedule.ClassSession.Teacher.Person.LastName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No teacher assigned</span>
+                                }
+                            </dd>
+                        }
+
+                        @if (selectedSchedule.IsRecurring)
+                        {
+                            <dt class="col-sm-4">Recurring:</dt>
+                            <dd class="col-sm-8">Yes</dd>
+
+                            <dt class="col-sm-4">Pattern:</dt>
+                            <dd class="col-sm-8">@selectedSchedule.RecurrencePattern</dd>
+
+                            <dt class="col-sm-4">Interval:</dt>
+                            <dd class="col-sm-8">Every @selectedSchedule.RecurrenceInterval @selectedSchedule.RecurrencePattern</dd>
+
+                            @if (selectedSchedule.EndDate.HasValue)
+                            {
+                                <dt class="col-sm-4">Ends On:</dt>
+                                <dd class="col-sm-8">@selectedSchedule.EndDate.Value.ToString("MMMM d, yyyy")</dd>
+                            }
+                        }
+                    </dl>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDetailsModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public int LearningPathId { get; set; }
+
+    [Parameter]
+    public DateTime? Date { get; set; }
+
+    private LearningPath learningPath;
+    private List<ScheduleEntry> scheduleEntries = new List<ScheduleEntry>();
+    private DateTime? filterDate;
+    private bool showDeleteConfirmation = false;
+    private ScheduleEntry scheduleToDelete;
+    private bool showDetailsModal = false;
+    private ScheduleEntry selectedSchedule;
+
+    protected override void OnInitialized()
+    {
+        filterDate = Date;
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        learningPath = SchoolDataService.GetLearningPathById(LearningPathId);
+
+        if (learningPath != null && learningPath.Schedule != null)
+        {
+            scheduleEntries = learningPath.Schedule.ToList();
+
+            // Apply date filter if specified
+            if (filterDate.HasValue)
+            {
+                scheduleEntries = scheduleEntries
+                    .Where(s => s.DateTime.Date == filterDate.Value.Date)
+                    .ToList();
+            }
+
+            // Sort by date/time
+            scheduleEntries = scheduleEntries
+                .OrderBy(s => s.DateTime)
+                .ToList();
+        }
+    }
+
+    private void ShowScheduleDetails(ScheduleEntry schedule)
+    {
+        selectedSchedule = schedule;
+        showDetailsModal = true;
+    }
+
+    private void CloseDetailsModal()
+    {
+        showDetailsModal = false;
+        selectedSchedule = null;
+    }
+
+    private void DeleteScheduleEntry(ScheduleEntry schedule)
+    {
+        scheduleToDelete = schedule;
+        showDeleteConfirmation = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirmation = false;
+        scheduleToDelete = null;
+    }
+
+    private void ConfirmDeleteSchedule()
+    {
+        if (scheduleToDelete != null && learningPath != null)
+        {
+            // Remove from learning path schedule
+            learningPath.Schedule.Remove(scheduleToDelete);
+
+            // Update learning path in data service
+            SchoolDataService.UpdateLearningPath(learningPath);
+
+            // Refresh the list
+            LoadData();
+        }
+
+        showDeleteConfirmation = false;
+        scheduleToDelete = null;
+    }
+}
+```

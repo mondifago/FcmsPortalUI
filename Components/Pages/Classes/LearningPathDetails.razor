@@ -148,18 +148,19 @@
                                                         <div class="d-flex justify-content-end">
                                                             <span class="badge bg-secondary">@displayDay</span>
                                                         </div>
-                                                        <div class="calendar-events">
-                                                            @foreach (var session in sessionsOnDay)
-                                                            {
-                                                                <div class="calendar-event" @onclick="() => ShowSessionDetails(session)">
+                                                        @if (sessionsOnDay.Any())
+                                                        {
+                                                            <div class="calendar-events">
+                                                                <div class="calendar-event" @onclick="() => NavigateToScheduleList(date)">
                                                                     <div class="card bg-info text-white mb-1 p-1">
                                                                         <small>
-                                                                            @session.DateTime.ToString("HH:mm") - @session.Title
+                                                                            <i class="fa fa-calendar-day me-1"></i>
+                                                                            @sessionsOnDay.Count event@(sessionsOnDay.Count > 1 ? "s" : "")
                                                                         </small>
                                                                     </div>
                                                                 </div>
-                                                            }
-                                                        </div>
+                                                            </div>
+                                                        }
                                                     }
                                                 </td>
                                             }
@@ -425,7 +426,6 @@
     private LearningPath learningPath;
     private bool isTeacher = true; 
     private bool isPrincipal = true; 
-
     private DateTime currentDate = DateTime.Now;
     private int daysInMonth;
     private int firstDayOfMonth;
@@ -436,6 +436,10 @@
     private List<Student> availableStudents = new List<Student>();
     private List<int> selectedStudentIds = new List<int>();
     
+    
+   
+   
+
     protected override void OnInitialized()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id);
@@ -649,4 +653,12 @@
         SchoolDataService.UpdateLearningPath(learningPath);
     }
 
+    private void NavigateToScheduleList(DateTime date)
+    {
+        // Format the date as ISO 8601 for URL compatibility
+        string formattedDate = date.ToString("yyyy-MM-dd");
+
+        // Navigate to the ScheduleEntryList component with both path parameters
+        NavigationManager.NavigateTo($"/learningpath/{learningPath.Id}/schedules/{formattedDate}");
+    }
 }
