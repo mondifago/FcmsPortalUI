@@ -1,0 +1,176 @@
+﻿@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Create Class Session</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@classSession" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="course" class="form-label">Course<span class="text-danger">*</span></label>
+                            <InputSelect id="course" @bind-Value="selectedCourse" class="form-select">
+                                <option value="">-- Select Course --</option>
+                                @foreach (var course in availableCourses)
+                                {
+                                    <option value="@course">@course</option>
+                                }
+                            </InputSelect>
+                            @if (string.IsNullOrEmpty(selectedCourse))
+                            {
+                                <div class="text-danger">Course is required</div>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <label for="teacher" class="form-label">Teacher<span class="text-danger">*</span></label>
+                            <InputSelect id="teacher" @bind-Value="selectedTeacherId" class="form-select">
+                                <option value="0">-- Select Teacher --</option>
+                                @foreach (var teacher in availableTeachers)
+                                {
+                                    <option value="@teacher.Id">@teacher.Person.FirstName @teacher.Person.LastName</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="topic" class="form-label">Topic<span class="text-danger">*</span></label>
+                            <InputText id="topic" @bind-Value="classSession.Topic" class="form-control" />
+                            <ValidationMessage For="@(() => classSession.Topic)" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="description" class="form-label">Description</label>
+                            <InputText id="description" @bind-Value="classSession.Description" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="lessonNote" class="form-label">Lesson Notes</label>
+                        <InputTextArea id="lessonNote" @bind-Value="classSession.LessonNote" class="form-control" rows="3" />
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@(!IsFormValid())">Create Class Session</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EducationLevel EducationLevel { get; set; }
+
+    [Parameter]
+    public ScheduleEntry ScheduleEntry { get; set; }
+
+    [Parameter]
+    public EventCallback<ClassSession> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private ClassSession classSession = new ClassSession();
+    private string selectedCourse = "";
+    private int selectedTeacherId = 0;
+    private List<string> availableCourses = new List<string>();
+    private List<Staff> availableTeachers = new List<Staff>();
+
+    protected override void OnInitialized()
+    {
+        LoadData();
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Reset form when modal opens
+        if (IsVisible)
+        {
+            classSession = new ClassSession();
+            selectedCourse = "";
+            selectedTeacherId = 0;
+            LoadData();
+        }
+    }
+
+    private void LoadData()
+    {
+        // Get available courses based on education level
+        availableCourses = CourseDefaults.GetCourseNames(EducationLevel);
+
+        // Get available teachers
+        availableTeachers = SchoolDataService.GetStaff()
+            .Where(s => s.JobRole == JobRole.Teacher &&
+                        s.Person.EducationLevel == EducationLevel)
+            .ToList();
+    }
+
+    private bool IsFormValid()
+    {
+        return !string.IsNullOrEmpty(selectedCourse) &&
+               !string.IsNullOrEmpty(classSession.Topic);
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (!IsFormValid())
+            return;
+
+        // Set course name
+        classSession.Course = selectedCourse;
+
+        // Assign teacher if selected
+        if (selectedTeacherId > 0)
+        {
+            var teacher = availableTeachers.FirstOrDefault(t => t.Id == selectedTeacherId);
+            if (teacher != null)
+            {
+                classSession.Teacher = teacher;
+            }
+        }
+
+        // Generate ID (in a real app, this would be done by the database)
+        int nextId = 1;
+        var allSessions = SchoolDataService.GetSchool().LearningPath
+            .SelectMany(lp => lp.Schedule.Where(s => s.ClassSession != null).Select(s => s.ClassSession))
+            .ToList();
+
+        if (allSessions.Any())
+        {
+            nextId = allSessions.Max(s => s.Id) + 1;
+        }
+        classSession.Id = nextId;
+
+        // Return the created class session
+        await OnSave.InvokeAsync(classSession);
+
+        // Close the modal
+        await OnClose.InvokeAsync();
+    }
+}
+```
