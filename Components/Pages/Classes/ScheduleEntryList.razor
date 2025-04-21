@@ -1,5 +1,5 @@
 ﻿@page "/learningpath/{LearningPathId:int}/schedules"
-@page "/learningpath/{LearningPathId:int}/schedules/{Date:datetime}"
+@page "/learningpath/{LearningPathId:int}/schedules/{Date}"
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
@@ -23,8 +23,8 @@
                     }
                 </h2>
                 <div>
-                    <a href="/classsession/create/@LearningPathId" class="btn btn-success me-2">
-                        <i class="fa fa-plus"></i> Add Class Session
+                    <a href="@GetScheduleEntryCreateUrl()" class="btn btn-success me-2">
+                        <i class="fa fa-plus"></i> Add More Sessions
                     </a>
                     <a href="/learningpaths/details/@LearningPathId" class="btn btn-secondary">
                         <i class="fa fa-arrow-left"></i> Back to Learning Path
@@ -91,7 +91,7 @@
                                         }
                                         else
                                         {
-                                            <span>N/A</span>
+                                            <span class="text-muted">None</span>
                                         }
                                     </td>
                                     <td>
@@ -99,6 +99,12 @@
                                             <button type="button" class="btn btn-sm btn-info" @onclick="() => ShowScheduleDetails(schedule)">
                                                 <i class="fa fa-eye"></i>
                                             </button>
+                                            @if (schedule.ClassSession == null)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-success" @onclick="() => AddClassSession(schedule)">
+                                                    <i class="fa fa-plus"></i> Add Class Session
+                                                </button>
+                                            }
                                             <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteScheduleEntry(schedule)">
                                                 <i class="fa fa-trash"></i>
                                             </button>
@@ -188,6 +194,16 @@
                                 }
                             </dd>
                         }
+                        else
+                        {
+                            <dt class="col-sm-4">Class Session:</dt>
+                            <dd class="col-sm-8">
+                                <span class="text-muted">No class session associated</span>
+                                <button class="btn btn-sm btn-success ms-2" @onclick="() => AddClassSession(selectedSchedule)">
+                                    <i class="fa fa-plus"></i> Add Class Session
+                                </button>
+                            </dd>
+                        }
 
                         @if (selectedSchedule.IsRecurring)
                         {
@@ -217,12 +233,18 @@
     <div class="modal-backdrop fade show"></div>
 }
 
+<ClassSessionCreate IsVisible="showClassSessionModal"
+                    EducationLevel="learningPath?.EducationLevel ?? EducationLevel.None"
+                    ScheduleEntry="selectedScheduleForClassSession"
+                    OnSave="HandleClassSessionCreated"
+                    OnClose="CloseClassSessionModal" />
+
 @code {
     [Parameter]
     public int LearningPathId { get; set; }
 
     [Parameter]
-    public DateTime? Date { get; set; }
+    public string Date { get; set; }
 
     private LearningPath learningPath;
     private List<ScheduleEntry> scheduleEntries = new List<ScheduleEntry>();
@@ -231,10 +253,21 @@
     private ScheduleEntry scheduleToDelete;
     private bool showDetailsModal = false;
     private ScheduleEntry selectedSchedule;
+    private bool showClassSessionModal = false;
+    private ScheduleEntry selectedScheduleForClassSession;
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
-        filterDate = Date;
+        // Parse the date parameter
+        if (!string.IsNullOrEmpty(Date) && DateTime.TryParse(Date, out var parsedDate))
+        {
+            filterDate = parsedDate;
+        }
+        else
+        {
+            filterDate = null;
+        }
+
         LoadData();
     }
 
@@ -301,6 +334,52 @@
 
         showDeleteConfirmation = false;
         scheduleToDelete = null;
+    }
+
+    private void AddClassSession(ScheduleEntry schedule)
+    {
+        selectedScheduleForClassSession = schedule;
+        showClassSessionModal = true;
+
+        // If details modal is open, close it
+        showDetailsModal = false;
+    }
+
+    private void CloseClassSessionModal()
+    {
+        showClassSessionModal = false;
+        selectedScheduleForClassSession = null;
+    }
+
+    private void HandleClassSessionCreated(ClassSession classSession)
+    {
+        if (selectedScheduleForClassSession != null)
+        {
+            // Assign class session to the schedule entry
+            selectedScheduleForClassSession.ClassSession = classSession;
+
+            // Update the schedule entry title if it doesn't have a meaningful title
+            if (string.IsNullOrEmpty(selectedScheduleForClassSession.Title) ||
+                selectedScheduleForClassSession.Title == "New Schedule")
+            {
+                selectedScheduleForClassSession.Title = $"{classSession.Course} - {classSession.Topic}";
+            }
+
+            // Update the learning path
+            SchoolDataService.UpdateLearningPath(learningPath);
+
+            // Refresh the list
+            LoadData();
+        }
+    }
+
+    private string GetScheduleEntryCreateUrl()
+    {
+        if (filterDate.HasValue)
+        {
+            return $"/scheduleEntry/create/{LearningPathId}?date={filterDate.Value:yyyy-MM-dd}";
+        }
+        return $"/scheduleEntry/create/{LearningPathId}";
     }
 }
 ```
