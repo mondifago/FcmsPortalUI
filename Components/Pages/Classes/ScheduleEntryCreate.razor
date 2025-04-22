@@ -2,6 +2,7 @@
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -199,7 +200,19 @@
 
         scheduleEntry.Duration = TimeSpan.FromMinutes(durationMinutes);
 
-        SchoolDataService.AddScheduleEntry(LearningPathId, scheduleEntry);
+        if (scheduleEntry.IsRecurring)
+        {
+            var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
+
+            foreach (var entry in recurringEntries)
+            {
+                SchoolDataService.AddScheduleEntry(LearningPathId, entry);
+            }
+        }
+        else
+        {
+            SchoolDataService.AddScheduleEntry(LearningPathId, scheduleEntry);
+        }
 
         if (dateIsLocked)
         {
