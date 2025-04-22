@@ -145,7 +145,6 @@
 
         if (learningPath != null)
         {
-            // Check if date parameter was passed
             if (!string.IsNullOrEmpty(DateParam) && DateTime.TryParse(DateParam, out var parsedDate))
             {
                 scheduleEntry.DateTime = parsedDate;
@@ -156,7 +155,6 @@
                 scheduleEntry.DateTime = DateTime.Today.AddHours(8);
             }
 
-            // Other initializations...
             scheduleEntry.Duration = TimeSpan.FromMinutes(60);
             scheduleEntry.IsRecurring = false;
             scheduleEntry.RecurrenceInterval = 1;
@@ -180,7 +178,6 @@
     {
         scheduleEntry.ClassSession = classSession;
 
-        // Update schedule title if it's empty or default
         if (string.IsNullOrEmpty(scheduleEntry.Title) || scheduleEntry.Title == "New Schedule")
         {
             scheduleEntry.Title = $"{classSession.Course} - {classSession.Topic}";
@@ -200,26 +197,12 @@
             scheduleEntry.DateTime = dateOnly.ToDateTime(timeOnly);
         }
 
-        // Set duration from minutes
         scheduleEntry.Duration = TimeSpan.FromMinutes(durationMinutes);
 
-        // Generate ID for schedule entry
-        int nextScheduleId = 1;
-        if (learningPath.Schedule.Any())
-        {
-            nextScheduleId = learningPath.Schedule.Max(s => s.Id) + 1;
-        }
-        scheduleEntry.Id = nextScheduleId;
-
-        // Add schedule to learning path
-        learningPath.Schedule.Add(scheduleEntry);
-
-        // Update learning path
-        SchoolDataService.UpdateLearningPath(learningPath);
+        SchoolDataService.AddScheduleEntry(LearningPathId, scheduleEntry);
 
         if (dateIsLocked)
         {
-            // Format the date properly for the URL
             string formattedDate = scheduleEntry.DateTime.ToString("yyyy-MM-dd");
             NavigationManager.NavigateTo($"/learningpath/{LearningPathId}/schedules/{formattedDate}");
         }
@@ -229,4 +212,3 @@
         }
     }
 }
-```

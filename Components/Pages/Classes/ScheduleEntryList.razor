@@ -279,7 +279,6 @@
         {
             scheduleEntries = learningPath.Schedule.ToList();
 
-            // Apply date filter if specified
             if (filterDate.HasValue)
             {
                 scheduleEntries = scheduleEntries
@@ -287,7 +286,6 @@
                     .ToList();
             }
 
-            // Sort by date/time
             scheduleEntries = scheduleEntries
                 .OrderBy(s => s.DateTime)
                 .ToList();
@@ -322,13 +320,8 @@
     {
         if (scheduleToDelete != null && learningPath != null)
         {
-            // Remove from learning path schedule
             learningPath.Schedule.Remove(scheduleToDelete);
-
-            // Update learning path in data service
             SchoolDataService.UpdateLearningPath(learningPath);
-
-            // Refresh the list
             LoadData();
         }
 
@@ -340,8 +333,6 @@
     {
         selectedScheduleForClassSession = schedule;
         showClassSessionModal = true;
-
-        // If details modal is open, close it
         showDetailsModal = false;
     }
 
@@ -382,4 +373,3 @@
         return $"/scheduleEntry/create/{LearningPathId}";
     }
 }
-```
