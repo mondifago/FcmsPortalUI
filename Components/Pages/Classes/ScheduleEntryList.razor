@@ -4,6 +4,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using System.Globalization
+@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -96,18 +97,14 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button type="button" class="btn btn-sm btn-info" @onclick="() => ShowScheduleDetails(schedule)">
-                                                <i class="fa fa-eye"></i>
-                                            </button>
+                                            <button class="btn btn-info btn-sm" @onclick="() => ShowScheduleDetails(schedule)"><span class="fa fa-eye"></span>Details</button>
+
                                             @if (schedule.ClassSession == null)
                                             {
-                                                <button type="button" class="btn btn-sm btn-success" @onclick="() => AddClassSession(schedule)">
-                                                    <i class="fa fa-plus"></i> Add Class Session
-                                                </button>
+                                                <button class="btn btn-success btn-sm" @onclick="() => AddClassSession(schedule)">Add Session</button>
                                             }
-                                            <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteScheduleEntry(schedule)">
-                                                <i class="fa fa-trash"></i>
-                                            </button>
+
+                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteScheduleEntry(schedule)"><span class="fa fa-trash"></span>Delete</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -120,36 +117,12 @@
     }
 </div>
 
-@if (showDeleteConfirmation)
-{
-    <div class="modal fade show" style="display: block;" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button type="button" class="btn-close" @onclick="CancelDelete"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete this schedule entry?</p>
-                    @if (scheduleToDelete?.ClassSession != null)
-                    {
-                        <div class="alert alert-warning">
-                            <i class="fa fa-exclamation-triangle me-2"></i>
-                            <span>This will also delete the associated class session: <strong>@scheduleToDelete.ClassSession.Topic</strong></span>
-                        </div>
-                    }
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
-                    <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteSchedule">
-                        <i class="fa fa-trash me-1"></i>Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-}
+<ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                    Title="Confirm Delete"
+                    Message="Are you sure you want to delete this Schedule? This will also Delete the assotiated class session!"
+                    OnConfirm="ConfirmDeleteSchedule"
+                    OnCancel="CancelDelete" />
+
 
 @if (showDetailsModal && selectedSchedule != null)
 {
@@ -320,11 +293,9 @@
     {
         if (scheduleToDelete != null && learningPath != null)
         {
-            learningPath.Schedule.Remove(scheduleToDelete);
-            SchoolDataService.UpdateLearningPath(learningPath);
+            SchoolDataService.DeleteScheduleEntry(learningPath.Id, scheduleToDelete.Id);
             LoadData();
         }
-
         showDeleteConfirmation = false;
         scheduleToDelete = null;
     }
@@ -346,20 +317,16 @@
     {
         if (selectedScheduleForClassSession != null)
         {
-            // Assign class session to the schedule entry
             selectedScheduleForClassSession.ClassSession = classSession;
 
-            // Update the schedule entry title if it doesn't have a meaningful title
             if (string.IsNullOrEmpty(selectedScheduleForClassSession.Title) ||
                 selectedScheduleForClassSession.Title == "New Schedule")
             {
                 selectedScheduleForClassSession.Title = $"{classSession.Course} - {classSession.Topic}";
             }
 
-            // Update the learning path
             SchoolDataService.UpdateLearningPath(learningPath);
 
-            // Refresh the list
             LoadData();
         }
     }
