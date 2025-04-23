@@ -1,0 +1,329 @@
+﻿@page "/scheduleEntry/edit/{LearningPathId:int}/{ScheduleId:int}"
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal
+@using FcmsPortalUI.Components.Pages.Classes
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Edit Schedule Entry</h2>
+                <div>
+                    <button class="btn btn-secondary" @onclick="GoBack">
+                        <i class="fa fa-arrow-left"></i> Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (learningPath == null || scheduleEntry == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <EditForm Model="@scheduleEntry" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <h4 class="mb-3">Schedule Details</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="title" class="form-label">Title<span class="text-danger">*</span></label>
+                            <InputText id="title" @bind-Value="scheduleEntry.Title" class="form-control" />
+                            <ValidationMessage For="@(() => scheduleEntry.Title)" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="venue" class="form-label">Venue<span class="text-danger">*</span></label>
+                            <InputText id="venue" @bind-Value="scheduleEntry.Venue" class="form-control" />
+                            <ValidationMessage For="@(() => scheduleEntry.Venue)" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="date" class="form-label">Date<span class="text-danger">*</span></label>
+                            <InputDate id="date" @bind-Value="scheduleDate" class="form-control" />
+                            <ValidationMessage For="@(() => scheduleDate)" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="startTime" class="form-label">Start Time<span class="text-danger">*</span></label>
+                            <InputText id="startTime" @bind-Value="startTimeString" type="time" class="form-control" />
+                        </div>
+                        <div class="col-md-4">
+                            <label for="duration" class="form-label">Duration (minutes)<span class="text-danger">*</span></label>
+                            <InputNumber id="duration" @bind-Value="durationMinutes" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <InputCheckbox id="isRecurring" @bind-Value="scheduleEntry.IsRecurring" class="form-check-input" />
+                        <label class="form-check-label" for="isRecurring">Recurring Schedule</label>
+                    </div>
+
+                    @if (scheduleEntry.IsRecurring)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="recurrencePattern" class="form-label">Recurrence Pattern<span class="text-danger">*</span></label>
+                                <InputSelect id="recurrencePattern" @bind-Value="scheduleEntry.RecurrencePattern" class="form-select">
+                                    <option value="">-- Select Pattern --</option>
+                                    @foreach (var pattern in Enum.GetValues(typeof(RecurrenceType)))
+                                    {
+                                        <option value="@pattern">@pattern</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="recurrenceInterval" class="form-label">Interval<span class="text-danger">*</span></label>
+                                <InputNumber id="recurrenceInterval" @bind-Value="scheduleEntry.RecurrenceInterval" class="form-control" min="1" />
+                            </div>
+                            <div class="col-md-4">
+                                <label for="endDate" class="form-label">End Date<span class="text-danger">*</span></label>
+                                <InputDate id="endDate" @bind-Value="scheduleEntry.EndDate" class="form-control" />
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mb-3 mt-4">
+                        @if (scheduleEntry.ClassSession == null)
+                        {
+                            <button type="button" class="btn btn-info" @onclick="ShowClassSessionModal">
+                                <i class="fa fa-plus-circle"></i> Add Class Session
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="card mb-3">
+                                <div class="card-header d-flex justify-content-between align-items-center bg-info text-white">
+                                    <h5 class="mb-0">Class Session Information</h5>
+
+                                    <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-light" @onclick="ShowClassSessionModal">
+                                        <i class="fa fa-edit"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger" @onclick="ShowDeleteConfirmation">
+                                        <i class="fa fa-trash"></i> Delete
+                                    </button>
+                                    </div>
+
+                                </div>
+
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-3">Course:</dt>
+                                        <dd class="col-sm-9">@scheduleEntry.ClassSession.Course</dd>
+
+                                        <dt class="col-sm-3">Topic:</dt>
+                                        <dd class="col-sm-9">@scheduleEntry.ClassSession.Topic</dd>
+
+                                        <dt class="col-sm-3">Teacher:</dt>
+                                        <dd class="col-sm-9">
+                                            @if (scheduleEntry.ClassSession.Teacher != null)
+                                            {
+                                                <span>@scheduleEntry.ClassSession.Teacher.Person.FirstName @scheduleEntry.ClassSession.Teacher.Person.LastName</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">No teacher assigned</span>
+                                            }
+                                        </dd>
+
+                                        @if (!string.IsNullOrEmpty(scheduleEntry.ClassSession.Description))
+                                        {
+                                            <dt class="col-sm-3">Description:</dt>
+                                            <dd class="col-sm-9">@scheduleEntry.ClassSession.Description</dd>
+                                        }
+                                    </dl>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Update Schedule</button>
+                        <button type="button" class="btn btn-secondary" @onclick="GoBack">Cancel</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</div>
+
+<ClassSessionEdit IsVisible="showClassSessionModal"
+                  EducationLevel="learningPath?.EducationLevel ?? EducationLevel.None"
+                  ExistingClassSession="scheduleEntry.ClassSession"
+                  ScheduleEntry="scheduleEntry"
+                  OnSave="HandleClassSessionCreated"
+                  OnClose="CloseClassSessionModal" />
+
+
+<ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                    Title="Delete Class Session"
+                    Message="Are you sure you want to remove this class session from the schedule entry? This action cannot be undone."
+                    OnConfirm="DeleteClassSession"
+                    OnCancel="HideDeleteConfirmation" />
+@code {
+    [Parameter]
+    public int LearningPathId { get; set; }
+
+    [Parameter]
+    public int ScheduleId { get; set; }
+
+    private LearningPath learningPath;
+    private ScheduleEntry scheduleEntry;
+    private string startTimeString;
+    private DateTime scheduleDate;
+    private int durationMinutes = 60;
+    private bool showClassSessionModal = false;
+    private string returnUrl;
+    private bool showDeleteConfirmation = false;
+
+    protected override void OnInitialized()
+    {
+        learningPath = SchoolDataService.GetLearningPathById(LearningPathId);
+
+        if (learningPath != null)
+        {
+            // Find the specific schedule entry
+            scheduleEntry = learningPath.Schedule.FirstOrDefault(s => s.Id == ScheduleId);
+
+            if (scheduleEntry != null)
+            {
+                scheduleDate = scheduleEntry.DateTime.Date;
+                startTimeString = scheduleEntry.DateTime.ToString("HH:mm");
+                durationMinutes = (int)scheduleEntry.Duration.TotalMinutes;
+
+                if (scheduleEntry.IsRecurring && !scheduleEntry.EndDate.HasValue)
+                {
+                    scheduleEntry.EndDate = DateTime.Today.AddMonths(3);
+                }
+
+                if (scheduleEntry.RecurrenceInterval == 0)
+                {
+                    scheduleEntry.RecurrenceInterval = 1;
+                }
+            }
+        }
+
+
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        string dateParam = queryParams["date"];
+
+        if (!string.IsNullOrEmpty(dateParam))
+        {
+            returnUrl = $"/learningpath/{LearningPathId}/schedules/{dateParam}";
+        }
+        else
+        {
+            returnUrl = $"/learningpaths/details/{LearningPathId}";
+        }
+    }
+
+    private void ShowClassSessionModal()
+    {
+        showClassSessionModal = true;
+    }
+
+    private void CloseClassSessionModal()
+    {
+        showClassSessionModal = false;
+    }
+
+    private void HandleClassSessionCreated(ClassSession classSession)
+    {
+        scheduleEntry.ClassSession = classSession;
+
+        // Update schedule title if it was a default or empty title
+        if (string.IsNullOrEmpty(scheduleEntry.Title) || scheduleEntry.Title == "New Schedule")
+        {
+            scheduleEntry.Title = $"{classSession.Course} - {classSession.Topic}";
+        }
+
+        else if (scheduleEntry.ClassSession != null &&
+                 (scheduleEntry.Title.Contains(scheduleEntry.ClassSession.Course) ||
+                  scheduleEntry.Title.Contains(scheduleEntry.ClassSession.Topic)))
+        {
+            scheduleEntry.Title = $"{classSession.Course} - {classSession.Topic}";
+        }
+
+        StateHasChanged();
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        showDeleteConfirmation = true;
+    }
+
+    private void HideDeleteConfirmation()
+    {
+        showDeleteConfirmation = false;
+    }
+
+    private void DeleteClassSession()
+    {
+        scheduleEntry.ClassSession = null;
+        showDeleteConfirmation = false;
+        StateHasChanged();
+    }
+
+    private void HandleSubmit()
+    {
+        if (TimeOnly.TryParse(startTimeString, out var timeOnly))
+        {
+            var dateTime = scheduleDate.Add(timeOnly.ToTimeSpan());
+            scheduleEntry.DateTime = dateTime;
+        }
+
+        scheduleEntry.Duration = TimeSpan.FromMinutes(durationMinutes);
+
+        bool success = false;
+
+        if (scheduleEntry.IsRecurring)
+        {
+            int originalId = scheduleEntry.Id;
+            var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
+            SchoolDataService.DeleteScheduleEntry(LearningPathId, originalId);
+
+            if (recurringEntries.Count > 0)
+            {
+                recurringEntries[0].Id = originalId;
+            }
+
+            foreach (var entry in recurringEntries)
+            {
+                SchoolDataService.AddScheduleEntry(LearningPathId, entry);
+            }
+
+            success = true;
+        }
+        else
+        {
+            success = SchoolDataService.UpdateScheduleEntry(LearningPathId, scheduleEntry);
+        }
+
+        if (success)
+        {
+            NavigationManager.NavigateTo(returnUrl);
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo(returnUrl);
+    }
+}
