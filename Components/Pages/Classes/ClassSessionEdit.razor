@@ -6,8 +6,8 @@
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Create Class Session</h5>
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title">Edit Class Session</h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
@@ -61,7 +61,7 @@
 
                     <div class="d-flex justify-content-end mt-4">
                         <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
-                        <button type="submit" class="btn btn-primary" disabled="@(!IsFormValid())">Create Class Session</button>
+                        <button type="submit" class="btn btn-primary" disabled="@(!IsFormValid())">Update Class Session</button>
                     </div>
                 </EditForm>
             </div>
@@ -80,6 +80,9 @@
 
     [Parameter]
     public EducationLevel EducationLevel { get; set; }
+
+    [Parameter]
+    public ClassSession ExistingClassSession { get; set; }
 
     [Parameter]
     public ScheduleEntry ScheduleEntry { get; set; }
@@ -103,12 +106,24 @@
 
     protected override void OnParametersSet()
     {
-        // Reset form when modal opens
-        if (IsVisible)
+        // Reset form when modal opens and load existing data
+        if (IsVisible && ExistingClassSession != null)
         {
-            classSession = new ClassSession();
-            selectedCourse = "";
-            selectedTeacherId = 0;
+            // Copy existing class session data to avoid modifying the original directly
+            classSession = new ClassSession
+                {
+                    Id = ExistingClassSession.Id,
+                    Course = ExistingClassSession.Course,
+                    Topic = ExistingClassSession.Topic,
+                    Description = ExistingClassSession.Description,
+                    LessonNote = ExistingClassSession.LessonNote,
+                    Teacher = ExistingClassSession.Teacher
+                };
+
+            // Set selected course and teacher
+            selectedCourse = ExistingClassSession.Course;
+            selectedTeacherId = ExistingClassSession.Teacher?.Id ?? 0;
+
             LoadData();
         }
     }
@@ -121,7 +136,7 @@
         // Get available teachers
         availableTeachers = SchoolDataService.GetStaff()
             .Where(s => s.JobRole == JobRole.Teacher &&
-                        s.Person.EducationLevel == EducationLevel)
+                       s.Person.EducationLevel == EducationLevel)
             .ToList();
     }
 
@@ -153,19 +168,11 @@
                 classSession.Teacher = teacher;
             }
         }
-
-        // Generate ID 
-        int nextId = 1;
-        var allSessions = SchoolDataService.GetSchool().LearningPath
-            .SelectMany(lp => lp.Schedule.Where(s => s.ClassSession != null).Select(s => s.ClassSession))
-            .ToList();
-
-        if (allSessions.Any())
+        else
         {
-            nextId = allSessions.Max(s => s.Id) + 1;
+            classSession.Teacher = null;
         }
-        classSession.Id = nextId;
-     
+
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }
