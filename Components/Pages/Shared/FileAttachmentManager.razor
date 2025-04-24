@@ -3,7 +3,6 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Services
 @using Microsoft.AspNetCore.Components.Forms
-@using System.ComponentModel.DataAnnotations
 @inject ISchoolDataService SchoolDataService
 
 <div class="card">
@@ -41,7 +40,7 @@
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <span>@file.Name</span>
-                                        <small class="text-muted ms-2">(@string.Format("{0:F2}", file.Size / 1024.0 / 1024.0)MB)</small>
+                                        <small class="text-muted ms-2">(@FormatFileSize(file.Size))</small>
                                     </div>
                                     <button class="btn btn-sm btn-danger" @onclick="() => RemoveSelectedFile(file)">
                                         <span class="fa fa-x"></span>
@@ -91,7 +90,7 @@
                                 <td>
                                     <div class="btn-group">
                                         <a href="@attachment.FilePath" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <span class="fa fa-cloud-download"></span> Download
+                                            <span class="fa fa-download"></span> Download
                                         </a>
                                         @if (AllowDelete)
                                         {
@@ -164,6 +163,11 @@
         await LoadAttachments();
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadAttachments();
+    }
+
     private async Task LoadAttachments()
     {
         IsLoading = true;
@@ -194,7 +198,7 @@
     {
         ErrorMessage = "";
 
-        foreach (var file in e.GetMultipleFiles())
+        foreach (var file in e.GetMultipleFiles(AllowMultiple ? 10 : 1))
         {
             if (file.Size > FcmsConstants.MAX_FILE_SIZE)
             {
@@ -202,6 +206,7 @@
                 return;
             }
 
+            // Check for duplicate files
             if (!SelectedFiles.Any(f => f.Name == file.Name && f.Size == file.Size))
             {
                 SelectedFiles.Add(file);
@@ -216,7 +221,7 @@
 
     private async Task UploadSelectedFiles()
     {
-        if (!SelectedFiles.Any()) return;
+        if (!HasSelectedFiles) return;
 
         IsLoading = true;
         ErrorMessage = "";
