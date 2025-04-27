@@ -1,0 +1,235 @@
+﻿@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal
+@using System.ComponentModel.DataAnnotations
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">@(IsEditing ? "Update" : "Submit") Homework</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Homework == null)
+                {
+                    <p>Error: Homework not found.</p>
+                }
+                else if (submission == null)
+                {
+                    <p>Loading submission details...</p>
+                }
+                else if (submission != null && submission.IsGraded)
+                {
+                    <div class="alert alert-info">
+                        <h4 class="alert-heading">Homework Already Graded</h4>
+                        <p>This homework has already been graded and cannot be modified.</p>
+                    </div>
+                    
+                    <h4 class="mt-4">@Homework.Title</h4>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Due Date</label>
+                        <p>@Homework.DueDate.ToString("MMMM d, yyyy")</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Questions</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <ol>
+                                    @foreach (var question in Homework.Question)
+                                    {
+                                        <li class="mb-2">@question</li>
+                                    }
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Your Answer</label>
+                        <div class="card">
+                            <div class="card-body">
+                                @((MarkupString)FormatAnswer(submission.Answer))
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (submission.HomeworkGrade != null)
+                    {
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Grade</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <p class="mb-2">Score: <span class="fw-bold">@submission.HomeworkGrade.Score</span></p>
+                                    <p class="mb-0">Feedback: @submission.FeedbackComment</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                }
+                else
+                {
+                    <EditForm Model="@submission" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <h4 class="mb-3">@Homework.Title</h4>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Due Date</label>
+                            <p class="form-control-static">
+                                @Homework.DueDate.ToString("MMM d, yyyy")
+                                @if (IsPastDue)
+                                {
+                                    <span class="badge bg-danger ms-2">Past Due</span>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Questions</label>
+                            <div class="card">
+                                <div class="card-body">
+                                    <ol>
+                                        @foreach (var question in Homework.Question)
+                                        {
+                                            <li class="mb-2">@question</li>
+                                        }
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="answer" class="form-label">Your Answer<span class="text-danger">*</span></label>
+                            <InputTextArea id="answer" @bind-Value="submission.Answer" class="form-control" rows="10" placeholder="Type your answer here..." />
+                            <ValidationMessage For="@(() => submission.Answer)" />
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                            <button type="submit" class="btn btn-primary">@(IsEditing ? "Update" : "Submit") Homework</button>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public Homework Homework { get; set; }
+
+    [Parameter]
+    public Student CurrentStudent { get; set; }
+
+    [Parameter]
+    public HomeworkSubmission ExistingSubmission { get; set; }
+
+    [Parameter]
+    public EventCallback<HomeworkSubmission> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private HomeworkSubmission submission = new HomeworkSubmission();
+    private bool IsEditing => ExistingSubmission != null;
+    private bool showAttachments => IsEditing && submission.Id > 0;
+    private bool IsPastDue => Homework?.DueDate < DateTime.Now;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            if (IsEditing && ExistingSubmission != null)
+            {
+                // Clone the existing submission to avoid modifying the original directly
+                submission = new HomeworkSubmission
+                    {
+                        Id = ExistingSubmission.Id,
+                        Student = ExistingSubmission.Student,
+                        Answer = ExistingSubmission.Answer,
+                        SubmissionDate = ExistingSubmission.SubmissionDate,
+                        IsGraded = ExistingSubmission.IsGraded, // Ensure IsGraded is copied
+                        FeedbackComment = ExistingSubmission.FeedbackComment,
+                        HomeworkGrade = ExistingSubmission.HomeworkGrade,
+                        Homework = ExistingSubmission.Homework
+                    };
+            }
+            else
+            {
+                // Create a new submission
+                submission = new HomeworkSubmission
+                    {
+                        Student = CurrentStudent,
+                        SubmissionDate = DateTime.Now,
+                        Answer = string.Empty,
+                        IsGraded = false, // Initialize IsGraded to false for new submissions
+                        Homework = Homework
+                    };
+            }
+        }
+    }
+
+
+    private string FormatAnswer(string answer)
+    {
+        if (string.IsNullOrEmpty(answer))
+            return "<em>No answer provided</em>";
+
+        // Replace newlines with HTML breaks for proper display
+        return answer.Replace(Environment.NewLine, "<br>").Replace("\n", "<br>");
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(submission.Answer))
+        {
+            return; // Ensure answer is not empty
+        }
+
+        if (!IsEditing)
+        {
+            // Set homework and submission date
+            submission.SubmissionDate = DateTime.Now;
+
+            // Generate a new ID for the submission
+            // In a real app, this would be handled by the database
+            int nextId = 1;
+            if (Homework.Submissions != null && Homework.Submissions.Any())
+            {
+                nextId = Homework.Submissions.Max(s => s.Id) + 1;
+            }
+            submission.Id = nextId;
+        }
+        else
+        {
+            // Update submission date for edits
+            submission.SubmissionDate = DateTime.Now;
+        }
+
+        await OnSave.InvokeAsync(submission);
+        Close();
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}
