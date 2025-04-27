@@ -391,3 +391,24 @@ main {
     cursor: pointer;
 }
 
+.reply-item {
+    border-left: 3px solid #e0e0e0;
+    padding-left: 10px;
+    margin-bottom: 12px;
+}
+
+.replies-container {
+    position: relative;
+    margin-left: 15px;
+}
+
+    .replies-container:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 1px;
+        background-color: #e0e0e0;
+    }
+

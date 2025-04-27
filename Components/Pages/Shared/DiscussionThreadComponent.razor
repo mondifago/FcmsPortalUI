@@ -2,6 +2,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Services
 @using FcmsPortalUI.Services
+@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 
@@ -18,92 +19,126 @@
         }
         else
         {
-            <!-- Original Post -->
-            <div class="border-bottom pb-3 mb-3">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <strong>@Util.GetFullName(Thread.FirstPost.Author)</strong>
-                        <small class="text-muted ms-2">(@Thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
-                        @if (Thread.FirstPost.EditedAt.HasValue)
-                        {
-                            <small class="text-muted"> (Edited: @Thread.FirstPost.EditedAt.Value.ToString("MMM dd, yyyy HH:mm"))</small>
-                        }
-                    </div>
-                </div>
-                <p class="mt-2">@Thread.FirstPost.Comment</p>
-            </div>
-
-            <!-- File Attachments -->
-            @if (Thread.Attachments.Any())
+            <!-- New Post Form -->
+            @if (AllowReplies)
             {
-                <div class="mb-3">
-                    <h6><i class="fas fa-paperclip me-1"></i>Attachments</h6>
-                    <div class="list-group">
-                        @foreach (var attachment in Thread.Attachments)
-                        {
-                            <a href="@attachment.FilePath" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" target="_blank">
-                                <span><i class="fas fa-file me-2"></i>@attachment.FileName</span>
-                                <span class="badge bg-secondary">@FormatFileSize(attachment.FileSize)</span>
-                            </a>
-                        }
-                    </div>
+                <div class="mb-4 border rounded p-3 bg-light">
+                    <EditForm Model="newFirstPost" OnValidSubmit="HandleAddFirstPost">
+                        <div class="mb-3">
+                            <InputTextArea class="form-control" @bind-Value="newFirstPost.Comment" rows="3" placeholder="Start a new discussion..." />
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>Post
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
             }
 
-            <!-- File Attachment Manager -->
-            <FileAttachmentManager Title="Thread Attachments"
-                                   Category="@($"DiscussionThread-{Thread.Id}")"
-                                   ReferenceId="Thread.Id"
-                                   AllowUpload="AllowAttachments"
-                                   AllowDelete="AllowAttachments"
-                                   AllowMultiple="true"
-                                   OnAttachmentsChanged="HandleAttachmentsChanged" />
-
-            <!-- Replies Section -->
-            @if (Thread.Replies.Any())
+            <!-- List of All Discussion Threads -->
+            @if (AllThreads != null && AllThreads.Any())
             {
-                <h6 class="mt-4"><i class="fas fa-reply me-1"></i>Replies (@Thread.Replies.Count)</h6>
-                <div class="replies-container">
-                    @foreach (var reply in Thread.Replies.OrderBy(r => r.CreatedAt))
+                <div class="discussion-threads-container">
+                    @foreach (var thread in AllThreads.OrderByDescending(t => t.CreatedAt))
                     {
-                        <div class="reply-item border-bottom pb-3 mb-3 ps-3">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <strong>@Util.GetFullName(reply.Author)</strong>
-                                    <small class="text-muted ms-2">(@reply.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
-                                    @if (reply.EditedAt.HasValue)
-                                    {
-                                        <small class="text-muted"> (Edited: @reply.EditedAt.Value.ToString("MMM dd, yyyy HH:mm"))</small>
-                                    }
+                        <div class="discussion-thread mb-4 border-bottom pb-3">
+                            <!-- First Post with Author -->
+                            <div class="d-flex mb-2">
+                                <div class="me-3">
+                                    <ProfileThumbnailList Person="thread.FirstPost.Author" />
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>@Util.GetFullName(thread.FirstPost.Author)</strong>
+                                            <small class="text-muted ms-2">(@thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
+                                            @if (thread.FirstPost.EditedAt.HasValue)
+                                            {
+                                                <small class="text-muted"> (Edited: @thread.FirstPost.EditedAt.Value.ToString("MMM dd, yyyy HH:mm"))</small>
+                                            }
+                                        </div>
+                                    </div>
+                                    <p class="mt-2 mb-1">@thread.FirstPost.Comment</p>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => ToggleReplyForm(thread.Id)">
+                                            <i class="fas fa-reply me-1"></i>Reply
+                                        </button>
+
+                                        @if (thread.Replies.Count > 2 && !expandedThreads.Contains(thread.Id))
+                                        {
+                                            <button class="btn btn-sm btn-link mt-2" @onclick="() => ExpandThread(thread.Id)">
+                                                View all @thread.Replies.Count replies
+                                            </button>
+                                        }
+                                    </div>
                                 </div>
                             </div>
-                            <p class="mt-2">@reply.Comment</p>
+
+                            <!-- Reply Form (conditionally displayed) -->
+                            @if (replyingToThreadId == thread.Id)
+                            {
+                                <div class="ms-5 mb-3 mt-3 border rounded p-3 bg-light">
+                                    <EditForm Model="newReply" OnValidSubmit="() => HandleAddReply(thread)">
+                                        <div class="mb-2">
+                                            <InputTextArea class="form-control" @bind-Value="newReply.Comment" rows="2" placeholder="Write your reply..." />
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" @onclick="CancelReply">Cancel</button>
+                                            <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                                        </div>
+                                    </EditForm>
+                                </div>
+                            }
+
+                            <!-- Replies Section -->
+                            <div class="replies-container ms-5">
+                                @{
+                                    var replies = thread.Replies.OrderBy(r => r.CreatedAt).ToList();
+                                    var displayReplies = expandedThreads.Contains(thread.Id)
+                                    ? replies
+                                    : replies.Skip(Math.Max(0, replies.Count - 2)).Take(2).ToList();
+                                }
+
+                                @foreach (var reply in displayReplies)
+                                {
+                                    <div class="reply-item d-flex mt-3">
+                                        <div class="me-3">
+                                            <ProfileThumbnailList Person="reply.Author" />
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <strong>@Util.GetFullName(reply.Author)</strong>
+                                                    <small class="text-muted ms-2">(@reply.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
+                                                    @if (reply.EditedAt.HasValue)
+                                                    {
+                                                        <small class="text-muted"> (Edited: @reply.EditedAt.Value.ToString("MMM dd, yyyy HH:mm"))</small>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <p class="mb-0 mt-1">@reply.Comment</p>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (thread.Replies.Any() && expandedThreads.Contains(thread.Id))
+                                {
+                                    <div class="text-center mt-2">
+                                        <button class="btn btn-sm btn-link" @onclick="() => CollapseThread(thread.Id)">
+                                            Show fewer replies
+                                        </button>
+                                    </div>
+                                }
+                            </div>
                         </div>
                     }
                 </div>
             }
             else
             {
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle me-2"></i>No replies yet. Be the first to respond!
-                </div>
-            }
-
-            <!-- Add Reply Form -->
-            @if (AllowReplies)
-            {
-                <div class="mt-4">
-                    <h6><i class="fas fa-plus-circle me-1"></i>Add a Reply</h6>
-                    <EditForm Model="newReply" OnValidSubmit="HandleAddReply">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-                        <div class="mb-3">
-                            <InputTextArea class="form-control" @bind-Value="newReply.Comment" rows="3" placeholder="Type your reply here..." />
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i>Post Reply
-                        </button>
-                    </EditForm>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No discussions yet. Start a new one!
                 </div>
             }
         }
@@ -112,43 +147,79 @@
 
 @code {
     [Parameter] public DiscussionThread Thread { get; set; }
+    [Parameter] public List<DiscussionThread> AllThreads { get; set; }
     [Parameter] public bool AllowReplies { get; set; } = true;
-    [Parameter] public bool AllowAttachments { get; set; } = true;
     [Parameter] public Person CurrentUser { get; set; }
     [Parameter] public EventCallback<DiscussionThread> OnThreadUpdated { get; set; }
+    [Parameter] public EventCallback<DiscussionThread> OnNewThreadCreated { get; set; }
 
     private DiscussionPost newReply = new();
+    private DiscussionPost newFirstPost = new();
+    private int replyingToThreadId = 0;
+    private HashSet<int> expandedThreads = new HashSet<int>();
 
-    private string FormatFileSize(long bytes)
-    {
-        string[] sizes = { "B", "KB", "MB", "GB" };
-        int order = 0;
-        double size = bytes;
-        while (size >= 1024 && order < sizes.Length - 1)
-        {
-            order++;
-            size /= 1024;
-        }
-        return $"{Math.Round(size, 2)} {sizes[order]}";
-    }
-
-    private async Task HandleAddReply()
+    private async Task HandleAddReply(DiscussionThread thread)
     {
         if (!string.IsNullOrWhiteSpace(newReply.Comment) && CurrentUser != null)
         {
             int replyId = await SchoolDataService.GetNextPostId();
-            LogicMethods.AddReply(Thread, replyId, CurrentUser, newReply.Comment);
+            LogicMethods.AddReply(thread, replyId, CurrentUser, newReply.Comment);
+
             newReply = new();
-            await SchoolDataService.UpdateDiscussionThread(Thread);
-            await OnThreadUpdated.InvokeAsync(Thread);
+            replyingToThreadId = 0;
+
+            await SchoolDataService.UpdateDiscussionThread(thread);
+            await OnThreadUpdated.InvokeAsync(thread);
+
+            expandedThreads.Add(thread.Id);
         }
     }
 
-    private async Task HandleAttachmentsChanged(List<FileAttachment> updatedAttachments)
+    private async Task HandleAddFirstPost()
     {
-        Thread.Attachments = updatedAttachments;
-        Thread.UpdateLastUpdated();
-        await SchoolDataService.UpdateDiscussionThread(Thread);
-        await OnThreadUpdated.InvokeAsync(Thread);
+        if (!string.IsNullOrWhiteSpace(newFirstPost.Comment) && CurrentUser != null)
+        {
+            int threadId = await SchoolDataService.GetNextThreadId();
+            int postId = await SchoolDataService.GetNextPostId();
+
+            var newThread = LogicMethods.StartDiscussion(
+                threadId,
+                postId,
+                CurrentUser,
+                newFirstPost.Comment
+            );
+
+            newFirstPost = new();
+
+            await SchoolDataService.AddDiscussionThread(newThread);
+            await OnNewThreadCreated.InvokeAsync(newThread);
+        }
+    }
+
+    private void ToggleReplyForm(int threadId)
+    {
+        replyingToThreadId = replyingToThreadId == threadId ? 0 : threadId;
+
+        if (replyingToThreadId != 0)
+        {
+            expandedThreads.Add(threadId);
+        }
+        newReply = new();
+    }
+
+    private void CancelReply()
+    {
+        replyingToThreadId = 0;
+        newReply = new();
+    }
+
+    private void ExpandThread(int threadId)
+    {
+        expandedThreads.Add(threadId);
+    }
+
+    private void CollapseThread(int threadId)
+    {
+        expandedThreads.Remove(threadId);
     }
 }

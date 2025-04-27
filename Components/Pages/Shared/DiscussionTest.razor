@@ -19,97 +19,23 @@
     </div>
 
     <div class="row">
-        <div class="col-md-3">
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Select Thread</h5>
-                </div>
-                <div class="list-group list-group-flush">
-                    @if (discussionThreads == null)
-                    {
-                        <div class="list-group-item">
-                            <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            Loading threads...
-                        </div>
-                    }
-                    else if (!discussionThreads.Any())
-                    {
-                        <div class="list-group-item">No discussion threads found</div>
-                    }
-                    else
-                    {
-                        @foreach (var thread in discussionThreads.OrderByDescending(t => t.LastUpdatedAt))
-                        {
-                            <button type="button"
-                                    class="list-group-item list-group-item-action @(currentThreadId == thread.Id ? "active" : "")"
-                                    @onclick="() => LoadThread(thread.Id)">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">@thread.FirstPost.Comment.Substring(0, Math.Min(30, thread.FirstPost.Comment.Length))@(thread.FirstPost.Comment.Length > 30 ? "..." : "")</h6>
-                                    <small>@thread.Replies.Count replies</small>
-                                </div>
-                                <small>By: @Util.GetFullName(thread.FirstPost.Author)</small>
-                                <small class="d-block text-muted">@thread.LastUpdatedAt.ToString("MMM dd, yyyy HH:mm")</small>
-                            </button>
-                        }
-                    }
-                </div>
-                <div class="card-footer">
-                    <button type="button" class="btn btn-success btn-sm w-100" @onclick="() => ShowCreateThreadForm = !ShowCreateThreadForm">
-                        <i class="fas fa-plus-circle me-1"></i>New Thread
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-9">
-            @if (ShowCreateThreadForm)
+        <div class="col-md-12">
+            @if (isLoading)
             {
-                <div class="card mb-3">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-plus-circle me-2"></i>Create New Discussion Thread
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <EditForm Model="newThread" OnValidSubmit="HandleCreateThread">
-                            <DataAnnotationsValidator />
-                            <ValidationSummary />
-                            <div class="mb-3">
-                                <label for="newThreadContent" class="form-label">Discussion Content</label>
-                                <InputTextArea id="newThreadContent" class="form-control" @bind-Value="newThread.Comment" rows="5" placeholder="What would you like to discuss?" />
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <button type="button" class="btn btn-secondary" @onclick="() => ShowCreateThreadForm = false">
-                                    <i class="fas fa-times me-1"></i>Cancel
-                                </button>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-paper-plane me-1"></i>Create Thread
-                                </button>
-                            </div>
-                        </EditForm>
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
             }
-
-            @if (currentThread != null)
+            else
             {
                 <DiscussionThreadComponent Thread="currentThread"
+                                           AllThreads="discussionThreads"
                                            AllowReplies="true"
-                                           AllowAttachments="true"
                                            CurrentUser="currentUser"
-                                           OnThreadUpdated="HandleThreadUpdated" />
-            }
-            else if (!ShowCreateThreadForm)
-            {
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-comments fa-4x text-muted mb-3"></i>
-                        <h5>Select a discussion thread or create a new one</h5>
-                        <p class="text-muted">Select an existing thread from the list or click "New Thread" to start a discussion.</p>
-                    </div>
-                </div>
+                                           OnThreadUpdated="HandleThreadUpdated"
+                                           OnNewThreadCreated="HandleNewThreadCreated" />
             }
         </div>
     </div>
@@ -118,14 +44,11 @@
 @code {
     private List<DiscussionThread> discussionThreads;
     private DiscussionThread currentThread;
-    private int currentThreadId;
     private Person currentUser;
-    private DiscussionPost newThread = new();
-    private bool ShowCreateThreadForm = false;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        // Get all student objects from the SchoolDataService
         var students = SchoolDataService.GetStudents();
         if (students.Any())
         {
@@ -142,72 +65,53 @@
                     LastName = "User"
                 };
         }
-
-        // Load all discussion threads
         await LoadAllThreads();
+        isLoading = false;
     }
 
     private async Task LoadAllThreads()
     {
-        // In a real application, this would fetch threads from a database
-        // For now, we'll create a simple in-memory collection of threads
+        //this would fetch threads from a database
         discussionThreads = new List<DiscussionThread>();
 
-        // Get the first thread (if any exist)
         var firstThread = await SchoolDataService.GetDiscussionThread(1);
         if (firstThread != null)
         {
             discussionThreads.Add(firstThread);
+            currentThread = firstThread;
         }
 
-        // Get the second thread (if it exists)
-        var secondThread = await SchoolDataService.GetDiscussionThread(3);
+        var secondThread = await SchoolDataService.GetDiscussionThread(2);
         if (secondThread != null)
         {
             discussionThreads.Add(secondThread);
         }
 
-        // Add any other threads that might exist
-        // (In a real app, you would have a GetAllThreads method)
-    }
-
-    private async Task LoadThread(int threadId)
-    {
-        currentThreadId = threadId;
-        currentThread = await SchoolDataService.GetDiscussionThread(threadId);
-    }
-
-    private async Task HandleCreateThread()
-    {
-        if (!string.IsNullOrWhiteSpace(newThread.Comment) && currentUser != null)
+        var thirdThread = await SchoolDataService.GetDiscussionThread(3);
+        if (thirdThread != null)
         {
-            int threadId = await SchoolDataService.GetNextThreadId();
-            int postId = await SchoolDataService.GetNextPostId();
+            discussionThreads.Add(thirdThread);
+        }
 
-            var newDiscussionThread = LogicMethods.StartDiscussion(
-                threadId,
-                postId,
-                currentUser,
-                newThread.Comment
-            );
-
-            await SchoolDataService.AddDiscussionThread(newDiscussionThread);
-
-            // Refresh the list of threads
-            await LoadAllThreads();
-
-            // Select the newly created thread
-            await LoadThread(newDiscussionThread.Id);
-
-            // Reset form and hide it
-            newThread = new();
-            ShowCreateThreadForm = false;
+        var fourthThread = await SchoolDataService.GetDiscussionThread(4);
+        if (fourthThread != null)
+        {
+            discussionThreads.Add(fourthThread);
         }
     }
 
     private async Task HandleThreadUpdated(DiscussionThread updatedThread)
     {
-        currentThread = updatedThread;
-        await LoadAllThreads(); // Refresh the thread list to show updated reply counts
+        var existingThreadIndex = discussionThreads.FindIndex(t => t.Id == updatedThread.Id);
+        if (existingThreadIndex >= 0)
+        {
+            discussionThreads[existingThreadIndex] = updatedThread;
+        }
+    }
+
+    private async Task HandleNewThreadCreated(DiscussionThread newThread)
+    {
+        discussionThreads.Add(newThread);
+        discussionThreads = new List<DiscussionThread>(discussionThreads.OrderByDescending(t => t.CreatedAt));
     }
 }
