@@ -56,7 +56,7 @@
 
                     <div class="mb-3">
                         <label for="lessonNote" class="form-label">Lesson Notes</label>
-                        <InputTextArea id="lessonNote" @bind-Value="classSession.LessonNote" class="form-control" rows="3" />
+                        <InputTextArea id="lessonNote" @bind-Value="classSession.LessonPlan" class="form-control" rows="3" />
                     </div>
 
                     <div class="d-flex justify-content-end mt-4">
@@ -116,7 +116,7 @@
                     Course = ExistingClassSession.Course,
                     Topic = ExistingClassSession.Topic,
                     Description = ExistingClassSession.Description,
-                    LessonNote = ExistingClassSession.LessonNote,
+                    LessonPlan = ExistingClassSession.LessonPlan,
                     Teacher = ExistingClassSession.Teacher
                 };
 
