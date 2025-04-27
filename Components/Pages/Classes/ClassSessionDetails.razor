@@ -1,0 +1,759 @@
+﻿@page "/classsession/details/{Id:int}"
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Class Session Details</h2>
+                <div>
+                    <button class="btn btn-secondary" @onclick="GoBack">
+                        <i class="fa fa-arrow-left"></i> Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (classSession == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- Left Column (8 columns) -->
+            <div class="col-md-8">
+                <!-- Basic Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">@classSession.Course - @classSession.Topic</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <dl class="mb-0">
+                                    <dt>Teacher</dt>
+                                    <dd>
+                                        @if (classSession.Teacher != null)
+                                        {
+                                            <span>@classSession.Teacher.Person.FirstName @classSession.Teacher.Person.LastName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not assigned</span>
+                                        }
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="mb-0">
+                                    <dt>Schedule</dt>
+                                    <dd>
+                                        @if (scheduleEntry != null)
+                                        {
+                                            <span>@scheduleEntry.DateTime.ToString("MMM d, yyyy h:mm tt") - @scheduleEntry.Venue</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No schedule information</span>
+                                        }
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <h5>Description</h5>
+                        <p class="mb-4">@(string.IsNullOrEmpty(classSession.Description) ? "No description available" : classSession.Description)</p>
+
+                        <h5>Lesson Plan</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                @(string.IsNullOrEmpty(classSession.LessonPlan) ? "No lesson notes available" : classSession.LessonPlan)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Materials Upload Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Course Materials</h4>
+                        @if (isTeacher)
+                        {
+                            <button class="btn btn-sm btn-light" @onclick="ToggleMaterialsUpload">
+                                <i class="fa fa-plus"></i> Add Materials
+                            </button>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <!-- PDF Viewer Box -->
+                        <div class="pdf-viewer-container mb-4" style="height: 500px; border: 1px solid #dee2e6; border-radius: 4px; overflow: hidden;">
+                            @if (selectedPdfUrl != null)
+                            {
+                                <embed src="@selectedPdfUrl" type="application/pdf" width="100%" height="100%" />
+                            }
+                            else
+                            {
+                                <div class="d-flex flex-column justify-content-center align-items-center h-100 bg-light">
+                                    <i class="fa fa-file-pdf text-muted" style="font-size: 5rem;"></i>
+                                    <p class="mt-3 text-muted">No slide presentation available</p>
+                                    @if (isTeacher)
+                                    {
+                                        <p class="text-muted">Upload a PDF file to display your presentation slides here</p>
+                                        <button class="btn btn-primary mt-2" @onclick="ToggleMaterialsUpload">
+                                            <i class="fa fa-upload me-2"></i>Upload Slides
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        @if (showMaterialsUpload)
+                        {
+                            <div class="mb-4">
+                                <h5>Upload Materials</h5>
+                                <FileAttachmentManager Title="Upload Study Materials"
+                                                       Category="@($"ClassSession-{classSession.Id}-Materials")"
+                                                       ReferenceId="classSession.Id"
+                                                       AllowUpload="true"
+                                                       AllowDelete="isTeacher"
+                                                       AllowMultiple="true"
+                                                       OnAttachmentsChanged="HandleMaterialsChanged" />
+                            </div>
+                        }
+
+                        <!-- Material Selection -->
+                        @if (classSession.StudyMaterials != null && classSession.StudyMaterials.Any())
+                        {
+                            <div class="mb-3">
+                                <h5>Available Materials</h5>
+                                <div class="list-group">
+                                    @foreach (var material in classSession.StudyMaterials)
+                                    {
+                                        <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center @(selectedPdfUrl == material.FilePath ? "active" : "")"
+                                                @onclick="() => SelectMaterial(material)">
+                                            <div>
+                                                <i class="@GetFileIcon(material.FileName) me-2"></i>
+                                                @material.FileName
+                                                <small class="text-muted ms-2">(@FormatFileSize(material.FileSize))</small>
+                                            </div>
+                                            <div>
+                                                <a href="@material.FilePath" target="_blank" class="btn btn-sm btn-outline-primary me-2" @onclick:stopPropagation>
+                                                    <i class="fa fa-download"></i>
+                                                </a>
+                                                @if (isTeacher && IsPdfFile(material.FileName))
+                                                {
+                                                    <button class="btn btn-sm @(selectedPdfUrl == material.FilePath ? "btn-success" : "btn-outline-secondary")" @onclick:stopPropagation="true" @onclick="() => SelectMaterial(material)">
+                                                        <i class="fa fa-eye"></i> @(selectedPdfUrl == material.FilePath ? "Showing" : "Show")
+                                                    </button>
+                                                }
+                                            </div>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+
+                <!-- Teacher's Remarks Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Teacher's Remarks</h4>
+                        @if (isTeacher && !showRemarksEditor)
+                        {
+                            <button class="btn btn-sm btn-light" @onclick="() => showRemarksEditor = true">
+                                <i class="fa fa-edit"></i> Edit
+                            </button>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (showRemarksEditor)
+                        {
+                            <EditForm Model="@remarksModel" OnValidSubmit="SaveRemarks">
+                                <div class="mb-3">
+                                    <InputTextArea @bind-Value="remarksModel.Remarks" class="form-control" rows="5" placeholder="Add your remarks about this class session..." />
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" @onclick="() => showRemarksEditor = false">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </EditForm>
+                        }
+                        else
+                        {
+                            <p class="@(string.IsNullOrEmpty(classSession.TeacherRemarks) ? "text-muted" : "")">
+                                @(string.IsNullOrEmpty(classSession.TeacherRemarks) ? "No remarks available yet." : classSession.TeacherRemarks)
+                            </p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Homework Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Homework</h4>
+                        @if (isTeacher)
+                        {
+                            <button class="btn btn-sm btn-light" @onclick="CreateNewHomework">
+                                <i class="fa fa-plus"></i> Add Homework
+                            </button>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (classSession.HomeworkDetails == null || !classSession.HomeworkDetails.Any())
+                        {
+                            <p class="text-muted">No homework assigned yet.</p>
+                        }
+                        else
+                        {
+                            <div class="list-group">
+                                @foreach (var homework in classSession.HomeworkDetails)
+                                {
+                                    <div class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">@homework.Title</h5>
+                                            <div>
+                                                @if (isTeacher)
+                                                {
+                                                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditHomework(homework)">
+                                                        <i class="fa fa-edit"></i> Edit
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-sm btn-outline-success" @onclick="() => SubmitHomework(homework)">
+                                                        <i class="fa fa-paper-plane"></i> Submit
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                        <p class="mb-1">Due: @homework.DueDate.ToString("MMMM d, yyyy")</p>
+                                        <small class="text-muted">
+                                            @(homework.Submissions?.Count ?? 0) submission(s)
+                                        </small>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Discussion Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Discussion</h4>
+                        <button class="btn btn-sm btn-light" @onclick="StartNewDiscussion">
+                            <i class="fa fa-comment"></i> New Discussion
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        @if (classSession.DiscussionThreads == null || !classSession.DiscussionThreads.Any())
+                        {
+                            <p class="text-muted">No discussions started yet.</p>
+                        }
+                        else
+                        {
+                            <div class="list-group">
+                                @foreach (var thread in classSession.DiscussionThreads.OrderByDescending(t => t.LastUpdatedAt))
+                                {
+                                    <a href="#" class="list-group-item list-group-item-action" @onclick="() => ViewDiscussion(thread)" @onclick:preventDefault>
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">@thread.FirstPost.Comment.Substring(0, Math.Min(50, thread.FirstPost.Comment.Length))@(thread.FirstPost.Comment.Length > 50 ? "..." : "")</h5>
+                                            <small>@thread.LastUpdatedAt.ToString("MMM d")</small>
+                                        </div>
+                                        <p class="mb-1">
+                                            Started by @thread.FirstPost.Author.FirstName @thread.FirstPost.Author.LastName
+                                        </p>
+                                        <small>@thread.Replies.Count replies</small>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column (4 columns) -->
+            <div class="col-md-4">
+                <!-- Attendance Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Attendance</h5>
+                        @if (isTeacher && !showAttendanceForm)
+                        {
+                            <button class="btn btn-sm btn-light" @onclick="ToggleAttendanceForm">
+                                <i class="fa fa-clipboard-check"></i> Take Attendance
+                            </button>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (showAttendanceForm)
+                        {
+                            <EditForm Model="@attendanceModel" OnValidSubmit="SaveAttendance">
+                                <div class="mb-3">
+                                    <label class="form-label">Select Present Students</label>
+                                    @foreach (var student in learningPathStudents)
+                                    {
+                                        <div class="form-check">
+                                            <InputCheckbox class="form-check-input"
+                                                           @bind-Value="@attendanceModel.PresentStudentIds[student.Id]"
+                                                           id="@($"student-{student.Id}")" />
+                                            <label class="form-check-label" for="student-@student.Id">
+                                                @student.Person.FirstName @student.Person.LastName
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" @onclick="() => showAttendanceForm = false">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </EditForm>
+                        }
+                        else if (classSession.AttendanceLog == null || !classSession.AttendanceLog.Any())
+                        {
+                            <p class="text-muted">No attendance record available.</p>
+                        }
+                        else
+                        {
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Last Attendance: @classSession.AttendanceLog.Last().TimeStamp.ToString("MMM d, yyyy h:mm tt")</label>
+
+                                <div class="card bg-light mb-3">
+                                    <div class="card-header bg-success text-white">Present (@classSession.AttendanceLog.Last().Attendees.Count)</div>
+                                    <div class="card-body">
+                                        @if (!classSession.AttendanceLog.Last().Attendees.Any())
+                                        {
+                                            <p class="text-muted">No students present</p>
+                                        }
+                                        else
+                                        {
+                                            <ul class="list-group list-group-flush">
+                                                @foreach (var student in classSession.AttendanceLog.Last().Attendees)
+                                                {
+                                                    <li class="list-group-item bg-light">@student.Person.FirstName @student.Person.LastName</li>
+                                                }
+                                            </ul>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="card bg-light">
+                                    <div class="card-header bg-danger text-white">Absent (@classSession.AttendanceLog.Last().AbsentStudents.Count)</div>
+                                    <div class="card-body">
+                                        @if (!classSession.AttendanceLog.Last().AbsentStudents.Any())
+                                        {
+                                            <p class="text-muted">No students absent</p>
+                                        }
+                                        else
+                                        {
+                                            <ul class="list-group list-group-flush">
+                                                @foreach (var student in classSession.AttendanceLog.Last().AbsentStudents)
+                                                {
+                                                    <li class="list-group-item bg-light">@student.Person.FirstName @student.Person.LastName</li>
+                                                }
+                                            </ul>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Students List Section (if teacher) -->
+                @if (isTeacher)
+                {
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Students in Class</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            @if (learningPathStudents.Any())
+                            {
+                                <div class="list-group list-group-flush">
+                                    @foreach (var student in learningPathStudents)
+                                    {
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <ProfileThumbnailList Person="student.Person" />
+                                                @student.Person.FirstName @student.Person.LastName
+                                            </div>
+                                            <a href="/students/details/@student.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="p-3">
+                                    <p class="text-muted">No students in this class.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Homework Modal -->
+<HomeworkModal IsVisible="showHomeworkModal"
+               ExistingHomework="selectedHomework"
+               ClassSession="classSession"
+               CurrentTeacher="currentTeacher"
+               OnSave="HandleHomeworkSaved"
+               OnClose="() => showHomeworkModal = false" />
+
+<!-- Homework Submission Modal -->
+<HomeworkSubmissionModal IsVisible="showSubmissionModal"
+                         Homework="selectedHomework"
+                         CurrentStudent="currentStudent"
+                         ExistingSubmission="existingSubmission"
+                         OnSave="HandleSubmissionSaved"
+                         OnClose="() => showSubmissionModal = false" />
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private string selectedPdfUrl;
+    private ClassSession classSession;
+    private ScheduleEntry scheduleEntry;
+    private List<Student> learningPathStudents = new List<Student>();
+    private bool isTeacher = true; // For demo, assuming user is a teacher
+    private Staff currentTeacher; // Current logged-in teacher
+    private Student currentStudent; // For testing student view
+    private bool showMaterialsUpload = false;
+    private bool showRemarksEditor = false;
+    private bool showAttendanceForm = false;
+    private bool showHomeworkModal = false;
+    private bool showSubmissionModal = false;
+    private Homework selectedHomework;
+    private HomeworkSubmission existingSubmission;
+
+    private class RemarksModel
+    {
+        public string Remarks { get; set; }
+    }
+
+    private RemarksModel remarksModel = new RemarksModel();
+
+    private class AttendanceModel
+    {
+        public Dictionary<int, bool> PresentStudentIds { get; set; } = new Dictionary<int, bool>();
+    }
+
+    private AttendanceModel attendanceModel = new AttendanceModel();
+
+    protected override void OnInitialized()
+    {
+        // Get the class session
+        classSession = GetClassSessionById(Id);
+
+        if (classSession != null)
+        {
+            // Set remarks model
+            remarksModel.Remarks = classSession.TeacherRemarks ?? "";
+
+            // Get the schedule entry containing this class session
+            scheduleEntry = GetScheduleEntryForClassSession(Id);
+
+            // Get students for this class
+            learningPathStudents = GetStudentsForClassSession(Id);
+
+            // Initialize attendance model with all students
+            foreach (var student in learningPathStudents)
+            {
+                attendanceModel.PresentStudentIds[student.Id] = true; // Default all present
+            }
+
+            // Set current teacher (for demo)
+            currentTeacher = classSession.Teacher;
+
+            // Set a sample student for testing student view
+            if (learningPathStudents.Any())
+            {
+                currentStudent = learningPathStudents.First();
+            }
+        }
+    }
+
+    private ClassSession GetClassSessionById(int id)
+    {
+        // Find class session in all learning paths and schedules
+        foreach (var learningPath in SchoolDataService.GetAllLearningPaths())
+        {
+            foreach (var schedule in learningPath.Schedule)
+            {
+                if (schedule.ClassSession?.Id == id)
+                {
+                    return schedule.ClassSession;
+                }
+            }
+        }
+        return null;
+    }
+
+    private ScheduleEntry GetScheduleEntryForClassSession(int classSessionId)
+    {
+        foreach (var learningPath in SchoolDataService.GetAllLearningPaths())
+        {
+            foreach (var schedule in learningPath.Schedule)
+            {
+                if (schedule.ClassSession?.Id == classSessionId)
+                {
+                    return schedule;
+                }
+            }
+        }
+        return null;
+    }
+
+    private List<Student> GetStudentsForClassSession(int classSessionId)
+    {
+        foreach (var learningPath in SchoolDataService.GetAllLearningPaths())
+        {
+            foreach (var schedule in learningPath.Schedule)
+            {
+                if (schedule.ClassSession?.Id == classSessionId)
+                {
+                    return learningPath.Students.ToList();
+                }
+            }
+        }
+        return new List<Student>();
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] suffixes = { "B", "KB", "MB", "GB" };
+        int i = 0;
+        double size = bytes;
+
+        while (size >= 1024 && i < suffixes.Length - 1)
+        {
+            size /= 1024;
+            i++;
+        }
+
+        return $"{size:F2} {suffixes[i]}";
+    }
+
+    private void ToggleMaterialsUpload()
+    {
+        showMaterialsUpload = !showMaterialsUpload;
+    }
+
+    private void HandleMaterialsChanged(List<FileAttachment> materials)
+    {
+        classSession.StudyMaterials = materials;
+
+        // If we have PDFs and none is currently selected, select the first PDF
+        if (string.IsNullOrEmpty(selectedPdfUrl))
+        {
+            var firstPdf = materials.FirstOrDefault(m => IsPdfFile(m.FileName));
+            if (firstPdf != null)
+            {
+                selectedPdfUrl = firstPdf.FilePath;
+            }
+        }
+
+        // Update the class session in database
+        // In a real app, you would call a service method here
+    }
+
+
+    private void SaveRemarks()
+    {
+        classSession.TeacherRemarks = remarksModel.Remarks;
+        showRemarksEditor = false;
+        // Update the class session in database
+        // In a real app, you would call a service method here
+    }
+
+    private void ToggleAttendanceForm()
+    {
+        showAttendanceForm = !showAttendanceForm;
+
+        // Reset checkboxes to current attendance if available
+        if (showAttendanceForm && classSession.AttendanceLog.Any())
+        {
+            var lastLog = classSession.AttendanceLog.Last();
+            foreach (var student in learningPathStudents)
+            {
+                attendanceModel.PresentStudentIds[student.Id] = lastLog.Attendees.Any(s => s.Id == student.Id);
+            }
+        }
+    }
+
+    private void SaveAttendance()
+    {
+        // Create lists of present and absent students
+        List<Student> presentStudents = new List<Student>();
+        List<Student> absentStudents = new List<Student>();
+
+        foreach (var student in learningPathStudents)
+        {
+            if (attendanceModel.PresentStudentIds.TryGetValue(student.Id, out bool isPresent) && isPresent)
+            {
+                presentStudents.Add(student);
+            }
+            else
+            {
+                absentStudents.Add(student);
+            }
+        }
+
+        // Use LogicMethods to take attendance
+        LogicMethods.TakeAttendanceForClassSession(
+            SchoolDataService.GetSchool(),
+            classSession,
+            presentStudents,
+            currentTeacher);
+
+        showAttendanceForm = false;
+    }
+
+    private void CreateNewHomework()
+    {
+        selectedHomework = null;
+        showHomeworkModal = true;
+    }
+
+    private void EditHomework(Homework homework)
+    {
+        selectedHomework = homework;
+        showHomeworkModal = true;
+    }
+
+    private void HandleHomeworkSaved(Homework homework)
+    {
+        // Add or update the homework
+        if (classSession.HomeworkDetails == null)
+        {
+            classSession.HomeworkDetails = new List<Homework>();
+        }
+
+        var existingIndex = classSession.HomeworkDetails.FindIndex(h => h.Id == homework.Id);
+        if (existingIndex >= 0)
+        {
+            classSession.HomeworkDetails[existingIndex] = homework;
+        }
+        else
+        {
+            classSession.HomeworkDetails.Add(homework);
+        }
+
+        // Update in database
+        // In a real app, call a service method here
+    }
+
+    private void SubmitHomework(Homework homework)
+    {
+        selectedHomework = homework;
+
+        // Check if the student already has a submission
+        existingSubmission = homework.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent.Id);
+
+        showSubmissionModal = true;
+    }
+
+    private void HandleSubmissionSaved(HomeworkSubmission submission)
+    {
+        // Add or update the submission
+        if (selectedHomework.Submissions == null)
+        {
+            selectedHomework.Submissions = new List<HomeworkSubmission>();
+        }
+
+        var existingIndex = selectedHomework.Submissions.FindIndex(s => s.Id == submission.Id);
+        if (existingIndex >= 0)
+        {
+            selectedHomework.Submissions[existingIndex] = submission;
+        }
+        else
+        {
+            selectedHomework.Submissions.Add(submission);
+        }
+
+        // Update in database
+        // In a real app, call a service method here
+    }
+
+    private void StartNewDiscussion()
+    {
+        // This would navigate to a discussion creation page or show a modal
+        // For now, we'll simulate opening a new window
+        NavigationManager.NavigateTo($"/discussion?classSessionId={classSession.Id}");
+    }
+
+    private void ViewDiscussion(DiscussionThread thread)
+    {
+        // Navigate to discussion detail page
+        NavigationManager.NavigateTo($"/discussion/{thread.Id}");
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo($"/classes");
+    }
+
+    private void SelectMaterial(FileAttachment material)
+    {
+        if (IsPdfFile(material.FileName))
+        {
+            selectedPdfUrl = material.FilePath;
+        }
+        else
+        {
+            // For non-PDF files, just download them
+            // You could handle other file types differently if needed
+            // For example, if you want to support image files like .png or .jpg:
+            // if (IsImageFile(material.FileName)) { selectedImageUrl = material.FilePath; }
+        }
+    }
+
+    private bool IsPdfFile(string fileName)
+    {
+        return !string.IsNullOrEmpty(fileName) && fileName.ToLower().EndsWith(".pdf");
+    }
+
+    private string GetFileIcon(string fileName)
+    {
+        if (string.IsNullOrEmpty(fileName))
+            return "fa fa-file";
+
+        string ext = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+
+        return ext switch
+        {
+            ".pdf" => "fa fa-file-pdf",
+            ".doc" or ".docx" => "fa fa-file-word",
+            ".xls" or ".xlsx" => "fa fa-file-excel",
+            ".ppt" or ".pptx" => "fa fa-file-powerpoint",
+            ".jpg" or ".jpeg" or ".png" or ".gif" => "fa fa-file-image",
+            ".zip" or ".rar" => "fa fa-file-archive",
+            ".txt" => "fa fa-file-alt",
+            _ => "fa fa-file"
+        };
+    }
+
+}
