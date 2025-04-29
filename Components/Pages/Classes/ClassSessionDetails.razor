@@ -839,4 +839,27 @@
 
         return content.Replace(Environment.NewLine, "<br>").Replace("\n", "<br>");
     }
+
+        private async Task HandleThreadUpdated(DiscussionThread updatedThread)
+        {
+            if (classSession.DiscussionThreads == null)
+                return;
+
+            var existingThreadIndex = classSession.DiscussionThreads.FindIndex(t => t.Id == updatedThread.Id);
+            if (existingThreadIndex >= 0)
+            {
+                classSession.DiscussionThreads[existingThreadIndex] = updatedThread;
+            }
+
+            StateHasChanged();
+        }
+
+        private async Task HandleNewThreadCreated(DiscussionThread newThread)
+        {
+            if (classSession.DiscussionThreads == null)
+                classSession.DiscussionThreads = new List<DiscussionThread>();
+
+            classSession.DiscussionThreads.Add(newThread);
+            StateHasChanged();
+        }
 }

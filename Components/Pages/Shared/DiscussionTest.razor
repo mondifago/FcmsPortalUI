@@ -5,7 +5,7 @@
 @using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
-
+<!--
 <PageTitle>Discussion Forums</PageTitle>
 
 <div class="container">
@@ -39,10 +39,10 @@
             }
         </div>
     </div>
-</div>
+</div> -->
 
 @code {
-    private List<DiscussionThread> discussionThreads;
+    /*private List<DiscussionThread> discussionThreads;
     private DiscussionThread currentThread;
     private Person currentUser;
     private bool isLoading = true;
@@ -113,5 +113,5 @@
     {
         discussionThreads.Add(newThread);
         discussionThreads = new List<DiscussionThread>(discussionThreads.OrderByDescending(t => t.CreatedAt));
-    }
+    }*/
 }
