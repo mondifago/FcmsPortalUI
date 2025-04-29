@@ -304,26 +304,13 @@
                         <h4 class="mb-0">Class Discussion</h4>
                     </div>
                     <div class="card-body">
-                        @if (classSession.DiscussionThreads == null || !classSession.DiscussionThreads.Any())
-                        {
-                            <DiscussionThreadComponent Thread="null"
-                                                       AllThreads="new List<DiscussionThread>()"
-                                                       AllowReplies="true"
-                                                       CurrentUser="currentStudent?.Person ?? currentTeacher?.Person"
-                                                       ClassSessionId="classSession.Id"
-                                                       OnThreadUpdated="HandleThreadUpdated"
-                                                       OnNewThreadCreated="HandleNewThreadCreated" />
-                        }
-                        else
-                        {
-                            <DiscussionThreadComponent Thread="classSession.DiscussionThreads.FirstOrDefault()"
-                                                       AllThreads="classSession.DiscussionThreads"
-                                                       AllowReplies="true"
-                                                       CurrentUser="currentStudent?.Person ?? currentTeacher?.Person"
-                                                       ClassSessionId="classSession.Id"
-                                                       OnThreadUpdated="HandleThreadUpdated"
-                                                       OnNewThreadCreated="HandleNewThreadCreated" />
-                        }
+                        <DiscussionThreadComponent Thread="null"
+                                                   AllThreads="classSession.DiscussionThreads ?? new List<DiscussionThread>()"
+                                                   AllowReplies="true"
+                                                   CurrentUser="currentStudent?.Person ?? currentTeacher?.Person"
+                                                   ClassSessionId="classSession.Id"
+                                                   OnThreadUpdated="HandleThreadUpdated"
+                                                   OnNewThreadCreated="HandleNewThreadCreated" />
                     </div>
                 </div>
             </div>
@@ -811,7 +798,7 @@
     private async Task HandleThreadUpdated(DiscussionThread updatedThread)
     {
         if (classSession.DiscussionThreads == null)
-            return;
+            classSession.DiscussionThreads = new List<DiscussionThread>();
 
         var existingThreadIndex = classSession.DiscussionThreads.FindIndex(t => t.Id == updatedThread.Id);
         if (existingThreadIndex >= 0)
@@ -827,7 +814,12 @@
         if (classSession.DiscussionThreads == null)
             classSession.DiscussionThreads = new List<DiscussionThread>();
 
-        classSession.DiscussionThreads.Add(newThread);
+        // Check if thread already exists to prevent duplicates
+        if (!classSession.DiscussionThreads.Any(t => t.Id == newThread.Id))
+        {
+            classSession.DiscussionThreads.Add(newThread);
+        }
+
         StateHasChanged();
     }
 }
