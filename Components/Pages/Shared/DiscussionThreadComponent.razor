@@ -152,6 +152,7 @@
     [Parameter] public Person CurrentUser { get; set; }
     [Parameter] public EventCallback<DiscussionThread> OnThreadUpdated { get; set; }
     [Parameter] public EventCallback<DiscussionThread> OnNewThreadCreated { get; set; }
+    [Parameter] public int ClassSessionId { get; set; }
 
     private DiscussionPost newReply = new();
     private DiscussionPost newFirstPost = new();
@@ -168,7 +169,7 @@
             newReply = new();
             replyingToThreadId = 0;
 
-            await SchoolDataService.UpdateDiscussionThread(thread);
+            await SchoolDataService.UpdateDiscussionThread(thread, ClassSessionId);
             await OnThreadUpdated.InvokeAsync(thread);
 
             expandedThreads.Add(thread.Id);
@@ -179,7 +180,7 @@
     {
         if (!string.IsNullOrWhiteSpace(newFirstPost.Comment) && CurrentUser != null)
         {
-            int threadId = await SchoolDataService.GetNextThreadId();
+            int threadId = await SchoolDataService.GetNextThreadId(ClassSessionId);
             int postId = await SchoolDataService.GetNextPostId();
 
             var newThread = LogicMethods.StartDiscussion(
@@ -191,7 +192,7 @@
 
             newFirstPost = new();
 
-            await SchoolDataService.AddDiscussionThread(newThread);
+            await SchoolDataService.AddDiscussionThread(newThread, ClassSessionId);
             await OnNewThreadCreated.InvokeAsync(newThread);
         }
     }

@@ -300,38 +300,32 @@
 
                 <!-- Discussion Section -->
                 <div class="card mb-4">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">Discussion</h4>
-                        <button class="btn btn-sm btn-light" @onclick="StartNewDiscussion">
-                            <i class="fa fa-comment"></i> New Discussion
-                        </button>
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Class Discussion</h4>
                     </div>
                     <div class="card-body">
                         @if (classSession.DiscussionThreads == null || !classSession.DiscussionThreads.Any())
                         {
-                            <p class="text-muted">No discussions started yet.</p>
+                            <DiscussionThreadComponent Thread="null"
+                                                       AllThreads="new List<DiscussionThread>()"
+                                                       AllowReplies="true"
+                                                       CurrentUser="currentStudent?.Person ?? currentTeacher?.Person"
+                                                       ClassSessionId="classSession.Id"
+                                                       OnThreadUpdated="HandleThreadUpdated"
+                                                       OnNewThreadCreated="HandleNewThreadCreated" />
                         }
                         else
                         {
-                            <div class="list-group">
-                                @foreach (var thread in classSession.DiscussionThreads.OrderByDescending(t => t.LastUpdatedAt))
-                                {
-                                    <a href="#" class="list-group-item list-group-item-action" @onclick="() => ViewDiscussion(thread)" @onclick:preventDefault>
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h5 class="mb-1">@thread.FirstPost.Comment.Substring(0, Math.Min(50, thread.FirstPost.Comment.Length))@(thread.FirstPost.Comment.Length > 50 ? "..." : "")</h5>
-                                            <small>@thread.LastUpdatedAt.ToString("MMM d")</small>
-                                        </div>
-                                        <p class="mb-1">
-                                            Started by @thread.FirstPost.Author.FirstName @thread.FirstPost.Author.LastName
-                                        </p>
-                                        <small>@thread.Replies.Count replies</small>
-                                    </a>
-                                }
-                            </div>
+                            <DiscussionThreadComponent Thread="classSession.DiscussionThreads.FirstOrDefault()"
+                                                       AllThreads="classSession.DiscussionThreads"
+                                                       AllowReplies="true"
+                                                       CurrentUser="currentStudent?.Person ?? currentTeacher?.Person"
+                                                       ClassSessionId="classSession.Id"
+                                                       OnThreadUpdated="HandleThreadUpdated"
+                                                       OnNewThreadCreated="HandleNewThreadCreated" />
                         }
                     </div>
                 </div>
-            </div>
 
             <!-- Right Column (4 columns) -->
             <div class="col-md-4">
