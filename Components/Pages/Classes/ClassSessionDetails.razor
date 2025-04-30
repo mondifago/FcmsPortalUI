@@ -194,7 +194,7 @@
                                 @if (!string.IsNullOrEmpty(classSession.LessonPlan))
                                 {
                                     <div class="formatted-content">
-                                        @((MarkupString)FormatLessonPlan(classSession.LessonPlan))
+                                        @((MarkupString)Util.FormatTextWithLinks(classSession.LessonPlan))
                                     </div>
                                 }
                                 else
@@ -242,7 +242,14 @@
                         else
                         {
                             <p class="@(string.IsNullOrEmpty(classSession.TeacherRemarks) ? "text-muted" : "")">
-                                @(string.IsNullOrEmpty(classSession.TeacherRemarks) ? "No remarks available yet." : classSession.TeacherRemarks)
+                                @if (string.IsNullOrEmpty(classSession.TeacherRemarks))
+                                {
+                                    <span>No remarks available yet.</span>
+                                }
+                                else
+                                {
+                                    @((MarkupString)Util.FormatTextWithLinks(classSession.TeacherRemarks))
+                                }
                             </p>
                         }
                     </div>
@@ -785,14 +792,6 @@
     private void CancelLessonPlanEdit()
     {
         editingLessonPlan = false;
-    }
-
-    private string FormatLessonPlan(string content)
-    {
-        if (string.IsNullOrEmpty(content))
-            return "";
-
-        return content.Replace(Environment.NewLine, "<br>").Replace("\n", "<br>");
     }
 
     private async Task HandleThreadUpdated(DiscussionThread updatedThread)

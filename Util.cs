@@ -1,4 +1,5 @@
 ﻿using FcmsPortal.Models;
+using System.Text.RegularExpressions;
 
 namespace FcmsPortalUI
 {
@@ -23,6 +24,32 @@ namespace FcmsPortalUI
                 initials += person.LastName[0];
 
             return initials;
+        }
+
+        public static string FormatTextWithLinks(string content)
+        {
+            if (string.IsNullOrEmpty(content))
+                return "";
+
+            // Replace newlines with HTML breaks
+            string formatted = content.Replace(Environment.NewLine, "<br>").Replace("\n", "<br>");
+
+            // Convert URLs to clickable links
+            string urlPattern = @"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})";
+            formatted = Regex.Replace(
+                formatted,
+                urlPattern,
+                match =>
+                {
+                    string url = match.Value;
+                    // Ensure URL has http/https prefix
+                    if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+                        url = "https://" + url;
+                    return $"<a href=\"{url}\" target=\"_blank\">{match.Value}</a>";
+                }
+            );
+
+            return formatted;
         }
     }
 }
