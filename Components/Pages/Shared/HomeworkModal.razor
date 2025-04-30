@@ -51,26 +51,6 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Attachments</label>
-                        @if (showAttachments)
-                        {
-                            <FileAttachmentManager Title="Homework Attachments"
-                                                   Category="@($"Homework-{homework.Id}")"
-                                                   ReferenceId="homework.Id"
-                                                   AllowUpload="true"
-                                                   AllowDelete="true"
-                                                   AllowMultiple="true"
-                                                   OnAttachmentsChanged="HandleAttachmentsChanged" />
-                        }
-                        else
-                        {
-                            <div class="alert alert-info">
-                                <p class="mb-0">Save the homework first to add attachments.</p>
-                            </div>
-                        }
-                    </div>
-
                     @if (IsEditing && homework.Submissions != null && homework.Submissions.Any())
                     {
                         <div class="mb-3">
@@ -171,7 +151,7 @@
                         <label class="form-label">Answer</label>
                         <div class="card">
                             <div class="card-body">
-                                @((MarkupString)FormatAnswer(selectedSubmission.Answer))
+                                @((MarkupString)Util.FormatTextWithLinks(selectedSubmission.Answer))
                             </div>
                         </div>
                     </div>
@@ -245,7 +225,6 @@
 
     private Homework homework = new Homework();
     private bool IsEditing => ExistingHomework != null;
-    private bool showAttachments => IsEditing && homework.Id > 0;
     private bool showSubmissionModal = false;
     private HomeworkSubmission selectedSubmission;
 
@@ -264,7 +243,6 @@
         {
             if (IsEditing)
             {
-                // Clone the existing homework to avoid modifying the original directly
                 homework = new Homework
                     {
                         Id = ExistingHomework.Id,
@@ -274,7 +252,6 @@
                         ClassSessionId = ExistingHomework.ClassSessionId,
                         ClassSession = ExistingHomework.ClassSession,
                         Question = ExistingHomework.Question,
-                        Attachments = ExistingHomework.Attachments,
                         Submissions = ExistingHomework.Submissions
                     };
             }
@@ -288,16 +265,10 @@
                         ClassSessionId = ClassSession?.Id ?? 0,
                         ClassSession = ClassSession,
                         Question = "",
-                        Attachments = new List<FileAttachment>(),
                         Submissions = new List<HomeworkSubmission>()
                     };
             }
         }
-    }
-
-    private void HandleAttachmentsChanged(List<FileAttachment> attachments)
-    {
-        homework.Attachments = attachments;
     }
 
     private void ViewSubmission(HomeworkSubmission submission)
@@ -313,15 +284,6 @@
         selectedSubmission = null;
     }
 
-    private string FormatAnswer(string answer)
-    {
-        if (string.IsNullOrEmpty(answer))
-            return "<em>No answer provided</em>";
-
-        // Replace newlines with HTML breaks for proper display
-        return answer.Replace(Environment.NewLine, "<br>").Replace("\n", "<br>");
-    }
-
     private async Task SubmitGrade()
     {
         if (selectedSubmission != null && !selectedSubmission.IsGraded)
@@ -334,7 +296,7 @@
                     GradeType = GradeType.Homework,
                     WeightPercentage = 100, // Default weight for homework
                     Teacher = CurrentTeacher,
-                    Semester = Semester.First, // You might want to get this from the current semester
+                    Semester = Semester.First, //get this from the current semester
                     Date = DateTime.Now,
                     TeacherRemark = gradeModel.Feedback
                 };
@@ -364,7 +326,6 @@
         {
             // Generate a new ID for the homework
             // In a real app, this would be handled by the database
-            // Here we're simulating it
             int nextId = 1;
             if (ClassSession.HomeworkDetails != null && ClassSession.HomeworkDetails.Any())
             {
