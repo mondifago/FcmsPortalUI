@@ -51,9 +51,6 @@ else
         if (learningPath.Schedule == null)
             learningPath.Schedule = new List<ScheduleEntry>();
 
-        if (learningPath.GradesList == null)
-            learningPath.GradesList = new Dictionary<Student, CourseGrade>();
-
         if (learningPath.AcademicYearStart == default)
             learningPath.AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1);
     }
