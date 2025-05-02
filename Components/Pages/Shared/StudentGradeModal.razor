@@ -98,21 +98,17 @@
     {
         if (IsVisible && Student != null && LearningPath != null)
         {
-            // Get available courses for this education level
             availableCourses = CourseDefaults.GetCourseNames(LearningPath.EducationLevel);
 
-            // Try to find existing grade
             var existingGrade = SchoolDataService.GetStudentGradeInLearningPath(
                 LearningPath.Id, Student.Id);
 
             if (existingGrade != null)
             {
-                // Edit existing grade
                 gradeModel = existingGrade;
             }
             else
             {
-                // Create new grade
                 gradeModel = new CourseGrade
                     {
                         StudentId = Student.Id,
