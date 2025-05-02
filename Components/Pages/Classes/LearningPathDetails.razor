@@ -3,6 +3,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal
+@using FcmsPortalUI.Components.Pages.Shared
 @using System.Globalization
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
@@ -243,8 +244,91 @@
                         </button>
                     </div>
                 </div>
+                <!-- Add Student Grade -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Student Grades Rankings</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (gradeReport == null || !gradeReport.RankedStudents.Any())
+                        {
+                            <div class="alert alert-info">
+                                <p class="mb-0">No grades have been recorded for this learning path yet.</p>
+                                @if (isTeacher)
+                                {
+                                    <button class="btn btn-primary mt-3" @onclick="ShowRecordGradeModal">
+                                        <i class="fa fa-plus-circle"></i> Record Grades
+                                    </button>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Student</th>
+                                            <th>Overall Grade</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < gradeReport.RankedStudents.Count; i++)
+                                        {
+                                            var studentGrade = gradeReport.RankedStudents[i];
+                                            var rank = i + 1;
+
+                                            <tr>
+                                                <td>
+                                                    @if (rank <= 3)
+                                                    {
+                                                        <span class="badge rounded-pill bg-@(rank == 1 ? "warning text-dark" : rank == 2 ? "secondary" : "bronze")">
+                                                            @rank
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        @rank
+                                                    }
+                                                </td>
+                                                <td>@studentGrade.Student.Person.FirstName @studentGrade.Student.Person.LastName</td>
+                                                <td>@studentGrade.SemesterOverallGrade.ToString("F2")</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-info" @onclick="() => ViewStudentGradeDetails(studentGrade.Student)">
+                                                        <i class="fa fa-eye"></i> Details
+                                                    </button>
+                                                    @if (isTeacher)
+                                                    {
+                                                        <button class="btn btn-sm btn-warning ms-2" @onclick="() => EditStudentGrade(studentGrade.Student)">
+                                                            <i class="fa fa-pencil"></i> Edit
+                                                        </button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if (isTeacher)
+                            {
+                                <div class="mt-3">
+                                    <button class="btn btn-primary" @onclick="ShowRecordGradeModal">
+                                        <i class="fa fa-plus-circle"></i> Record New Grades
+                                    </button>
+                                    <button class="btn btn-success ms-2" @onclick="FinalizeGrades" disabled="@gradeReport.IsFinalized">
+                                        <i class="fa fa-check-circle"></i> Finalize Grades
+                                    </button>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
             </div>
         </div>
+
+
 
         <!-- Session Details Modal -->
         @if (selectedSession != null)
@@ -419,6 +503,11 @@
     <div class="modal-backdrop fade show"></div>
 }
 
+<StudentGradeModal IsVisible="showGradeModal"
+                  Student="selectedStudent"
+                  LearningPath="learningPath"
+                  OnSave="HandleSaveGrade"
+                  OnClose="() => showGradeModal = false" />
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -435,14 +524,15 @@
     private bool showAddStudentsModal = false;
     private List<Student> availableStudents = new List<Student>();
     private List<int> selectedStudentIds = new List<int>();
+    private LearningPathGradeReport gradeReport;
+    private Student selectedStudent;
+    private bool showGradeModal = false;
+    private bool showGradeDetailsModal = false;
     
-    
-   
-   
-
     protected override void OnInitialized()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id);
+        gradeReport = SchoolDataService.GetGradeReportForLearningPath(Id);
         UpdateCalendarInfo();
     }
     
@@ -660,5 +750,42 @@
 
         // Navigate to the ScheduleEntryList component with both path parameters
         NavigationManager.NavigateTo($"/learningpath/{learningPath.Id}/schedules/{formattedDate}");
+    }
+
+    private void ShowRecordGradeModal()
+    {
+        showGradeModal = true;
+    }
+
+    private void ViewStudentGradeDetails(Student student)
+    {
+        selectedStudent = student;
+        showGradeDetailsModal = true;
+    }
+
+    private void EditStudentGrade(Student student)
+    {
+        selectedStudent = student;
+        showGradeModal = true;
+    }
+
+    private void FinalizeGrades()
+    {
+        if (gradeReport != null && !gradeReport.IsFinalized)
+        {
+            gradeReport.IsFinalized = true;
+            SchoolDataService.UpdateGradeReport(gradeReport);
+        }
+    }
+
+    private async Task HandleSaveGrade(CourseGrade grade)
+    {
+        // Save the grade
+        SchoolDataService.SaveCourseGrade(grade);
+
+        // Refresh the grade report
+        gradeReport = SchoolDataService.GetGradeReportForLearningPath(Id);
+
+        showGradeModal = false;
     }
 }
