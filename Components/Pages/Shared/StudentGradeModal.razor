@@ -1,0 +1,139 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">@(IsEditing ? "Edit" : "Record") Student Grade</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Student == null || LearningPath == null)
+                {
+                    <p>Error: Missing student or learning path information.</p>
+                }
+                else
+                {
+                    <EditForm Model="@gradeModel" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="mb-3">
+                            <label class="form-label">Student</label>
+                            <input type="text" class="form-control" value="@Student.Person.FirstName @Student.Person.LastName" disabled />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="course" class="form-label">Course<span class="text-danger">*</span></label>
+                            <InputSelect id="course" @bind-Value="gradeModel.Course" class="form-select">
+                                <option value="">-- Select Course --</option>
+                                @foreach (var course in availableCourses)
+                                {
+                                    <option value="@course">@course</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="totalGrade" class="form-label">Grade Score<span class="text-danger">*</span></label>
+                            <InputNumber id="totalGrade" @bind-Value="gradeModel.TotalGrade" class="form-control" min="0" max="100" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="finalGradeCode" class="form-label">Grade Code</label>
+                            <InputSelect id="finalGradeCode" @bind-Value="gradeModel.FinalGradeCode" class="form-select">
+                                <option value="A">A (Excellent)</option>
+                                <option value="B">B (Very Good)</option>
+                                <option value="C">C (Good)</option>
+                                <option value="D">D (Pass)</option>
+                                <option value="F">F (Fail)</option>
+                            </InputSelect>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="attendancePercentage" class="form-label">Attendance Percentage</label>
+                            <InputNumber id="attendancePercentage" @bind-Value="gradeModel.AttendancePercentage" class="form-control" min="0" max="100" />
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Grade</button>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public Student Student { get; set; }
+
+    [Parameter]
+    public LearningPath LearningPath { get; set; }
+
+    [Parameter]
+    public EventCallback<CourseGrade> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private CourseGrade gradeModel = new CourseGrade();
+    private List<string> availableCourses = new List<string>();
+    private bool IsEditing => gradeModel.Id > 0;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && Student != null && LearningPath != null)
+        {
+            // Get available courses for this education level
+            availableCourses = CourseDefaults.GetCourseNames(LearningPath.EducationLevel);
+
+            // Try to find existing grade
+            var existingGrade = SchoolDataService.GetStudentGradeInLearningPath(
+                LearningPath.Id, Student.Id);
+
+            if (existingGrade != null)
+            {
+                // Edit existing grade
+                gradeModel = existingGrade;
+            }
+            else
+            {
+                // Create new grade
+                gradeModel = new CourseGrade
+                    {
+                        StudentId = Student.Id,
+                        LearningPathId = LearningPath.Id,
+                        TestGrades = new List<TestGrade>(),
+                        FinalGradeCode = "C",
+                        TotalGrade = 0,
+                        AttendancePercentage = 0
+                    };
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        await OnSave.InvokeAsync(gradeModel);
+        Close();
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}
