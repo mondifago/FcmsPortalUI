@@ -1,6 +1,7 @@
 ﻿@using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal
 @inject ISchoolDataService SchoolDataService
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -61,7 +62,7 @@
 
                     <div class="d-flex justify-content-end mt-4">
                         <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
-                        <button type="submit" class="btn btn-primary" disabled="@(!IsFormValid())">Update Class Session</button>
+                        <button type="submit" class="btn btn-primary">Update Class Session</button>
                     </div>
                 </EditForm>
             </div>
@@ -93,6 +94,7 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
+    private School school;
     private ClassSession classSession = new ClassSession();
     private string selectedCourse = "";
     private int selectedTeacherId = 0;
@@ -101,15 +103,14 @@
 
     protected override void OnInitialized()
     {
+        school = SchoolDataService.GetSchool();
         LoadData();
     }
 
     protected override void OnParametersSet()
     {
-        // Reset form when modal opens and load existing data
         if (IsVisible && ExistingClassSession != null)
         {
-            // Copy existing class session data to avoid modifying the original directly
             classSession = new ClassSession
                 {
                     Id = ExistingClassSession.Id,
@@ -120,30 +121,16 @@
                     Teacher = ExistingClassSession.Teacher
                 };
 
-            // Set selected course and teacher
             selectedCourse = ExistingClassSession.Course;
             selectedTeacherId = ExistingClassSession.Teacher?.Id ?? 0;
-
             LoadData();
         }
     }
 
     private void LoadData()
     {
-        // Get available courses based on education level
         availableCourses = CourseDefaults.GetCourseNames(EducationLevel);
-
-        // Get available teachers
-        availableTeachers = SchoolDataService.GetStaff()
-            .Where(s => s.JobRole == JobRole.Teacher &&
-                       s.Person.EducationLevel == EducationLevel)
-            .ToList();
-    }
-
-    private bool IsFormValid()
-    {
-        return !string.IsNullOrEmpty(selectedCourse) &&
-               !string.IsNullOrEmpty(classSession.Topic);
+        availableTeachers = LogicMethods.GetTeachersByEducationLevel(school, EducationLevel);
     }
 
     private void Close()
@@ -153,13 +140,8 @@
 
     private async Task HandleSubmit()
     {
-        if (!IsFormValid())
-            return;
-
-        // Set course name
         classSession.Course = selectedCourse;
 
-        // Assign teacher if selected
         if (selectedTeacherId > 0)
         {
             var teacher = availableTeachers.FirstOrDefault(t => t.Id == selectedTeacherId);
@@ -172,7 +154,6 @@
         {
             classSession.Teacher = null;
         }
-
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }
