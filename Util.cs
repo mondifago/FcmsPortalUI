@@ -1,4 +1,5 @@
-﻿using FcmsPortal.Models;
+﻿using FcmsPortal.Constants;
+using FcmsPortal.Models;
 using System.Text.RegularExpressions;
 
 namespace FcmsPortalUI
@@ -31,10 +32,8 @@ namespace FcmsPortalUI
             if (string.IsNullOrEmpty(content))
                 return "";
 
-            // Replace newlines with HTML breaks
             string formatted = content.Replace(Environment.NewLine, "<br>").Replace("\n", "<br>");
 
-            // Convert URLs to clickable links
             string urlPattern = @"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})";
             formatted = Regex.Replace(
                 formatted,
@@ -42,7 +41,6 @@ namespace FcmsPortalUI
                 match =>
                 {
                     string url = match.Value;
-                    // Ensure URL has http/https prefix
                     if (!url.StartsWith("http://") && !url.StartsWith("https://"))
                         url = "https://" + url;
                     return $"<a href=\"{url}\" target=\"_blank\">{match.Value}</a>";
@@ -50,6 +48,20 @@ namespace FcmsPortalUI
             );
 
             return formatted;
+        }
+
+        public static string FormatFileSize(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB" };
+            int i = 0;
+            double size = bytes;
+
+            while (size >= FcmsConstants.BYTES_IN_KILOBYTE && i < suffixes.Length - 1)
+            {
+                size /= FcmsConstants.BYTES_IN_KILOBYTE;
+                i++;
+            }
+            return $"{size:F2} {suffixes[i]}";
         }
     }
 }

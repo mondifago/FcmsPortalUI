@@ -40,7 +40,7 @@
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <span>@file.Name</span>
-                                        <small class="text-muted ms-2">(@FormatFileSize(file.Size))</small>
+                                        <small class="text-muted ms-2">(@Util.FormatFileSize(file.Size))</small>
                                     </div>
                                     <button class="btn btn-sm btn-danger" @onclick="() => RemoveSelectedFile(file)">
                                         <span class="fa fa-x"></span>
@@ -85,7 +85,7 @@
                         {
                             <tr>
                                 <td>@attachment.FileName</td>
-                                <td>@FormatFileSize(attachment.FileSize)</td>
+                                <td>@Util.FormatFileSize(attachment.FileSize)</td>
                                 <td>@attachment.UploadDate.ToString("yyyy-MM-dd HH:mm")</td>
                                 <td>
                                     <div class="btn-group">
@@ -206,7 +206,6 @@
                 return;
             }
 
-            // Check for duplicate files
             if (!SelectedFiles.Any(f => f.Name == file.Name && f.Size == file.Size))
             {
                 SelectedFiles.Add(file);
@@ -284,20 +283,5 @@
         {
             IsLoading = false;
         }
-    }
-
-    private string FormatFileSize(long bytes)
-    {
-        string[] suffixes = { "B", "KB", "MB", "GB" };
-        int i = 0;
-        double size = bytes;
-
-        while (size >= 1024 && i < suffixes.Length - 1)
-        {
-            size /= 1024;
-            i++;
-        }
-
-        return $"{size:F2} {suffixes[i]}";
     }
 }
