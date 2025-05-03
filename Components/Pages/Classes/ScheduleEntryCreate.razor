@@ -155,12 +155,10 @@
             {
                 scheduleEntry.DateTime = DateTime.Today.AddHours(8);
             }
-
             scheduleEntry.Duration = TimeSpan.FromMinutes(60);
             scheduleEntry.IsRecurring = false;
             scheduleEntry.RecurrenceInterval = 1;
             scheduleEntry.EndDate = DateTime.Today.AddMonths(3);
-
             startTimeString = scheduleEntry.DateTime.ToString("HH:mm");
         }
     }
@@ -183,7 +181,6 @@
         {
             scheduleEntry.Title = $"{classSession.Course} - {classSession.Topic}";
         }
-
         StateHasChanged();
     }
 
@@ -191,10 +188,7 @@
     {
         if (TimeOnly.TryParse(startTimeString, out var timeOnly))
         {
-            // Get just the date part
             var dateOnly = DateOnly.FromDateTime(scheduleEntry.DateTime);
-
-            // Combine date and time
             scheduleEntry.DateTime = dateOnly.ToDateTime(timeOnly);
         }
 
@@ -203,7 +197,6 @@
         if (scheduleEntry.IsRecurring)
         {
             var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
-
             foreach (var entry in recurringEntries)
             {
                 SchoolDataService.AddScheduleEntry(LearningPathId, entry);
