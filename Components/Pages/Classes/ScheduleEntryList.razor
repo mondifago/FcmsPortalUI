@@ -3,6 +3,7 @@
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal
 @using System.Globalization
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
@@ -233,7 +234,6 @@
 
     protected override void OnParametersSet()
     {
-        // Parse the date parameter
         if (!string.IsNullOrEmpty(Date) && DateTime.TryParse(Date, out var parsedDate))
         {
             filterDate = parsedDate;
@@ -242,7 +242,6 @@
         {
             filterDate = null;
         }
-
         LoadData();
     }
 
@@ -250,20 +249,17 @@
     {
         learningPath = SchoolDataService.GetLearningPathById(LearningPathId);
 
-        if (learningPath != null && learningPath.Schedule != null)
+        if (learningPath != null)
         {
-            scheduleEntries = learningPath.Schedule.ToList();
-
             if (filterDate.HasValue)
             {
-                scheduleEntries = scheduleEntries
-                    .Where(s => s.DateTime.Date == filterDate.Value.Date)
-                    .ToList();
+                scheduleEntries = LogicMethods.GetSchedulesByDateInLearningPath(learningPath, filterDate.Value);
             }
-
-            scheduleEntries = scheduleEntries
-                .OrderBy(s => s.DateTime)
-                .ToList();
+            else
+            {
+                scheduleEntries = LogicMethods.GetAllSchedulesInLearningPath(learningPath);
+            }
+            scheduleEntries = scheduleEntries.OrderBy(s => s.DateTime).ToList();
         }
     }
 
