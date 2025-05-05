@@ -24,7 +24,7 @@
 
     @if (classSession == null)
     {
-        <div class="d-flex justify-content-center">
+        <div class="d-flex justify-content-center" >
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -138,9 +138,9 @@
                                         <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center @(selectedPdfUrl == material.FilePath ? "active" : "")"
                                                 @onclick="() => SelectMaterial(material)">
                                             <div>
-                                                <i class="@GetFileIcon(material.FileName) me-2"></i>
+                                                <i class="@Util.GetFileIcon(material.FileName) me-2"></i>
                                                 @material.FileName
-                                                <small class="text-muted ms-2">(@FormatFileSize(material.FileSize))</small>
+                                                <small class="text-muted ms-2">(@Util.FormatFileSize(material.FileSize))</small>
                                             </div>
                                             <div>
                                                 <a href="@material.FilePath" target="_blank" class="btn btn-sm btn-outline-primary me-2" @onclick:stopPropagation>
@@ -469,13 +469,14 @@
     [Parameter]
     public int Id { get; set; }
 
+    private School school;
     private string selectedPdfUrl;
     private ClassSession classSession;
     private ScheduleEntry scheduleEntry;
     private List<Student> learningPathStudents = new List<Student>();
-    private bool isTeacher = true; // For demo, assuming user is a teacher
-    private Staff currentTeacher; // Current logged-in teacher
-    private Student currentStudent; // For testing student view
+    private bool isTeacher = true; 
+    private Staff currentTeacher; 
+    private Student currentStudent; 
     private bool showMaterialsUpload = false;
     private bool showRemarksEditor = false;
     private bool showAttendanceForm = false;
@@ -485,6 +486,7 @@
     private HomeworkSubmission existingSubmission;
     private bool editingLessonPlan = false;
     private LessonPlanModel lessonPlanModel = new LessonPlanModel();
+    private RemarksModel remarksModel = new RemarksModel();
 
     private class LessonPlanModel
     {
@@ -496,7 +498,7 @@
         public string Remarks { get; set; }
     }
 
-    private RemarksModel remarksModel = new RemarksModel();
+
 
     private class AttendanceModel
     {
@@ -507,83 +509,27 @@
 
     protected override void OnInitialized()
     {
-        // Get the class session
+        school = SchoolDataService.GetSchool();
         classSession = SchoolDataService.GetClassSessionById(Id);
 
         if (classSession != null)
         {
-            // Set remarks model
             remarksModel.Remarks = classSession.TeacherRemarks ?? "";
-
-            // Initialize lesson plan model
             lessonPlanModel.Content = classSession.LessonPlan ?? "";
+            scheduleEntry = LogicMethods.GetScheduleEntryForClassSession(school, Id);
+            learningPathStudents = LogicMethods.GetExpectedStudentsForClassSession(school, classSession);
 
-            // Get the schedule entry containing this class session
-            scheduleEntry = GetScheduleEntryForClassSession(Id);
-
-            // Get students for this class
-            learningPathStudents = GetStudentsForClassSession(Id);
-
-            // Initialize attendance model with all students
             foreach (var student in learningPathStudents)
             {
-                attendanceModel.PresentStudentIds[student.Id] = true; // Default all present
+                attendanceModel.PresentStudentIds[student.Id] = true; 
             }
-
-            // Set current teacher (for demo)
             currentTeacher = classSession.Teacher;
 
-            // Set a sample student for testing student view
             if (learningPathStudents.Any())
             {
                 currentStudent = learningPathStudents.First();
             }
         }
-    }
-
-    private ScheduleEntry GetScheduleEntryForClassSession(int classSessionId)
-    {
-        foreach (var learningPath in SchoolDataService.GetAllLearningPaths())
-        {
-            foreach (var schedule in learningPath.Schedule)
-            {
-                if (schedule.ClassSession?.Id == classSessionId)
-                {
-                    return schedule;
-                }
-            }
-        }
-        return null;
-    }
-
-    private List<Student> GetStudentsForClassSession(int classSessionId)
-    {
-        foreach (var learningPath in SchoolDataService.GetAllLearningPaths())
-        {
-            foreach (var schedule in learningPath.Schedule)
-            {
-                if (schedule.ClassSession?.Id == classSessionId)
-                {
-                    return learningPath.Students.ToList();
-                }
-            }
-        }
-        return new List<Student>();
-    }
-
-    private string FormatFileSize(long bytes)
-    {
-        string[] suffixes = { "B", "KB", "MB", "GB" };
-        int i = 0;
-        double size = bytes;
-
-        while (size >= 1024 && i < suffixes.Length - 1)
-        {
-            size /= 1024;
-            i++;
-        }
-
-        return $"{size:F2} {suffixes[i]}";
     }
 
     private void ToggleMaterialsUpload()
@@ -595,7 +541,6 @@
     {
         classSession.StudyMaterials = materials;
 
-        // If we have PDFs and none is currently selected, select the first PDF
         if (string.IsNullOrEmpty(selectedPdfUrl))
         {
             var firstPdf = materials.FirstOrDefault(m => IsPdfFile(m.FileName));
@@ -605,7 +550,6 @@
             }
         }
 
-        // Update the class session in database
         SchoolDataService.UpdateClassSession(classSession);
     }
 
@@ -613,8 +557,6 @@
     {
         classSession.TeacherRemarks = remarksModel.Remarks;
         showRemarksEditor = false;
-
-        // Update the class session in database
         SchoolDataService.UpdateClassSession(classSession);
     }
 
@@ -622,7 +564,6 @@
     {
         showAttendanceForm = !showAttendanceForm;
 
-        // Reset checkboxes to current attendance if available
         if (showAttendanceForm && classSession.AttendanceLog != null && classSession.AttendanceLog.Any())
         {
             var lastLog = classSession.AttendanceLog.Last();
@@ -635,7 +576,6 @@
 
     private void SaveAttendance()
     {
-        // Create lists of present and absent students
         List<Student> presentStudents = new List<Student>();
         List<Student> absentStudents = new List<Student>();
 
@@ -651,7 +591,6 @@
             }
         }
 
-        // Use LogicMethods to take attendance
         LogicMethods.TakeAttendanceForClassSession(
             SchoolDataService.GetSchool(),
             classSession,
@@ -675,7 +614,6 @@
 
     private void HandleHomeworkSaved(Homework homework)
     {
-        // Add or update the homework
         if (classSession.HomeworkDetails == null)
         {
             classSession.HomeworkDetails = new List<Homework>();
@@ -691,7 +629,6 @@
             classSession.HomeworkDetails.Add(homework);
         }
 
-        // Update in database
         SchoolDataService.UpdateClassSession(classSession);
     }
 
@@ -699,7 +636,6 @@
     {
         selectedHomework = homework;
 
-        // Check if the student already has a submission
         existingSubmission = homework.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent.Id);
 
         showSubmissionModal = true;
@@ -707,7 +643,6 @@
 
     private void HandleSubmissionSaved(HomeworkSubmission submission)
     {
-        // Add or update the submission
         if (selectedHomework.Submissions == null)
         {
             selectedHomework.Submissions = new List<HomeworkSubmission>();
@@ -723,7 +658,6 @@
             selectedHomework.Submissions.Add(submission);
         }
 
-        // Update in database
         SchoolDataService.UpdateClassSession(classSession);
     }
 
@@ -745,38 +679,17 @@
         return !string.IsNullOrEmpty(fileName) && fileName.ToLower().EndsWith(".pdf");
     }
 
-    private string GetFileIcon(string fileName)
-    {
-        if (string.IsNullOrEmpty(fileName))
-            return "fa fa-file";
-
-        string ext = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
-
-        return ext switch
-        {
-            ".pdf" => "fa fa-file-pdf",
-            ".doc" or ".docx" => "fa fa-file-word",
-            ".xls" or ".xlsx" => "fa fa-file-excel",
-            ".ppt" or ".pptx" => "fa fa-file-powerpoint",
-            ".jpg" or ".jpeg" or ".png" or ".gif" => "fa fa-file-image",
-            ".zip" or ".rar" => "fa fa-file-archive",
-            ".txt" => "fa fa-file-alt",
-            _ => "fa fa-file"
-        };
-    }
+   
 
     private async Task SaveLessonPlan()
     {
-        // Update the lesson plan in the class session
         classSession.LessonPlan = lessonPlanModel.Content;
 
-        // Update the curriculum using LogicMethods
         var curriculum = LogicMethods.GetOrCreateCurriculumForClassSession(
             SchoolDataService.GetSchool(),
             classSession
         );
 
-        // Save changes via the SchoolDataService
         SchoolDataService.UpdateClassSession(classSession);
         SchoolDataService.UpdateCurriculum(curriculum);
 
@@ -813,7 +726,6 @@
         if (classSession.DiscussionThreads == null)
             classSession.DiscussionThreads = new List<DiscussionThread>();
 
-        // Check if thread already exists to prevent duplicates
         if (!classSession.DiscussionThreads.Any(t => t.Id == newThread.Id))
         {
             classSession.DiscussionThreads.Add(newThread);

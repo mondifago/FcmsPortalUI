@@ -63,5 +63,25 @@ namespace FcmsPortalUI
             }
             return $"{size:F2} {suffixes[i]}";
         }
+
+        public static string GetFileIcon(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                return "fa fa-file";
+
+            string ext = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+
+            return ext switch
+            {
+                ".pdf" => "fa fa-file-pdf",
+                ".doc" or ".docx" => "fa fa-file-word",
+                ".xls" or ".xlsx" => "fa fa-file-excel",
+                ".ppt" or ".pptx" => "fa fa-file-powerpoint",
+                ".jpg" or ".jpeg" or ".png" or ".gif" => "fa fa-file-image",
+                ".zip" or ".rar" => "fa fa-file-archive",
+                ".txt" => "fa fa-file-alt",
+                _ => "fa fa-file"
+            };
+        }
     }
 }
