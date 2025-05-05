@@ -27,6 +27,21 @@ namespace FcmsPortalUI
             return initials;
         }
 
+        public static void ToggleItemSelection<T>(int itemId, object isChecked, HashSet<int> selectedIds)
+        {
+            if (isChecked is bool checkedValue)
+            {
+                if (checkedValue && !selectedIds.Contains(itemId))
+                {
+                    selectedIds.Add(itemId);
+                }
+                else if (!checkedValue && selectedIds.Contains(itemId))
+                {
+                    selectedIds.Remove(itemId);
+                }
+            }
+        }
+
         public static string FormatTextWithLinks(string content)
         {
             if (string.IsNullOrEmpty(content))

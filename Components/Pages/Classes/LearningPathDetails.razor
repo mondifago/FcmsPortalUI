@@ -199,8 +199,8 @@
                                             <i class="fa fa-user me-2"></i>
                                             @student.Person.FirstName @student.Person.LastName
                                         </div>
-                                        <span class="@(IsPaymentSuccessful(student) ? "badge bg-success" : "badge bg-warning")">
-                                            @(IsPaymentSuccessful(student) ? "Paid" : "Unpaid")
+                                        <span class="@(LogicMethods.IsPaymentSuccessful(student, learningPath) ? "badge bg-success" : "badge bg-warning")">
+                                            @(LogicMethods.IsPaymentSuccessful(student, learningPath) ? "Paid" : "Unpaid")
                                         </span>
                                     </div>
                                 }
@@ -397,7 +397,7 @@
                                 <label class="form-label">Select Student</label>
                                 <select class="form-select" @bind="selectedStudentId">
                                     <option value="0">-- Select Student --</option>
-                                    @foreach (var student in GetUnpaidStudents())
+                                    @foreach (var student in LogicMethods.GetUnpaidStudents(learningPath))
                                     {
                                         <option value="@student.Id">@student.Person.FirstName @student.Person.LastName</option>
                                     }
@@ -523,7 +523,7 @@
     private int selectedStudentId = 0;
     private bool showAddStudentsModal = false;
     private List<Student> availableStudents = new List<Student>();
-    private List<int> selectedStudentIds = new List<int>();
+    private HashSet<int> selectedStudentIds = new HashSet<int>();
     private LearningPathGradeReport gradeReport;
     private Student selectedStudent;
     private bool showGradeModal = false;
@@ -554,16 +554,7 @@
         UpdateCalendarInfo();
     }
     
-    private List<ScheduleEntry> GetSessionsForDate(DateTime date)
-    {
-        if (learningPath.Schedule == null)
-            return new List<ScheduleEntry>();
-            
-        return learningPath.Schedule
-            .Where(s => s.DateTime.Date == date.Date)
-            .OrderBy(s => s.DateTime.TimeOfDay)
-            .ToList();
-    }
+   
     
     private string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
     {
@@ -588,11 +579,15 @@
         if (learningPath != null)
         {
             learningPath.ApprovalStatus = status;
-            // In a real application, we would call a method to save the changes to the database
             StateHasChanged();
         }
     }
-    
+
+    private List<ScheduleEntry> GetSessionsForDate(DateTime date)
+    {
+        return LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date);
+    }
+
     private void ShowSessionDetails(ScheduleEntry session)
     {
         selectedSession = session;
@@ -601,22 +596,6 @@
     private void CloseSessionModal()
     {
         selectedSession = null;
-    }
-    
-    private bool IsPaymentSuccessful(Student student)
-    {
-        return learningPath.StudentsPaymentSuccessful != null && 
-               learningPath.StudentsPaymentSuccessful.Any(s => s.Id == student.Id);
-    }
-    
-    private List<Student> GetUnpaidStudents()
-    {
-        if (learningPath.Students == null)
-            return new List<Student>();
-            
-        return learningPath.Students
-            .Where(s => !IsPaymentSuccessful(s))
-            .ToList();
     }
     
     private void ShowRecordPaymentModal()
@@ -635,13 +614,12 @@
         if (selectedStudentId > 0)
         {
             var student = learningPath.Students.FirstOrDefault(s => s.Id == selectedStudentId);
-            if (student != null && !IsPaymentSuccessful(student))
+            if (student != null && !LogicMethods.IsPaymentSuccessful(student, learningPath))
             {
                 if (learningPath.StudentsPaymentSuccessful == null)
                     learningPath.StudentsPaymentSuccessful = new List<Student>();
                     
                 learningPath.StudentsPaymentSuccessful.Add(student);
-                // In a real application, we would call a method to save the changes to the database
             }
         }
         
@@ -650,13 +628,11 @@
 
     private void ShowAddStudentsModal()
     {
-        // Get eligible students (matching education/class level but not already in this learning path)
         var allEligibleStudents = LogicMethods.GetStudentsByLevel(
             SchoolDataService.GetSchool(),
             learningPath.EducationLevel,
             learningPath.ClassLevel);
 
-        // Filter out students already in the learning path
         availableStudents = allEligibleStudents
             .Where(s => !learningPath.Students.Any(existingStudent => existingStudent.Id == s.Id))
             .ToList();
@@ -677,22 +653,12 @@
 
     private void ToggleStudentSelection(int studentId, object isChecked)
     {
-        if (isChecked is bool checkedValue)
-        {
-            if (checkedValue && !selectedStudentIds.Contains(studentId))
-            {
-                selectedStudentIds.Add(studentId);
-            }
-            else if (!checkedValue && selectedStudentIds.Contains(studentId))
-            {
-                selectedStudentIds.Remove(studentId);
-            }
-        }
+        Util.ToggleItemSelection<Student>(studentId, isChecked, selectedStudentIds);
     }
 
     private void SelectAllStudents()
     {
-        selectedStudentIds = availableStudents.Select(s => s.Id).ToList();
+        selectedStudentIds = new HashSet<int>(availableStudents.Select(s => s.Id));
     }
 
     private void UnselectAllStudents()
@@ -705,18 +671,12 @@
         if (!selectedStudentIds.Any())
             return;
 
-        // Get the selected students
         var studentsToAdd = availableStudents
             .Where(s => selectedStudentIds.Contains(s.Id))
             .ToList();
 
-        // Add the students to the learning path
         LogicMethods.AddMultipleStudentsToLearningPath(learningPath, studentsToAdd);
-
-        // Update the learning path
         SchoolDataService.UpdateLearningPath(learningPath);
-
-        // Refresh the page data
         learningPath = SchoolDataService.GetLearningPathById(Id);
 
         CloseAddStudentsModal();
@@ -724,31 +684,25 @@
 
     private void SubmitForReview()
     {
-        // Update the status to Review
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Review;
         SchoolDataService.UpdateLearningPath(learningPath);
     }
 
     private void ApproveLearnignPath()
     {
-        // Approve the learning path
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
         SchoolDataService.UpdateLearningPath(learningPath);
     }
 
     private void RestoreLearningPath()
     {
-        // Restore to pending state
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Pending;
         SchoolDataService.UpdateLearningPath(learningPath);
     }
 
     private void NavigateToScheduleList(DateTime date)
     {
-        // Format the date as ISO 8601 for URL compatibility
         string formattedDate = date.ToString("yyyy-MM-dd");
-
-        // Navigate to the ScheduleEntryList component with both path parameters
         NavigationManager.NavigateTo($"/learningpath/{learningPath.Id}/schedules/{formattedDate}");
     }
 
@@ -780,10 +734,7 @@
 
     private async Task HandleSaveGrade(CourseGrade grade)
     {
-        // Save the grade
         SchoolDataService.SaveCourseGrade(grade);
-
-        // Refresh the grade report
         gradeReport = SchoolDataService.GetGradeReportForLearningPath(Id);
 
         showGradeModal = false;
