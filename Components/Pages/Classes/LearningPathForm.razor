@@ -217,7 +217,7 @@
     private School school;
     private List<Student> availableStudents = new List<Student>();
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
-    private List<int> selectedStudentIds = new List<int>();
+    private HashSet<int> selectedStudentIds = new HashSet<int>();
     private int academicYearStartYear = DateTime.Now.Year;
 
     protected override void OnInitialized()
@@ -239,7 +239,7 @@
         academicYearStartYear = LearningPath.AcademicYearStart.Year;
         availableClassLevels = LogicMethods.GetAvailableClassLevels(LearningPath.EducationLevel);
         UpdateAvailableStudents();
-        selectedStudentIds = LearningPath.Students.Select(s => s.Id).ToList();
+        selectedStudentIds = new HashSet<int>(LearningPath.Students.Select(s => s.Id));
     }
 
     private async Task OnEducationLevelChanged()
@@ -262,11 +262,25 @@
         {
             availableStudents = LogicMethods.GetStudentsByLevel(school, LearningPath.EducationLevel, LearningPath.ClassLevel);
 
-            var existingIds = LearningPath.Students.Select(s => s.Id).ToList();
-            selectedStudentIds = selectedStudentIds
-                .Where(id => availableStudents.Any(s => s.Id == id))
-                .Union(existingIds.Where(id => availableStudents.Any(s => s.Id == id)))
-                .ToList();
+            var existingIds = new HashSet<int>(LearningPath.Students.Select(s => s.Id));
+
+            var newSelectedIds = new HashSet<int>();
+
+            foreach (var id in selectedStudentIds)
+            {
+                if (availableStudents.Any(s => s.Id == id))
+                {
+                    newSelectedIds.Add(id);
+                }
+            }
+            foreach (var id in existingIds)
+            {
+                if (availableStudents.Any(s => s.Id == id))
+                {
+                    newSelectedIds.Add(id);
+                }
+            }
+            selectedStudentIds = newSelectedIds;
         }
         else
         {
@@ -301,24 +315,12 @@
 
     private void ToggleStudentSelection(int studentId, object isChecked)
     {
-        if (isChecked is bool checkedValue)
-        {
-            if (checkedValue && !selectedStudentIds.Contains(studentId))
-            {
-                selectedStudentIds.Add(studentId);
-            }
-            else if (!checkedValue && selectedStudentIds.Contains(studentId))
-            {
-                selectedStudentIds.Remove(studentId);
-            }
-        }
+        Util.ToggleItemSelection<Student>(studentId, isChecked, selectedStudentIds);
     }
 
     private void SelectAllStudents()
     {
-        selectedStudentIds.Clear();
-        selectedStudentIds.AddRange(availableStudents.Select(s => s.Id));
-        StateHasChanged();
+        selectedStudentIds = new HashSet<int>(availableStudents.Select(s => s.Id));
     }
 
     private void UnselectAllStudents()
