@@ -412,3 +412,34 @@ main {
         background-color: #e0e0e0;
     }
 
+/* PDF Viewer Styles */
+.pdf-viewer-container {
+    height: 500px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.pdf-viewer-placeholder {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background-color: #f8f9fa;
+}
+
+    .pdf-viewer-placeholder i {
+        font-size: 5rem;
+    }
+
+/* Large file icon for empty states */
+.file-icon-large {
+    font-size: 5rem;
+}
+
+/* Badge color for bronze (3rd place) in rankings */
+.bg-bronze {
+    background-color: #cd7f32;
+    color: white;
+}

@@ -162,18 +162,18 @@
                     {
                         <div class="mb-3">
                             <label class="form-label">Grade Submission</label>
-                            <EditForm Model="@gradeModel" OnValidSubmit="SubmitGrade">
+                            <EditForm Model="@homeworkGradeModel" OnValidSubmit="SubmitGrade">
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="score">Score</label>
-                                            <InputNumber id="score" @bind-Value="gradeModel.Score" class="form-control" min="0" max="100" />
+                                            <InputNumber id="score" @bind-Value="homeworkGradeModel.Score" class="form-control" min="0" max="100" />
                                         </div>
                                     </div>
                                     <div class="col-md-8">
                                         <div class="form-group">
                                             <label for="feedback">Feedback</label>
-                                            <InputTextArea id="feedback" @bind-Value="gradeModel.Feedback" class="form-control" rows="3" />
+                                            <InputTextArea id="feedback" @bind-Value="homeworkGradeModel.Feedback" class="form-control" rows="3" />
                                         </div>
                                     </div>
                                 </div>
@@ -228,14 +228,7 @@
     private bool showSubmissionModal = false;
     private HomeworkSubmission selectedSubmission;
 
-    private class GradeModel
-    {
-        [Range(0, 100, ErrorMessage = "Score must be between 0 and 100")]
-        public double Score { get; set; }
-        public string Feedback { get; set; } = "";
-    }
-
-    private GradeModel gradeModel = new GradeModel();
+    private TestGrade homeworkGradeModel = new TestGrade();
 
     protected override void OnParametersSet()
     {
@@ -257,7 +250,6 @@
             }
             else
             {
-                // Create a new homework
                 homework = new Homework
                     {
                         AssignedDate = DateTime.Today,
@@ -275,7 +267,7 @@
     {
         selectedSubmission = submission;
         showSubmissionModal = true;
-        gradeModel = new GradeModel();
+        homeworkGradeModel = new TestGrade();
     }
 
     private void CloseSubmissionModal()
@@ -288,30 +280,23 @@
     {
         if (selectedSubmission != null && !selectedSubmission.IsGraded)
         {
-            // Create new homework grade
             var homeworkGrade = new TestGrade
                 {
                     Course = ClassSession.Course,
-                    Score = gradeModel.Score,
+                    Score = homeworkGradeModel.Score,
                     GradeType = GradeType.Homework,
-                    WeightPercentage = 100, // Default weight for homework
+                    WeightPercentage = 100, 
                     Teacher = CurrentTeacher,
-                    Semester = Semester.First, //get this from the current semester
                     Date = DateTime.Now,
-                    TeacherRemark = gradeModel.Feedback
+                    TeacherRemark = homeworkGradeModel.TeacherRemark,
                 };
 
-            // Update submission
             selectedSubmission.HomeworkGrade = homeworkGrade;
             selectedSubmission.IsGraded = true;
-            selectedSubmission.FeedbackComment = gradeModel.Feedback;
+            selectedSubmission.FeedbackComment = homeworkGradeModel.TeacherRemark;
 
-            // Add the grade to the student's course grades using the LogicMethods
+            // Add the grade to the student's course grades
             LogicMethods.SubmitHomeworkGradeToStudent(selectedSubmission.Student, selectedSubmission);
-
-            // Update the submission in the database
-            // This would require a method in ISchoolDataService
-            // await SchoolDataService.UpdateHomeworkSubmission(selectedSubmission);
 
             CloseSubmissionModal();
         }
@@ -319,13 +304,8 @@
 
     private async Task HandleSubmit()
     {
-        // Ensure we have at least one question
-         homework.Question = "Please answer this question.";
-        
         if (!IsEditing)
         {
-            // Generate a new ID for the homework
-            // In a real app, this would be handled by the database
             int nextId = 1;
             if (ClassSession.HomeworkDetails != null && ClassSession.HomeworkDetails.Any())
             {
