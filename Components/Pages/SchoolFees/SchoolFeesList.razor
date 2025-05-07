@@ -1,9 +1,10 @@
 ﻿@page "/schoolfees"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @using System.Globalization
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <h3>School Fees</h3>
@@ -55,8 +56,7 @@ else
 
     protected override void OnInitialized()
     {
-        // Load data here from preferred data source
-        schoolFeesList = SchoolFeesService.GetAllSchoolFees();
+        schoolFeesList = SchoolDataService.GetAllSchoolFees();
     }
 
     private void NavigateToCreate()
@@ -76,8 +76,8 @@ else
 
     private void DeleteSchoolFees(int id)
     {
-        SchoolFeesService.DeleteSchoolFees(id);
-        schoolFeesList = SchoolFeesService.GetAllSchoolFees();
+        SchoolDataService.DeleteSchoolFees(id);
+        schoolFeesList = SchoolDataService.GetAllSchoolFees();
     }
 
     private void NavigateToManagePayments(int id)

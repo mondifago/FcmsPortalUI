@@ -1,9 +1,10 @@
 ﻿@page "/payments"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @using System.Globalization
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 
@@ -55,27 +56,8 @@ else
 
     protected override void OnInitialized()
     {
-        // Load my real data here
-        if (payments.Count == 0)
-        {
-            payments.Add(new Payment
-                {
-                    Id = 1,
-                    Amount = 500.00,
-                    Date = DateTime.Now.AddDays(-30),
-                    PaymentMethod = PaymentMethod.BankTransfer,
-                    Reference = 12345
-                });
-
-            payments.Add(new Payment
-                {
-                    Id = 2,
-                    Amount = 750.00,
-                    Date = DateTime.Now.AddDays(-15),
-                    PaymentMethod = PaymentMethod.Card,
-                    Reference = 23456
-                });
-        }
+        // Load data using SchoolDataService
+        payments = SchoolDataService.GetAllPayments();
     }
 
     private void NavigateToCreate()
@@ -95,10 +77,7 @@ else
 
     private void DeletePayment(int id)
     {
-        var payment = payments.FirstOrDefault(p => p.Id == id);
-        if (payment != null)
-        {
-            payments.Remove(payment);
-        }
+        SchoolDataService.DeletePayment(id);
+        payments = SchoolDataService.GetAllPayments();
     }
 }

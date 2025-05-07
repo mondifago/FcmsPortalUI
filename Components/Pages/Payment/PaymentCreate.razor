@@ -1,8 +1,9 @@
 ﻿@page "/payments/create"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <h3>Create Payment</h3>
@@ -46,21 +47,13 @@
 
 @code {
     private Payment payment = new Payment
-        {
-            Date = DateTime.Today
-        };
+    {
+        Date = DateTime.Today
+    };
 
     private void HandleValidSubmit()
     {
-        //TODO: 
-        // In a real application, this goes to data source
-        // For now, we'll just navigate back to the list
-        // will implement a PaymentService to handle data operations
-        // Assign a new ID (in a real app this would be handled by the database)
-        payment.Id = PaymentService.GetNextId();
-
-        PaymentService.AddPayment(payment);
-
+        SchoolDataService.AddPayment(payment);
         NavigationManager.NavigateTo("/payments");
     }
 

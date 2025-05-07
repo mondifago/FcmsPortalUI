@@ -1,9 +1,10 @@
 using FcmsPortal.Services;
 using FcmsPortalUI.Components;
 using FcmsPortalUI.Services;
+
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<AddressService>();
-
 
 builder.Services.AddSingleton<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ExceptionHandlerService>();

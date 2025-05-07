@@ -1,9 +1,10 @@
 ﻿@page "/payments/details/{Id:int}"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @using System.Globalization
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <h3>Payment Details</h3>
@@ -45,7 +46,7 @@ else
 
     protected override void OnInitialized()
     {
-        payment = PaymentService.GetPayment(Id);
+        payment = SchoolDataService.GetPayment(Id);
 
         if (payment == null)
         {

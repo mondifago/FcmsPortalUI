@@ -1,9 +1,10 @@
 ﻿@page "/schoolfees/edit/{Id:int}"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @using System.Globalization
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <h3>Edit School Fees</h3>
@@ -55,8 +56,7 @@ else
 
     protected override void OnInitialized()
     {
-        // In a real application, you would get this from my database
-        schoolFees = SchoolFeesService.GetSchoolFees(Id);
+        schoolFees = SchoolDataService.GetSchoolFees(Id);
 
         if (schoolFees == null)
         {
@@ -66,8 +66,7 @@ else
 
     private void HandleValidSubmit()
     {
-        // In a real application, this will be updated in the database
-        SchoolFeesService.UpdateSchoolFees(schoolFees);
+        SchoolDataService.UpdateSchoolFees(schoolFees);
         NavigationManager.NavigateTo("/schoolfees");
     }
 

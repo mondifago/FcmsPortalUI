@@ -1,9 +1,10 @@
 ﻿@page "/schoolfees/details/{Id:int}"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @using System.Globalization
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <h3>School Fees Details</h3>
@@ -76,8 +77,7 @@ else
 
     protected override void OnInitialized()
     {
-        // In a real application, this will come from databae
-        schoolFees = SchoolFeesService.GetSchoolFees(Id);
+        schoolFees = SchoolDataService.GetSchoolFees(Id);
 
         if (schoolFees == null)
         {

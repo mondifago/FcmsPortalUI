@@ -1,9 +1,10 @@
 ﻿@page "/schoolfees/{SchoolFeesId:int}/payments"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @using System.Globalization
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <h3>Manage Payments for School Fees #@SchoolFeesId</h3>
@@ -117,8 +118,7 @@ else
 
     protected override void OnInitialized()
     {
-        // In a real application, you would get this from my database
-        schoolFees = SchoolFeesService.GetSchoolFees(SchoolFeesId);
+        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
 
         if (schoolFees == null)
         {
@@ -128,10 +128,10 @@ else
 
     private void AddPayment()
     {
-        newPayment.Id = PaymentService.GetNextId();
-        PaymentService.AddPayment(newPayment);
+        newPayment.Id = SchoolDataService.GetNextPaymentId();
+        SchoolDataService.AddPayment(newPayment);
         schoolFees.Payments.Add(newPayment);
-        SchoolFeesService.UpdateSchoolFees(schoolFees);
+        SchoolDataService.UpdateSchoolFees(schoolFees);
         newPayment = new Payment { Date = DateTime.Today };
     }
 
@@ -141,8 +141,8 @@ else
         if (payment != null)
         {
             schoolFees.Payments.Remove(payment);
-            SchoolFeesService.UpdateSchoolFees(schoolFees);
-            PaymentService.DeletePayment(paymentId);
+            SchoolDataService.UpdateSchoolFees(schoolFees);
+            SchoolDataService.DeletePayment(paymentId);
         }
     }
 

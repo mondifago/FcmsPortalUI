@@ -1,8 +1,10 @@
 ﻿@page "/schoolfees/create"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
+@using System.Globalization
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <h3>Create School Fees</h3>
@@ -29,8 +31,7 @@
 
     private void HandleValidSubmit()
     {
-        // In a real application, this saves in database
-        SchoolFeesService.AddSchoolFees(schoolFees);
+        SchoolDataService.AddSchoolFees(schoolFees);
         NavigationManager.NavigateTo("/schoolfees");
     }
 

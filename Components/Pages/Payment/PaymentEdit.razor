@@ -1,8 +1,9 @@
 ﻿@page "/payments/edit/{Id:int}"
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
+@using FcmsPortal.Services
 @inject NavigationManager NavigationManager
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <h3>Edit Payment</h3>
@@ -64,7 +65,7 @@ else
 
     protected override void OnInitialized()
     {
-        payment = PaymentService.GetPayment(Id);
+        payment = SchoolDataService.GetPayment(Id);
 
         if (payment == null)
         {
@@ -74,8 +75,7 @@ else
 
     private void HandleValidSubmit()
     {
-        PaymentService.UpdatePayment(payment);
-
+        SchoolDataService.UpdatePayment(payment);
         NavigationManager.NavigateTo("/payments");
     }
 
