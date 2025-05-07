@@ -3,11 +3,7 @@ using FcmsPortalUI.Components;
 using FcmsPortalUI.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<AddressService>();
-//builder.Services.AddScoped<IFileAttachmentService, FileAttachmentService>();
-builder.Services.AddScoped<PaymentService>();
-builder.Services.AddScoped<SchoolFeesService>();
-builder.Services.AddScoped<GuardianService>();
-builder.Services.AddScoped<StaffService>();
+
 
 builder.Services.AddSingleton<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ExceptionHandlerService>();

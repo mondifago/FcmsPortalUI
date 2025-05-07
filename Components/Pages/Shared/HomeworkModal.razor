@@ -10,97 +10,104 @@
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-@(IsEditing ? "warning" : "primary") text-white">
                 <h5 class="modal-title">@(IsEditing ? "Edit" : "Create") Homework</h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm Model="@homework" OnValidSubmit="HandleSubmit">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
+                @if (ExistingHomework == null)
+                {
+                    <p>Error: Homework not found.</p>
+                }
+                else
+                {
+                    <EditForm Model="@homework" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
 
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label for="title" class="form-label">Title<span class="text-danger">*</span></label>
-                            <InputText id="title" @bind-Value="homework.Title" class="form-control" />
-                            <ValidationMessage For="@(() => homework.Title)" />
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="assignedDate" class="form-label">Assigned Date<span class="text-danger">*</span></label>
-                            <InputDate id="assignedDate" @bind-Value="homework.AssignedDate" class="form-control" />
-                            <ValidationMessage For="@(() => homework.AssignedDate)" />
-                        </div>
-                        <div class="col-md-6">
-                            <label for="dueDate" class="form-label">Due Date<span class="text-danger">*</span></label>
-                            <InputDate id="dueDate" @bind-Value="homework.DueDate" class="form-control" />
-                            <ValidationMessage For="@(() => homework.DueDate)" />
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label for="question" class="form-label">Homework Question</label>
-                            <InputTextArea id="question"
-                                           @bind-Value="homework.Question"
-                                           class="form-control"
-                                           style="resize: both; min-height: 150px;" />
-                            <ValidationMessage For="@(() => homework.Question)" />
-                        </div>
-                    </div>
-
-                    @if (IsEditing && homework.Submissions != null && homework.Submissions.Any())
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">Submissions</label>
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Student</th>
-                                            <th>Submission Date</th>
-                                            <th>Graded</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var submission in homework.Submissions)
-                                        {
-                                            <tr>
-                                                <td>@(submission.Student?.Person?.FirstName) @(submission.Student?.Person?.LastName)</td>
-                                                <td>@submission.SubmissionDate.ToString("MMM d, yyyy h:mm tt")</td>
-                                                <td>
-                                                    @if (submission.IsGraded)
-                                                    {
-                                                        <span class="badge bg-success">Graded</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-warning">Pending</span>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <button type="button" class="btn btn-sm btn-primary" @onclick="() => ViewSubmission(submission)">
-                                                        <i class="fa fa-eye"></i> View
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="title" class="form-label">Title<span class="text-danger">*</span></label>
+                                <InputText id="title" @bind-Value="homework.Title" class="form-control" />
+                                <ValidationMessage For="@(() => homework.Title)" />
                             </div>
                         </div>
-                    }
 
-                    <div class="d-flex justify-content-end mt-4">
-                        <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
-                        <button type="submit" class="btn btn-primary">
-                            @(IsEditing ? "Update" : "Create") Homework
-                        </button>
-                    </div>
-                </EditForm>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="assignedDate" class="form-label">Assigned Date<span class="text-danger">*</span></label>
+                                <InputDate id="assignedDate" @bind-Value="homework.AssignedDate" class="form-control" />
+                                <ValidationMessage For="@(() => homework.AssignedDate)" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="dueDate" class="form-label">Due Date<span class="text-danger">*</span></label>
+                                <InputDate id="dueDate" @bind-Value="homework.DueDate" class="form-control" />
+                                <ValidationMessage For="@(() => homework.DueDate)" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="question" class="form-label">Homework Question</label>
+                                <InputTextArea id="question"
+                                               @bind-Value="homework.Question"
+                                               class="form-control"
+                                               style="resize: both; min-height: 150px;" />
+                                <ValidationMessage For="@(() => homework.Question)" />
+                            </div>
+                        </div>
+
+                        @if (IsEditing && homework.Submissions != null && homework.Submissions.Any())
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Submissions</label>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Student</th>
+                                                <th>Submission Date</th>
+                                                <th>Graded</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var submission in homework.Submissions)
+                                            {
+                                                <tr>
+                                                    <td>@(submission.Student?.Person?.FirstName) @(submission.Student?.Person?.LastName)</td>
+                                                    <td>@submission.SubmissionDate.ToString("MMM d, yyyy h:mm tt")</td>
+                                                    <td>
+                                                        @if (submission.IsGraded)
+                                                        {
+                                                            <span class="badge bg-success">Graded</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-warning">Pending</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-primary" @onclick="() => ViewSubmission(submission)">
+                                                            <i class="fa fa-eye"></i> View
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                @(IsEditing ? "Update" : "Create") Homework
+                            </button>
+                        </div>
+                    </EditForm>
+                }
             </div>
         </div>
     </div>
@@ -163,17 +170,19 @@
                         <div class="mb-3">
                             <label class="form-label">Grade Submission</label>
                             <EditForm Model="@homeworkGradeModel" OnValidSubmit="SubmitGrade">
+                                <DataAnnotationsValidator />
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             <label for="score">Score</label>
                                             <InputNumber id="score" @bind-Value="homeworkGradeModel.Score" class="form-control" min="0" max="100" />
+                                            <ValidationMessage For="@(() => homeworkGradeModel.Score)" />
                                         </div>
                                     </div>
                                     <div class="col-md-8">
                                         <div class="form-group">
                                             <label for="feedback">Feedback</label>
-                                            <InputTextArea id="feedback" @bind-Value="homeworkGradeModel.Feedback" class="form-control" rows="3" />
+                                            <InputTextArea id="feedback" @bind-Value="homeworkGradeModel.TeacherRemark" class="form-control" rows="3" />
                                         </div>
                                     </div>
                                 </div>
@@ -203,7 +212,6 @@
     </div>
     <div class="modal-backdrop fade show"></div>
 }
-
 @code {
     [Parameter]
     public bool IsVisible { get; set; }
