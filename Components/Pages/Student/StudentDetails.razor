@@ -6,6 +6,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Components.Pages.Shared
+@using Microsoft.AspNetCore.Components.Web
 @rendermode InteractiveServer
 
 <PageTitle>Student Details</PageTitle>
@@ -67,8 +68,6 @@
                     </div>
                 </div>
 
-                <!-- Add this code right after the Guardian card div in StudentDetails.razor -->
-
                 <div class="card mt-4">
                     <div class="card-header">
                         <h5 class="mb-0">Payment Information</h5>
@@ -93,8 +92,8 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <button class="btn btn-primary">
-                                    <i class="fa fa-file-invoice-dollar me-1"></i> View Payment Details
+                                <button class="btn btn-primary" @onclick="NavigateToManagePayments">
+                                    <i class="fa fa-file-invoice-dollar me-1"></i> Manage Payments
                                 </button>
                             </div>
                         }
@@ -317,6 +316,14 @@
             CloseLearningPathModal();
 
             // Show success message or refresh data as needed
+        }
+    }
+
+    private void NavigateToManagePayments()
+    {
+        if (student.Person.SchoolFees != null)
+        {
+            NavigationManager.NavigateTo($"/schoolfees/{student.Person.SchoolFees.Id}/payments");
         }
     }
 }

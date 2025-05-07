@@ -7,7 +7,7 @@
 @inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
-<h3>Manage Payments for School Fees #@SchoolFeesId</h3>
+<h3>Manage Payments</h3>
 
 @if (schoolFees == null)
 {
@@ -16,13 +16,36 @@
 else
 {
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Student Payment Summary</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Summary</h5>
-                    <p class="card-text">Total Amount: <strong>@schoolFees.TotalAmount.ToString("C", new CultureInfo("en-NG"))</strong></p>
-                    <p class="card-text">Total Paid: <strong>@schoolFees.TotalPaid.ToString("C", new CultureInfo("en-NG"))</strong></p>
-                    <p class="card-text">Balance: <strong>@schoolFees.Balance.ToString("C", new CultureInfo("en-NG"))</strong></p>
+                    @if (student != null)
+                    {
+                        <div class="mb-3">
+                            <h5>@Util.GetFullName(student.Person)</h5>
+                            <p>ID: @student.Id</p>
+                            <p>Class: @student.Person.ClassLevel</p>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="fw-bold">Total Amount:</p>
+                            <p class="fs-5">@schoolFees.TotalAmount.ToString("C", new CultureInfo("en-NG"))</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="fw-bold">Total Paid:</p>
+                            <p class="fs-5 text-success">@schoolFees.TotalPaid.ToString("C", new CultureInfo("en-NG"))</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="fw-bold">Balance:</p>
+                            <p class="fs-5 @(schoolFees.Balance > 0 ? "text-danger" : "text-success")">
+                                @schoolFees.Balance.ToString("C", new CultureInfo("en-NG"))
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -30,82 +53,101 @@ else
 
     <div class="row">
         <div class="col-md-6">
-            <h4>Add New Payment</h4>
-            <EditForm Model="@newPayment" OnValidSubmit="AddPayment">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-
-                <div class="form-group mb-3">
-                    <label for="amount">Amount:</label>
-                    <InputNumber id="amount" @bind-Value="newPayment.Amount" class="form-control" />
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Add New Payment</h5>
                 </div>
+                <div class="card-body">
+                    <EditForm Model="@newPayment" OnValidSubmit="AddPayment">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
 
-                <div class="form-group mb-3">
-                    <label for="date">Date:</label>
-                    <InputDate id="date" @bind-Value="newPayment.Date" class="form-control" />
+                        <div class="form-group mb-3">
+                            <label for="amount">Amount:</label>
+                            <InputNumber id="amount" @bind-Value="newPayment.Amount" class="form-control" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="date">Date:</label>
+                            <InputDate id="date" @bind-Value="newPayment.Date" class="form-control" />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="paymentMethod">Payment Method:</label>
+                            <InputSelect id="paymentMethod" @bind-Value="newPayment.PaymentMethod" class="form-control">
+                                @foreach (var method in Enum.GetValues(typeof(PaymentMethod)))
+                                {
+                                    <option value="@method">@method</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="reference">Reference:</label>
+                            <InputNumber id="reference" @bind-Value="newPayment.Reference" class="form-control" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Add Payment</button>
+                    </EditForm>
                 </div>
-
-                <div class="form-group mb-3">
-                    <label for="paymentMethod">Payment Method:</label>
-                    <InputSelect id="paymentMethod" @bind-Value="newPayment.PaymentMethod" class="form-control">
-                        @foreach (var method in Enum.GetValues(typeof(PaymentMethod)))
-                        {
-                            <option value="@method">@method</option>
-                        }
-                    </InputSelect>
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="reference">Reference:</label>
-                    <InputNumber id="reference" @bind-Value="newPayment.Reference" class="form-control" />
-                </div>
-
-                <button type="submit" class="btn btn-primary">Add Payment</button>
-            </EditForm>
+            </div>
         </div>
 
         <div class="col-md-6">
-            <h4>Existing Payments</h4>
-
-            @if (schoolFees.Payments.Count == 0)
-            {
-                <p>No payments recorded.</p>
-            }
-            else
-            {
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Payment Method</th>
-                            <th>Reference</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var payment in schoolFees.Payments)
-                        {
-                            <tr>
-                                <td>@payment.Id</td>
-                                <td>@payment.Amount.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@payment.Date.ToShortDateString()</td>
-                                <td>@payment.PaymentMethod</td>
-                                <td>@payment.Reference</td>
-                                <td>
-                                    <button class="btn btn-danger btn-sm" @onclick="() => RemovePayment(payment.Id)">Remove</button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Payment History</h5>
+                </div>
+                <div class="card-body">
+                    @if (schoolFees.Payments.Count == 0)
+                    {
+                        <p>No payments recorded.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                        <th>Method</th>
+                                        <th>Reference</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in schoolFees.Payments)
+                                    {
+                                        <tr>
+                                            <td>@payment.Amount.ToString("C", new CultureInfo("en-NG"))</td>
+                                            <td>@payment.Date.ToShortDateString()</td>
+                                            <td>@payment.PaymentMethod</td>
+                                            <td>@payment.Reference</td>
+                                            <td>
+                                                <button class="btn btn-danger btn-sm" @onclick="() => RemovePayment(payment.Id)">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="mt-3">
-        <button class="btn btn-secondary" @onclick="ReturnToSchoolFees">Back to School Fees</button>
+    <div class="mt-3 d-flex justify-content-between">
+        <button class="btn btn-secondary" @onclick="GoBack">Back</button>
+        @if (student != null)
+        {
+            <a href="/students/details/@student.Id" class="btn btn-primary">
+                Return to Student Details
+            </a>
+        }
     </div>
 }
 
@@ -114,6 +156,7 @@ else
     public int SchoolFeesId { get; set; }
 
     private SchoolFees schoolFees;
+    private Student student;
     private Payment newPayment = new Payment { Date = DateTime.Today };
 
     protected override void OnInitialized()
@@ -123,16 +166,22 @@ else
         if (schoolFees == null)
         {
             NavigationManager.NavigateTo("/schoolfees");
+            return;
         }
+
+        // Find the student this schoolFees belongs to
+        student = SchoolDataService.GetStudentBySchoolFeesId(SchoolFeesId);
+
+        // Set up new payment with SchoolFeesId
+        newPayment.SchoolFeesId = SchoolFeesId;
     }
 
     private void AddPayment()
     {
-        newPayment.Id = SchoolDataService.GetNextPaymentId();
         SchoolDataService.AddPayment(newPayment);
-        schoolFees.Payments.Add(newPayment);
+       
         SchoolDataService.UpdateSchoolFees(schoolFees);
-        newPayment = new Payment { Date = DateTime.Today };
+        newPayment = new Payment { Date = DateTime.Today, SchoolFeesId = SchoolFeesId };
     }
 
     private void RemovePayment(int paymentId)
@@ -146,7 +195,7 @@ else
         }
     }
 
-    private void ReturnToSchoolFees()
+    private void GoBack()
     {
         NavigationManager.NavigateTo("/schoolfees");
     }
