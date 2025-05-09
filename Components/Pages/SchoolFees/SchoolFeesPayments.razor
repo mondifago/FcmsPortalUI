@@ -168,18 +168,13 @@ else
             NavigationManager.NavigateTo("/schoolfees");
             return;
         }
-
-        // Find the student this schoolFees belongs to
         student = SchoolDataService.GetStudentBySchoolFeesId(SchoolFeesId);
-
-        // Set up new payment with SchoolFeesId
         newPayment.SchoolFeesId = SchoolFeesId;
     }
 
     private void AddPayment()
     {
         SchoolDataService.AddPayment(newPayment);
-       
         SchoolDataService.UpdateSchoolFees(schoolFees);
         newPayment = new Payment { Date = DateTime.Today, SchoolFeesId = SchoolFeesId };
     }

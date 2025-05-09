@@ -257,20 +257,14 @@
 @code {
     [Parameter]
     public int Id { get; set; }
-    private FcmsPortal.Models.School school;
     private Student student;
     private Guardian guardian;
     private bool showLearningPathModal = false;
     private int selectedLearningPathId = 0;
     private List<LearningPath> availableLearningPaths = new List<LearningPath>();
-  
 
     protected override async Task OnInitializedAsync()
     {
-        // Get the school first
-        school = SchoolDataService.GetSchool();
-
-        // Get the student by ID
         student = SchoolDataService.GetStudentById(Id);
 
         if (student == null)
@@ -285,7 +279,6 @@
 
     private void ShowLearningPathModal()
     {
-        // Get learning paths matching the student's education level and class level
         availableLearningPaths = SchoolDataService.GetAllLearningPaths()
             .Where(lp =>
                 lp.EducationLevel == student.Person.EducationLevel &&
@@ -309,21 +302,15 @@
         var learningPath = SchoolDataService.GetLearningPathById(selectedLearningPathId);
         if (learningPath != null)
         {
-            LogicMethods.AddStudentToLearningPath(learningPath, student);
+            SchoolDataService.AddStudentToLearningPath(learningPath, student);
             SchoolDataService.UpdateLearningPath(learningPath);
-            SchoolDataService.UpdateStudent(student);
-
+            student = SchoolDataService.GetStudentById(Id);
             CloseLearningPathModal();
-
-            // Show success message or refresh data as needed
         }
     }
 
     private void NavigateToManagePayments()
     {
-        if (student.Person.SchoolFees != null)
-        {
-            NavigationManager.NavigateTo($"/schoolfees/{student.Person.SchoolFees.Id}/payments");
-        }
+        NavigationManager.NavigateTo($"/schoolfees/{student.Person.SchoolFees.Id}/payments");
     }
 }

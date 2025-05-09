@@ -236,14 +236,6 @@
                     </div>
                 </div>
 
-                <!-- Add Payment Button -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <button class="btn btn-primary w-100" @onclick="ShowRecordPaymentModal">
-                            <i class="fa fa-money-bill"></i> Record Payment
-                        </button>
-                    </div>
-                </div>
                 <!-- Add Student Grade -->
                 <div class="card mb-4">
                     <div class="card-header bg-info text-white">
@@ -327,6 +319,7 @@
                 </div>
             </div>
         </div>
+    }
 
 
 
@@ -382,46 +375,7 @@
             <div class="modal-backdrop fade show"></div>
         }
 
-        <!-- Record Payment Modal -->
-        @if (showPaymentModal)
-        {
-            <div class="modal fade show" style="display: block;" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title">Record Payment</h5>
-                            <button type="button" class="btn-close" @onclick="ClosePaymentModal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label">Select Student</label>
-                                <select class="form-select" @bind="selectedStudentId">
-                                    <option value="0">-- Select Student --</option>
-                                    @foreach (var student in LogicMethods.GetUnpaidStudents(learningPath))
-                                    {
-                                        <option value="@student.Id">@student.Person.FirstName @student.Person.LastName</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Amount</label>
-                                <input type="number" class="form-control" readonly value="@learningPath.FeePerSemester" />
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" @onclick="ClosePaymentModal">Cancel</button>
-                            <button type="button" class="btn btn-success" @onclick="RecordPayment" disabled="@(selectedStudentId == 0)">
-                                Record Payment
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-backdrop fade show"></div>
-        }
-    }
 </div>
-
 @if (showAddStudentsModal)
 {
     <div class="modal show" style="display: block" tabindex="-1">
@@ -500,7 +454,9 @@
             </div>
         </div>
     </div>
+
     <div class="modal-backdrop fade show"></div>
+
 }
 
 <StudentGradeModal IsVisible="showGradeModal"
@@ -519,7 +475,6 @@
     private int daysInMonth;
     private int firstDayOfMonth;
     private ScheduleEntry selectedSession;
-    private bool showPaymentModal = false;
     private int selectedStudentId = 0;
     private bool showAddStudentsModal = false;
     private List<Student> availableStudents = new List<Student>();
@@ -598,34 +553,6 @@
         selectedSession = null;
     }
     
-    private void ShowRecordPaymentModal()
-    {
-        selectedStudentId = 0;
-        showPaymentModal = true;
-    }
-    
-    private void ClosePaymentModal()
-    {
-        showPaymentModal = false;
-    }
-    
-    private void RecordPayment()
-    {
-        if (selectedStudentId > 0)
-        {
-            var student = learningPath.Students.FirstOrDefault(s => s.Id == selectedStudentId);
-            if (student != null && !LogicMethods.IsPaymentSuccessful(student, learningPath))
-            {
-                if (learningPath.StudentsPaymentSuccessful == null)
-                    learningPath.StudentsPaymentSuccessful = new List<Student>();
-                    
-                learningPath.StudentsPaymentSuccessful.Add(student);
-            }
-        }
-        
-        showPaymentModal = false;
-    }
-
     private void ShowAddStudentsModal()
     {
         var allEligibleStudents = LogicMethods.GetStudentsByLevel(
@@ -675,7 +602,7 @@
             .Where(s => selectedStudentIds.Contains(s.Id))
             .ToList();
 
-        LogicMethods.AddMultipleStudentsToLearningPath(learningPath, studentsToAdd);
+        SchoolDataService.AddMultipleStudentsToLearningPath(learningPath, studentsToAdd);
         SchoolDataService.UpdateLearningPath(learningPath);
         learningPath = SchoolDataService.GetLearningPathById(Id);
 
