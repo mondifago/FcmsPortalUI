@@ -86,7 +86,7 @@
                         }
                         @if (isPrincipal && learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
                         {
-                            <button class="btn btn-success" @onclick="ApproveLearnignPath">
+                            <button class="btn btn-success" @onclick="ApproveLearningPath">
                                 <i class="fa fa-thumbs-up"></i> Approve
                             </button>
                             <button class="btn btn-secondary" @onclick="RestoreLearningPath">
@@ -320,62 +320,8 @@
             </div>
         </div>
     }
-
-
-
-        <!-- Session Details Modal -->
-        @if (selectedSession != null)
-        {
-            <div class="modal fade show" style="display: block;" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-info text-white">
-                            <h5 class="modal-title">@selectedSession.Title</h5>
-                            <button type="button" class="btn-close" @onclick="CloseSessionModal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <dl class="row">
-                                <dt class="col-sm-4">Date & Time:</dt>
-                                <dd class="col-sm-8">@selectedSession.DateTime.ToString("dddd, MMMM d, yyyy h:mm tt")</dd>
-                                
-                                <dt class="col-sm-4">Duration:</dt>
-                                <dd class="col-sm-8">@selectedSession.Duration.TotalMinutes minutes</dd>
-                                
-                                <dt class="col-sm-4">Venue:</dt>
-                                <dd class="col-sm-8">@selectedSession.Venue</dd>
-                                
-                                @if (selectedSession.ClassSession != null)
-                                {
-                                    <dt class="col-sm-4">Course:</dt>
-                                    <dd class="col-sm-8">@selectedSession.ClassSession.Course</dd>
-                                    
-                                    <dt class="col-sm-4">Topic:</dt>
-                                    <dd class="col-sm-8">@selectedSession.ClassSession.Topic</dd>
-                                    
-                                    <dt class="col-sm-4">Teacher:</dt>
-                                    <dd class="col-sm-8">
-                                        @if (selectedSession.ClassSession.Teacher != null)
-                                        {
-                                            @selectedSession.ClassSession.Teacher.Person.FirstName @selectedSession.ClassSession.Teacher.Person.LastName
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">No teacher assigned</span>
-                                        }
-                                    </dd>
-                                }
-                            </dl>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" @onclick="CloseSessionModal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-backdrop fade show"></div>
-        }
-
 </div>
+
 @if (showAddStudentsModal)
 {
     <div class="modal show" style="display: block" tabindex="-1">
@@ -509,8 +455,6 @@
         UpdateCalendarInfo();
     }
     
-   
-    
     private string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
     {
         return learningPath.ApprovalStatus switch
@@ -529,28 +473,11 @@
         return true;
     }
     
-    private void UpdateApprovalStatus(PrincipalApprovalStatus status)
-    {
-        if (learningPath != null)
-        {
-            learningPath.ApprovalStatus = status;
-            StateHasChanged();
-        }
-    }
+   
 
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
     {
         return LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date);
-    }
-
-    private void ShowSessionDetails(ScheduleEntry session)
-    {
-        selectedSession = session;
-    }
-    
-    private void CloseSessionModal()
-    {
-        selectedSession = null;
     }
     
     private void ShowAddStudentsModal()
@@ -615,7 +542,7 @@
         SchoolDataService.UpdateLearningPath(learningPath);
     }
 
-    private void ApproveLearnignPath()
+    private void ApproveLearningPath()
     {
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
         SchoolDataService.UpdateLearningPath(learningPath);
