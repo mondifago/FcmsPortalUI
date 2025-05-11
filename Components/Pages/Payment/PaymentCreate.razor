@@ -138,13 +138,6 @@
             }
             payment.SchoolFeesId = student.Person.SchoolFees.Id;
             SchoolDataService.AddPayment(payment);
-
-            if (student.Person.SchoolFees.Payments == null)
-                student.Person.SchoolFees.Payments = new List<Payment>();
-
-            student.Person.SchoolFees.Payments.Add(payment);
-            SchoolDataService.UpdateStudent(student);
-
             NavigationManager.NavigateTo($"/students/details/{student.Id}");
         }
         else
