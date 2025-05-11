@@ -9,7 +9,7 @@
 
 <h3>Manage Payments</h3>
 
-@if (schoolFees == null)
+@if (schoolFees == null || student == null)
 {
     <p>Loading...</p>
 }
@@ -22,21 +22,18 @@ else
                     <h5 class="card-title mb-0">Student Payment Summary</h5>
                 </div>
                 <div class="card-body">
-                    @if (student != null)
-                    {
-                        <div class="mb-3">
-                            <h5>@Util.GetFullName(student.Person)</h5>
-                            <p>ID: @student.Id</p>
-                            <p>Class: @student.Person.ClassLevel</p>
-                            <p>Education Level: @student.Person.EducationLevel</p>
-                        </div>
-                    }
+                    <div class="mb-3">
+                        <h5>@Util.GetFullName(student.Person)</h5>
+                        <p>ID: @student.Id</p>
+                        <p>Class: @student.Person.ClassLevel</p>
+                        <p>Education Level: @student.Person.EducationLevel</p>
+                    </div>
 
-                    @if (currentLearningPath != null)
+                    @if (student.CurrentLearningPath != null)
                     {
                         <div class="mb-3">
-                            <p><strong>Academic Year:</strong> @currentLearningPath.AcademicYear</p>
-                            <p><strong>Semester:</strong> @currentLearningPath.Semester</p>
+                            <p><strong>Academic Year:</strong> @student.CurrentLearningPath.AcademicYear</p>
+                            <p><strong>Semester:</strong> @student.CurrentLearningPath.Semester</p>
                         </div>
                     }
 
@@ -56,13 +53,10 @@ else
                             </p>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
-
-    
 
     <div class="row">
         <div class="col-md-6">
@@ -105,8 +99,7 @@ else
                 </div>
             </div>
         </div>
-   
-        <!--  Payment History  -->
+
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-primary text-white">
@@ -159,60 +152,56 @@ else
             </div>
         </div>
     </div>
-   
 
     <div class="mt-3 d-flex justify-content-end">
-
         <a href="/students/details/@student?.Id" class="btn btn-primary">Done</a>
-
     </div>
 }
 
-        <!-- payment details modal  -->
- @if (showPaymentDetailsModal && selectedPayment != null)
-     {
-            <div class="modal show" style="display: block" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Payment Details</h5>
-                            <button type="button" class="btn-close" @onclick="ClosePaymentDetailsModal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <dl class="row">
-                                <dt class="col-sm-4">Amount:</dt>
-                                <dd class="col-sm-8">@selectedPayment.Amount.ToString("C", new CultureInfo("en-NG"))</dd>
+@if (showPaymentDetailsModal && selectedPayment != null)
+{
+    <div class="modal show" style="display: block" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Payment Details</h5>
+                    <button type="button" class="btn-close" @onclick="ClosePaymentDetailsModal"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Amount:</dt>
+                        <dd class="col-sm-8">@selectedPayment.Amount.ToString("C", new CultureInfo("en-NG"))</dd>
 
-                                <dt class="col-sm-4">Date:</dt>
-                                <dd class="col-sm-8">@selectedPayment.Date.ToString("MMMM d, yyyy")</dd>
+                        <dt class="col-sm-4">Date:</dt>
+                        <dd class="col-sm-8">@selectedPayment.Date.ToString("MMMM d, yyyy")</dd>
 
-                                <dt class="col-sm-4">Payment Method:</dt>
-                                <dd class="col-sm-8">@selectedPayment.PaymentMethod</dd>
+                        <dt class="col-sm-4">Payment Method:</dt>
+                        <dd class="col-sm-8">@selectedPayment.PaymentMethod</dd>
 
-                                <dt class="col-sm-4">Reference:</dt>
-                                <dd class="col-sm-8">@selectedPayment.Reference</dd>
+                        <dt class="col-sm-4">Reference:</dt>
+                        <dd class="col-sm-8">@selectedPayment.Reference</dd>
 
-                                <dt class="col-sm-4">Academic Year:</dt>
-                                <dd class="col-sm-8">@selectedPayment.AcademicYear</dd>
+                        <dt class="col-sm-4">Academic Year:</dt>
+                        <dd class="col-sm-8">@selectedPayment.AcademicYear</dd>
 
-                                <dt class="col-sm-4">Education Level:</dt>
-                                <dd class="col-sm-8">@selectedPaymentLearningPath?.EducationLevel</dd>
+                        <dt class="col-sm-4">Education Level:</dt>
+                        <dd class="col-sm-8">@selectedPaymentLearningPath?.EducationLevel</dd>
 
-                                <dt class="col-sm-4">Class Level:</dt>
-                                <dd class="col-sm-8">@selectedPaymentLearningPath?.ClassLevel</dd>
+                        <dt class="col-sm-4">Class Level:</dt>
+                        <dd class="col-sm-8">@selectedPaymentLearningPath?.ClassLevel</dd>
 
-                                <dt class="col-sm-4">Semester:</dt>
-                                <dd class="col-sm-8">@selectedPayment.Semester</dd>
-                            </dl>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" @onclick="ClosePaymentDetailsModal">Close</button>
-                        </div>
-                    </div>
+                        <dt class="col-sm-4">Semester:</dt>
+                        <dd class="col-sm-8">@selectedPayment.Semester</dd>
+                    </dl>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="ClosePaymentDetailsModal">Close</button>
                 </div>
             </div>
-     <div class="modal-backdrop fade show"></div>
- }
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
 
 @if (showEditPaymentModal && editingPayment != null)
 {
@@ -265,15 +254,13 @@ else
     <div class="modal-backdrop fade show"></div>
 }
 
-
 @code {
     [Parameter]
     public int SchoolFeesId { get; set; }
 
     private SchoolFees schoolFees;
     private Student student;
-    private Payment newPayment = new Payment { Date = DateTime.Today };
-    private LearningPath currentLearningPath;
+    private Payment newPayment;
     private bool showPaymentDetailsModal = false;
     private Payment selectedPayment;
     private LearningPath selectedPaymentLearningPath;
@@ -284,33 +271,24 @@ else
     {
         schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
         student = SchoolDataService.GetStudentBySchoolFeesId(SchoolFeesId);
-        newPayment.SchoolFeesId = SchoolFeesId;
-        currentLearningPath = student.CurrentLearningPath; 
+
+        if (student != null)
+        {
+            newPayment = SchoolDataService.PrepareNewPayment(student);
+        }
     }
 
     private void AddPayment()
     {
-        if (currentLearningPath != null)
-        {
-            newPayment.AcademicYearStart = currentLearningPath.AcademicYearStart;
-            newPayment.Semester = currentLearningPath.Semester;
-            newPayment.LearningPathId = currentLearningPath.Id;
-        }
-
         SchoolDataService.AddPayment(newPayment);
-        SchoolDataService.UpdateSchoolFees(schoolFees);
-        newPayment = new Payment { Date = DateTime.Today, SchoolFeesId = SchoolFeesId };
+        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
+        newPayment = SchoolDataService.PrepareNewPayment(student);
     }
 
     private void RemovePayment(int paymentId)
     {
-        var payment = schoolFees.Payments.FirstOrDefault(p => p.Id == paymentId);
-        if (payment != null)
-        {
-            schoolFees.Payments.Remove(payment);
-            SchoolDataService.UpdateSchoolFees(schoolFees);
-            SchoolDataService.DeletePayment(paymentId);
-        }
+        SchoolDataService.DeletePayment(paymentId);
+        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
     }
 
     private void ViewPaymentDetails(Payment payment)
@@ -321,7 +299,6 @@ else
         {
             selectedPaymentLearningPath = SchoolDataService.GetLearningPathById(payment.LearningPathId);
         }
-
         showPaymentDetailsModal = true;
     }
 
@@ -357,17 +334,8 @@ else
 
     private void UpdatePayment()
     {
-        var originalPayment = schoolFees.Payments.FirstOrDefault(p => p.Id == editingPayment.Id);
-        if (originalPayment != null)
-        {
-            originalPayment.Amount = editingPayment.Amount;
-            originalPayment.Date = editingPayment.Date;
-            originalPayment.PaymentMethod = editingPayment.PaymentMethod;
-            originalPayment.Reference = editingPayment.Reference;
-
-            SchoolDataService.UpdatePayment(originalPayment);
-            SchoolDataService.UpdateSchoolFees(schoolFees);
-        }
+        SchoolDataService.UpdatePayment(editingPayment);
+        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
         CloseEditPaymentModal();
     }
 }
