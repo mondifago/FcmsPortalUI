@@ -2,6 +2,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
+@using FcmsPortalUI.Components.Pages.Shared
 @using System.Globalization
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
@@ -153,9 +154,16 @@ else
         </div>
     </div>
 
-    <div class="mt-3 d-flex justify-content-end">
+    <div class="mt-3 d-flex justify-content-between">
+        <button class="btn btn-success" @onclick="ShowPaymentReport">
+            <i class="fa fa-file-alt"></i> Generate Report
+        </button>
         <a href="/students/details/@student?.Id" class="btn btn-primary">Done</a>
     </div>
+
+    <StudentPaymentReportModal IsVisible="showPaymentReport"
+                    Student="student"
+                    OnClose="ClosePaymentReport" />
 }
 
 @if (showPaymentDetailsModal && selectedPayment != null)
@@ -337,5 +345,17 @@ else
         SchoolDataService.UpdatePayment(editingPayment);
         schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
         CloseEditPaymentModal();
+    }
+
+    private bool showPaymentReport = false;
+
+    private void ShowPaymentReport()
+    {
+        showPaymentReport = true;
+    }
+
+    private void ClosePaymentReport()
+    {
+        showPaymentReport = false;
     }
 }

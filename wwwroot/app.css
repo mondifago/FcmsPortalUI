@@ -443,3 +443,13 @@ main {
     background-color: #cd7f32;
     color: white;
 }
+
+.payment-report {
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 0;
+}
