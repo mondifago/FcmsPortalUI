@@ -1,0 +1,103 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Services
+@using FcmsPortal
+@using System.Globalization
+@rendermode InteractiveServer
+
+<div class="modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Learning Path Payment Report</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (LearningPath == null)
+                {
+                    <p>Loading...</p>
+                }
+                else
+                {
+                    <div class="payment-report">
+                        <h2>Learning Path Payment Report</h2>
+
+                        <div class="report-section">
+                            <div class="report-grid">
+                                <div>
+                                    <p><strong>Learning Path:</strong> @reportData.LearningPathName</p>
+                                    <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>
+                                    <p><strong>Semester:</strong> @reportData.Semester</p>
+                                </div>
+                                <div>
+                                    <p><strong>Semester Start:</strong> @reportData.SemesterStartDate.ToString("yyyy-MM-dd")</p>
+                                    <p><strong>Semester End:</strong> @reportData.SemesterEndDate.ToString("yyyy-MM-dd")</p>
+                                    <p><strong>Total Students:</strong> @reportData.TotalStudentsInPath</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="report-section">
+                            <div class="report-grid">
+                                <div>
+                                    <p><strong>Total Fees:</strong> @reportData.TotalFeesForPath.ToString("C", new CultureInfo("en-NG"))</p>
+                                    <p><strong>Total Paid:</strong> @reportData.TotalPaidForPath.ToString("C", new CultureInfo("en-NG"))</p>
+                                    <p><strong>Outstanding:</strong> @reportData.OutstandingForPath.ToString("C", new CultureInfo("en-NG"))</p>
+                                </div>
+                                <div>
+                                    <p><strong>Payment Completion Rate:</strong> @reportData.LearningPathPaymentCompletionRate.ToString("F2")%</p>
+                                    <p><strong>Average Student Payment Rate:</strong> @reportData.AverageStudentPaymentCompletionRateInPath.ToString("F2")%</p>
+                                    <p><strong>Timely Completion Rate:</strong> @reportData.LearningPathTimelyCompletionRateInPath.ToString("F2")%</p>
+                                    <p><strong>Average Student Timely Rate:</strong> @reportData.AverageStudentTimelyCompletionRate.ToString("F2")%</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timestamp text-muted">
+                            <em>Report generated on @reportData.ReportGeneratedDateAndTime.ToString("yyyy-MM-dd HH:mm:ss")</em>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="PrintReport">Print Report</button>
+                <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public LearningPath LearningPath { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private LearningPathPaymentReportEntry reportData = new LearningPathPaymentReportEntry();
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && LearningPath != null)
+        {
+            reportData = LogicMethods.GenerateLearningPathPaymentReport(LearningPath, LearningPath.Students);
+        }
+    }
+
+    private void PrintReport()
+    {
+        // placeholder
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}
