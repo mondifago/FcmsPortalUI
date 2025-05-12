@@ -1,6 +1,9 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Services
 @using FcmsPortal
+@using System.Globalization
+@rendermode InteractiveServer
+
 
 <div class="modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -16,7 +19,57 @@
                 }
                 else
                 {
-                    <pre class="payment-report">@string.Join("\n", reportData)</pre>
+                    <div class="card p-4 shadow rounded-2xl bg-white max-w-4xl mx-auto mt-5">
+
+                        <h2 class="text-2xl font-bold mb-4 text-gray-700">Student Payment Report</h2>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4 text-sm text-gray-800">
+                            <div>
+                                <strong>Student:</strong> @reportData.StudentFullName<br />
+                                
+                            </div>
+                            <div>
+                                <strong>Academic Year:</strong> @reportData.AcademicYear<br />
+                                <strong>Semester:</strong> @reportData.Semester<br />
+                                <strong>Total Fees:</strong> @reportData.TotalFees.ToString("C", new CultureInfo("en-NG"))<br />
+                                <strong>Total Paid:</strong> @reportData.TotalPaid.ToString("C", new CultureInfo("en-NG"))<br />
+                                <strong>Balance:</strong> @reportData.OutstandingBalance.ToString("C", new CultureInfo("en-NG"))
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg font-semibold mb-2 mt-4 text-gray-700">Payment History</h3>
+
+                        <table class="table-auto w-full border text-sm text-gray-800">
+                            <thead class="bg-gray-100 text-left">
+                                <tr>
+                                    <th class="px-3 py-2 border">Date</th>
+                                    <th class="px-3 py-2 border">Amount</th>
+                                    <th class="px-3 py-2 border">Method</th>
+                                    <th class="px-3 py-2 border">Reference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (reportData.PaymentDetails != null && reportData.PaymentDetails.Any())
+                                {
+                                    @foreach (var payment in reportData.PaymentDetails)
+                                    {
+                                        <tr class="border-b">
+                                            <td class="px-3 py-2 border">@payment.Date.ToString("yyyy-MM-dd")</td>
+                                            <td class="px-3 py-2 border">@payment.Amount.ToString("C", new CultureInfo("en-NG"))</td>
+                                            <td class="px-3 py-2 border">@payment.PaymentMethod</td>
+                                            <td class="px-3 py-2 border">@payment.Reference</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center py-2">No payment records available.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
             </div>
             <div class="modal-footer">
@@ -41,13 +94,13 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private List<string> reportData = new List<string>();
+    private StudentPaymentReportEntry reportData = new StudentPaymentReportEntry();
 
     protected override void OnParametersSet()
     {
         if (IsVisible && Student != null)
         {
-            reportData = LogicMethods.GeneratePaymentSummaryForStudent(Student);
+            reportData = LogicMethods.GenerateStudentPaymentReportEntry(Student);
         }
     }
 
