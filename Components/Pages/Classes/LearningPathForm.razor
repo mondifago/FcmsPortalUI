@@ -53,6 +53,23 @@
                         }
                     </InputSelect>
                 </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="semesterStartDate" class="form-label">Semester Start Date<span class="text-danger">*</span></label>
+                        <InputDate id="semesterStartDate" @bind-Value="LearningPath.SemesterStartDate" class="form-control" />
+                        <ValidationMessage For="@(() => LearningPath.SemesterStartDate)" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="semesterEndDate" class="form-label">Semester End Date<span class="text-danger">*</span></label>
+                        <InputDate id="semesterEndDate" @bind-Value="LearningPath.SemesterEndDate" class="form-control" />
+                        <ValidationMessage For="@(() => LearningPath.SemesterEndDate)" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="examsStartDate" class="form-label">Exams Start Date<span class="text-danger">*</span></label>
+                        <InputDate id="examsStartDate" @bind-Value="LearningPath.ExamsStartDate" class="form-control" />
+                        <ValidationMessage For="@(() => LearningPath.ExamsStartDate)" />
+                    </div>
+                </div>
                 <div class="col-md-6">
                     <label for="academicYearStart" class="form-label">Academic Year<span class="text-danger">*</span></label>
                     <select id="academicYearStart" @bind="academicYearStartYear" @bind:after="() => OnAcademicYearChanged()" class="form-select">

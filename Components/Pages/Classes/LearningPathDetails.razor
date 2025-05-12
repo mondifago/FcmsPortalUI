@@ -58,6 +58,9 @@
 
                                     <dt class="col-sm-5">Semester:</dt>
                                     <dd class="col-sm-7">@learningPath.Semester</dd>
+
+                                    <dt class="col-sm-5">Semester Start:</dt>
+                                    <dd class="col-sm-7">@learningPath.SemesterStartDate.ToString("MMM d, yyyy")</dd>
                                 </dl>
                             </div>
                             <div class="col-md-6">
@@ -67,6 +70,12 @@
 
                                     <dt class="col-sm-5">Fee:</dt>
                                     <dd class="col-sm-7">@learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</dd>
+
+                                    <dt class="col-sm-5">Semester End:</dt>
+                                    <dd class="col-sm-7">@learningPath.SemesterEndDate.ToString("MMM d, yyyy")</dd>
+
+                                    <dt class="col-sm-5">Exams Start:</dt>
+                                    <dd class="col-sm-7">@learningPath.ExamsStartDate.ToString("MMM d, yyyy")</dd>
 
                                     <dt class="col-sm-5">Approval Status:</dt>
                                     <dd class="col-sm-7">

@@ -28,6 +28,9 @@
         learningPath.StudentsPaymentSuccessful = new List<Student>();
         learningPath.Schedule = new List<ScheduleEntry>();
         learningPath.AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1);
+        learningPath.SemesterStartDate = new DateTime(DateTime.Now.Year, 9, 1);
+        learningPath.SemesterEndDate = new DateTime(DateTime.Now.Year, 12, 15);
+        learningPath.ExamsStartDate = new DateTime(DateTime.Now.Year, 12, 1);
     }
 
     private void HandleValidSubmit(LearningPath submittedLearningPath)
