@@ -26,7 +26,8 @@
                         <div class="grid grid-cols-2 gap-4 mb-4 text-sm text-gray-800">
                             <div>
                                 <strong>Student:</strong> @reportData.StudentFullName<br />
-                                
+                                <strong>Address:</strong> @reportData.StudentAddress<br />
+                                <strong>Learning Path:</strong> @reportData.LearningPathName<br />
                             </div>
                             <div>
                                 <strong>Academic Year:</strong> @reportData.AcademicYear<br />
@@ -34,6 +35,15 @@
                                 <strong>Total Fees:</strong> @reportData.TotalFees.ToString("C", new CultureInfo("en-NG"))<br />
                                 <strong>Total Paid:</strong> @reportData.TotalPaid.ToString("C", new CultureInfo("en-NG"))<br />
                                 <strong>Balance:</strong> @reportData.OutstandingBalance.ToString("C", new CultureInfo("en-NG"))
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4 text-sm text-gray-800">
+                            <div>
+                                <strong>Payment Completion Rate:</strong> @reportData.StudentPaymentCompletionRate.ToString("F2")%<br />
+                            </div>
+                            <div>
+                                <strong>Timely Completion Rate:</strong> @reportData.StudentTimelyCompletionRate.ToString("F2")%<br />
                             </div>
                         </div>
 
@@ -69,6 +79,9 @@
                                 }
                             </tbody>
                         </table>
+                        <div class="mt-4 text-xs text-gray-500">
+                            <em>Report generated on @reportData.DateAndTimeReportGenerated.ToString("yyyy-MM-dd HH:mm:ss")</em>
+                        </div>
                     </div>
                 }
             </div>
