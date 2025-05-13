@@ -1,0 +1,342 @@
+﻿@page "/payments"
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Constants
+@using FcmsPortal
+@using System.Globalization
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Payment Summary</PageTitle>
+
+<div class="container-fluid mt-3">
+    <h1 class="mb-4">School Payments Summary</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="academicYearStart" class="form-label">Academic Year</label>
+                <select id="academicYearStart" @bind="academicYearStartYear" @bind:after="FilterData" class="form-select">
+                    <option value="0">All Academic Years</option>
+                    @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
+                    {
+                        <option value="@year">@year-@(year + 1)</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="semester" class="form-label">Semester</label>
+                <select id="semester" @bind="selectedSemester" @bind:after="FilterData" class="form-select">
+                    @foreach (var semester in Enum.GetValues(typeof(Semester)))
+                    {
+                        <option value="@semester">@semester</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Basic Information</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Expected Revenue</h5>
+                            <p class="card-text fs-4 text-primary">@totalExpectedRevenue.ToString("C", new CultureInfo("en-NG"))</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Amount Received</h5>
+                            <p class="card-text fs-4 text-success">@totalAmountReceived.ToString("C", new CultureInfo("en-NG"))</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Outstanding Balance</h5>
+                            <p class="card-text fs-4 text-danger">@totalOutstandingBalance.ToString("C", new CultureInfo("en-NG"))</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">School-wide Payment Completion Rate</h5>
+                            <p class="card-text fs-4 text-info">@schoolWidePaymentCompletionRate.ToString("F2")%</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">School-wide Timely Completion Rate</h5>
+                            <p class="card-text fs-4 text-info">@schoolWideTimelyCompletionRate.ToString("F2")%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Learning Paths</h5>
+                            <p class="card-text fs-4">@totalLearningPaths</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Students</h5>
+                            <p class="card-text fs-4">@totalStudents</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Fully Paid Students</h5>
+                            <p class="card-text fs-4 text-success">@fullyPaidStudents</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Students with Balance</h5>
+                            <p class="card-text fs-4 text-warning">@studentsWithBalance</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center mt-4">
+                <button class="btn btn-primary btn-lg" @onclick="ShowSchoolReport">
+                    <i class="fa fa-file-alt me-2"></i> Generate School Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Learning Path Payment Details</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Learning Path</th>
+                            <th>Number of Students</th>
+                            <th>School Fees</th>
+                            <th>Expected Revenue</th>
+                            <th>Total Paid</th>
+                            <th>Outstanding</th>
+                            <th>Payment Rate</th>
+                            <th>Timely Rate</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var learningPath in filteredLearningPaths)
+                        {
+                            var expectedRevenue = learningPath.FeePerSemester * learningPath.Students.Count;
+                            var totalPaid = GetTotalPaidForLearningPath(learningPath);
+                            var outstanding = expectedRevenue - totalPaid;
+                            var paymentRate = LogicMethods.CalculatePaymentCompletionRate(totalPaid, expectedRevenue);
+                            var lastPaymentDate = learningPath.Students
+                            .SelectMany(s => s.Person?.SchoolFees?.Payments ?? new List<Payment>())
+                            .Where(p => p.Date >= learningPath.SemesterStartDate && p.Date <= learningPath.SemesterEndDate)
+                            .OrderByDescending(p => p.Date)
+                            .Select(p => p.Date)
+                            .FirstOrDefault();
+
+                            var timelyRate = lastPaymentDate == default
+                            ? FcmsConstants.DEFAULT_COMPLETION_RATE
+                            : LogicMethods.CalculateTimelyCompletionRate(learningPath.SemesterStartDate, learningPath.SemesterEndDate, lastPaymentDate);
+
+
+                            <tr>
+                                <td>
+                                    <a href="/learningpaths/details/@learningPath.Id">
+                                        @learningPath.EducationLevel - @learningPath.ClassLevel
+                                    </a>
+                                </td>
+                                <td>@learningPath.Students.Count</td>
+                                <td>@learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</td>
+                                <td>@expectedRevenue.ToString("C", new CultureInfo("en-NG"))</td>
+                                <td>@totalPaid.ToString("C", new CultureInfo("en-NG"))</td>
+                                <td>@outstanding.ToString("C", new CultureInfo("en-NG"))</td>
+                                <td>@paymentRate.ToString("F2")%</td>
+                                <td>@timelyRate.ToString("F2")%</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" @onclick="() => ShowLearningPathReport(learningPath)">
+                                        <i class="fa fa-file-alt"></i> Report
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<SchoolPaymentReportModal IsVisible="showSchoolReport"
+School="school"
+AcademicYear="GetSelectedAcademicYearString()"
+Semester="selectedSemester"
+OnClose="CloseSchoolReport" />
+
+<LearningPathPaymentReportModal IsVisible="showLearningPathReport"
+LearningPath="selectedLearningPath"
+OnClose="CloseLearningPathReport" />
+
+@code {
+    private School school;
+    private List<LearningPath> allLearningPaths = new List<LearningPath>();
+    private List<LearningPath> filteredLearningPaths = new List<LearningPath>();
+    private int academicYearStartYear = DateTime.Now.Year;
+    private Semester selectedSemester = Semester.First;
+
+    // Summary data
+    private double totalExpectedRevenue = 0;
+    private double totalAmountReceived = 0;
+    private double totalOutstandingBalance = 0;
+    private double schoolWidePaymentCompletionRate = 0;
+    private double schoolWideTimelyCompletionRate = 0;
+    private int totalLearningPaths = 0;
+    private int totalStudents = 0;
+    private int fullyPaidStudents = 0;
+    private int studentsWithBalance = 0;
+
+    // Modals
+    private bool showSchoolReport = false;
+    private bool showLearningPathReport = false;
+    private LearningPath selectedLearningPath;
+
+    protected override void OnInitialized()
+    {
+        school = SchoolDataService.GetSchool();
+        allLearningPaths = school.LearningPath.ToList();
+        selectedSemester = Semester.First;
+        FilterData();
+    }
+
+    private void FilterData()
+    {
+        filteredLearningPaths = allLearningPaths
+            .Where(lp => lp.AcademicYearStart.Year == academicYearStartYear)
+            .Where(lp => lp.Semester == selectedSemester)
+            .ToList();
+
+        CalculateSummaryData();
+    }
+
+
+    private void CalculateSummaryData()
+    {
+        totalExpectedRevenue = filteredLearningPaths.Sum(lp => lp.FeePerSemester * lp.Students.Count);
+
+        totalAmountReceived = 0;
+        fullyPaidStudents = 0;
+        studentsWithBalance = 0;
+
+        var uniqueStudents = new HashSet<Student>(filteredLearningPaths.SelectMany(lp => lp.Students));
+        totalStudents = uniqueStudents.Count;
+
+        foreach (var student in uniqueStudents)
+        {
+            double studentPaid = student.Person.SchoolFees?.TotalPaid ?? 0;
+            double studentTotal = student.Person.SchoolFees?.TotalAmount ?? 0;
+
+            totalAmountReceived += studentPaid;
+
+            if (studentPaid >= studentTotal)
+            {
+                fullyPaidStudents++;
+            }
+            else if (studentTotal > 0)
+            {
+                studentsWithBalance++;
+            }
+        }
+
+        totalOutstandingBalance = totalExpectedRevenue - totalAmountReceived;
+        totalLearningPaths = filteredLearningPaths.Count;
+
+        // Calculate school-wide rates
+        schoolWidePaymentCompletionRate = LogicMethods.CalculateOverallPaymentCompletionRate(
+            filteredLearningPaths.SelectMany(lp => lp.Students).ToList());
+
+        schoolWideTimelyCompletionRate = LogicMethods.CalculateOverallTimelyCompletionRate(
+            filteredLearningPaths,
+            filteredLearningPaths.SelectMany(lp => lp.Students).ToList());
+    }
+
+    private double GetTotalPaidForLearningPath(LearningPath learningPath)
+    {
+        double totalPaid = 0;
+
+        foreach (var student in learningPath.Students)
+        {
+            var studentFees = student.Person.SchoolFees;
+            if (studentFees != null)
+            {
+                var studentPayments = studentFees.Payments
+                    .Where(p => p.LearningPathId == learningPath.Id)
+                    .Sum(p => p.Amount);
+
+                totalPaid += studentPayments;
+            }
+        }
+
+        return totalPaid;
+    }
+
+    private void ShowSchoolReport()
+    {
+        showSchoolReport = true;
+    }
+
+    private void CloseSchoolReport()
+    {
+        showSchoolReport = false;
+    }
+
+    private void ShowLearningPathReport(LearningPath learningPath)
+    {
+        selectedLearningPath = learningPath;
+        showLearningPathReport = true;
+    }
+
+    private void CloseLearningPathReport()
+    {
+        showLearningPathReport = false;
+        selectedLearningPath = null;
+    }
+
+    private string GetSelectedAcademicYearString()
+    {
+        return $"{academicYearStartYear}-{academicYearStartYear + 1}";
+    }
+}
