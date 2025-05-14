@@ -77,7 +77,7 @@
                 <div class="col-md-6 mb-3">
                     <div class="card h-100 bg-light">
                         <div class="card-body">
-                            <h5 class="card-title">School-wide Payment Completion Rate</h5>
+                            <h5 class="card-title">Payment Completion Rate</h5>
                             <p class="card-text fs-4 text-info">@schoolWidePaymentCompletionRate.ToString("F2")%</p>
                         </div>
                     </div>
@@ -85,7 +85,7 @@
                 <div class="col-md-6 mb-3">
                     <div class="card h-100 bg-light">
                         <div class="card-body">
-                            <h5 class="card-title">School-wide Timely Completion Rate</h5>
+                            <h5 class="card-title">Timely Completion Rate</h5>
                             <p class="card-text fs-4 text-info">@schoolWideTimelyCompletionRate.ToString("F2")%</p>
                         </div>
                     </div>
@@ -145,11 +145,11 @@
                     <thead>
                         <tr>
                             <th>Learning Path</th>
-                            <th>Number of Students</th>
+                            <th>Students</th>
                             <th>School Fees</th>
                             <th>Expected Revenue</th>
                             <th>Total Paid</th>
-                            <th>Outstanding</th>
+                            <th>Balance</th>
                             <th>Payment Rate</th>
                             <th>Timely Rate</th>
                             <th>Action</th>
@@ -284,7 +284,6 @@ OnClose="CloseLearningPathReport" />
         totalOutstandingBalance = totalExpectedRevenue - totalAmountReceived;
         totalLearningPaths = filteredLearningPaths.Count;
 
-        // Calculate school-wide rates
         schoolWidePaymentCompletionRate = LogicMethods.CalculateOverallPaymentCompletionRate(
             filteredLearningPaths.SelectMany(lp => lp.Students).ToList());
 

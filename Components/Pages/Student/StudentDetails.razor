@@ -21,9 +21,12 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Student Details</h1>
             <div>
-                <button class="btn btn-success" @onclick="ShowLearningPathModal">
-                    <i class="fa fa-graduation-cap"></i> Add to Learning Path
-                </button>
+                @if (!IsStudentInLearningPath())
+                {
+                    <button class="btn btn-success" @onclick="ShowLearningPathModal">
+                        <i class="fa fa-graduation-cap"></i> Add to Learning Path
+                    </button>
+                }
                 <a href="/students/edit/@Id" class="btn btn-warning">
                     <i class="fa fa-pencil"></i> Edit
                 </a>
@@ -307,6 +310,18 @@
             student = SchoolDataService.GetStudentById(Id);
             CloseLearningPathModal();
         }
+    }
+
+    private bool IsStudentInLearningPath()
+    {
+        if (student == null)
+            return false;
+        
+        if (student.CurrentLearningPathId > 0 && student.CurrentLearningPath != null)
+            return true;
+        
+        var allLearningPaths = SchoolDataService.GetAllLearningPaths();
+            return allLearningPaths.Any(lp => lp.Students.Any(s => s.Id == student.Id));
     }
 
     private void NavigateToManagePayments()
