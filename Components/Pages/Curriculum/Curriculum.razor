@@ -5,6 +5,7 @@
 @using FcmsPortal 
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <PageTitle>School Curriculum</PageTitle>
@@ -14,11 +15,7 @@
         <div class="col">
             <div class="d-flex justify-content-between align-items-center">
                 <h1>School Curriculum</h1>
-                <button class="btn btn-primary" @onclick="PrintCurriculum" disabled="@(!filteredCurriculum.Any())">
-                    <i class="fa fa-print me-2"></i> Print Curriculum
-                </button>
             </div>
-            <p class="text-muted">View and print the school curriculum organized by education level, class level, and semester</p>
         </div>
     </div>
 
@@ -56,42 +53,79 @@
         </div>
     </div>
 
-    <!-- Curriculum Display -->
-    @if (filteredCurriculum.Any())
-    {
-        <div class="row">
-            @foreach (var curriculum in filteredCurriculum)
-            {
-                <div class="col-12 mb-4">
-                    <div class="card shadow">
-                        <div class="card-header bg-secondary text-white">
-                            <h5 class="mb-0">@curriculum.EducationLevel - @curriculum.ClassLevel - @curriculum.AcademicYear</h5>
-                        </div>
-                        <div class="card-body">
-                            @foreach (var semester in curriculum.Semesters)
-                            {
-                                <h6 class="text-primary">@semester.Semester</h6>
-                                <ul>
-                                    @foreach (var session in semester.ClassSessions)
-                                    {
-                                        <li>
-                                            <strong>@session.Course</strong> — @session.Topic
-                                            <br />
-                                            <span class="text-muted">@session.Description</span>
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
+<!-- Curriculum Display -->
+@if (filteredCurriculum.Any())
+{
+    <div class="curriculum-print">
+        <div class="row mb-4">
+            <div class="col-6">
+                <h5>Academic Year: @filteredCurriculum.First().AcademicYear</h5>
+                <h5>Semester: @(selectedSemester?.ToString() ?? "All Semesters")</h5>
+            </div>
+            <div class="col-6 text-end">
+                <h5>Education Level: @selectedEducationLevel</h5>
+                <h5>Class Level: @selectedClassLevel</h5>
+            </div>
         </div>
-    }
-    else if (selectedClassLevel != ClassLevel.None)
-    {
-        <div class="text-muted">No curriculum found for the selected combination.</div>
-    }
+        
+        <hr />
+        
+        @foreach (var curriculum in filteredCurriculum)
+        {
+            @foreach (var semester in curriculum.Semesters)
+            {
+                @if (!selectedSemester.HasValue || semester.Semester == selectedSemester)
+                {
+                    <h5 class="text-primary mb-3">@semester.Semester Semester</h5>
+                    
+                    @foreach (var session in semester.ClassSessions)
+                    {
+                        <div class="curriculum-session mb-5">
+                            <div class="row">
+                                <div class="col-8">
+                                    <p class="fw-bold mb-1">Course: @session.Course</p>
+                                    <p class="fw-bold mb-1">Topic: @session.Topic</p>
+                                    <p class="mb-1">Description: @session.Description</p>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <p class="fw-bold">Class Duration: 40 min</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <p class="fw-bold">Lesson Plan</p>
+                                <div class="lesson-plan-box">
+                                    @if (string.IsNullOrEmpty(session.LessonPlan))
+                                    {
+                                        <p class="text-muted text-center py-5">No lesson plan available</p>
+                                    }
+                                    else
+                                    {
+                                        @((MarkupString)session.LessonPlan)
+                                    }
+                                </div>
+                            </div>
+                            
+                            <hr class="mt-4" />
+                        </div>
+                    }
+                }
+            }
+        }
+    </div>
+    
+    <div class="d-print-none mt-4">
+        <button class="btn btn-primary" @onclick="PrintCurriculum">
+            <i class="fa fa-print me-2"></i> Print Curriculum
+        </button>
+    </div>
+}
+else if (selectedClassLevel != ClassLevel.None)
+{
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle me-2"></i> No curriculum found for the selected combination.
+    </div>
+}
 </div>
 
 
@@ -99,17 +133,13 @@
     private EducationLevel selectedEducationLevel = EducationLevel.None;
     private ClassLevel selectedClassLevel = ClassLevel.None;
     private Semester? selectedSemester = null;
-
     private List<ClassLevel> availableClassLevels = new();
-    private List<Curriculum> allCurriculum = new();
-    private List<Curriculum> filteredCurriculum = new();
+    private List<FcmsPortal.Models.Curriculum> allCurriculum = new();
+    private List<FcmsPortal.Models.Curriculum> filteredCurriculum = new();
 
     protected override void OnInitialized()
     {
-        // Get the full curriculum from the service
         allCurriculum = SchoolDataService.GetFullCurriculum();
-
-        // Initialize available class levels based on the selected education level
         availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
     }
 
@@ -120,7 +150,6 @@
 
         availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
         filteredCurriculum.Clear();
-
         await InvokeAsync(StateHasChanged);
     }
 
@@ -152,8 +181,8 @@
         }
     }
 
-    private void PrintCurriculum()
+    private async Task PrintCurriculum()
     {
-        // Print logic here (can open a print-friendly modal or call JS interop)
+        await JSRuntime.InvokeVoidAsync("window.print");
     }
 }

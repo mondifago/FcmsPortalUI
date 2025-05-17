@@ -527,3 +527,64 @@ main {
         font-size: 0.875rem;
         color: #6c757d;
     }
+
+.lesson-plan-box {
+    border: 1px solid #000;
+    min-height: 250px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.curriculum-session {
+    page-break-inside: avoid;
+}
+
+/* Print-specific styles */
+@media print {
+    .d-print-none,
+    .navbar,
+    .nav-scrollable,
+    .top-row,
+    .filters,
+    .btn:not(.print-btn) {
+        display: none !important;
+    }
+
+    .curriculum-print {
+        font-size: 12pt;
+    }
+
+        .curriculum-print h3 {
+            font-size: 16pt;
+        }
+
+        .curriculum-print h4,
+        .curriculum-print h5 {
+            font-size: 14pt;
+        }
+
+        .curriculum-print hr {
+            margin: 10px 0;
+            border-top: 1px solid #000;
+        }
+
+    .lesson-plan-box {
+        border: 1px solid #000 !important;
+        min-height: 300px !important;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    body {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .curriculum-session {
+        margin-bottom: 30px;
+    }
+}
