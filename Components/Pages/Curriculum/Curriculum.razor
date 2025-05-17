@@ -106,8 +106,10 @@
 
     protected override void OnInitialized()
     {
+        // Get the full curriculum from the service
         allCurriculum = SchoolDataService.GetFullCurriculum();
 
+        // Initialize available class levels based on the selected education level
         availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
     }
 
