@@ -1,0 +1,157 @@
+﻿@page "/curriculum"
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+@using FcmsPortal 
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>School Curriculum</PageTitle>
+
+<div class="container-fluid mt-3">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>School Curriculum</h1>
+                <button class="btn btn-primary" @onclick="PrintCurriculum" disabled="@(!filteredCurriculum.Any())">
+                    <i class="fa fa-print me-2"></i> Print Curriculum
+                </button>
+            </div>
+            <p class="text-muted">View and print the school curriculum organized by education level, class level, and semester</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label class="form-label">Education Level</label>
+            <InputSelect class="form-select" @bind-Value="selectedEducationLevel" @bind-Value:after="OnEducationLevelChanged">
+                <option value="@EducationLevel.None">-- Select Education Level --</option>
+                @foreach (var level in Enum.GetValues(typeof(EducationLevel)).Cast<EducationLevel>().Where(l => l != EducationLevel.None))
+                {
+                    <option value="@level">@level</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Class Level</label>
+            <select class="form-select" @bind="selectedClassLevel" @bind:after="OnClassLevelChanged" disabled="@(selectedEducationLevel == EducationLevel.None)">
+                <option value="@ClassLevel.None">-- Select Class Level --</option>
+                @foreach (var level in availableClassLevels)
+                {
+                    <option value="@level">@level</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Semester</label>
+            <select class="form-select" @bind="selectedSemester" @bind:after="OnSemesterChanged" disabled="@(selectedClassLevel == ClassLevel.None)">
+                <option value="">-- Select Semester (optional) --</option>
+                @foreach (var semester in Enum.GetValues(typeof(Semester)).Cast<Semester>())
+                {
+                    <option value="@semester">@semester</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- Curriculum Display -->
+    @if (filteredCurriculum.Any())
+    {
+        <div class="row">
+            @foreach (var curriculum in filteredCurriculum)
+            {
+                <div class="col-12 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">@curriculum.EducationLevel - @curriculum.ClassLevel - @curriculum.AcademicYear</h5>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var semester in curriculum.Semesters)
+                            {
+                                <h6 class="text-primary">@semester.Semester</h6>
+                                <ul>
+                                    @foreach (var session in semester.ClassSessions)
+                                    {
+                                        <li>
+                                            <strong>@session.Course</strong> — @session.Topic
+                                            <br />
+                                            <span class="text-muted">@session.Description</span>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (selectedClassLevel != ClassLevel.None)
+    {
+        <div class="text-muted">No curriculum found for the selected combination.</div>
+    }
+</div>
+
+
+@code {
+    private EducationLevel selectedEducationLevel = EducationLevel.None;
+    private ClassLevel selectedClassLevel = ClassLevel.None;
+    private Semester? selectedSemester = null;
+
+    private List<ClassLevel> availableClassLevels = new();
+    private List<Curriculum> allCurriculum = new();
+    private List<Curriculum> filteredCurriculum = new();
+
+    protected override void OnInitialized()
+    {
+        allCurriculum = SchoolDataService.GetFullCurriculum();
+
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
+    }
+
+    private async Task OnEducationLevelChanged()
+    {
+        selectedClassLevel = ClassLevel.None;
+        selectedSemester = null;
+
+        availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
+        filteredCurriculum.Clear();
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnClassLevelChanged()
+    {
+        selectedSemester = null;
+        TryFilterCurriculum();
+    }
+
+    private void OnSemesterChanged()
+    {
+        TryFilterCurriculum();
+    }
+
+    private void TryFilterCurriculum()
+    {
+        if (selectedEducationLevel != EducationLevel.None && selectedClassLevel != ClassLevel.None)
+        {
+            filteredCurriculum = SchoolDataService.FilterCurriculum(
+                allCurriculum,
+                selectedEducationLevel,
+                selectedClassLevel,
+                selectedSemester
+            );
+        }
+        else
+        {
+            filteredCurriculum.Clear();
+        }
+    }
+
+    private void PrintCurriculum()
+    {
+        // Print logic here (can open a print-friendly modal or call JS interop)
+    }
+}
