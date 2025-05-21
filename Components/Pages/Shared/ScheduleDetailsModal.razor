@@ -1,0 +1,183 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal
+@using FcmsPortalUI.Components.Pages.Shared
+
+<div class="modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Schedule Details</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (ScheduleEntry == null)
+                {
+                    <p>Error: Schedule entry not found.</p>
+                }
+                else
+                {
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <ScheduleTypeIndicator Schedule="ScheduleEntry" />
+                                <h5 class="mb-0 ms-2">@GetScheduleTitle(ScheduleEntry)</h5>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6>Date and Time</h6>
+                                    <p>
+                                        <i class="fa fa-calendar me-2"></i>
+                                        @ScheduleEntry.DateTime.ToString("dddd, MMMM d, yyyy")
+                                    </p>
+                                    <p>
+                                        <i class="fa fa-clock me-2"></i>
+                                        @ScheduleEntry.DateTime.ToString("h:mm tt") - @ScheduleEntry.DateTime.Add(ScheduleEntry.Duration).ToString("h:mm tt")
+                                        (@ScheduleEntry.Duration.TotalMinutes minutes)
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Location</h6>
+                                    <p>
+                                        <i class="fa fa-map-marker-alt me-2"></i>
+                                        @ScheduleEntry.Venue
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if (ScheduleEntry.ClassSession != null)
+                            {
+                                <div class="mb-3">
+                                    <h6>Class Session</h6>
+                                    <p>
+                                        <strong>Course:</strong> @ScheduleEntry.ClassSession.Course
+                                    </p>
+                                    <p>
+                                        <strong>Topic:</strong> @ScheduleEntry.ClassSession.Topic
+                                    </p>
+                                    <p>
+                                        <strong>Teacher:</strong>
+                                        @if (ScheduleEntry.ClassSession.Teacher != null)
+                                        {
+                                            <span>@ScheduleEntry.ClassSession.Teacher.Person.FirstName @ScheduleEntry.ClassSession.Teacher.Person.LastName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not assigned</span>
+                                        }
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(ScheduleEntry.ClassSession.Description))
+                                    {
+                                        <p>
+                                            <strong>Description:</strong> @ScheduleEntry.ClassSession.Description
+                                        </p>
+                                    }
+                                </div>
+                            }
+                            else if (!string.IsNullOrEmpty(ScheduleEntry.Meeting))
+                            {
+                                <div class="mb-3">
+                                    <h6>Meeting Details</h6>
+                                    <p>@ScheduleEntry.Meeting</p>
+                                </div>
+                            }
+                            else if (!string.IsNullOrEmpty(ScheduleEntry.Event))
+                            {
+                                <div class="mb-3">
+                                    <h6>Event Details</h6>
+                                    <p>@ScheduleEntry.Event</p>
+                                </div>
+                            }
+
+                            @if (ScheduleEntry.IsRecurring)
+                            {
+                                <div class="mb-3">
+                                    <h6>Recurrence</h6>
+                                    <p>
+                                        <i class="fa fa-repeat me-2"></i>
+                                        Repeats every @ScheduleEntry.RecurrenceInterval 
+                                        @ScheduleEntry.RecurrencePattern.ToString().ToLower()@(ScheduleEntry.RecurrenceInterval > 1 ? "s" : "")
+                                        
+                                        @if (ScheduleEntry.RecurrencePattern == RecurrenceType.Weekly && ScheduleEntry.DaysOfWeek != null && ScheduleEntry.DaysOfWeek.Any())
+                                        {
+                                            <span>on @string.Join(", ", ScheduleEntry.DaysOfWeek)</span>
+                                        }
+                                        else if (ScheduleEntry.RecurrencePattern == RecurrenceType.Monthly && ScheduleEntry.DayOfMonth.HasValue)
+                                        {
+                                            <span>on day @ScheduleEntry.DayOfMonth of the month</span>
+                                        }
+                                        
+                                        @if (ScheduleEntry.EndDate.HasValue)
+                                        {
+                                            <span>until @ScheduleEntry.EndDate.Value.ToShortDateString()</span>
+                                        }
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+                <button type="button" class="btn btn-warning" @onclick="Edit">Edit</button>
+                <button type="button" class="btn btn-danger" @onclick="Delete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public ScheduleEntry ScheduleEntry { get; set; }
+    [Parameter] public EventCallback<ScheduleEntry> OnEdit { get; set; }
+    [Parameter] public EventCallback<ScheduleEntry> OnDelete { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    
+    private string GetScheduleTitle(ScheduleEntry schedule)
+    {
+        if (!string.IsNullOrEmpty(schedule.Title))
+        {
+            return schedule.Title;
+        }
+
+        if (schedule.ClassSession != null)
+        {
+            return $"{schedule.ClassSession.Course} - {schedule.ClassSession.Topic}";
+        }
+
+        if (!string.IsNullOrEmpty(schedule.Meeting))
+        {
+            return schedule.Meeting;
+        }
+
+        if (!string.IsNullOrEmpty(schedule.Event))
+        {
+            return schedule.Event;
+        }
+
+        return "Untitled Schedule";
+    }
+    
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+    
+    private void Edit()
+    {
+        throw new NotImplementedException("Edit functionality is not implemented yet.");
+    }
+    
+    private void Delete()
+    {
+        OnDelete.InvokeAsync(ScheduleEntry);
+    }
+}
