@@ -129,84 +129,11 @@
 
 @if (showDetailsModal && selectedSchedule != null)
 {
-    <div class="modal fade show" style="display: block;" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">@selectedSchedule.Title Details</h5>
-                    <button type="button" class="btn-close" @onclick="CloseDetailsModal"></button>
-                </div>
-                <div class="modal-body">
-                    <dl class="row">
-                        <dt class="col-sm-4">Date & Time:</dt>
-                        <dd class="col-sm-8">@selectedSchedule.DateTime.ToString("dddd, MMMM d, yyyy h:mm tt")</dd>
-
-                        <dt class="col-sm-4">Duration:</dt>
-                        <dd class="col-sm-8">@selectedSchedule.Duration.TotalMinutes minutes</dd>
-
-                        <dt class="col-sm-4">Venue:</dt>
-                        <dd class="col-sm-8">@selectedSchedule.Venue</dd>
-
-                        @if (selectedSchedule.ClassSession != null)
-                        {
-                            <dt class="col-sm-4">Course:</dt>
-                            <dd class="col-sm-8">@selectedSchedule.ClassSession.Course</dd>
-
-                            <dt class="col-sm-4">Topic:</dt>
-                            <dd class="col-sm-8">@selectedSchedule.ClassSession.Topic</dd>
-
-                            <dt class="col-sm-4">Description:</dt>
-                            <dd class="col-sm-8">@selectedSchedule.ClassSession.Description</dd>
-
-                            <dt class="col-sm-4">Teacher:</dt>
-                            <dd class="col-sm-8">
-                                @if (selectedSchedule.ClassSession.Teacher != null)
-                                {
-                                    <span>@selectedSchedule.ClassSession.Teacher.Person.FirstName @selectedSchedule.ClassSession.Teacher.Person.LastName</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">No teacher assigned</span>
-                                }
-                            </dd>
-                        }
-                        else
-                        {
-                            <dt class="col-sm-4">Class Session:</dt>
-                            <dd class="col-sm-8">
-                                <span class="text-muted">No class session associated</span>
-                                <button class="btn btn-sm btn-success ms-2" @onclick="() => AddClassSession(selectedSchedule)">
-                                    <i class="fa fa-plus"></i> Add Class Session
-                                </button>
-                            </dd>
-                        }
-
-                        @if (selectedSchedule.IsRecurring)
-                        {
-                            <dt class="col-sm-4">Recurring:</dt>
-                            <dd class="col-sm-8">Yes</dd>
-
-                            <dt class="col-sm-4">Pattern:</dt>
-                            <dd class="col-sm-8">@selectedSchedule.RecurrencePattern</dd>
-
-                            <dt class="col-sm-4">Interval:</dt>
-                            <dd class="col-sm-8">Every @selectedSchedule.RecurrenceInterval @selectedSchedule.RecurrencePattern</dd>
-
-                            @if (selectedSchedule.EndDate.HasValue)
-                            {
-                                <dt class="col-sm-4">Ends On:</dt>
-                                <dd class="col-sm-8">@selectedSchedule.EndDate.Value.ToString("MMMM d, yyyy")</dd>
-                            }
-                        }
-                    </dl>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseDetailsModal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
+    <ScheduleDetailsModal IsVisible="showDetailsModal"
+                          ScheduleEntry="selectedSchedule"
+                          OnEdit="EditScheduleEntry"
+                          OnDelete="DeleteScheduleEntry"
+                          OnClose="CloseDetailsModal" />
 }
 
 <ClassSessionCreate IsVisible="showClassSessionModal"
@@ -266,6 +193,11 @@
     {
         selectedSchedule = schedule;
         showDetailsModal = true;
+    }
+
+    private void EditScheduleEntry(ScheduleEntry schedule)
+    {
+        NavigationManager.NavigateTo($"/scheduleEntry/edit/{LearningPathId}/{schedule.Id}?date={filterDate?.ToString("yyyy-MM-dd")}");
     }
 
     private void CloseDetailsModal()
