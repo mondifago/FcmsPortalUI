@@ -87,8 +87,12 @@
                                     <p class="fw-bold mb-1">Topic: @session.Topic</p>
                                     <p class="mb-1">Description: @session.Description</p>
                                 </div>
+                                    @{
+                                        var schedule = GetScheduleForSession(session.Id);
+                                        var duration = schedule?.Duration.TotalMinutes.ToString("0") ?? "N/A";
+                                    }
                                 <div class="col-4 text-end">
-                                    <p class="fw-bold">Class Duration: 40 min</p>
+                                    <p class="fw-bold">Class Duration: @duration min</p>
                                 </div>
                             </div>
                             
@@ -130,17 +134,36 @@ else if (selectedClassLevel != ClassLevel.None)
 
 
 @code {
+    private School school;
     private EducationLevel selectedEducationLevel = EducationLevel.None;
     private ClassLevel selectedClassLevel = ClassLevel.None;
     private Semester? selectedSemester = null;
     private List<ClassLevel> availableClassLevels = new();
     private List<FcmsPortal.Models.Curriculum> allCurriculum = new();
     private List<FcmsPortal.Models.Curriculum> filteredCurriculum = new();
+    private List<ScheduleEntry> allSchedules = new();
 
     protected override void OnInitialized()
     {
+        school = SchoolDataService.GetSchool();
         allCurriculum = SchoolDataService.GetFullCurriculum();
         availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
+
+          if (school?.LearningPath != null)
+          {
+              foreach (var path in school.LearningPath)
+              {
+                  if (path.Schedule != null)
+                  {
+                        allSchedules.AddRange(path.Schedule);
+                  }
+              }
+          }
+    }
+
+    private ScheduleEntry? GetScheduleForSession(int sessionId)
+    {
+        return allSchedules.FirstOrDefault(s => s.ClassSession?.Id == sessionId);
     }
 
     private async Task OnEducationLevelChanged()
