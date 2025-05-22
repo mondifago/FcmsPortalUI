@@ -588,3 +588,52 @@ main {
         margin-bottom: 30px;
     }
 }
+
+/* Calendar Styles */
+.calendar-table {
+    table-layout: fixed;
+}
+
+    .calendar-table td {
+        vertical-align: top;
+        height: 100px;
+        cursor: pointer;
+    }
+
+        .calendar-table td:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+
+.calendar-events {
+    margin-top: 8px;
+    overflow-y: auto;
+    max-height: 70px;
+}
+
+.calendar-event {
+    margin-bottom: 4px;
+}
+
+.calendar-event-weekly {
+    font-size: 0.8rem;
+    padding: 2px 4px;
+    margin-bottom: 2px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.weekly-calendar {
+    table-layout: fixed;
+}
+
+    .weekly-calendar th,
+    .weekly-calendar td {
+        width: calc(100% / 8);
+    }
+
+    .weekly-calendar td {
+        height: 60px;
+        padding: 4px;
+    }
