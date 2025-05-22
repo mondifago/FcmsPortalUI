@@ -32,18 +32,9 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="calendarType" class="form-label">Calendar</label>
-                        <select id="calendarType" class="form-select" @bind="selectedCalendarType">
-                            <option value="school">School Calendar</option>
-                            <option value="personal">Personal Calendar</option>
-                            <option value="classes">Class Schedules</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
                         <label class="form-label">Schedule Types</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showClasses" 
+                            <input class="form-check-input" type="checkbox" id="showClasses"
                                    @bind="showClasses">
                             <label class="form-check-label" for="showClasses">
                                 <span class="badge bg-info">
@@ -52,7 +43,7 @@
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showMeetings" 
+                            <input class="form-check-input" type="checkbox" id="showMeetings"
                                    @bind="showMeetings">
                             <label class="form-check-label" for="showMeetings">
                                 <span class="badge bg-warning">
@@ -61,7 +52,7 @@
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showEvents" 
+                            <input class="form-check-input" type="checkbox" id="showEvents"
                                    @bind="showEvents">
                             <label class="form-check-label" for="showEvents">
                                 <span class="badge bg-success">
@@ -79,11 +70,8 @@
                             <option value="day">Day</option>
                         </select>
                     </div>
-
-                    <button class="btn btn-primary w-100" @onclick="ApplyFilters">
-                        Apply Filters
-                    </button>
                 </div>
+
             </div>
 
             @if (selectedDate != null)
@@ -124,100 +112,92 @@
         <div class="col-md-9">
             @if (viewMode == "month")
             {
-                <MonthlyCalendarView 
-                    Title="Calendar"
-                    CurrentDate="@currentDate"
-                    CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
-                    OnDateSelected="ShowDateDetails"
-                    GetSchedulesForDate="date => GetFilteredSchedules(date)"
-                    ShowAddButton="false"
-                    AddButtonText="Add Event"
-                    AddButtonIcon="plus"
-                    AddButtonColor="success"
-                    AddButtonLink="#"
-                    ScheduleTypeLabel="Event"
-                    ScheduleTypesLabel="Events" />
+                <MonthlyCalendarView Title="Calendar"
+                                     CurrentDate="@currentDate"
+                                     CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
+                                     OnDateSelected="ShowDateDetails"
+                                     GetSchedulesForDate="date => GetFilteredSchedules(date)"
+                                     ShowAddButton="false"
+                                     AddButtonText="Add Event"
+                                     AddButtonIcon="plus"
+                                     AddButtonColor="success"
+                                     AddButtonLink="#"
+                                     ScheduleTypeLabel="Event"
+                                     ScheduleTypesLabel="Events" />
             }
-            else if (viewMode == "week")
+
+            @if (viewMode == "week")
             {
-                <WeeklyCalendarView 
-                    CurrentDate="@currentDate"
-                    CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
-                    OnDateSelected="ShowDateDetails"
-                    GetSchedulesForDate="date => GetFilteredSchedules(date)" />
+                <WeeklyCalendarView CurrentDate="@currentDate"
+                                    CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
+                                    OnDateSelected="ShowDateDetails"
+                                    GetSchedulesForDate="date => GetFilteredSchedules(date)" />
             }
-            else
+
+            @if (viewMode != "month" && viewMode != "week")
             {
-                <DailyScheduleList 
-                    Title="Schedule for" 
-                    SelectedDate="currentDate"
-                    SelectedDateChanged="HandleDateChanged"
-                    Schedules="GetFilteredSchedules(currentDate)"
-                    OnView="ViewScheduleDetails"
-                    OnEdit="EditSchedule"
-                    OnDelete="DeleteSchedule" />
+                <DailyScheduleList Title="Schedule for"
+                                   SelectedDate="currentDate"
+                                   SelectedDateChanged="HandleDateChanged"
+                                   Schedules="GetFilteredSchedules(currentDate)"
+                                   OnView="ViewScheduleDetails"
+                                   OnEdit="EditSchedule"
+                                   OnDelete="DeleteSchedule" />
             }
 
             @if (showDailyView && selectedDate.HasValue && viewMode != "day")
             {
                 <div class="mt-4">
-                    <DailyScheduleList 
-                        Title="Schedule for" 
-                        SelectedDate="selectedDate.Value"
-                        SelectedDateChanged="HandleDateChanged"
-                        Schedules="GetFilteredSchedules(selectedDate.Value)"
-                        OnView="ViewScheduleDetails"
-                        OnEdit="EditSchedule"
-                        OnDelete="DeleteSchedule" />
+                    <DailyScheduleList Title="Schedule for"
+                                       SelectedDate="selectedDate.Value"
+                                       SelectedDateChanged="HandleDateChanged"
+                                       Schedules="GetFilteredSchedules(selectedDate.Value)"
+                                       OnView="ViewScheduleDetails"
+                                       OnEdit="EditSchedule"
+                                       OnDelete="DeleteSchedule" />
                 </div>
             }
         </div>
+
     </div>
 </div>
 
 @if (showDeleteConfirmation && scheduleToDelete != null)
 {
-    <ConfirmDeleteModal 
-        IsVisible="showDeleteConfirmation"
-        Title="Confirm Delete"
-        Message="Are you sure you want to delete this schedule? This action cannot be undone."
-        OnConfirm="ConfirmDeleteSchedule"
-        OnCancel="CancelDelete" />
+    <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                        Title="Confirm Delete"
+                        Message="Are you sure you want to delete this schedule? This action cannot be undone."
+                        OnConfirm="ConfirmDeleteSchedule"
+                        OnCancel="CancelDelete" />
 }
 
 @if (showAddEventModal)
 {
-    <ScheduleEntryModal
-        IsVisible="showAddEventModal" 
-        ScheduleEntry="newScheduleEntry"
-        CurrentPerson="GetCurrentPerson()"
-        OnSave="SaveScheduleEntry"
-        OnClose="() => showAddEventModal = false" />
+    <ScheduleEntryModal IsVisible="showAddEventModal"
+                        ScheduleEntry="newScheduleEntry"
+                        CurrentPerson="GetCurrentPerson()"
+                        OnSave="SaveScheduleEntry"
+                        OnClose="() => showAddEventModal = false" />
 }
 
 @if (showScheduleDetailsModal && selectedSchedule != null)
 {
-    <ScheduleDetailsModal
-        IsVisible="showScheduleDetailsModal"
-        ScheduleEntry="selectedSchedule"
-        OnEdit="EditSchedule"
-        OnDelete="DeleteSchedule"
-        OnClose="() => showScheduleDetailsModal = false" />
+    <ScheduleDetailsModal IsVisible="showScheduleDetailsModal"
+                          ScheduleEntry="selectedSchedule"
+                          OnEdit="EditSchedule"
+                          OnDelete="DeleteSchedule"
+                          OnClose="() => showScheduleDetailsModal = false" />
 }
 
 @code {
     private DateTime currentDate = DateTime.Now;
     private DateTime? selectedDate = null;
-    private string selectedCalendarType = "school";
     private string viewMode = "month";
     private bool showClasses = true;
     private bool showMeetings = true;
     private bool showEvents = true;
     private bool showDailyView = false;
     private School school;
-    private List<CalendarModel> availableCalendars = new List<CalendarModel>();
-    private FcmsPortal.Models.CalendarModel schoolCalendar;
-    private FcmsPortal.Models.CalendarModel personalCalendar;
     private bool showDeleteConfirmation = false;
     private ScheduleEntry scheduleToDelete;
     private bool showAddEventModal = false;
@@ -228,40 +208,22 @@
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
-        
-        if (school.SchoolCalendar != null && school.SchoolCalendar.Any())
+
+        if (school.SchoolCalendar == null)
         {
-            schoolCalendar = school.SchoolCalendar.First();
+            school.SchoolCalendar = new List<CalendarModel>();
         }
-        else
+
+        if (!school.SchoolCalendar.Any())
         {
-            schoolCalendar = new CalendarModel
+            school.SchoolCalendar.Add(new CalendarModel
             {
                 Id = 1,
-                Name = "School Calendar",
+                Name = "Main School Calendar",
                 ScheduleEntries = new List<ScheduleEntry>()
-            };
-            
-            if (school.SchoolCalendar == null)
-            {
-                school.SchoolCalendar = new List<CalendarModel>();
-            }
-            
-            school.SchoolCalendar.Add(schoolCalendar);
+            });
         }
-        
-        // Personal calendar would be retrieved based on user login
-        // For this example
-        personalCalendar = new CalendarModel
-        {
-            Id = 2,
-            Name = "Personal Calendar",
-            ScheduleEntries = new List<ScheduleEntry>()
-        };
-        
-        availableCalendars.Add(schoolCalendar);
-        availableCalendars.Add(personalCalendar);
-        
+
         InitializeNewScheduleEntry();
     }
 
@@ -292,26 +254,15 @@
     private List<ScheduleEntry> GetAllSchedules()
     {
         var schedules = new List<ScheduleEntry>();
-        
-        if (selectedCalendarType == "school" && schoolCalendar?.ScheduleEntries != null)
+
+        foreach (var calendar in school.SchoolCalendar)
         {
-            schedules.AddRange(schoolCalendar.ScheduleEntries);
-        }
-        else if (selectedCalendarType == "personal" && personalCalendar?.ScheduleEntries != null)
-        {
-            schedules.AddRange(personalCalendar.ScheduleEntries);
-        }
-        else if (selectedCalendarType == "classes")
-        {
-            foreach (var learningPath in school.LearningPath)
+            if (calendar.ScheduleEntries != null)
             {
-                if (learningPath.Schedule != null)
-                {
-                    schedules.AddRange(learningPath.Schedule);
-                }
+                schedules.AddRange(calendar.ScheduleEntries);
             }
         }
-        
+
         return schedules;
     }
 
@@ -320,36 +271,37 @@
         var schedules = GetAllSchedules()
             .Where(s => s.DateTime.Date == date.Date)
             .ToList();
-        
-        return schedules.Where(s => 
+
+        return schedules.Where(s =>
             (showClasses && s.ClassSession != null) ||
             (showMeetings && !string.IsNullOrEmpty(s.Meeting)) ||
             (showEvents && !string.IsNullOrEmpty(s.Event))
         ).ToList();
     }
-    
+
     private string GetScheduleTitle(ScheduleEntry schedule)
     {
         if (!string.IsNullOrEmpty(schedule.Title))
         {
             return schedule.Title;
         }
-        else if (schedule.ClassSession != null)
+
+        if (schedule.ClassSession != null)
         {
             return $"{schedule.ClassSession.Course} - {schedule.ClassSession.Topic}";
         }
-        else if (!string.IsNullOrEmpty(schedule.Meeting))
+
+        if (!string.IsNullOrEmpty(schedule.Meeting))
         {
             return schedule.Meeting;
         }
-        else if (!string.IsNullOrEmpty(schedule.Event))
+
+        if (!string.IsNullOrEmpty(schedule.Event))
         {
             return schedule.Event;
         }
-        else
-        {
-            return "Untitled Schedule";
-        }
+
+        return "Untitled Schedule";
     }
 
     private void ApplyFilters()
@@ -373,6 +325,8 @@
     private void EditSchedule(ScheduleEntry schedule)
     {
         // Navigate to edit page or show edit modal
+        // For now, we'll just show the details modal
+        ViewScheduleDetails(schedule);
     }
 
     private void DeleteSchedule(ScheduleEntry schedule)
@@ -391,26 +345,15 @@
     {
         if (scheduleToDelete != null)
         {
-            if (selectedCalendarType == "school" && schoolCalendar?.ScheduleEntries != null)
+            foreach (var calendar in school.SchoolCalendar)
             {
-                schoolCalendar.ScheduleEntries.Remove(scheduleToDelete);
-            }
-            else if (selectedCalendarType == "personal" && personalCalendar?.ScheduleEntries != null)
-            {
-                personalCalendar.ScheduleEntries.Remove(scheduleToDelete);
-            }
-            else if (selectedCalendarType == "classes")
-            {
-                foreach (var learningPath in school.LearningPath)
+                if (calendar.ScheduleEntries != null)
                 {
-                    if (learningPath.Schedule != null)
+                    var scheduleToRemove = calendar.ScheduleEntries.FirstOrDefault(s => s.Id == scheduleToDelete.Id);
+                    if (scheduleToRemove != null)
                     {
-                        var scheduleToRemove = learningPath.Schedule.FirstOrDefault(s => s.Id == scheduleToDelete.Id);
-                        if (scheduleToRemove != null)
-                        {
-                            SchoolDataService.DeleteScheduleEntry(learningPath.Id, scheduleToRemove.Id);
-                            break;
-                        }
+                        calendar.ScheduleEntries.Remove(scheduleToRemove);
+                        break;
                     }
                 }
             }
@@ -438,39 +381,36 @@
 
     private void SaveScheduleEntry(ScheduleEntry scheduleEntry)
     {
-        if (selectedCalendarType == "school" && schoolCalendar?.ScheduleEntries != null)
+        var mainCalendar = school.SchoolCalendar.First();
+
+        if (scheduleEntry.Id == 0)
         {
-            if (scheduleEntry.Id == 0)
+            int maxId = 0;
+            foreach (var calendar in school.SchoolCalendar)
             {
-                scheduleEntry.Id = schoolCalendar.ScheduleEntries.Any() 
-                    ? schoolCalendar.ScheduleEntries.Max(s => s.Id) + 1 
-                    : 1;
-                schoolCalendar.ScheduleEntries.Add(scheduleEntry);
-            }
-            else
-            {
-                var existingIndex = schoolCalendar.ScheduleEntries.FindIndex(s => s.Id == scheduleEntry.Id);
-                if (existingIndex >= 0)
+                if (calendar.ScheduleEntries != null && calendar.ScheduleEntries.Any())
                 {
-                    schoolCalendar.ScheduleEntries[existingIndex] = scheduleEntry;
+                    var calendarMaxId = calendar.ScheduleEntries.Max(s => s.Id);
+                    if (calendarMaxId > maxId)
+                        maxId = calendarMaxId;
                 }
             }
+            scheduleEntry.Id = maxId + 1;
+
+            mainCalendar.ScheduleEntries.Add(scheduleEntry);
         }
-        else if (selectedCalendarType == "personal" && personalCalendar?.ScheduleEntries != null)
+        else
         {
-            if (scheduleEntry.Id == 0)
+            foreach (var calendar in school.SchoolCalendar)
             {
-                scheduleEntry.Id = personalCalendar.ScheduleEntries.Any() 
-                    ? personalCalendar.ScheduleEntries.Max(s => s.Id) + 1 
-                    : 1;
-                personalCalendar.ScheduleEntries.Add(scheduleEntry);
-            }
-            else
-            {
-                var existingIndex = personalCalendar.ScheduleEntries.FindIndex(s => s.Id == scheduleEntry.Id);
-                if (existingIndex >= 0)
+                if (calendar.ScheduleEntries != null)
                 {
-                    personalCalendar.ScheduleEntries[existingIndex] = scheduleEntry;
+                    var existingIndex = calendar.ScheduleEntries.FindIndex(s => s.Id == scheduleEntry.Id);
+                    if (existingIndex >= 0)
+                    {
+                        calendar.ScheduleEntries[existingIndex] = scheduleEntry;
+                        break;
+                    }
                 }
             }
         }
