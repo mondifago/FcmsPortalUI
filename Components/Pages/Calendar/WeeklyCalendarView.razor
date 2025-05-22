@@ -1,0 +1,144 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using System.Globalization
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Weekly Calendar</h4>
+        <div>
+            <button class="btn btn-sm btn-light me-2" @onclick="PreviousWeek">
+                <i class="fa fa-chevron-left"></i>
+            </button>
+            <span class="text-white">Week of @StartOfWeek.ToString("MMM d, yyyy")</span>
+            <button class="btn btn-sm btn-light ms-2" @onclick="NextWeek">
+                <i class="fa fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered m-0 weekly-calendar">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Time</th>
+                        @for (int day = 0; day < 7; day++)
+                        {
+                            var date = StartOfWeek.AddDays(day);
+                            <th class="text-center @(IsToday(date) ? "bg-info-subtle" : "")">
+                                <div>@date.ToString("ddd")</div>
+                                <div class="font-weight-bold">@date.ToString("MMM d")</div>
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int hour = 7; hour < 19; hour++)
+                    {
+                        <tr style="height: 80px;">
+                            <td class="text-center align-middle">
+                                @(hour > 12 ? (hour - 12) : hour):00 @(hour >= 12 ? "PM" : "AM")
+                            </td>
+                            @for (int day = 0; day < 7; day++)
+                            {
+                                var date = StartOfWeek.AddDays(day);
+                                var startTime = new DateTime(date.Year, date.Month, date.Day, hour, 0, 0);
+                                var endTime = startTime.AddHours(1);
+                                var events = GetSchedulesForTimeSlot(date, startTime, endTime);
+
+                                <td class="position-relative @(IsToday(date) ? "bg-info-subtle" : "")"
+                                    @onclick="() => OnDateSelected.InvokeAsync(date)">
+                                    @if (events.Any())
+                                    {
+                                        @foreach (var evt in events.Take(3))
+                                        {
+                                            <div class="calendar-event-weekly @GetEventColorClass(evt)">
+                                                <div class="small text-truncate">
+                                                    @evt.DateTime.ToString("h:mm") - @GetScheduleTitle(evt)
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (events.Count > 3)
+                                        {
+                                            <div class="text-center small">
+                                                <span class="badge bg-secondary">+@(events.Count - 3) more</span>
+                                            </div>
+                                        }
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public DateTime CurrentDate { get; set; }
+    [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
+    [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
+    [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; }
+
+    private DateTime StartOfWeek => CurrentDate.AddDays(-(int)CurrentDate.DayOfWeek);
+
+    private void PreviousWeek()
+    {
+        CurrentDate = CurrentDate.AddDays(-7);
+        CurrentDateChanged.InvokeAsync(CurrentDate);
+    }
+
+    private void NextWeek()
+    {
+        CurrentDate = CurrentDate.AddDays(7);
+        CurrentDateChanged.InvokeAsync(CurrentDate);
+    }
+
+    private List<ScheduleEntry> GetSchedulesForTimeSlot(DateTime date, DateTime startTime, DateTime endTime)
+    {
+        var daySchedules = GetSchedulesForDate(date);
+        return daySchedules
+            .Where(s => s.DateTime.TimeOfDay >= startTime.TimeOfDay &&
+                       s.DateTime.TimeOfDay < endTime.TimeOfDay)
+            .ToList();
+    }
+
+    private string GetEventColorClass(ScheduleEntry schedule)
+    {
+        if (schedule.ClassSession != null)
+            return "bg-info text-white";
+
+        if (!string.IsNullOrEmpty(schedule.Meeting))
+            return "bg-warning text-white";
+
+        if (!string.IsNullOrEmpty(schedule.Event))
+            return "bg-success text-white";
+
+        return "bg-primary text-white";
+    }
+
+
+    private bool IsToday(DateTime date)
+    {
+        var today = DateTime.Today;
+        return date.Year == today.Year && date.Month == today.Month && date.Day == today.Day;
+    }
+
+    private string GetScheduleTitle(ScheduleEntry schedule)
+    {
+        if (!string.IsNullOrEmpty(schedule.Title))
+            return schedule.Title;
+
+        if (schedule.ClassSession != null)
+            return $"{schedule.ClassSession.Course}";
+
+        if (!string.IsNullOrEmpty(schedule.Meeting))
+            return schedule.Meeting;
+
+        if (!string.IsNullOrEmpty(schedule.Event))
+            return schedule.Event;
+
+        return "Untitled";
+    }
+
+}
