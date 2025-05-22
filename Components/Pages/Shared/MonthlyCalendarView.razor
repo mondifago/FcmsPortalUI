@@ -1,0 +1,136 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal
+@using System.Globalization
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">@Title</h4>
+        <div>
+            <button class="btn btn-sm btn-light me-2" @onclick="PreviousMonth">
+                <i class="fa fa-chevron-left"></i>
+            </button>
+            <span class="text-white">@CurrentDate.ToString("MMMM yyyy")</span>
+            <button class="btn btn-sm btn-light ms-2" @onclick="NextMonth">
+                <i class="fa fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (ShowAddButton)
+        {
+            <div class="mb-3">
+                <a href="@AddButtonLink" class="btn btn-@AddButtonColor">
+                    <i class="fa fa-@AddButtonIcon"></i> @AddButtonText
+                </a>
+            </div>
+        }
+
+        <!-- Calendar -->
+        <div class="table-responsive">
+            <table class="table table-bordered calendar-table">
+                <thead>
+                    <tr>
+                        <th>Sun</th>
+                        <th>Mon</th>
+                        <th>Tue</th>
+                        <th>Wed</th>
+                        <th>Thu</th>
+                        <th>Fri</th>
+                        <th>Sat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int week = 0; week < 6; week++)
+                    {
+                        <tr style="height: 100px;">
+                            @for (int day = 0; day < 7; day++)
+                            {
+                                int displayDay = week * 7 + day - FirstDayOfMonth + 1;
+                                bool isCurrentMonth = displayDay > 0 && displayDay <= DaysInMonth;
+                                var date = new DateTime(CurrentDate.Year, CurrentDate.Month, isCurrentMonth ? displayDay : 1);
+                                var sessionsOnDay = isCurrentMonth ? GetSchedulesForDate(date) : new List<ScheduleEntry>();
+
+                                <td class="@(!isCurrentMonth ? "bg-light" : "") @(IsToday(date) ? "bg-info-subtle" : "")"
+                                    @onclick="() => OnDateSelected.InvokeAsync(date)">
+                                    @if (isCurrentMonth)
+                                    {
+                                        <div class="d-flex justify-content-end">
+                                            <span class="badge bg-secondary">@displayDay</span>
+                                        </div>
+                                        @if (sessionsOnDay.Any())
+                                        {
+                                            <div class="calendar-events">
+                                                @if (sessionsOnDay.Count > 0)
+                                                {
+                                                    <div class="calendar-event">
+                                                        <div class="card @GetScheduleTypeColor(sessionsOnDay) text-white mb-1 p-1">
+                                                            <small>
+                                                                <i class="fa fa-calendar-day me-1"></i>
+                                                                @sessionsOnDay.Count @(sessionsOnDay.Count > 1 ? ScheduleTypesLabel : ScheduleTypeLabel)
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Calendar";
+    [Parameter] public DateTime CurrentDate { get; set; } = DateTime.Now;
+    [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
+    [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
+    [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; }
+    [Parameter] public bool ShowAddButton { get; set; } = false;
+    [Parameter] public string AddButtonText { get; set; } = "Add Event";
+    [Parameter] public string AddButtonIcon { get; set; } = "plus";
+    [Parameter] public string AddButtonColor { get; set; } = "success";
+    [Parameter] public string AddButtonLink { get; set; } = "#";
+    [Parameter] public string ScheduleTypeLabel { get; set; } = "Event";
+    [Parameter] public string ScheduleTypesLabel { get; set; } = "Events";
+
+    private int DaysInMonth => DateTime.DaysInMonth(CurrentDate.Year, CurrentDate.Month);
+    private int FirstDayOfMonth => (int)new DateTime(CurrentDate.Year, CurrentDate.Month, 1).DayOfWeek;
+
+    private void PreviousMonth()
+    {
+        CurrentDate = CurrentDate.AddMonths(-1);
+        CurrentDateChanged.InvokeAsync(CurrentDate);
+    }
+
+    private void NextMonth()
+    {
+        CurrentDate = CurrentDate.AddMonths(1);
+        CurrentDateChanged.InvokeAsync(CurrentDate);
+    }
+
+    private string GetScheduleTypeColor(List<ScheduleEntry> schedules)
+    {
+        if (schedules.Any(s => s.ClassSession != null))
+            return "bg-info";
+
+        if (schedules.Any(s => !string.IsNullOrEmpty(s.Meeting)))
+            return "bg-warning";
+
+        if (schedules.Any(s => !string.IsNullOrEmpty(s.Event)))
+            return "bg-success";
+
+        return "bg-primary";
+    }
+
+    private bool IsToday(DateTime date)
+    {
+        var today = DateTime.Today;
+        return date.Year == today.Year && date.Month == today.Month && date.Day == today.Day;
+    }
+}
