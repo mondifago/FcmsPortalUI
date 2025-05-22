@@ -30,7 +30,7 @@
                     <div class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between align-items-center">
                             <div>
-                                <h5 class="mb-1">@GetScheduleTitle(schedule)</h5>
+                                <h5 class="mb-1">@Util.GetScheduleTitle(schedule)</h5>
                                 <p class="mb-1">
                                     <small>
                                         <i class="fa fa-clock me-1"></i>
@@ -95,22 +95,4 @@
         await SelectedDateChanged.InvokeAsync(SelectedDate);
         StateHasChanged();
     }
-
-    private string GetScheduleTitle(ScheduleEntry schedule)
-    {
-        if (!string.IsNullOrEmpty(schedule.Title))
-            return schedule.Title;
-
-        if (schedule.ClassSession != null)
-            return $"{schedule.ClassSession.Course} - {schedule.ClassSession.Topic}";
-
-        if (!string.IsNullOrEmpty(schedule.Meeting))
-            return schedule.Meeting;
-
-        if (!string.IsNullOrEmpty(schedule.Event))
-            return schedule.Event;
-
-        return "Untitled Schedule";
-    }
-
 }

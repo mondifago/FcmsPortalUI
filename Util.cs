@@ -98,5 +98,18 @@ namespace FcmsPortalUI
                 _ => "fa fa-file"
             };
         }
+
+        public static string GetScheduleTitle(ScheduleEntry schedule)
+        {
+            if (!string.IsNullOrEmpty(schedule.Title))
+                return schedule.Title;
+            if (schedule.ClassSession != null)
+                return $"{schedule.ClassSession.Course} - {schedule.ClassSession.Topic}";
+            if (!string.IsNullOrEmpty(schedule.Meeting))
+                return schedule.Meeting;
+            if (!string.IsNullOrEmpty(schedule.Event))
+                return schedule.Event;
+            return "Untitled Schedule";
+        }
     }
 }

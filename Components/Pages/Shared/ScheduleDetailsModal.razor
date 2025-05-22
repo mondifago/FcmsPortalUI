@@ -21,7 +21,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
                                 <ScheduleTypeIndicator Schedule="ScheduleEntry" />
-                                <h5 class="mb-0 ms-2">@GetScheduleTitle(ScheduleEntry)</h5>
+                                <h5 class="mb-0 ms-2">@Util.GetScheduleTitle(ScheduleEntry)</h5>
                             </div>
                         </div>
                         <div class="card-body">
@@ -144,31 +144,6 @@
     [Parameter] public EventCallback<ScheduleEntry> OnEdit { get; set; }
     [Parameter] public EventCallback<ScheduleEntry> OnDelete { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
-
-    private string GetScheduleTitle(ScheduleEntry schedule)
-    {
-        if (!string.IsNullOrEmpty(schedule.Title))
-        {
-            return schedule.Title;
-        }
-
-        if (schedule.ClassSession != null)
-        {
-            return $"{schedule.ClassSession.Course} - {schedule.ClassSession.Topic}";
-        }
-
-        if (!string.IsNullOrEmpty(schedule.Meeting))
-        {
-            return schedule.Meeting;
-        }
-
-        if (!string.IsNullOrEmpty(schedule.Event))
-        {
-            return schedule.Event;
-        }
-
-        return "Untitled Schedule";
-    }
 
     private void Close()
     {

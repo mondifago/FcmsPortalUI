@@ -53,7 +53,7 @@
                                         {
                                             <div class="calendar-event-weekly @GetEventColorClass(evt)">
                                                 <div class="small text-truncate">
-                                                    @evt.DateTime.ToString("h:mm") - @GetScheduleTitle(evt)
+                                                    @evt.DateTime.ToString("h:mm") - @Util.GetScheduleTitle(evt)
                                                 </div>
                                             </div>
                                         }
@@ -123,22 +123,4 @@
         var today = DateTime.Today;
         return date.Year == today.Year && date.Month == today.Month && date.Day == today.Day;
     }
-
-    private string GetScheduleTitle(ScheduleEntry schedule)
-    {
-        if (!string.IsNullOrEmpty(schedule.Title))
-            return schedule.Title;
-
-        if (schedule.ClassSession != null)
-            return $"{schedule.ClassSession.Course}";
-
-        if (!string.IsNullOrEmpty(schedule.Meeting))
-            return schedule.Meeting;
-
-        if (!string.IsNullOrEmpty(schedule.Event))
-            return schedule.Event;
-
-        return "Untitled";
-    }
-
 }

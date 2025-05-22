@@ -96,7 +96,7 @@
                                                 <ScheduleTypeIndicator Schedule="schedule" />
                                             </div>
                                             <div>
-                                                <h6 class="mb-0">@GetScheduleTitle(schedule)</h6>
+                                                <h6 class="mb-0">@Util.GetScheduleTitle(schedule)</h6>
                                                 <small>@schedule.DateTime.ToString("h:mm tt") - @schedule.DateTime.Add(schedule.Duration).ToString("h:mm tt")</small>
                                             </div>
                                         </div>
@@ -267,31 +267,6 @@
             (showMeetings && !string.IsNullOrEmpty(s.Meeting)) ||
             (showEvents && !string.IsNullOrEmpty(s.Event))
         ).ToList();
-    }
-
-    private string GetScheduleTitle(ScheduleEntry schedule)
-    {
-        if (!string.IsNullOrEmpty(schedule.Title))
-        {
-            return schedule.Title;
-        }
-
-        if (schedule.ClassSession != null)
-        {
-            return $"{schedule.ClassSession.Course} - {schedule.ClassSession.Topic}";
-        }
-
-        if (!string.IsNullOrEmpty(schedule.Meeting))
-        {
-            return schedule.Meeting;
-        }
-
-        if (!string.IsNullOrEmpty(schedule.Event))
-        {
-            return schedule.Event;
-        }
-
-        return "Untitled Schedule";
     }
 
     private void ApplyFilters()
