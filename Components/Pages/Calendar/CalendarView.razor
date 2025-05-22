@@ -253,17 +253,7 @@
 
     private List<ScheduleEntry> GetAllSchedules()
     {
-        var schedules = new List<ScheduleEntry>();
-
-        foreach (var calendar in school.SchoolCalendar)
-        {
-            if (calendar.ScheduleEntries != null)
-            {
-                schedules.AddRange(calendar.ScheduleEntries);
-            }
-        }
-
-        return schedules;
+        return SchoolDataService.GetAllSchoolCalendarSchedules().ToList();
     }
 
     private List<ScheduleEntry> GetFilteredSchedules(DateTime date)
