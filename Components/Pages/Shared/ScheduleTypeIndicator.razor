@@ -1,0 +1,75 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+
+<span class="badge @BadgeClass">
+    <i class="fa fa-@IconName me-1"></i>
+    @TypeDisplayName
+</span>
+
+@code {
+    [Parameter] public ScheduleEntry Schedule { get; set; }
+
+    private string BadgeClass => GetBadgeClass();
+    private string IconName => GetIconName();
+    private string TypeDisplayName => GetTypeDisplayName();
+
+    private string GetBadgeClass()
+    {
+        if (Schedule.ClassSession != null)
+        {
+            return "bg-info";
+        }
+
+        if (!string.IsNullOrEmpty(Schedule.Meeting))
+        {
+            return "bg-warning";
+        }
+
+        if (!string.IsNullOrEmpty(Schedule.Event))
+        {
+            return "bg-success";
+        }
+
+        return "bg-primary"; 
+    }
+
+    private string GetIconName()
+    {
+        if (Schedule.ClassSession != null)
+        {
+            return "chalkboard-teacher";
+        }
+
+        if (!string.IsNullOrEmpty(Schedule.Meeting))
+        {
+            return "users";
+        }
+
+        if (!string.IsNullOrEmpty(Schedule.Event))
+        {
+            return "calendar-day";
+        }
+
+        return "calendar"; 
+    }
+
+    private string GetTypeDisplayName()
+    {
+        if (Schedule.ClassSession != null)
+        {
+            return "Class";
+        }
+
+        if (!string.IsNullOrEmpty(Schedule.Meeting))
+        {
+            return "Meeting";
+        }
+
+        if (!string.IsNullOrEmpty(Schedule.Event))
+        {
+            return "Event";
+        }
+
+        return string.Empty; 
+    }
+}
