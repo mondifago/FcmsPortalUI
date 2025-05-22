@@ -15,7 +15,7 @@
                 {
                     <p>Error: Schedule entry not found.</p>
                 }
-                else
+                @if (ScheduleEntry != null)
                 {
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
@@ -76,14 +76,16 @@
                                     }
                                 </div>
                             }
-                            else if (!string.IsNullOrEmpty(ScheduleEntry.Meeting))
+
+                            @if (string.IsNullOrEmpty(ScheduleEntry.Meeting) == false)
                             {
                                 <div class="mb-3">
                                     <h6>Meeting Details</h6>
                                     <p>@ScheduleEntry.Meeting</p>
                                 </div>
                             }
-                            else if (!string.IsNullOrEmpty(ScheduleEntry.Event))
+
+                            @if (string.IsNullOrEmpty(ScheduleEntry.Event) == false)
                             {
                                 <div class="mb-3">
                                     <h6>Event Details</h6>
@@ -97,18 +99,19 @@
                                     <h6>Recurrence</h6>
                                     <p>
                                         <i class="fa fa-repeat me-2"></i>
-                                        Repeats every @ScheduleEntry.RecurrenceInterval 
+                                        Repeats every @ScheduleEntry.RecurrenceInterval
                                         @ScheduleEntry.RecurrencePattern.ToString().ToLower()@(ScheduleEntry.RecurrenceInterval > 1 ? "s" : "")
-                                        
-                                        @if (ScheduleEntry.RecurrencePattern == RecurrenceType.Weekly && ScheduleEntry.DaysOfWeek != null && ScheduleEntry.DaysOfWeek.Any())
+
+                                        @if (ScheduleEntry.RecurrencePattern == RecurrenceType.Weekly && ScheduleEntry.DaysOfWeek?.Any() == true)
                                         {
                                             <span>on @string.Join(", ", ScheduleEntry.DaysOfWeek)</span>
                                         }
-                                        else if (ScheduleEntry.RecurrencePattern == RecurrenceType.Monthly && ScheduleEntry.DayOfMonth.HasValue)
+
+                                        @if (ScheduleEntry.RecurrencePattern == RecurrenceType.Monthly && ScheduleEntry.DayOfMonth.HasValue)
                                         {
                                             <span>on day @ScheduleEntry.DayOfMonth of the month</span>
                                         }
-                                        
+
                                         @if (ScheduleEntry.EndDate.HasValue)
                                         {
                                             <span>until @ScheduleEntry.EndDate.Value.ToShortDateString()</span>
@@ -119,6 +122,7 @@
                         </div>
                     </div>
                 }
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
@@ -140,7 +144,7 @@
     [Parameter] public EventCallback<ScheduleEntry> OnEdit { get; set; }
     [Parameter] public EventCallback<ScheduleEntry> OnDelete { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
-    
+
     private string GetScheduleTitle(ScheduleEntry schedule)
     {
         if (!string.IsNullOrEmpty(schedule.Title))
@@ -165,17 +169,17 @@
 
         return "Untitled Schedule";
     }
-    
+
     private void Close()
     {
         OnClose.InvokeAsync();
     }
-    
+
     private void Edit()
     {
-        throw new NotImplementedException("Edit functionality is not implemented yet.");
+        OnEdit.InvokeAsync(ScheduleEntry);
     }
-    
+
     private void Delete()
     {
         OnDelete.InvokeAsync(ScheduleEntry);

@@ -1,0 +1,116 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">@Title for @SelectedDate.ToString("MMMM d, yyyy")</h4>
+        <div>
+            <button class="btn btn-sm btn-light me-2" @onclick="PreviousDay">
+                <i class="fa fa-chevron-left"></i>
+            </button>
+            <span class="text-white">@SelectedDate.ToString("dddd")</span>
+            <button class="btn btn-sm btn-light ms-2" @onclick="NextDay">
+                <i class="fa fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (!Schedules.Any())
+        {
+            <div class="alert alert-info">
+                <i class="fa fa-info-circle me-2"></i>
+                No @(ScheduleTypesLabel.ToLower()) found for this date.
+            </div>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var schedule in Schedules.OrderBy(s => s.DateTime.TimeOfDay))
+                {
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">@GetScheduleTitle(schedule)</h5>
+                                <p class="mb-1">
+                                    <small>
+                                        <i class="fa fa-clock me-1"></i>
+                                        @schedule.DateTime.ToString("h:mm tt") - @schedule.DateTime.Add(schedule.Duration).ToString("h:mm tt")
+                                    </small>
+                                    <small class="ms-3">
+                                        <i class="fa fa-map-marker-alt me-1"></i>
+                                        @schedule.Venue
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="btn-group">
+                                @if (OnView.HasDelegate)
+                                {
+                                    <button class="btn btn-sm btn-info" @onclick="() => OnView.InvokeAsync(schedule)">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                }
+                                @if (OnEdit.HasDelegate)
+                                {
+                                    <button class="btn btn-sm btn-warning" @onclick="() => OnEdit.InvokeAsync(schedule)">
+                                        <i class="fa fa-pencil"></i>
+                                    </button>
+                                }
+                                @if (OnDelete.HasDelegate)
+                                {
+                                    <button class="btn btn-sm btn-danger" @onclick="() => OnDelete.InvokeAsync(schedule)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Schedules";
+    [Parameter] public DateTime SelectedDate { get; set; }
+    [Parameter] public List<ScheduleEntry> Schedules { get; set; } = new List<ScheduleEntry>();
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<ScheduleEntry> OnView { get; set; }
+    [Parameter] public EventCallback<ScheduleEntry> OnEdit { get; set; }
+    [Parameter] public EventCallback<ScheduleEntry> OnDelete { get; set; }
+    [Parameter] public int ReferenceId { get; set; } = 0;
+    [Parameter] public string ScheduleTypesLabel { get; set; } = "Schedules";
+    [Parameter] public EventCallback<DateTime> SelectedDateChanged { get; set; }
+
+    private async Task PreviousDay()
+    {
+        SelectedDate = SelectedDate.AddDays(-1);
+        await SelectedDateChanged.InvokeAsync(SelectedDate);
+        StateHasChanged();
+    }
+
+    private async Task NextDay()
+    {
+        SelectedDate = SelectedDate.AddDays(1);
+        await SelectedDateChanged.InvokeAsync(SelectedDate);
+        StateHasChanged();
+    }
+
+    private string GetScheduleTitle(ScheduleEntry schedule)
+    {
+        if (!string.IsNullOrEmpty(schedule.Title))
+            return schedule.Title;
+
+        if (schedule.ClassSession != null)
+            return $"{schedule.ClassSession.Course} - {schedule.ClassSession.Topic}";
+
+        if (!string.IsNullOrEmpty(schedule.Meeting))
+            return schedule.Meeting;
+
+        if (!string.IsNullOrEmpty(schedule.Event))
+            return schedule.Event;
+
+        return "Untitled Schedule";
+    }
+
+}
