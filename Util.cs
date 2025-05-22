@@ -111,5 +111,38 @@ namespace FcmsPortalUI
                 return schedule.Event;
             return "Untitled Schedule";
         }
+
+        public static string GetScheduleTypeColor(ScheduleEntry schedule)
+        {
+            if (schedule.ClassSession != null)
+                return "bg-info";
+            if (!string.IsNullOrEmpty(schedule.Meeting))
+                return "bg-warning";
+            if (!string.IsNullOrEmpty(schedule.Event))
+                return "bg-success";
+            return "bg-primary";
+        }
+
+        public static string GetScheduleTypeIcon(ScheduleEntry schedule)
+        {
+            if (schedule.ClassSession != null)
+                return "chalkboard-teacher";
+            if (!string.IsNullOrEmpty(schedule.Meeting))
+                return "users";
+            if (!string.IsNullOrEmpty(schedule.Event))
+                return "calendar-day";
+            return "calendar";
+        }
+
+        public static string GetScheduleTypeDisplayName(ScheduleEntry schedule)
+        {
+            if (schedule.ClassSession != null)
+                return "Class";
+            if (!string.IsNullOrEmpty(schedule.Meeting))
+                return "Meeting";
+            if (!string.IsNullOrEmpty(schedule.Event))
+                return "Event";
+            return string.Empty;
+        }
     }
 }

@@ -20,7 +20,10 @@
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
-                                <ScheduleTypeIndicator Schedule="ScheduleEntry" />
+                                <span class="badge @Util.GetScheduleTypeColor(ScheduleEntry)">
+                                    <i class="fa fa-@Util.GetScheduleTypeIcon(ScheduleEntry) me-1"></i>
+                                    @Util.GetScheduleTypeDisplayName(ScheduleEntry)
+                                </span>
                                 <h5 class="mb-0 ms-2">@Util.GetScheduleTitle(ScheduleEntry)</h5>
                             </div>
                         </div>

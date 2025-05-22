@@ -64,7 +64,7 @@
                                                 @if (sessionsOnDay.Count > 0)
                                                 {
                                                     <div class="calendar-event">
-                                                        <div class="card @GetScheduleTypeColor(sessionsOnDay) text-white mb-1 p-1">
+                                                        <div class="card @(sessionsOnDay.Any() ? Util.GetScheduleTypeColor(sessionsOnDay.First()) : "bg-primary") text-white mb-1 p-1">
                                                             <small>
                                                                 <i class="fa fa-calendar-day me-1"></i>
                                                                 @sessionsOnDay.Count @(sessionsOnDay.Count > 1 ? ScheduleTypesLabel : ScheduleTypeLabel)
@@ -112,20 +112,6 @@
     {
         CurrentDate = CurrentDate.AddMonths(1);
         CurrentDateChanged.InvokeAsync(CurrentDate);
-    }
-
-    private string GetScheduleTypeColor(List<ScheduleEntry> schedules)
-    {
-        if (schedules.Any(s => s.ClassSession != null))
-            return "bg-info";
-
-        if (schedules.Any(s => !string.IsNullOrEmpty(s.Meeting)))
-            return "bg-warning";
-
-        if (schedules.Any(s => !string.IsNullOrEmpty(s.Event)))
-            return "bg-success";
-
-        return "bg-primary";
     }
 
     private bool IsToday(DateTime date)
