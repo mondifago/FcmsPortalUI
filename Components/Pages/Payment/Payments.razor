@@ -158,21 +158,7 @@
                     <tbody>
                         @foreach (var learningPath in filteredLearningPaths)
                         {
-                            var expectedRevenue = learningPath.FeePerSemester * learningPath.Students.Count;
-                            var totalPaid = GetTotalPaidForLearningPath(learningPath);
-                            var outstanding = expectedRevenue - totalPaid;
-                            var paymentRate = LogicMethods.CalculatePaymentCompletionRate(totalPaid, expectedRevenue);
-                            var lastPaymentDate = learningPath.Students
-                            .SelectMany(s => s.Person?.SchoolFees?.Payments ?? new List<Payment>())
-                            .Where(p => p.Date >= learningPath.SemesterStartDate && p.Date <= learningPath.SemesterEndDate)
-                            .OrderByDescending(p => p.Date)
-                            .Select(p => p.Date)
-                            .FirstOrDefault();
-
-                            var timelyRate = lastPaymentDate == default
-                            ? FcmsConstants.DEFAULT_COMPLETION_RATE
-                            : LogicMethods.CalculateTimelyCompletionRate(learningPath.SemesterStartDate, learningPath.SemesterEndDate, lastPaymentDate);
-
+                            var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath);
 
                             <tr>
                                 <td>
@@ -180,13 +166,13 @@
                                         @learningPath.EducationLevel - @learningPath.ClassLevel
                                     </a>
                                 </td>
-                                <td>@learningPath.Students.Count</td>
-                                <td>@learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@expectedRevenue.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@totalPaid.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@outstanding.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@paymentRate.ToString("F2")%</td>
-                                <td>@timelyRate.ToString("F2")%</td>
+                                <td>@paymentSummary.StudentCount</td>
+                                <td>@paymentSummary.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</td>
+                                <td>@paymentSummary.ExpectedRevenue.ToString("C", new CultureInfo("en-NG"))</td>
+                                <td>@paymentSummary.TotalPaid.ToString("C", new CultureInfo("en-NG"))</td>
+                                <td>@paymentSummary.Outstanding.ToString("C", new CultureInfo("en-NG"))</td>
+                                <td>@paymentSummary.PaymentCompletionRate.ToString("F2")%</td>
+                                <td>@paymentSummary.TimelyCompletionRate.ToString("F2")%</td>
                                 <td>
                                     <button class="btn btn-sm btn-info" @onclick="() => ShowLearningPathReport(learningPath)">
                                         <i class="fa fa-file-alt"></i> Report
@@ -290,26 +276,6 @@ OnClose="CloseLearningPathReport" />
         schoolWideTimelyCompletionRate = LogicMethods.CalculateOverallTimelyCompletionRate(
             filteredLearningPaths,
             filteredLearningPaths.SelectMany(lp => lp.Students).ToList());
-    }
-
-    private double GetTotalPaidForLearningPath(LearningPath learningPath)
-    {
-        double totalPaid = 0;
-
-        foreach (var student in learningPath.Students)
-        {
-            var studentFees = student.Person.SchoolFees;
-            if (studentFees != null)
-            {
-                var studentPayments = studentFees.Payments
-                    .Where(p => p.LearningPathId == learningPath.Id)
-                    .Sum(p => p.Amount);
-
-                totalPaid += studentPayments;
-            }
-        }
-
-        return totalPaid;
     }
 
     private void ShowSchoolReport()
