@@ -106,12 +106,12 @@
                     </div>
                 </div>
 
-                <!-- Schedule Calendar Card - Replaced with MonthlyCalendarView component -->
                 <MonthlyCalendarView 
                     Title="Class Schedule"
                     CurrentDate="@currentDate"
                     CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
                     OnDateSelected="NavigateToScheduleList"
+                    OnScheduleTypeClicked="HandleScheduleTypeClicked"
                     GetSchedulesForDate="date => GetSessionsForDate(date)"
                     ShowAddButton="true"
                     AddButtonText="Schedule A Class"
@@ -506,5 +506,15 @@
         gradeReport = SchoolDataService.GetGradeReportForLearningPath(Id);
 
         showGradeModal = false;
+    }
+
+     private void HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
+    {
+        // Navigate to schedule list when class sessions are clicked
+        if (data.type == ScheduleType.ClassSession)
+        {
+            NavigateToScheduleList(data.date);
+        }
+        // For other types, you can handle differently or ignore
     }
 }

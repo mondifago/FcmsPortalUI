@@ -382,15 +382,6 @@ main {
     width: 14.28%;
 }
 
-.calendar-events {
-    overflow-y: auto;
-    max-height: 80px;
-}
-
-.calendar-event {
-    cursor: pointer;
-}
-
 .reply-item {
     border-left: 3px solid #e0e0e0;
     padding-left: 10px;
@@ -607,10 +598,11 @@ main {
 .calendar-events {
     margin-top: 8px;
     overflow-y: auto;
-    max-height: 70px;
+    max-height: 80px; 
 }
 
 .calendar-event {
+    cursor: pointer;
     margin-bottom: 4px;
 }
 
@@ -646,6 +638,18 @@ main {
     opacity: 0.8;
     transform: scale(1.02);
     transition: all 0.2s ease;
+}
+
+.small-badge {
+    font-size: 0.9rem; /* Smaller text */
+    line-height: 1.5; /* Tighten vertical space */
+    padding-top: 2px; /* Reduce top/bottom padding */
+    padding-bottom: 2px;
+    padding-left: 6px; /* Reduce left/right padding */
+    padding-right: 6px;
+    border-radius: 4px; /* Optional: round edges a bit */
+    display: inline-block; /* Shrink to content */
+    width: 90px; /* Avoid full-width */
 }
 
 

@@ -71,9 +71,8 @@
                                                 {
                                                     <div class="calendar-event mb-1" @onclick:stopPropagation
                                                          @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.ClassSession)">
-                                                        <div class="card bg-info text-white p-1 cursor-pointer">
+                                                        <div class="card bg-info text-white px-1 py-0 small-badge">
                                                             <small>
-                                                                <i class="fa fa-chalkboard-teacher me-1"></i>
                                                                 @classSessions.Count Classes
                                                             </small>
                                                         </div>
@@ -84,9 +83,8 @@
                                                 {
                                                     <div class="calendar-event mb-1" @onclick:stopPropagation
                                                          @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.Event)">
-                                                        <div class="card bg-success text-white p-1 cursor-pointer">
+                                                        <div class="card bg-success text-white px-1 py-0 small-badge">
                                                             <small>
-                                                                <i class="fa fa-calendar-day me-1"></i>
                                                                 @events.Count Events
                                                             </small>
                                                         </div>
@@ -97,9 +95,8 @@
                                                 {
                                                     <div class="calendar-event" @onclick:stopPropagation
                                                          @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.Meeting)">
-                                                        <div class="card bg-warning text-white p-1 cursor-pointer">
+                                                        <div class="card bg-warning text-white px-1 py-0 small-badge">
                                                             <small>
-                                                                <i class="fa fa-users me-1"></i>
                                                                 @meetings.Count Meetings
                                                             </small>
                                                         </div>
