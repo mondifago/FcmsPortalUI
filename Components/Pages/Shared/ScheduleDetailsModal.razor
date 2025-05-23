@@ -130,7 +130,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
                 <button type="button" class="btn btn-warning" @onclick="Edit">Edit</button>
-                <button type="button" class="btn btn-danger" @onclick="Delete">Delete</button>
             </div>
         </div>
     </div>
@@ -145,7 +144,6 @@
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public ScheduleEntry ScheduleEntry { get; set; }
     [Parameter] public EventCallback<ScheduleEntry> OnEdit { get; set; }
-    [Parameter] public EventCallback<ScheduleEntry> OnDelete { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
     private void Close()
@@ -156,10 +154,5 @@
     private void Edit()
     {
         OnEdit.InvokeAsync(ScheduleEntry);
-    }
-
-    private void Delete()
-    {
-        OnDelete.InvokeAsync(ScheduleEntry);
     }
 }

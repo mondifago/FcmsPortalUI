@@ -637,3 +637,16 @@ main {
         height: 60px;
         padding: 4px;
     }
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.calendar-event .card:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+
+

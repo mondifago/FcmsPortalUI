@@ -25,7 +25,7 @@
         else
         {
             <div class="list-group">
-                @foreach (var schedule in Schedules.OrderBy(s => s.DateTime.TimeOfDay))
+                @foreach (var schedule in GetFilteredSchedules().OrderBy(s => s.DateTime.TimeOfDay))
                 {
                     <div class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between align-items-center">
@@ -81,6 +81,7 @@
     [Parameter] public int ReferenceId { get; set; } = 0;
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Schedules";
     [Parameter] public EventCallback<DateTime> SelectedDateChanged { get; set; }
+    [Parameter] public ScheduleType? FilterByType { get; set; }
 
     private async Task PreviousDay()
     {
@@ -95,4 +96,19 @@
         await SelectedDateChanged.InvokeAsync(SelectedDate);
         StateHasChanged();
     }
+
+    private List<ScheduleEntry> GetFilteredSchedules()
+    {
+        if (FilterByType == null)
+            return Schedules;
+
+        return FilterByType switch
+        {
+            ScheduleType.ClassSession => Schedules.Where(s => s.ClassSession != null).ToList(),
+            ScheduleType.Event => Schedules.Where(s => !string.IsNullOrEmpty(s.Event)).ToList(),
+            ScheduleType.Meeting => Schedules.Where(s => !string.IsNullOrEmpty(s.Meeting)).ToList(),
+            _ => Schedules
+        };
+    }
+
 }

@@ -119,6 +119,7 @@
                                      CurrentDate="@currentDate"
                                      CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
                                      OnDateSelected="ShowDateDetails"
+                                     OnScheduleTypeClicked="HandleScheduleTypeClicked"
                                      GetSchedulesForDate="date => GetFilteredSchedules(date)"
                                      ShowAddButton="false"
                                      AddButtonText="Add Event"
@@ -142,7 +143,8 @@
                 <DailyScheduleList Title="Schedule for"
                                    SelectedDate="currentDate"
                                    SelectedDateChanged="HandleDateChanged"
-                                   Schedules="GetFilteredSchedules(currentDate)"
+                                   Schedules="GetFilteredSchedules(selectedDate.Value)"
+                                   FilterByType="selectedScheduleType"
                                    OnView="ViewScheduleDetails"
                                    OnEdit="EditSchedule"
                                    OnDelete="DeleteSchedule" />
@@ -188,7 +190,6 @@
     <ScheduleDetailsModal IsVisible="showScheduleDetailsModal"
                           ScheduleEntry="selectedSchedule"
                           OnEdit="EditSchedule"
-                          OnDelete="DeleteSchedule"
                           OnClose="() => showScheduleDetailsModal = false" />
 }
 
@@ -207,6 +208,7 @@
     private ScheduleEntry newScheduleEntry = new ScheduleEntry();
     private bool showScheduleDetailsModal = false;
     private ScheduleEntry selectedSchedule;
+    private ScheduleType? selectedScheduleType = null;
 
     protected override void OnInitialized()
     {
@@ -280,6 +282,7 @@
     private void ShowDateDetails(DateTime date)
     {
         selectedDate = date;
+        selectedScheduleType = null;
         showDailyView = true;
         StateHasChanged();
     }
@@ -384,5 +387,13 @@
         }
 
         showAddEventModal = false;
+    }
+
+    private void HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
+    {
+        selectedDate = data.date;
+        selectedScheduleType = data.type;
+        showDailyView = true;
+        StateHasChanged();
     }
 }

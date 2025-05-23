@@ -61,13 +61,46 @@
                                         @if (sessionsOnDay.Any())
                                         {
                                             <div class="calendar-events">
-                                                @if (sessionsOnDay.Count > 0)
+                                                @{
+                                                    var classSessions = sessionsOnDay.Where(s => s.ClassSession != null).ToList();
+                                                    var events = sessionsOnDay.Where(s => !string.IsNullOrEmpty(s.Event)).ToList();
+                                                    var meetings = sessionsOnDay.Where(s => !string.IsNullOrEmpty(s.Meeting)).ToList();
+                                                }
+
+                                                @if (classSessions.Any())
                                                 {
-                                                    <div class="calendar-event">
-                                                        <div class="card @(sessionsOnDay.Any() ? Util.GetScheduleTypeColor(sessionsOnDay.First()) : "bg-primary") text-white mb-1 p-1">
+                                                    <div class="calendar-event mb-1" @onclick:stopPropagation
+                                                         @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.ClassSession)">
+                                                        <div class="card bg-info text-white p-1 cursor-pointer">
+                                                            <small>
+                                                                <i class="fa fa-chalkboard-teacher me-1"></i>
+                                                                @classSessions.Count Classes
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                }
+
+                                                @if (events.Any())
+                                                {
+                                                    <div class="calendar-event mb-1" @onclick:stopPropagation
+                                                         @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.Event)">
+                                                        <div class="card bg-success text-white p-1 cursor-pointer">
                                                             <small>
                                                                 <i class="fa fa-calendar-day me-1"></i>
-                                                                @sessionsOnDay.Count @(sessionsOnDay.Count > 1 ? ScheduleTypesLabel : ScheduleTypeLabel)
+                                                                @events.Count Events
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                }
+
+                                                @if (meetings.Any())
+                                                {
+                                                    <div class="calendar-event" @onclick:stopPropagation
+                                                         @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.Meeting)">
+                                                        <div class="card bg-warning text-white p-1 cursor-pointer">
+                                                            <small>
+                                                                <i class="fa fa-users me-1"></i>
+                                                                @meetings.Count Meetings
                                                             </small>
                                                         </div>
                                                     </div>
@@ -98,6 +131,7 @@
     [Parameter] public string AddButtonLink { get; set; } = "#";
     [Parameter] public string ScheduleTypeLabel { get; set; } = "Event";
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Events";
+    [Parameter] public EventCallback<(DateTime date, ScheduleType? type)> OnScheduleTypeClicked { get; set; }
 
     private int DaysInMonth => DateTime.DaysInMonth(CurrentDate.Year, CurrentDate.Month);
     private int FirstDayOfMonth => (int)new DateTime(CurrentDate.Year, CurrentDate.Month, 1).DayOfWeek;
@@ -118,5 +152,10 @@
     {
         var today = DateTime.Today;
         return date.Year == today.Year && date.Month == today.Month && date.Day == today.Day;
+    }
+
+    private void HandleScheduleTypeClicked(DateTime date, ScheduleType type)
+    {
+        OnScheduleTypeClicked.InvokeAsync((date, type));
     }
 }
