@@ -144,5 +144,30 @@ namespace FcmsPortalUI
                 return "Event";
             return string.Empty;
         }
+
+        public static (string Text, string CssClass) GetPaymentStatus(Student student)
+        {
+            var schoolFees = student?.Person?.SchoolFees;
+            double totalPaid = schoolFees?.Payments.Sum(p => p.Amount) ?? 0;
+            double totalDue = schoolFees?.TotalAmount ?? 0;
+            double threshold = totalDue * FcmsConstants.PAYMENT_THRESHOLD_FACTOR;
+
+            if (totalPaid == 0)
+            {
+                return ("Unpaid", "bg-danger");
+            }
+
+            if (totalPaid < threshold)
+            {
+                return ("No Access", "bg-warning");
+            }
+
+            if (totalPaid < totalDue)
+            {
+                return ("Access", "bg-info");
+            }
+
+            return ("Paid", "bg-success");
+        }
     }
 }
