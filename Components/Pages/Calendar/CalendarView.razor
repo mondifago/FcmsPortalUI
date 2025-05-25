@@ -358,6 +358,7 @@
 
         if (scheduleEntry.Id == 0)
         {
+            // Get the next available ID
             int maxId = 0;
             foreach (var calendar in school.SchoolCalendar)
             {
@@ -368,12 +369,27 @@
                         maxId = calendarMaxId;
                 }
             }
-            scheduleEntry.Id = maxId + 1;
 
-            mainCalendar.ScheduleEntries.Add(scheduleEntry);
+            // Handle recurring schedules for general calendar
+            if (scheduleEntry.IsRecurring)
+            {
+                var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
+
+                foreach (var entry in recurringEntries)
+                {
+                    entry.Id = ++maxId; // Assign unique IDs to each recurring entry
+                    mainCalendar.ScheduleEntries.Add(entry);
+                }
+            }
+            else
+            {
+                scheduleEntry.Id = maxId + 1;
+                mainCalendar.ScheduleEntries.Add(scheduleEntry);
+            }
         }
         else
         {
+            // Update existing schedule
             foreach (var calendar in school.SchoolCalendar)
             {
                 if (calendar.ScheduleEntries != null)
