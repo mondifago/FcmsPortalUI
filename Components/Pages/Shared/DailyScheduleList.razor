@@ -127,11 +127,7 @@
 
     private void EditSchedule(ScheduleEntry schedule)
     {
-        if (OnEdit.HasDelegate)
-        {
             OnEdit.InvokeAsync(schedule);
-        }
-        
     }
 
     private void CloseEditModal()
@@ -154,16 +150,16 @@
 
     private bool CanEditSchedule(ScheduleEntry schedule)
     {
+        if (schedule.ClassSession != null)
+        {
+            return false;
+        }
+
         if (IsGeneralCalendar)
         {
             return true;
         }
 
-        if (schedule.ClassSession != null)
-        {
-            return AllowClassSchedule;
-        }
-
-        return true;
+        return AllowClassSchedule;
     }
 }
