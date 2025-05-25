@@ -140,6 +140,7 @@
                                    SelectedDateChanged="HandleDateChanged"
                                    Schedules="GetFilteredSchedules(selectedDate.Value)"
                                    FilterByType="selectedScheduleType"
+                                   IsGeneralCalendar="true"
                                    OnView="ViewScheduleDetails"
                                    OnEdit="EditSchedule"
                                    OnDelete="DeleteSchedule" />
@@ -152,6 +153,7 @@
                                        SelectedDate="selectedDate.Value"
                                        SelectedDateChanged="HandleDateChanged"
                                        Schedules="GetFilteredSchedules(selectedDate.Value)"
+                                       IsGeneralCalendar="true"
                                        OnView="ViewScheduleDetails"
                                        OnEdit="EditSchedule"
                                        OnDelete="DeleteSchedule" />

@@ -50,13 +50,13 @@
                                         <i class="fa fa-eye"></i>
                                     </button>
                                 }
-                                @if (OnEdit.HasDelegate)
+                                @if (OnEdit.HasDelegate && CanEditSchedule(schedule))
                                 {
                                     <button class="btn btn-sm btn-warning" @onclick="() => EditSchedule(schedule)">
                                         <i class="fa fa-pencil"></i>
                                     </button>
                                 }
-                                @if (OnDelete.HasDelegate)
+                                @if (OnDelete.HasDelegate && CanEditSchedule(schedule))
                                 {
                                     <button class="btn btn-sm btn-danger" @onclick="() => OnDelete.InvokeAsync(schedule)">
                                         <i class="fa fa-trash"></i>
@@ -92,6 +92,8 @@
     [Parameter] public ScheduleType? FilterByType { get; set; }
     [Parameter] public int? LearningPathId { get; set; }
     [Parameter] public bool AllowClassSchedule { get; set; } = true;
+    [Parameter] public bool IsGeneralCalendar { get; set; } = false;
+
     private bool showEditModal = false;
     private ScheduleEntry selectedScheduleForEdit;
 

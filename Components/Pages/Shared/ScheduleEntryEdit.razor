@@ -420,7 +420,13 @@
         }
         else if (LearningPathId.HasValue)
         {
+            // This is a Learning Path schedule
             success = SchoolDataService.UpdateScheduleEntry(LearningPathId.Value, scheduleEntry);
+        }
+        else
+        {
+            // This is a General Calendar schedule (Events/Meetings only)
+            success = SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
         }
 
         if (success)
