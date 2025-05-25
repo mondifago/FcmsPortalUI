@@ -17,16 +17,6 @@
         </div>
     </div>
     <div class="card-body">
-        @if (ShowAddButton)
-        {
-            <div class="mb-3">
-                <a href="@AddButtonLink" class="btn btn-@AddButtonColor">
-                    <i class="fa fa-@AddButtonIcon"></i> @AddButtonText
-                </a>
-            </div>
-        }
-
-        <!-- Calendar -->
         <div class="table-responsive">
             <table class="table table-bordered calendar-table">
                 <thead>
@@ -121,11 +111,6 @@
     [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
     [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
     [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; }
-    [Parameter] public bool ShowAddButton { get; set; } = false;
-    [Parameter] public string AddButtonText { get; set; } = "Add Event";
-    [Parameter] public string AddButtonIcon { get; set; } = "plus";
-    [Parameter] public string AddButtonColor { get; set; } = "success";
-    [Parameter] public string AddButtonLink { get; set; } = "#";
     [Parameter] public string ScheduleTypeLabel { get; set; } = "Event";
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Events";
     [Parameter] public EventCallback<(DateTime date, ScheduleType? type)> OnScheduleTypeClicked { get; set; }
