@@ -173,21 +173,18 @@
                         OnCancel="CancelDelete" />
 }
 
-@if (showAddEventModal)
-{
-    <ScheduleEntryCreate IsVisible="showAddEventModal"
-                         LearningPathId="null"
-                         DateParam="@(selectedDate?.ToString("yyyy-MM-dd"))"
-                         AllowClassSchedule="false"
-                         OnSave="SaveScheduleEntry"
-                         OnClose="() => showAddEventModal = false" />
+<ScheduleEntryCreate IsVisible="showAddEventModal"
+                     LearningPathId="null"
+                     DateParam="@(selectedDate?.ToString("yyyy-MM-dd"))"
+                     AllowClassSchedule="false"
+                     OnSave="SaveScheduleEntry"
+                     OnClose="() => showAddEventModal = false" />
 
-    <ScheduleEntryEdit IsVisible="showEditModal"
-                       ExistingScheduleEntry="selectedSchedule"
-                       AllowClassSchedule="false"
-                       OnSave="UpdateScheduleEntry"
-                       OnClose="() => showEditModal = false" />
-}
+<ScheduleEntryEdit IsVisible="showEditModal"
+                   ExistingScheduleEntry="selectedSchedule"
+                   AllowClassSchedule="false"
+                   OnSave="UpdateScheduleEntry"
+                   OnClose="() => showEditModal = false" />
 
 @if (showScheduleDetailsModal && selectedSchedule != null)
 {
@@ -302,6 +299,7 @@
     {
         selectedSchedule = schedule;
         showEditModal = true;
+        showScheduleDetailsModal = false;
     }
 
     private void DeleteSchedule(ScheduleEntry schedule)
