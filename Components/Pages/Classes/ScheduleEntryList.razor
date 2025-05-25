@@ -99,9 +99,9 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             <button class="btn btn-info btn-sm" @onclick="() => ShowScheduleDetails(schedule)"><span class="fa fa-eye"></span>Details</button>
-                                            <a href="/scheduleEntry/edit/@LearningPathId/@schedule.Id?date=@(filterDate?.ToString("yyyy-MM-dd"))" class="btn btn-sm btn-warning">
+                                            <button class="btn btn-sm btn-warning" @onclick="() => EditScheduleEntry(schedule)">
                                                 <i class="fa fa-pencil"></i>Edit
-                                            </a>
+                                            </button>
                                             @if (schedule.ClassSession == null)
                                             {
                                                 <button class="btn btn-success btn-sm" @onclick="() => AddClassSession(schedule)">Add Session</button>
@@ -118,6 +118,13 @@
             </div>
         </div>
     }
+
+    <ScheduleEntryEdit IsVisible="showEditModal"
+                       LearningPathId="LearningPathId"
+                       ExistingScheduleEntry="selectedScheduleForEdit"
+                       AllowClassSchedule="true"
+                       OnSave="HandleScheduleUpdated"
+                       OnClose="CloseEditModal" />
 </div>
 
 <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
@@ -157,6 +164,8 @@
     private ScheduleEntry selectedSchedule;
     private bool showClassSessionModal = false;
     private ScheduleEntry selectedScheduleForClassSession;
+    private bool showEditModal = false;
+    private ScheduleEntry selectedScheduleForEdit;
 
     protected override void OnParametersSet()
     {
@@ -196,7 +205,8 @@
 
     private void EditScheduleEntry(ScheduleEntry schedule)
     {
-        NavigationManager.NavigateTo($"/scheduleEntry/edit/{LearningPathId}/{schedule.Id}?date={filterDate?.ToString("yyyy-MM-dd")}");
+        selectedScheduleForEdit = schedule;
+        showEditModal = true;
     }
 
     private void CloseDetailsModal()
@@ -266,5 +276,17 @@
             return $"/scheduleEntry/create/{LearningPathId}?date={filterDate.Value:yyyy-MM-dd}";
         }
         return $"/scheduleEntry/create/{LearningPathId}";
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        selectedScheduleForEdit = null;
+    }
+
+    private void HandleScheduleUpdated(ScheduleEntry updatedSchedule)
+    {
+        LoadData(); 
+        CloseEditModal();
     }
 }

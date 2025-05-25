@@ -105,7 +105,11 @@
 
                     </div>
                 </div>
-
+                <div class="mb-3">
+                    <button class="btn btn-success" @onclick="ShowScheduleCreateModal">
+                        <i class="fa fa-plus"></i> Schedule A Class
+                    </button>
+                </div>
                 <MonthlyCalendarView 
                     Title="Class Schedule"
                     CurrentDate="@currentDate"
@@ -115,9 +119,12 @@
                     GetSchedulesForDate="date => GetSessionsForDate(date)"
                     ShowAddButton="true"
                     AddButtonText="Schedule A Class"
-                    AddButtonLink="@($"/scheduleEntry/create/{learningPath.Id}")"
+                    AddButtonIcon="plus"
+                    AddButtonColor="success"
+                    AddButtonLink="#"
                     ScheduleTypeLabel="Class"
                     ScheduleTypesLabel="Classes" />
+
             </div>
 
             <!-- Right Column: Students and Payment Information -->
@@ -240,6 +247,20 @@
             </div>
         </div>
     }
+
+        <ScheduleEntryCreate IsVisible="showScheduleCreateModal"
+                     LearningPathId="learningPath?.Id"
+                     DateParam="@selectedDateForSchedule"
+                     AllowClassSchedule="true"
+                     OnSave="HandleScheduleCreated"
+                     OnClose="() => showScheduleCreateModal = false" />
+
+        <ScheduleEntryEdit IsVisible="showScheduleEditModal"
+                   LearningPathId="learningPath?.Id"
+                   ExistingScheduleEntry="selectedScheduleForEdit"
+                   AllowClassSchedule="true"
+                   OnSave="HandleScheduleUpdated"
+                   OnClose="CloseScheduleEditModal" />
 </div>
 
 @if (showAddStudentsModal)
@@ -346,7 +367,11 @@
     private Student selectedStudent;
     private bool showGradeModal = false;
     private bool showGradeDetailsModal = false;
-    
+    private bool showScheduleCreateModal = false;
+    private bool showScheduleEditModal = false;
+    private ScheduleEntry selectedScheduleForEdit;
+    private string selectedDateForSchedule = null;
+
     protected override void OnInitialized()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id);
@@ -489,5 +514,45 @@
         {
             NavigateToScheduleList(data.date);
         }
+    }
+
+    private void ShowScheduleCreateModal()
+    {
+        selectedDateForSchedule = currentDate.ToString("yyyy-MM-dd");
+        showScheduleCreateModal = true;
+    }
+
+    private void ShowScheduleCreateModalForDate(DateTime date)
+    {
+        selectedDateForSchedule = date.ToString("yyyy-MM-dd");
+        showScheduleCreateModal = true;
+    }
+
+    private void HandleScheduleCreated(ScheduleEntry scheduleEntry)
+    {
+        // Refresh the learning path data
+        learningPath = SchoolDataService.GetLearningPathById(Id);
+        showScheduleCreateModal = false;
+        selectedDateForSchedule = null;
+        StateHasChanged();
+    }
+
+    private void EditScheduleEntry(ScheduleEntry schedule)
+    {
+        selectedScheduleForEdit = schedule;
+        showScheduleEditModal = true;
+    }
+    private void CloseScheduleEditModal()
+    {
+        showScheduleEditModal = false;
+        selectedScheduleForEdit = null;
+    }
+
+    private void HandleScheduleUpdated(ScheduleEntry updatedSchedule)
+    {
+        // Refresh the learning path data
+        learningPath = SchoolDataService.GetLearningPathById(Id);
+        CloseScheduleEditModal();
+        StateHasChanged();
     }
 }

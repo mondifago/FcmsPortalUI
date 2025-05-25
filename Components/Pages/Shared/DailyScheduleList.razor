@@ -1,5 +1,6 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortalUI.Components.Pages.Shared
 
 <div class="card">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -51,7 +52,7 @@
                                 }
                                 @if (OnEdit.HasDelegate)
                                 {
-                                    <button class="btn btn-sm btn-warning" @onclick="() => OnEdit.InvokeAsync(schedule)">
+                                    <button class="btn btn-sm btn-warning" @onclick="() => EditSchedule(schedule)">
                                         <i class="fa fa-pencil"></i>
                                     </button>
                                 }
@@ -70,6 +71,13 @@
     </div>
 </div>
 
+<ScheduleEntryEdit IsVisible="showEditModal"
+                   LearningPathId="LearningPathId"
+                   ExistingScheduleEntry="selectedScheduleForEdit"
+                   AllowClassSchedule="AllowClassSchedule"
+                   OnSave="HandleScheduleUpdated"
+                   OnClose="CloseEditModal" />
+
 @code {
     [Parameter] public string Title { get; set; } = "Schedules";
     [Parameter] public DateTime SelectedDate { get; set; }
@@ -82,6 +90,10 @@
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Schedules";
     [Parameter] public EventCallback<DateTime> SelectedDateChanged { get; set; }
     [Parameter] public ScheduleType? FilterByType { get; set; }
+    [Parameter] public int? LearningPathId { get; set; }
+    [Parameter] public bool AllowClassSchedule { get; set; } = true;
+    private bool showEditModal = false;
+    private ScheduleEntry selectedScheduleForEdit;
 
     private async Task PreviousDay()
     {
@@ -111,4 +123,36 @@
         };
     }
 
+    private void EditSchedule(ScheduleEntry schedule)
+    {
+        if (OnEdit.HasDelegate)
+        {
+            // If parent component wants to handle editing, use that
+            OnEdit.InvokeAsync(schedule);
+        }
+        else
+        {
+            // Otherwise, handle it locally with the modal
+            selectedScheduleForEdit = schedule;
+            showEditModal = true;
+        }
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        selectedScheduleForEdit = null;
+    }
+
+    private void HandleScheduleUpdated(ScheduleEntry updatedSchedule)
+    {
+        var scheduleIndex = Schedules.FindIndex(s => s.Id == updatedSchedule.Id);
+        if (scheduleIndex >= 0)
+        {
+            Schedules[scheduleIndex] = updatedSchedule;
+        }
+
+        CloseEditModal();
+        StateHasChanged();
+    }
 }

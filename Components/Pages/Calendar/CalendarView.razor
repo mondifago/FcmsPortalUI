@@ -178,11 +178,18 @@
 
 @if (showAddEventModal)
 {
-    <ScheduleEntryModal IsVisible="showAddEventModal"
-                        ScheduleEntry="newScheduleEntry"
-                        CurrentPerson="GetCurrentPerson()"
-                        OnSave="SaveScheduleEntry"
-                        OnClose="() => showAddEventModal = false" />
+    <ScheduleEntryCreate IsVisible="showAddEventModal"
+                         LearningPathId="null"
+                         DateParam="@(selectedDate?.ToString("yyyy-MM-dd"))"
+                         AllowClassSchedule="false"
+                         OnSave="SaveScheduleEntry"
+                         OnClose="() => showAddEventModal = false" />
+
+    <ScheduleEntryEdit IsVisible="showEditModal"
+                       ExistingScheduleEntry="selectedSchedule"
+                       AllowClassSchedule="false"
+                       OnSave="UpdateScheduleEntry"
+                       OnClose="() => showEditModal = false" />
 }
 
 @if (showScheduleDetailsModal && selectedSchedule != null)
@@ -201,6 +208,7 @@
     private bool showMeetings = true;
     private bool showEvents = true;
     private bool showDailyView = false;
+    private bool showEditModal = false;
     private School school;
     private bool showDeleteConfirmation = false;
     private ScheduleEntry scheduleToDelete;
@@ -295,9 +303,8 @@
 
     private void EditSchedule(ScheduleEntry schedule)
     {
-        // Navigate to edit page or show edit modal
-        // For now, we'll just show the details modal
-        ViewScheduleDetails(schedule);
+        selectedSchedule = schedule;
+        showEditModal = true;
     }
 
     private void DeleteSchedule(ScheduleEntry schedule)
@@ -394,6 +401,26 @@
         selectedDate = data.date;
         selectedScheduleType = data.type;
         showDailyView = true;
+        StateHasChanged();
+    }
+
+    private void UpdateScheduleEntry(ScheduleEntry scheduleEntry)
+    {
+        foreach (var calendar in school.SchoolCalendar)
+        {
+            if (calendar.ScheduleEntries != null)
+            {
+                var existingIndex = calendar.ScheduleEntries.FindIndex(s => s.Id == scheduleEntry.Id);
+                if (existingIndex >= 0)
+                {
+                    calendar.ScheduleEntries[existingIndex] = scheduleEntry;
+                    break;
+                }
+            }
+        }
+
+        showEditModal = false;
+        selectedSchedule = null;
         StateHasChanged();
     }
 }
