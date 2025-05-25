@@ -138,7 +138,7 @@
                 <DailyScheduleList Title="Schedule for"
                                    SelectedDate="currentDate"
                                    SelectedDateChanged="HandleDateChanged"
-                                   Schedules="GetFilteredSchedules(selectedDate.Value)"
+                                   Schedules="GetFilteredSchedules(currentDate)"
                                    FilterByType="selectedScheduleType"
                                    IsGeneralCalendar="true"
                                    OnView="ViewScheduleDetails"
@@ -146,7 +146,7 @@
                                    OnDelete="DeleteSchedule" />
             }
 
-            @if (showDailyView && selectedDate.HasValue && viewMode != "day")
+            @if (showDailyView && selectedDate.HasValue && viewMode != "day" && viewMode != "week")
             {
                 <div class="mt-4">
                     <DailyScheduleList Title="Schedule for"
@@ -177,6 +177,7 @@
                      LearningPathId="null"
                      DateParam="@(selectedDate?.ToString("yyyy-MM-dd"))"
                      AllowClassSchedule="false"
+                     RestrictToClassOnly="false"
                      OnSave="SaveScheduleEntry"
                      OnClose="() => showAddEventModal = false" />
 
