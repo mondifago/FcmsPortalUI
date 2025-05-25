@@ -129,15 +129,9 @@
     {
         if (OnEdit.HasDelegate)
         {
-            // If parent component wants to handle editing, use that
             OnEdit.InvokeAsync(schedule);
         }
-        else
-        {
-            // Otherwise, handle it locally with the modal
-            selectedScheduleForEdit = schedule;
-            showEditModal = true;
-        }
+        
     }
 
     private void CloseEditModal()
@@ -156,5 +150,20 @@
 
         CloseEditModal();
         StateHasChanged();
+    }
+
+    private bool CanEditSchedule(ScheduleEntry schedule)
+    {
+        if (IsGeneralCalendar)
+        {
+            return true;
+        }
+
+        if (schedule.ClassSession != null)
+        {
+            return AllowClassSchedule;
+        }
+
+        return true;
     }
 }
