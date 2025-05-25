@@ -264,7 +264,6 @@
             startTimeString = scheduleEntry.DateTime.ToString("HH:mm");
             durationMinutes = (int)scheduleEntry.Duration.TotalMinutes;
 
-            // Determine schedule type
             if (scheduleEntry.ClassSession != null)
             {
                 scheduleType = ScheduleType.ClassSession;
@@ -278,7 +277,6 @@
                 scheduleType = ScheduleType.Event;
             }
 
-            // Set default values for recurrence
             if (scheduleEntry.IsRecurring && !scheduleEntry.EndDate.HasValue)
             {
                 scheduleEntry.EndDate = DateTime.Today.AddMonths(3);

@@ -220,7 +220,6 @@
 
     private void OnScheduleTypeChanged()
     {
-        // Clear type-specific fields when switching types
         scheduleEntry.Event = null;
         scheduleEntry.Meeting = null;
         scheduleEntry.ClassSession = null;
@@ -257,7 +256,6 @@
 
         scheduleEntry.Duration = TimeSpan.FromMinutes(durationMinutes);
 
-        // Set appropriate content based on schedule type
         if (scheduleType == ScheduleType.Event)
         {
             if (string.IsNullOrEmpty(scheduleEntry.Event))
@@ -282,7 +280,6 @@
             scheduleEntry.Meeting = null;
         }
 
-        // Handle recurring schedules
         if (scheduleEntry.IsRecurring && LearningPathId.HasValue)
         {
             var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);

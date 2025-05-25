@@ -25,9 +25,9 @@
                     }
                 </h2>
                 <div>
-                    <a href="@GetScheduleEntryCreateUrl()" class="btn btn-success me-2">
+                    <button class="btn btn-success me-2" @onclick="ShowCreateModal">
                         <i class="fa fa-plus"></i> Add More Sessions
-                    </a>
+                    </button>
                     <a href="/learningpaths/details/@LearningPathId" class="btn btn-secondary">
                         <i class="fa fa-arrow-left"></i> Back to Learning Path
                     </a>
@@ -127,12 +127,18 @@
                        OnClose="CloseEditModal" />
 </div>
 
+<ScheduleEntryCreate IsVisible="showCreateModal"
+                     LearningPathId="LearningPathId"
+                     DateParam="@GetDateParam()"
+                     AllowClassSchedule="true"
+                     OnSave="HandleScheduleCreated"
+                     OnClose="CloseCreateModal" />
+
 <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
                     Title="Confirm Delete"
                     Message="Are you sure you want to delete this Schedule? This will also Delete the assotiated class session!"
                     OnConfirm="ConfirmDeleteSchedule"
                     OnCancel="CancelDelete" />
-
 
 @if (showDetailsModal && selectedSchedule != null)
 {
@@ -166,6 +172,7 @@
     private ScheduleEntry selectedScheduleForClassSession;
     private bool showEditModal = false;
     private ScheduleEntry selectedScheduleForEdit;
+    private bool showCreateModal = false;
 
     protected override void OnParametersSet()
     {
@@ -195,6 +202,31 @@
                 scheduleEntries = LogicMethods.GetAllSchedulesInLearningPath(learningPath);
             }
         }
+    }
+
+    private void ShowCreateModal()
+    {
+        showCreateModal = true;
+    }
+
+    private void CloseCreateModal()
+    {
+        showCreateModal = false;
+    }
+
+    private string GetDateParam()
+    {
+        if (filterDate.HasValue)
+        {
+            return filterDate.Value.ToString("yyyy-MM-dd");
+        }
+        return null;
+    }
+
+    private void HandleScheduleCreated(ScheduleEntry schedule)
+    {
+        LoadData();
+        CloseCreateModal();
     }
 
     private void ShowScheduleDetails(ScheduleEntry schedule)
@@ -269,15 +301,6 @@
         }
     }
 
-    private string GetScheduleEntryCreateUrl()
-    {
-        if (filterDate.HasValue)
-        {
-            return $"/scheduleEntry/create/{LearningPathId}?date={filterDate.Value:yyyy-MM-dd}";
-        }
-        return $"/scheduleEntry/create/{LearningPathId}";
-    }
-
     private void CloseEditModal()
     {
         showEditModal = false;
@@ -286,7 +309,7 @@
 
     private void HandleScheduleUpdated(ScheduleEntry updatedSchedule)
     {
-        LoadData(); 
+        LoadData();
         CloseEditModal();
     }
 }
