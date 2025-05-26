@@ -1,7 +1,9 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Services
 @using FcmsPortal
 @using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
 
 <div class="modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -54,6 +56,19 @@
                             {
                                 <div class="mb-3">
                                     <h6>Class Session</h6>
+                                    @{
+                                        var learningPath = SchoolDataService.GetLearningPathByScheduleEntry(ScheduleEntry.Id);
+                                    }
+                                    @if (learningPath != null)
+                                    {
+                                        <p>
+                                            <strong>Learning Path:</strong>
+                                            <span class="text-primary">
+                                                <i class="fa fa-graduation-cap me-1"></i>
+                                                @Util.GetLearningPathName(learningPath)
+                                            </span>
+                                        </p>
+                                    }
                                     <p>
                                         <strong>Course:</strong> @ScheduleEntry.ClassSession.Course
                                     </p>

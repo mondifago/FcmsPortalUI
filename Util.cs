@@ -17,7 +17,7 @@ namespace FcmsPortalUI
         public static string GetLearningPathName(LearningPath learningPath)
         {
             if (learningPath == null) return "-";
-            return $"{learningPath.EducationLevel} - {learningPath.ClassLevel} ({learningPath.AcademicYear}/{learningPath.Semester})";
+            return $"{learningPath.EducationLevel} - {learningPath.ClassLevel} ({learningPath.AcademicYear} {learningPath.Semester})";
         }
 
         public static string GetInitials(Person person)
