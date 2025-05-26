@@ -387,16 +387,13 @@
     
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
     {
-        // Get schedules from learning path
         var learningPathSchedules = LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date);
         
-        // Get general calendar schedules (events and meetings)
         var generalSchedules = SchoolDataService.GetAllSchoolCalendarSchedules()
             .Where(s => s.DateTime.Date == date.Date && 
                        ((!string.IsNullOrEmpty(s.Event)) || (!string.IsNullOrEmpty(s.Meeting))))
             .ToList();
         
-        // Combine both lists
         var allSchedules = new List<ScheduleEntry>();
         allSchedules.AddRange(learningPathSchedules);
         allSchedules.AddRange(generalSchedules);
@@ -520,13 +517,10 @@
 
     private void HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
     {
-        // Only navigate to schedule list for class sessions created in this learning path
         if (data.type == ScheduleType.ClassSession)
         {
             NavigateToScheduleList(data.date);
         }
-        // For events and meetings, just show them but don't allow navigation
-        // since they're managed from the main calendar
     }
 
     private void ShowScheduleCreateModal()
@@ -543,7 +537,6 @@
 
     private void HandleScheduleCreated(ScheduleEntry scheduleEntry)
     {
-        // Refresh the learning path data
         learningPath = SchoolDataService.GetLearningPathById(Id);
         showScheduleCreateModal = false;
         selectedDateForSchedule = null;
