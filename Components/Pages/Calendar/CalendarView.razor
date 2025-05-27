@@ -359,50 +359,24 @@
 
         if (scheduleEntry.Id == 0)
         {
-            // Get the next available ID
-            int maxId = 0;
-            foreach (var calendar in school.SchoolCalendar)
-            {
-                if (calendar.ScheduleEntries != null && calendar.ScheduleEntries.Any())
-                {
-                    var calendarMaxId = calendar.ScheduleEntries.Max(s => s.Id);
-                    if (calendarMaxId > maxId)
-                        maxId = calendarMaxId;
-                }
-            }
-
-            // Handle recurring schedules for general calendar
             if (scheduleEntry.IsRecurring)
             {
                 var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
-
                 foreach (var entry in recurringEntries)
                 {
-                    entry.Id = ++maxId; // Assign unique IDs to each recurring entry
+                    entry.Id = SchoolDataService.GetNextScheduleId(); 
                     mainCalendar.ScheduleEntries.Add(entry);
                 }
             }
             else
             {
-                scheduleEntry.Id = maxId + 1;
+                scheduleEntry.Id = SchoolDataService.GetNextScheduleId(); 
                 mainCalendar.ScheduleEntries.Add(scheduleEntry);
             }
         }
         else
         {
-            // Update existing schedule
-            foreach (var calendar in school.SchoolCalendar)
-            {
-                if (calendar.ScheduleEntries != null)
-                {
-                    var existingIndex = calendar.ScheduleEntries.FindIndex(s => s.Id == scheduleEntry.Id);
-                    if (existingIndex >= 0)
-                    {
-                        calendar.ScheduleEntries[existingIndex] = scheduleEntry;
-                        break;
-                    }
-                }
-            }
+            SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry); 
         }
 
         showAddEventModal = false;
@@ -418,19 +392,7 @@
 
     private void UpdateScheduleEntry(ScheduleEntry scheduleEntry)
     {
-        foreach (var calendar in school.SchoolCalendar)
-        {
-            if (calendar.ScheduleEntries != null)
-            {
-                var existingIndex = calendar.ScheduleEntries.FindIndex(s => s.Id == scheduleEntry.Id);
-                if (existingIndex >= 0)
-                {
-                    calendar.ScheduleEntries[existingIndex] = scheduleEntry;
-                    break;
-                }
-            }
-        }
-
+        SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
         showEditModal = false;
         selectedSchedule = null;
         StateHasChanged();

@@ -44,7 +44,8 @@
             </div>
         </div>
     }
-    else if (!scheduleEntries.Any())
+
+    @if (learningPath != null && !scheduleEntries.Any())
     {
         <div class="alert alert-info">
             <i class="fa fa-info-circle me-2"></i>
@@ -58,7 +59,8 @@
             }
         </div>
     }
-    else
+
+    @if (learningPath != null && scheduleEntries.Any())
     {
         <div class="card">
             <div class="card-body">
@@ -98,7 +100,9 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="btn btn-info btn-sm" @onclick="() => ShowScheduleDetails(schedule)"><span class="fa fa-eye"></span>Details</button>
+                                            <button class="btn btn-info btn-sm" @onclick="() => ShowScheduleDetails(schedule)">
+                                                <span class="fa fa-eye"></span>Details
+                                            </button>
                                             <button class="btn btn-sm btn-warning" @onclick="() => EditScheduleEntry(schedule)">
                                                 <i class="fa fa-pencil"></i>Edit
                                             </button>
@@ -106,8 +110,9 @@
                                             {
                                                 <button class="btn btn-success btn-sm" @onclick="() => AddClassSession(schedule)">Add Session</button>
                                             }
-
-                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteScheduleEntry(schedule)"><span class="fa fa-trash"></span>Delete</button>
+                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteScheduleEntry(schedule)">
+                                                <span class="fa fa-trash"></span>Delete
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -118,6 +123,7 @@
             </div>
         </div>
     }
+
 
     <ScheduleEntryEdit IsVisible="showEditModal"
                        LearningPathId="LearningPathId"

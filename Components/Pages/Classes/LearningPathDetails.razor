@@ -79,7 +79,7 @@
 
                                     <dt class="col-sm-5">Approval Status:</dt>
                                     <dd class="col-sm-7">
-                                        <span class="@GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">
+                                        <span class="@Util.GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">
                                             @learningPath.ApprovalStatus
                                         </span>
                                     </dd>
@@ -374,17 +374,6 @@
         gradeReport = SchoolDataService.GetGradeReportForLearningPath(Id);
     }
     
-    private string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
-    {
-        return learningPath.ApprovalStatus switch
-        {
-            PrincipalApprovalStatus.Approved => "badge bg-success",
-            PrincipalApprovalStatus.Review => "badge bg-info",
-            PrincipalApprovalStatus.Pending => "badge bg-warning",
-            _ => "badge bg-secondary"
-        };
-    }
-    
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
     {
         var learningPathSchedules = LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date);
@@ -556,7 +545,6 @@
 
     private void HandleScheduleUpdated(ScheduleEntry updatedSchedule)
     {
-        // Refresh the learning path data
         learningPath = SchoolDataService.GetLearningPathById(Id);
         CloseScheduleEditModal();
         StateHasChanged();

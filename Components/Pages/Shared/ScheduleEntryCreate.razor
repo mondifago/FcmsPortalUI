@@ -19,7 +19,6 @@
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
-                    <!-- Schedule Type Selection -->
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label for="scheduleType" class="form-label">Schedule Type<span class="text-danger">*</span></label>
@@ -51,7 +50,6 @@
                         </div>
                     </div>
 
-                    <!-- Event/Meeting Details -->
                     @if (scheduleType == ScheduleType.Event)
                     {
                         <div class="row mb-3">
@@ -117,7 +115,6 @@
                         </div>
                     }
 
-                    <!-- Class Session Creation (only for Class Schedule type) -->
                     @if (scheduleType == ScheduleType.ClassSession && AllowClassSchedule)
                     {
                         <div class="mb-3 mt-4">

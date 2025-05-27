@@ -1,4 +1,5 @@
 ﻿using FcmsPortal.Constants;
+using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using System.Text.RegularExpressions;
 
@@ -18,6 +19,17 @@ namespace FcmsPortalUI
         {
             if (learningPath == null) return "-";
             return $"{learningPath.EducationLevel} - {learningPath.ClassLevel} ({learningPath.AcademicYear} {learningPath.Semester})";
+        }
+
+        public static string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
+        {
+            return status switch
+            {
+                PrincipalApprovalStatus.Approved => "badge bg-success",
+                PrincipalApprovalStatus.Review => "badge bg-info",
+                PrincipalApprovalStatus.Pending => "badge bg-warning",
+                _ => "badge bg-secondary"
+            };
         }
 
         public static string GetInitials(Person person)
