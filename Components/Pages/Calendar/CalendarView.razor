@@ -208,7 +208,6 @@
     private bool showDeleteConfirmation = false;
     private ScheduleEntry scheduleToDelete;
     private bool showAddEventModal = false;
-    private ScheduleEntry newScheduleEntry = new ScheduleEntry();
     private bool showScheduleDetailsModal = false;
     private ScheduleEntry selectedSchedule;
     private ScheduleType? selectedScheduleType = null;
@@ -231,32 +230,6 @@
                 ScheduleEntries = new List<ScheduleEntry>()
             });
         }
-
-        InitializeNewScheduleEntry();
-    }
-
-    private void InitializeNewScheduleEntry()
-    {
-        newScheduleEntry = new ScheduleEntry
-        {
-            Id = 0,
-            DateTime = DateTime.Now,
-            Duration = TimeSpan.FromHours(1),
-            Venue = "School",
-            Title = "",
-            IsRecurring = false,
-            RecurrenceInterval = 1,
-            EndDate = DateTime.Now.AddMonths(1)
-        };
-    }
-
-    private Person GetCurrentPerson()
-    {
-        if (school.Staff.Any())
-        {
-            return school.Staff.First().Person;
-        }
-        return new Person { FirstName = "Test", LastName = "User" };
     }
 
     private List<ScheduleEntry> GetAllSchedules()
@@ -338,11 +311,6 @@
 
     private void ShowAddEventModal()
     {
-        InitializeNewScheduleEntry();
-        if (selectedDate.HasValue)
-        {
-            newScheduleEntry.DateTime = selectedDate.Value;
-        }
         showAddEventModal = true;
     }
 
@@ -355,29 +323,10 @@
 
     private void SaveScheduleEntry(ScheduleEntry scheduleEntry)
     {
-        var mainCalendar = school.SchoolCalendar.First();
-
         if (scheduleEntry.Id == 0)
-        {
-            if (scheduleEntry.IsRecurring)
-            {
-                var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
-                foreach (var entry in recurringEntries)
-                {
-                    entry.Id = SchoolDataService.GetNextScheduleId(); 
-                    mainCalendar.ScheduleEntries.Add(entry);
-                }
-            }
-            else
-            {
-                scheduleEntry.Id = SchoolDataService.GetNextScheduleId(); 
-                mainCalendar.ScheduleEntries.Add(scheduleEntry);
-            }
-        }
+            SchoolDataService.AddGeneralScheduleEntry(scheduleEntry);
         else
-        {
-            SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry); 
-        }
+            SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
 
         showAddEventModal = false;
     }
