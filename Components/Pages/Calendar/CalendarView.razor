@@ -35,7 +35,7 @@
                         <label class="form-label">Schedule Types</label>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="showClasses"
-                                   @bind="showClasses">
+                                   @bind="showClasses" @bind:after="ApplyFilters">
                             <label class="form-check-label" for="showClasses">
                                 <span class="badge bg-info">
                                     <i class="fa fa-chalkboard-teacher me-1"></i> Classes
@@ -44,7 +44,7 @@
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="showMeetings"
-                                   @bind="showMeetings">
+                                   @bind="showMeetings" @bind:after="ApplyFilters">
                             <label class="form-check-label" for="showMeetings">
                                 <span class="badge bg-warning">
                                     <i class="fa fa-users me-1"></i> Meetings
@@ -53,7 +53,7 @@
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="showEvents"
-                                   @bind="showEvents">
+                                   @bind="showEvents" @bind:after="ApplyFilters">
                             <label class="form-check-label" for="showEvents">
                                 <span class="badge bg-success">
                                     <i class="fa fa-calendar-day me-1"></i> Events
@@ -64,7 +64,7 @@
 
                     <div class="mb-3">
                         <label for="viewMode" class="form-label">View Mode</label>
-                        <select id="viewMode" class="form-select" @bind="viewMode">
+                        <select id="viewMode" class="form-select" @bind="viewMode" @bind:after="OnViewModeChanged">
                             <option value="month">Month</option>
                             <option value="week">Week</option>
                             <option value="day">Day</option>
@@ -117,7 +117,7 @@
             {
                 <MonthlyCalendarView Title="Calendar"
                                      CurrentDate="@currentDate"
-                                     CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
+                                     CurrentDateChanged="HandleCurrentDateChanged"
                                      OnDateSelected="ShowDateDetails"
                                      OnScheduleTypeClicked="HandleScheduleTypeClicked"
                                      GetSchedulesForDate="date => GetFilteredSchedules(date)"
@@ -128,7 +128,7 @@
             @if (viewMode == "week")
             {
                 <WeeklyCalendarView CurrentDate="@currentDate"
-                                    CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
+                                    CurrentDateChanged="HandleCurrentDateChanged"
                                     OnDateSelected="ShowDateDetails"
                                     GetSchedulesForDate="date => GetFilteredSchedules(date)" />
             }
@@ -175,24 +175,24 @@
 
 <ScheduleEntryCreate IsVisible="showAddEventModal"
                      LearningPathId="null"
-                     DateParam="@(selectedDate?.ToString("yyyy-MM-dd"))"
+                     DateParam="@null"
                      AllowClassSchedule="false"
                      RestrictToClassOnly="false"
                      OnSave="SaveScheduleEntry"
-                     OnClose="() => showAddEventModal = false" />
+                     OnClose="CloseAddEventModal" />
 
 <ScheduleEntryEdit IsVisible="showEditModal"
                    ExistingScheduleEntry="selectedSchedule"
                    AllowClassSchedule="false"
                    OnSave="UpdateScheduleEntry"
-                   OnClose="() => showEditModal = false" />
+                   OnClose="CloseEditModal" />
 
 @if (showScheduleDetailsModal && selectedSchedule != null)
 {
     <ScheduleDetailsModal IsVisible="showScheduleDetailsModal"
                           ScheduleEntry="selectedSchedule"
                           OnEdit="EditSchedule"
-                          OnClose="() => showScheduleDetailsModal = false" />
+                          OnClose="CloseScheduleDetailsModal" />
 }
 
 @code {
@@ -250,17 +250,31 @@
         ).ToList();
     }
 
-    private void ApplyFilters()
+    private async Task ApplyFilters()
     {
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void ShowDateDetails(DateTime date)
+    private async Task OnViewModeChanged()
+    {
+        showDailyView = false;
+        selectedDate = null;
+        selectedScheduleType = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ShowDateDetails(DateTime date)
     {
         selectedDate = date;
         selectedScheduleType = null;
         showDailyView = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleCurrentDateChanged(DateTime date)
+    {
+        currentDate = date;
+        await InvokeAsync(StateHasChanged);
     }
 
     private void ViewScheduleDetails(ScheduleEntry schedule)
@@ -292,21 +306,11 @@
     {
         if (scheduleToDelete != null)
         {
-            foreach (var calendar in school.SchoolCalendar)
-            {
-                if (calendar.ScheduleEntries != null)
-                {
-                    var scheduleToRemove = calendar.ScheduleEntries.FirstOrDefault(s => s.Id == scheduleToDelete.Id);
-                    if (scheduleToRemove != null)
-                    {
-                        calendar.ScheduleEntries.Remove(scheduleToRemove);
-                        break;
-                    }
-                }
-            }
+            SchoolDataService.DeleteGeneralCalendarScheduleEntry(scheduleToDelete.Id);
         }
         showDeleteConfirmation = false;
         scheduleToDelete = null;
+        StateHasChanged();
     }
 
     private void ShowAddEventModal()
@@ -314,11 +318,28 @@
         showAddEventModal = true;
     }
 
-    private void HandleDateChanged(DateTime newDate)
+    private void CloseAddEventModal()
+    {
+        showAddEventModal = false;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        selectedSchedule = null;
+    }
+
+    private void CloseScheduleDetailsModal()
+    {
+        showScheduleDetailsModal = false;
+        selectedSchedule = null;
+    }
+
+    private async Task HandleDateChanged(DateTime newDate)
     {
         currentDate = newDate;
         selectedDate = newDate;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private void SaveScheduleEntry(ScheduleEntry scheduleEntry)
@@ -329,14 +350,15 @@
             SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
 
         showAddEventModal = false;
+        StateHasChanged();
     }
 
-    private void HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
+    private async Task HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
     {
         selectedDate = data.date;
         selectedScheduleType = data.type;
         showDailyView = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private void UpdateScheduleEntry(ScheduleEntry scheduleEntry)
