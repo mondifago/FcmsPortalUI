@@ -250,13 +250,6 @@
                      RestrictToClassOnly="true"
                      OnSave="HandleScheduleCreated"
                      OnClose="() => showScheduleCreateModal = false" />
-
-        <ScheduleEntryEdit IsVisible="showScheduleEditModal"
-                   LearningPathId="learningPath?.Id"
-                   ExistingScheduleEntry="selectedScheduleForEdit"
-                   AllowClassSchedule="true"
-                   OnSave="HandleScheduleUpdated"
-                   OnClose="CloseScheduleEditModal" />
 </div>
 
 @if (showAddStudentsModal)
@@ -364,8 +357,6 @@
     private bool showGradeModal = false;
     private bool showGradeDetailsModal = false;
     private bool showScheduleCreateModal = false;
-    private bool showScheduleEditModal = false;
-    private ScheduleEntry selectedScheduleForEdit;
     private string selectedDateForSchedule = null;
 
     protected override void OnInitialized()
@@ -529,24 +520,6 @@
         learningPath = SchoolDataService.GetLearningPathById(Id);
         showScheduleCreateModal = false;
         selectedDateForSchedule = null;
-        StateHasChanged();
-    }
-
-    private void EditScheduleEntry(ScheduleEntry schedule)
-    {
-        selectedScheduleForEdit = schedule;
-        showScheduleEditModal = true;
-    }
-    private void CloseScheduleEditModal()
-    {
-        showScheduleEditModal = false;
-        selectedScheduleForEdit = null;
-    }
-
-    private void HandleScheduleUpdated(ScheduleEntry updatedSchedule)
-    {
-        learningPath = SchoolDataService.GetLearningPathById(Id);
-        CloseScheduleEditModal();
         StateHasChanged();
     }
 }
