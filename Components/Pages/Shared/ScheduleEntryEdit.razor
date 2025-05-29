@@ -30,7 +30,6 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        <!-- Schedule Type Selection -->
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <label for="scheduleType" class="form-label">Schedule Type<span class="text-danger">*</span></label>
@@ -62,7 +61,6 @@
                             </div>
                         </div>
 
-                        <!-- Event/Meeting Details -->
                         @if (scheduleType == ScheduleType.Event)
                         {
                             <div class="row mb-3">
@@ -128,7 +126,6 @@
                             </div>
                         }
 
-                        <!-- Class Session Management (only for Class Schedule type) -->
                         @if (scheduleType == ScheduleType.ClassSession && AllowClassSchedule)
                         {
                             <div class="mb-3 mt-4">
@@ -300,29 +297,9 @@
 
     private void OnScheduleTypeChanged()
     {
-        // Update content based on schedule type selection
-        if (scheduleType != ScheduleType.Event)
-        {
-            scheduleEntry.Event = null;
-        }
-        if (scheduleType != ScheduleType.Meeting)
-        {
-            scheduleEntry.Meeting = null;
-        }
-        if (scheduleType != ScheduleType.ClassSession)
-        {
-            scheduleEntry.ClassSession = null;
-        }
-
-        // Set appropriate content for the selected type
-        if (scheduleType == ScheduleType.Event && string.IsNullOrEmpty(scheduleEntry.Event))
-        {
-            scheduleEntry.Event = scheduleEntry.Title;
-        }
-        else if (scheduleType == ScheduleType.Meeting && string.IsNullOrEmpty(scheduleEntry.Meeting))
-        {
-            scheduleEntry.Meeting = scheduleEntry.Title;
-        }
+        scheduleEntry.Event = null;
+        scheduleEntry.Meeting = null;
+        scheduleEntry.ClassSession = null;
     }
 
     private void ShowClassSessionModal()
@@ -379,15 +356,12 @@
 
         scheduleEntry.Duration = TimeSpan.FromMinutes(durationMinutes);
 
-        // Set appropriate content based on schedule type
         if (scheduleType == ScheduleType.Event)
         {
             if (string.IsNullOrEmpty(scheduleEntry.Event))
             {
                 scheduleEntry.Event = scheduleEntry.Title;
             }
-            scheduleEntry.Meeting = null;
-            scheduleEntry.ClassSession = null;
         }
         else if (scheduleType == ScheduleType.Meeting)
         {
@@ -395,18 +369,10 @@
             {
                 scheduleEntry.Meeting = scheduleEntry.Title;
             }
-            scheduleEntry.Event = null;
-            scheduleEntry.ClassSession = null;
-        }
-        else if (scheduleType == ScheduleType.ClassSession)
-        {
-            scheduleEntry.Event = null;
-            scheduleEntry.Meeting = null;
         }
 
         bool success = false;
 
-        // Handle recurring schedules
         if (scheduleEntry.IsRecurring && LearningPathId.HasValue)
         {
             int originalId = scheduleEntry.Id;
@@ -427,12 +393,10 @@
         }
         else if (LearningPathId.HasValue)
         {
-            // This is a Learning Path schedule
             success = SchoolDataService.UpdateScheduleEntry(LearningPathId.Value, scheduleEntry);
         }
         else
         {
-            // This is a General Calendar schedule (Events/Meetings only)
             success = SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
         }
 
