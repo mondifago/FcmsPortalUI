@@ -35,9 +35,15 @@
                             <div class="col-md-12">
                                 <label for="scheduleType" class="form-label">Schedule Type<span class="text-danger">*</span></label>
                                 <select id="scheduleType" class="form-select" @bind="scheduleType" @bind:after="OnScheduleTypeChanged">
-                                    <option value="@ScheduleType.Event">Event</option>
-                                    <option value="@ScheduleType.Meeting">Meeting</option>
-                                    <option value="@ScheduleType.ClassSession" disabled="@(!AllowClassSchedule)">Class Schedule @(AllowClassSchedule ? "" : "(Not available)")</option>
+                                    <option value="@ScheduleType.Event" disabled="@RestrictToClassOnly" class="@(RestrictToClassOnly ? "text-muted" : "")">
+                                        Event @(RestrictToClassOnly ? "(Not available)" : "")
+                                    </option>
+                                    <option value="@ScheduleType.Meeting" disabled="@RestrictToClassOnly" class="@(RestrictToClassOnly ? "text-muted" : "")">
+                                        Meeting @(RestrictToClassOnly ? "(Not available)" : "")
+                                    </option>
+                                    <option value="@ScheduleType.ClassSession" disabled="@(!AllowClassSchedule)">
+                                        Class Schedule @(AllowClassSchedule ? "" : "(Not available)")
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -228,6 +234,9 @@
 
     [Parameter]
     public bool AllowClassSchedule { get; set; } = true;
+
+    [Parameter]
+    public bool RestrictToClassOnly { get; set; } = false;
 
     private LearningPath learningPath;
     private ScheduleEntry scheduleEntry;
