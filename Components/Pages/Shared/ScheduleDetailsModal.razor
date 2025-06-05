@@ -144,7 +144,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
-                <button type="button" class="btn btn-warning" @onclick="Edit">Edit</button>
+                @if (ScheduleEntry.ClassSession == null)
+                {
+                    <button type="button" class="btn btn-warning" @onclick="Edit">Edit</button>
+                }
             </div>
         </div>
     </div>
