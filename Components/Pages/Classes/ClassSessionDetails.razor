@@ -324,92 +324,6 @@
 
             <!-- Right Column (4 columns) -->
             <div class="col-md-4">
-                <!-- Attendance Section -->
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Attendance</h5>
-                        @if (isTeacher && !showAttendanceForm)
-                        {
-                            <button class="btn btn-sm btn-light" @onclick="ToggleAttendanceForm">
-                                <i class="fa fa-clipboard-check"></i> Take Attendance
-                            </button>
-                        }
-                    </div>
-                    <div class="card-body">
-                        @if (showAttendanceForm)
-                        {
-                            <EditForm Model="@attendanceModel" OnValidSubmit="SaveAttendance">
-                                <div class="mb-3">
-                                    <label class="form-label">Select Present Students</label>
-                                    @foreach (var student in learningPathStudents)
-                                    {
-                                        <div class="form-check">
-                                            <InputCheckbox class="form-check-input"
-                                                           @bind-Value="@attendanceModel.PresentStudentIds[student.Id]"
-                                                           id="@($"student-{student.Id}")" />
-                                            <label class="form-check-label" for="student-@student.Id">
-                                                @student.Person.FirstName @student.Person.LastName
-                                            </label>
-                                        </div>
-                                    }
-                                </div>
-                                <div class="d-flex justify-content-end">
-                                    <button type="button" class="btn btn-secondary me-2" @onclick="() => showAttendanceForm = false">Cancel</button>
-                                    <button type="submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </EditForm>
-                        }
-                        else if (classSession.AttendanceLog == null || !classSession.AttendanceLog.Any())
-                        {
-                            <p class="text-muted">No attendance record available.</p>
-                        }
-                        else
-                        {
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Last Attendance: @classSession.AttendanceLog.Last().TimeStamp.ToString("MMM d, yyyy h:mm tt")</label>
-
-                                <div class="card bg-light mb-3">
-                                    <div class="card-header bg-success text-white">Present (@classSession.AttendanceLog.Last().Attendees.Count)</div>
-                                    <div class="card-body">
-                                        @if (!classSession.AttendanceLog.Last().Attendees.Any())
-                                        {
-                                            <p class="text-muted">No students present</p>
-                                        }
-                                        else
-                                        {
-                                            <ul class="list-group list-group-flush">
-                                                @foreach (var student in classSession.AttendanceLog.Last().Attendees)
-                                                {
-                                                    <li class="list-group-item bg-light">@student.Person.FirstName @student.Person.LastName</li>
-                                                }
-                                            </ul>
-                                        }
-                                    </div>
-                                </div>
-
-                                <div class="card bg-light">
-                                    <div class="card-header bg-danger text-white">Absent (@classSession.AttendanceLog.Last().AbsentStudents.Count)</div>
-                                    <div class="card-body">
-                                        @if (!classSession.AttendanceLog.Last().AbsentStudents.Any())
-                                        {
-                                            <p class="text-muted">No students absent</p>
-                                        }
-                                        else
-                                        {
-                                            <ul class="list-group list-group-flush">
-                                                @foreach (var student in classSession.AttendanceLog.Last().AbsentStudents)
-                                                {
-                                                    <li class="list-group-item bg-light">@student.Person.FirstName @student.Person.LastName</li>
-                                                }
-                                            </ul>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-
                 <!-- Students List Section (if teacher) -->
                 @if (isTeacher)
                 {
@@ -479,7 +393,6 @@
     private Student currentStudent; 
     private bool showMaterialsUpload = false;
     private bool showRemarksEditor = false;
-    private bool showAttendanceForm = false;
     private bool showHomeworkModal = false;
     private bool showSubmissionModal = false;
     private Homework selectedHomework;
@@ -498,15 +411,6 @@
         public string Remarks { get; set; }
     }
 
-
-
-    private class AttendanceModel
-    {
-        public Dictionary<int, bool> PresentStudentIds { get; set; } = new Dictionary<int, bool>();
-    }
-
-    private AttendanceModel attendanceModel = new AttendanceModel();
-
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
@@ -517,12 +421,7 @@
             remarksModel.Remarks = classSession.TeacherRemarks ?? "";
             lessonPlanModel.Content = classSession.LessonPlan ?? "";
             scheduleEntry = LogicMethods.GetScheduleEntryForClassSession(school, Id);
-            learningPathStudents = LogicMethods.GetExpectedStudentsForClassSession(school, classSession);
 
-            foreach (var student in learningPathStudents)
-            {
-                attendanceModel.PresentStudentIds[student.Id] = true; 
-            }
             currentTeacher = classSession.Teacher;
 
             if (learningPathStudents.Any())
@@ -558,46 +457,6 @@
         classSession.TeacherRemarks = remarksModel.Remarks;
         showRemarksEditor = false;
         SchoolDataService.UpdateClassSession(classSession);
-    }
-
-    private void ToggleAttendanceForm()
-    {
-        showAttendanceForm = !showAttendanceForm;
-
-        if (showAttendanceForm && classSession.AttendanceLog != null && classSession.AttendanceLog.Any())
-        {
-            var lastLog = classSession.AttendanceLog.Last();
-            foreach (var student in learningPathStudents)
-            {
-                attendanceModel.PresentStudentIds[student.Id] = lastLog.Attendees.Any(s => s.Id == student.Id);
-            }
-        }
-    }
-
-    private void SaveAttendance()
-    {
-        List<Student> presentStudents = new List<Student>();
-        List<Student> absentStudents = new List<Student>();
-
-        foreach (var student in learningPathStudents)
-        {
-            if (attendanceModel.PresentStudentIds.TryGetValue(student.Id, out bool isPresent) && isPresent)
-            {
-                presentStudents.Add(student);
-            }
-            else
-            {
-                absentStudents.Add(student);
-            }
-        }
-
-        LogicMethods.TakeAttendanceForClassSession(
-            SchoolDataService.GetSchool(),
-            classSession,
-            presentStudents,
-            currentTeacher);
-
-        showAttendanceForm = false;
     }
 
     private void CreateNewHomework()
