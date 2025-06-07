@@ -1,0 +1,130 @@
+﻿@page "/reports"
+@using FcmsPortal.Models
+@using FcmsPortal.Services
+@using FcmsPortal
+@inject ISchoolDataService SchoolDataService
+
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>
+                <i class="fa fa-chart-bar me-2"></i>Reports
+            </h2>
+        </div>
+    </div>
+
+    <!-- Attendance Reports Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">
+                <i class="fa fa-calendar-check me-2"></i>Attendance Reports
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="attendanceDate" class="form-label">Select Date:</label>
+                    <input type="date" class="form-control" id="attendanceDate" @bind="selectedDate" />
+                </div>
+            </div>
+
+            @if (selectedDateAttendance.Any())
+            {
+                <div class="row">
+                    @foreach (var attendanceLog in selectedDateAttendance)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        @attendanceLog.LearningPath.EducationLevel - @attendanceLog.LearningPath.ClassLevel
+                                    </h6>
+                                    <small class="text-muted">
+                                        Taken at @attendanceLog.TimeStamp.ToString("HH:mm") 
+                                        by @(attendanceLog.Teacher?.Person?.FirstName ?? "Unknown")
+                                    </small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <div class="text-success">
+                                                <h5>@(attendanceLog.PresentStudents?.Count ?? 0)</h5>
+                                                <small>Present</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="text-danger">
+                                                <h5>@(attendanceLog.AbsentStudents?.Count ?? 0)</h5>
+                                                <small>Absent</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="text-primary">
+                                                <h5>@((attendanceLog.PresentStudents?.Count ?? 0) + (attendanceLog.AbsentStudents?.Count ?? 0))</h5>
+                                                <small>Total</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    @if (attendanceLog.PresentStudents?.Any() == true)
+                                    {
+                                        <div class="mt-3">
+                                            <h6 class="text-success">Present Students:</h6>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach (var student in attendanceLog.PresentStudents)
+                                                {
+                                                    <span class="badge bg-success">@Util.GetFullName(student.Person)</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (attendanceLog.AbsentStudents?.Any() == true)
+                                    {
+                                        <div class="mt-3">
+                                            <h6 class="text-danger">Absent Students:</h6>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                @foreach (var student in attendanceLog.AbsentStudents)
+                                                {
+                                                    <span class="badge bg-danger">@Util.GetFullName(student.Person)</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fa fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No attendance records found for @selectedDate.ToString("MMMM dd, yyyy")</h5>
+                    <p class="text-muted">Select a different date or check if attendance has been taken.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private School school;
+    private DateTime selectedDate = DateTime.Today;
+    private List<DailyAttendanceLogEntry> selectedDateAttendance = new();
+
+    protected override void OnInitialized()
+    {
+        school = SchoolDataService.GetSchool();
+        LoadAttendanceForDate();
+    }
+
+    private void LoadAttendanceForDate()
+    {
+        selectedDateAttendance = LogicMethods.GetAttendanceLogsByDate(school.LearningPath, _selectedDate);
+    }
+
+    private DateTime _selectedDate = DateTime.Today;
+    
+}
