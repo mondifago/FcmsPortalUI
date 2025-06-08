@@ -201,6 +201,29 @@
     {
         school = SchoolDataService.GetSchool();
         LoadAvailableAcademicYears();
+        InitializeWithCurrentData();
+    }
+
+    private void InitializeWithCurrentData()
+    {
+        // Set current academic year (most recent available)
+        if (availableAcademicYears.Any())
+        {
+            selectedAcademicYear = availableAcademicYears.First(); // First one since ordered descending
+            LoadAvailableSemesters();
+
+            // Set current semester (most recent available for the selected year)
+            if (availableSemesters.Any())
+            {
+                selectedSemester = availableSemesters.Last(); // Assuming semesters are ordered chronologically
+
+                // Set current date
+                selectedDate = DateTime.Today;
+
+                // Load the learning paths with attendance data
+                LoadLearningPathsWithAttendance();
+            }
+        }
     }
 
     private void LoadAvailableAcademicYears()
@@ -254,21 +277,19 @@
 
         foreach (var learningPath in filteredLearningPaths)
         {
+            // Try to find daily attendance for the selected date, but create the info regardless
             var dailyAttendance = learningPath.AttendanceLog
                 .FirstOrDefault(log => log.TimeStamp.Date == selectedDate.Date);
 
-            if (dailyAttendance != null)
+            var attendanceInfo = new LearningPathAttendanceInfo
             {
-                var attendanceInfo = new LearningPathAttendanceInfo
-                {
-                    LearningPath = learningPath,
-                    DailyAttendance = dailyAttendance,
-                    TotalAttendanceDays = learningPath.AttendanceLog.Count,
-                    AverageAttendanceRate = CalculateAverageAttendanceRate(learningPath)
-                };
+                LearningPath = learningPath,
+                DailyAttendance = dailyAttendance, // This could be null if no attendance for that day
+                TotalAttendanceDays = learningPath.AttendanceLog.Count,
+                AverageAttendanceRate = CalculateAverageAttendanceRate(learningPath)
+            };
 
-                learningPathsWithAttendance.Add(attendanceInfo);
-            }
+            learningPathsWithAttendance.Add(attendanceInfo);
         }
     }
 

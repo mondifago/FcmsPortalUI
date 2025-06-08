@@ -126,9 +126,13 @@
             <div class="col-md-4">
                 <!-- Enrolled Students Card -->
                 <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
-                    </div>
+                   <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
+                    <button class="btn btn-light btn-sm" @onclick="HandleAttendanceAction">
+                        <i class="fa fa-@(GetAttendanceIcon()) me-1"></i>
+                        @GetAttendanceButtonText()
+                    </button>
+                </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
                             @if (learningPath.Students == null || !learningPath.Students.Any())
@@ -340,6 +344,14 @@
                   OnSave="HandleSaveGrade"
                   OnClose="() => showGradeModal = false" />
 
+@if (showAttendanceModal)
+{
+    <TakeAttendanceModal IsVisible="showAttendanceModal"
+                     Students="learningPath.Students"
+                     OnAttendanceSubmitted="OnAttendanceSubmitted"
+                     OnClose="CloseAttendanceModal" />
+}
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -522,4 +534,56 @@
         selectedDateForSchedule = null;
         StateHasChanged();
     }
+
+    private bool showAttendanceModal = false;
+
+// Existing code...
+
+private string GetAttendanceButtonText()
+{
+    return LogicMethods.HasAttendanceBeenTakenToday(learningPath) ? "View Attendance" : "Take Attendance";
+}
+
+private string GetAttendanceIcon()
+{
+    return LogicMethods.HasAttendanceBeenTakenToday(learningPath) ? "eye" : "check-square";
+}
+
+private void HandleAttendanceAction()
+{
+    if (LogicMethods.HasAttendanceBeenTakenToday(learningPath))
+    {
+        // Show today's attendance
+        ShowTodaysAttendance();
+    }
+    else
+    {
+        // Open attendance modal
+        showAttendanceModal = true;
+    }
+}
+
+private void ShowTodaysAttendance()
+{
+    var todaysLog = LogicMethods.GetTodaysAttendanceLog(learningPath);
+    if (todaysLog != null)
+    {
+        // You could show a modal or navigate to a detailed view
+        // For now, we'll just show an alert (you can implement a proper modal later)
+        var presentCount = todaysLog.PresentStudents?.Count ?? 0;
+        var absentCount = todaysLog.AbsentStudents?.Count ?? 0;
+        // You could add a toast notification or modal here
+    }
+}
+
+private async Task OnAttendanceSubmitted()
+{
+    showAttendanceModal = false;
+    StateHasChanged(); // Refresh the button text
+}
+
+private void CloseAttendanceModal()
+{
+    showAttendanceModal = false;
+}
 }
