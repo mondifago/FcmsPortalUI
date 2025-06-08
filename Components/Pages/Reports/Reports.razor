@@ -52,22 +52,18 @@
 
             </div>
 
-            @if (!string.IsNullOrEmpty(selectedAcademicYear) && !string.IsNullOrEmpty(selectedSemester) && learningPathsWithAttendance.Any())
+            @if (!string.IsNullOrEmpty(selectedAcademicYear) && !string.IsNullOrEmpty(selectedSemester) && filteredLearningPaths.Any())
             {
                 <div class="row">
-                    @foreach (var learningPathInfo in learningPathsWithAttendance)
+                    @foreach (var learningPath in filteredLearningPaths)
                     {
                         <div class="col-md-12 mb-3">
                             <div class="card">
                                 <div class="card-header bg-light">
                                     <h6 class="mb-0">
                                         <i class="fa fa-graduation-cap me-2"></i>
-                                        @learningPathInfo.LearningPath.EducationLevel - @learningPathInfo.LearningPath.ClassLevel
+                                        @Util.GetLearningPathName(learningPath)
                                     </h6>
-                                    <small class="text-muted">
-                                        Academic Year: @learningPathInfo.LearningPath.AcademicYear |
-                                        Semester: @learningPathInfo.LearningPath.Semester
-                                    </small>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -76,61 +72,69 @@
                                             <div class="row text-center">
                                                 <div class="col-3">
                                                     <div class="text-info">
-                                                        <h5>@learningPathInfo.LearningPath.Students.Count</h5>
+                                                        <h5>@learningPath.Students.Count</h5>
                                                         <small>Total Students</small>
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
                                                     <div class="text-success">
-                                                        <h5>@learningPathInfo.TotalAttendanceDays</h5>
+                                                        <h5>@learningPath.AttendanceLog.Count</h5>
                                                         <small>Days Recorded</small>
                                                     </div>
                                                 </div>
                                                 <div class="col-3">
                                                     <div class="text-warning">
-                                                        <h5>@learningPathInfo.AverageAttendanceRate.ToString("F1")%</h5>
+                                                        @{
+                                                            double avgRate = 0;
+                                                            if (learningPath.AttendanceLog.Any() && learningPath.Students.Any())
+                                                            {
+                                                                var totalPossible = learningPath.Students.Count * learningPath.AttendanceLog.Count;
+                                                                var totalPresent = learningPath.AttendanceLog.Sum(log => log.PresentStudents?.Count ?? 0);
+                                                                avgRate = totalPossible > 0 ? (double)totalPresent / totalPossible * 100 : 0;
+                                                            }
+                                                        }
+                                                        <h5>@avgRate.ToString("F1")%</h5>
                                                         <small>Avg Attendance</small>
-                                                    </div>
-                                                </div>
-                                                <div class="col-3">
-                                                    <div class="text-primary">
-                                                        <h5>@learningPathInfo.LearningPath.FeePerSemester.ToString("C")</h5>
-                                                        <small>Semester Fee</small>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            @if (learningPathInfo.DailyAttendance != null)
+                                            @{
+                                                var dailyAttendance = learningPath.AttendanceLog
+                                                .FirstOrDefault(log => log.TimeStamp.Date == selectedDate.Date);
+                                            }
+
+                                            @if (dailyAttendance != null)
                                             {
                                                 <div class="mt-3">
                                                     <h6 class="text-success">Daily Attendance (@selectedDate.ToString("MMMM dd, yyyy"))</h6>
                                                     <div class="row text-center">
                                                         <div class="col-4">
                                                             <div class="text-success">
-                                                                <h5>@(learningPathInfo.DailyAttendance.PresentStudents?.Count ?? 0)</h5>
+                                                                <h5>@(dailyAttendance.PresentStudents?.Count ?? 0)</h5>
                                                                 <small>Present</small>
                                                             </div>
                                                         </div>
                                                         <div class="col-4">
                                                             <div class="text-danger">
-                                                                <h5>@(learningPathInfo.DailyAttendance.AbsentStudents?.Count ?? 0)</h5>
+                                                                <h5>@(dailyAttendance.AbsentStudents?.Count ?? 0)</h5>
                                                                 <small>Absent</small>
                                                             </div>
                                                         </div>
                                                         <div class="col-4">
                                                             <div class="text-primary">
-                                                                <h5>@((learningPathInfo.DailyAttendance.PresentStudents?.Count ?? 0) + (learningPathInfo.DailyAttendance.AbsentStudents?.Count ?? 0))</h5>
+                                                                <h5>@((dailyAttendance.PresentStudents?.Count ?? 0) + (dailyAttendance.AbsentStudents?.Count ?? 0))</h5>
                                                                 <small>Total</small>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    @if (learningPathInfo.DailyAttendance.TimeStamp != default)
+                                                    @if (dailyAttendance.TimeStamp != default)
                                                     {
                                                         <small class="text-muted d-block mt-2">
                                                             <i class="fa fa-clock me-1"></i>
-                                                            Recorded at @learningPathInfo.DailyAttendance.TimeStamp.ToString("HH:mm")
-                                                            by @(learningPathInfo.DailyAttendance.Teacher?.Person?.FirstName ?? "Unknown")
+                                                            Recorded at @dailyAttendance.TimeStamp.ToString("HH:mm")
+                                                            by @(dailyAttendance.Teacher?.Person?.FirstName ?? "Unknown")
                                                         </small>
                                                     }
                                                 </div>
@@ -138,10 +142,10 @@
                                         </div>
                                         <div class="col-md-4 d-flex flex-column justify-content-center">
                                             <div class="d-grid gap-2">
-                                                <button class="btn btn-outline-primary" @onclick="() => ViewDailyAttendance(learningPathInfo.LearningPath.Id)">
+                                                <button class="btn btn-outline-primary" @onclick="() => ViewDailyAttendance(learningPath.Id)">
                                                     <i class="fa fa-calendar-day me-2"></i>Daily Attendance View
                                                 </button>
-                                                <button class="btn btn-outline-success" @onclick="() => ViewSemesterAttendance(learningPathInfo.LearningPath.Id)">
+                                                <button class="btn btn-outline-success" @onclick="() => ViewSemesterAttendance(learningPath.Id)">
                                                     <i class="fa fa-chart-line me-2"></i>Semester Attendance View
                                                 </button>
                                             </div>
@@ -191,11 +195,9 @@
     private DateTime selectedDate = DateTime.Today;
     private string selectedAcademicYear = "";
     private string selectedSemester = "";
-
     private List<string> availableAcademicYears = new();
     private List<string> availableSemesters = new();
-    private List<LearningPathAttendanceInfo> learningPathsWithAttendance = new();
-
+    private List<LearningPath> filteredLearningPaths = new();
 
     protected override void OnInitialized()
     {
@@ -206,22 +208,16 @@
 
     private void InitializeWithCurrentData()
     {
-        // Set current academic year (most recent available)
         if (availableAcademicYears.Any())
         {
-            selectedAcademicYear = availableAcademicYears.First(); // First one since ordered descending
+            selectedAcademicYear = availableAcademicYears.First(); 
             LoadAvailableSemesters();
 
-            // Set current semester (most recent available for the selected year)
             if (availableSemesters.Any())
             {
-                selectedSemester = availableSemesters.Last(); // Assuming semesters are ordered chronologically
-
-                // Set current date
+                selectedSemester = availableSemesters.Last(); 
                 selectedDate = DateTime.Today;
-
-                // Load the learning paths with attendance data
-                LoadLearningPathsWithAttendance();
+                LoadFilteredLearningPaths();
             }
         }
     }
@@ -244,7 +240,7 @@
 
         if (!string.IsNullOrEmpty(selectedAcademicYear) && !string.IsNullOrEmpty(selectedSemester))
         {
-            LoadLearningPathsWithAttendance();
+            LoadFilteredLearningPaths();
         }
     }
 
@@ -262,75 +258,25 @@
     {
         if (!string.IsNullOrEmpty(selectedAcademicYear) && !string.IsNullOrEmpty(selectedSemester))
         {
-            LoadLearningPathsWithAttendance();
+            LoadFilteredLearningPaths();
         }
     }
 
-    private void LoadLearningPathsWithAttendance()
+    private void LoadFilteredLearningPaths()
     {
-        learningPathsWithAttendance.Clear();
-
-        var filteredLearningPaths = school.LearningPath
+        filteredLearningPaths = school.LearningPath
             .Where(lp => lp.AcademicYear == selectedAcademicYear &&
                          lp.Semester.ToString() == selectedSemester)
             .ToList();
-
-        foreach (var learningPath in filteredLearningPaths)
-        {
-            // Try to find daily attendance for the selected date, but create the info regardless
-            var dailyAttendance = learningPath.AttendanceLog
-                .FirstOrDefault(log => log.TimeStamp.Date == selectedDate.Date);
-
-            var attendanceInfo = new LearningPathAttendanceInfo
-            {
-                LearningPath = learningPath,
-                DailyAttendance = dailyAttendance, // This could be null if no attendance for that day
-                TotalAttendanceDays = learningPath.AttendanceLog.Count,
-                AverageAttendanceRate = CalculateAverageAttendanceRate(learningPath)
-            };
-
-            learningPathsWithAttendance.Add(attendanceInfo);
-        }
-    }
-
-    private double CalculateAverageAttendanceRate(LearningPath learningPath)
-    {
-        if (!learningPath.AttendanceLog.Any() || !learningPath.Students.Any())
-            return 0;
-
-        var totalStudents = learningPath.Students.Count;
-        var totalAttendanceDays = learningPath.AttendanceLog.Count;
-        var totalPossibleAttendances = totalStudents * totalAttendanceDays;
-
-        if (totalPossibleAttendances == 0)
-            return 0;
-
-        var totalActualAttendances = learningPath.AttendanceLog
-            .Sum(log => log.PresentStudents?.Count ?? 0);
-
-        return (double)totalActualAttendances / totalPossibleAttendances * 100;
     }
 
     private void ViewDailyAttendance(int learningPathId)
     {
-        // Navigate to daily attendance view for the specific learning path
-        // Implementation will depend on your routing setup
         Console.WriteLine($"Navigate to daily attendance view for Learning Path {learningPathId}");
     }
 
     private void ViewSemesterAttendance(int learningPathId)
     {
-        // Navigate to semester attendance view for the specific learning path
-        // Implementation will depend on your routing setup
         Console.WriteLine($"Navigate to semester attendance view for Learning Path {learningPathId}");
     }
-
-    public class LearningPathAttendanceInfo
-    {
-        public LearningPath LearningPath { get; set; }
-        public DailyAttendanceLogEntry DailyAttendance { get; set; }
-        public int TotalAttendanceDays { get; set; }
-        public double AverageAttendanceRate { get; set; }
-    }
-
 }
