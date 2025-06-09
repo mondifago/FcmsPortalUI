@@ -83,14 +83,17 @@
                                     <td>@learningPath.AttendanceLog.Count</td>
                                     <td>@avgRate.ToString("F1")%</td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewDailyAttendance(learningPath.Id)">
+                                        @if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, selectedDate))
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary"
+                                                    @onclick="() => ViewDailyAttendance(learningPath.Id)">
                                                 <i class="fa fa-calendar-day me-1"></i> Daily View
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success" @onclick="() => ViewSemesterAttendance(learningPath.Id)">
-                                                <i class="fa fa-chart-line me-1"></i> Semester View
-                                            </button>
-                                        </div>
+                                        }
+                                        <button class="btn btn-sm btn-outline-success"
+                                                @onclick="() => ViewSemesterAttendance(learningPath.Id)">
+                                            <i class="fa fa-chart-line me-1"></i> Semester View
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -244,7 +247,7 @@
         selectedLearningPath = SchoolDataService.GetLearningPathById(learningPathId);
         if (selectedLearningPath != null)
         {
-            semesterAttendanceReport = SchoolDataService.GenerateAttendanceReport(learningPathId);
+            semesterAttendanceReport = LogicMethods.GenerateSemesterAttendanceReport(selectedLearningPath);
             showSemesterAttendanceModal = true;
         }
     }

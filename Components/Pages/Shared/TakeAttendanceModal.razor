@@ -1,6 +1,9 @@
 ﻿@using FcmsPortal.Models
+@using FcmsPortal.Services
+@using FcmsPortal
+@inject ISchoolDataService SchoolDataService
 
-<div class="modal fade @(IsVisible ? "show d-block" : "")" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+<div class="modal fade @(IsVisible ? "show" : "hidden")" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -16,19 +19,39 @@
                     <div class="row mb-3">
                         <div class="col">
                             <h6 class="text-muted">
-                                Date: @DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+                                <i class="fa fa-calendar me-1"></i>
+                                Date: @AttendanceDate.ToString("dddd, MMMM dd, yyyy")
                             </h6>
+                            @if (LearningPath != null)
+                            {
+                                <small class="text-muted">Learning Path: @Util.GetLearningPathName(LearningPath)</small>
+                            }
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col">
                             <button type="button" class="btn btn-success btn-sm me-2" @onclick="MarkAllPresent">
+                                <i class="fa fa-check-circle me-1"></i>
                                 Mark All Present
                             </button>
                             <button type="button" class="btn btn-warning btn-sm" @onclick="MarkAllAbsent">
+                                <i class="fa fa-times-circle me-1"></i>
                                 Mark All Absent
                             </button>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="fa fa-info-circle me-1"></i>
+                                    Present: @selectedStudentIds.Count | 
+                                    Absent: @(Students.Count - selectedStudentIds.Count) | 
+                                    Total: @Students.Count
+                                </small>
+                            </div>
                         </div>
                     </div>
 
@@ -38,28 +61,32 @@
                                 <tr>
                                     <th style="width: 60px;">Present</th>
                                     <th>Student Name</th>
+                                    <th>Class Level</th>
                                 </tr>
                             </thead>
                             <tbody>
-                               @foreach (var student in Students)
-                                    {
-                                        <tr class="@(IsStudentSelected(student.Id) ? "table-success" : "")">
-                                            <td>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" 
-                                                           type="checkbox" 
-                                                           checked="@IsStudentSelected(student.Id)"
-                                                           @onchange="(e) => ToggleStudentSelection(student.Id, e.Value)"
-                                                           id="student-@student.Id">
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <label class="form-check-label fw-medium" for="student-@student.Id">
-                                                    @Util.GetFullName(student.Person)
-                                                </label>
-                                            </td>
-                                        </tr>
-                                    }
+                               @foreach (var student in Students.OrderBy(s => Util.GetFullName(s.Person)))
+                                {
+                                    <tr class="@(IsStudentSelected(student.Id) ? "table-success" : "")">
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       checked="@IsStudentSelected(student.Id)"
+                                                       @onchange="(e) => ToggleStudentSelection(student.Id, e.Value)"
+                                                       id="student-@student.Id">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <label class="form-check-label fw-medium" for="student-@student.Id">
+                                                @Util.GetFullName(student.Person)
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">@student.Person.ClassLevel</small>
+                                        </td>
+                                    </tr>
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -67,39 +94,63 @@
                 else
                 {
                     <div class="text-center py-4">
-                        <p class="text-muted">No students found.</p>
+                        <i class="fa fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No students found</h5>
+                        <p class="text-muted">No students are enrolled in this learning path.</p>
                     </div>
                 }
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
-                <button type="button" class="btn btn-primary" @onclick="SubmitAttendance">
-                    <i class="fa fa-save me-2"></i>
-                    Submit Attendance
+                <button type="button" 
+                        class="btn btn-primary" 
+                        @onclick="SubmitAttendance"
+                        disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <i class="fa fa-save me-2"></i>
+                        <span>Submit Attendance</span>
+                    }
                 </button>
             </div>
         </div>
     </div>
 </div>
 
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public List<Student> Students { get; set; }
-    [Parameter] public EventCallback OnAttendanceSubmitted { get; set; }
+    [Parameter] public List<Student> Students { get; set; } = new();
+    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public DateTime AttendanceDate { get; set; } = DateTime.Today;
+    [Parameter] public int TeacherId { get; set; }
+    [Parameter] public EventCallback<DailyAttendanceLogEntry> OnAttendanceSubmitted { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
-   private HashSet<int> selectedStudentIds = new();
+    private HashSet<int> selectedStudentIds = new();
+    private bool isSubmitting = false;
+    private string errorMessage = string.Empty;
 
     protected override void OnParametersSet()
     {
         if (IsVisible)
         {
             selectedStudentIds.Clear();
+            errorMessage = string.Empty;
             StateHasChanged();
         }
     }
 
-   private bool IsStudentSelected(int studentId)
+    private bool IsStudentSelected(int studentId)
     {
         return selectedStudentIds.Contains(studentId);
     }
@@ -120,14 +171,33 @@
     }
 
     private async Task SubmitAttendance()
+{
+    if (LearningPath == null || TeacherId <= 0)
     {
-        await OnAttendanceSubmitted.InvokeAsync();
-        await Close();
+        errorMessage = "Missing required information to submit attendance.";
+        return;
     }
+
+    isSubmitting = true;
+    
+    var attendanceLog = SchoolDataService.SaveAttendance(
+        LearningPath.Id, 
+        selectedStudentIds.ToList(), 
+        TeacherId, 
+        AttendanceDate
+    );
+
+    await OnAttendanceSubmitted.InvokeAsync(attendanceLog);
+    await Close();
+    
+    isSubmitting = false;
+}
 
     private async Task Close()
     {
         selectedStudentIds.Clear();
+        errorMessage = string.Empty;
+        isSubmitting = false;
         await OnClose.InvokeAsync();
     }
 }

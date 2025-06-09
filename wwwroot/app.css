@@ -652,5 +652,188 @@ main {
     width: 90px; /* Avoid full-width */
 }
 
+.attendance-table {
+    font-size: 0.9rem;
+    border-collapse: separate;
+    border-spacing: 0;
+}
 
+    .attendance-table th {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        text-align: center;
+        padding: 8px 4px;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
 
+    .attendance-table td {
+        border: 1px solid #dee2e6;
+        text-align: center;
+        padding: 8px 4px;
+        white-space: nowrap;
+    }
+
+/* Student Name Column - Fixed width, sticky left */
+.student-name {
+    text-align: left !important;
+    font-weight: 500;
+    background-color: #f8f9fa;
+    position: sticky;
+    left: 0;
+    z-index: 30;
+    width: 140px; /* Compact width for student names */
+    min-width: 140px;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Date Columns - Minimal width, scrollable */
+.date-header {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    width: 28px; /* Very compact width for date columns */
+    min-width: 28px;
+    max-width: 28px;
+    font-size: 0.75rem;
+    padding: 4px 2px;
+}
+
+.date-cell {
+    width: 28px;
+    min-width: 28px;
+    max-width: 28px;
+    padding: 4px 2px;
+}
+
+/* Present Column - Rotated, sticky right side */
+.rotated-header.present-col {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    width: 28px; /* Same width as date columns */
+    min-width: 28px;
+    max-width: 28px;
+    position: sticky;
+    right: calc(28px + 50px); /* Position it next to Absent column */
+    z-index: 25;
+    background-color: #e3f2fd;
+    padding: 4px 2px;
+    font-size: 0.75rem;
+}
+
+/* Absent Column - Rotated, sticky right side */
+.rotated-header.absent-col {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    width: 28px; /* Same width as date columns */
+    min-width: 28px;
+    max-width: 28px;
+    position: sticky;
+    right: 50px; /* Position it next to Rate column */
+    z-index: 25;
+    background-color: #e3f2fd;
+    padding: 4px 2px;
+    font-size: 0.75rem;
+}
+
+/* Rate Column - Fixed width, sticky right */
+.summary-col.rate-col {
+    background-color: #e3f2fd;
+    font-weight: 600;
+    width: 50px; /* Compact width for rate percentage */
+    min-width: 50px;
+    max-width: 50px;
+    position: sticky;
+    right: 0;
+    z-index: 25;
+    font-size: 0.8rem;
+}
+
+/* Summary column data cells - also sticky */
+.summary-data.present-data {
+    position: sticky;
+    right: calc(28px + 50px);
+    z-index: 15;
+    background-color: #e3f2fd;
+    width: 28px;
+    min-width: 28px;
+    max-width: 28px;
+    padding: 4px 2px;
+    font-size: 0.8rem;
+}
+
+.summary-data.absent-data {
+    position: sticky;
+    right: 50px;
+    z-index: 15;
+    background-color: #e3f2fd;
+    width: 28px;
+    min-width: 28px;
+    max-width: 28px;
+    padding: 4px 2px;
+    font-size: 0.8rem;
+}
+
+.summary-data.rate-data {
+    position: sticky;
+    right: 0;
+    z-index: 15;
+    background-color: #e3f2fd;
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+    font-size: 0.8rem;
+}
+
+/* Table container with horizontal scroll */
+.table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 70vh;
+    border: 1px solid #dee2e6;
+    position: relative;
+}
+
+/* Ensure the scrollable area only affects date columns */
+.scrollable-dates {
+    display: inline-block;
+}
+
+/* Rate classes remain the same */
+.rate-excellent {
+    background-color: #d4edda !important;
+    color: #155724;
+}
+
+.rate-good {
+    background-color: #fff3cd !important;
+    color: #856404;
+}
+
+.rate-poor {
+    background-color: #f8d7da !important;
+    color: #721c24;
+}
+
+/* Footer row styling */
+.attendance-table tfoot th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.attendance-table tfoot .student-name {
+    position: sticky;
+    left: 0;
+    z-index: 30;
+    background-color: #f8f9fa;
+}
+
+.attendance-table tfoot .summary-data.present-data,
+.attendance-table tfoot .summary-data.absent-data,
+.attendance-table tfoot .summary-data.rate-data {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}

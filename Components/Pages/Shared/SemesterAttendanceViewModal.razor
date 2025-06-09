@@ -24,9 +24,9 @@
                                     {
                                         <th class="date-header">@date.ToString("MMM dd")</th>
                                     }
-                                    <th class="summary-col rotated-header">Present</th>
-                                    <th class="summary-col rotated-header">Absent</th>
-                                    <th class="summary-col">Rate</th>
+                                    <th class="rotated-header present-col">Present</th>
+                                    <th class="rotated-header absent-col">Absent</th>
+                                    <th class="summary-col rate-col">Rate</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -36,7 +36,7 @@
                                         <td class="student-name">@student.StudentName</td>
                                         @foreach (var date in AttendanceReport.AttendanceDates.OrderBy(d => d))
                                         {
-                                            <td class="text-center">
+                                            <td class="date-cell text-center">
                                                 @if (student.AttendanceByDate.TryGetValue(date, out var isPresent))
                                                 {
                                                     @if (isPresent)
@@ -50,9 +50,9 @@
                                                 }
                                             </td>
                                         }
-                                        <td class="summary-col">@student.TotalPresentDays</td>
-                                        <td class="summary-col">@student.TotalAbsentDays</td>
-                                        <td class="summary-col @GetAttendanceRateClass(student.AttendanceRate)">
+                                        <td class="summary-data present-data">@student.TotalPresentDays</td>
+                                        <td class="summary-data absent-data">@student.TotalAbsentDays</td>
+                                        <td class="summary-data rate-data @GetAttendanceRateClass(student.AttendanceRate)">
                                             @student.AttendanceRate.ToString("F0")%
                                         </td>
                                     </tr>
@@ -63,11 +63,11 @@
                                     <th class="student-name">Daily Totals</th>
                                     @foreach (var date in AttendanceReport.AttendanceDates.OrderBy(d => d))
                                     {
-                                        <th class="text-center">@GetDailyPresentCount(date)</th>
+                                        <th class="date-cell text-center">@GetDailyPresentCount(date)</th>
                                     }
-                                    <th class="summary-col">@AttendanceReport.Students.Sum(s => s.TotalPresentDays)</th>
-                                    <th class="summary-col">@AttendanceReport.Students.Sum(s => s.TotalAbsentDays)</th>
-                                    <th class="summary-col">@GetOverallAttendanceRate().ToString("F0")%</th>
+                                    <th class="summary-data present-data">@AttendanceReport.Students.Sum(s => s.TotalPresentDays)</th>
+                                    <th class="summary-data absent-data">@AttendanceReport.Students.Sum(s => s.TotalAbsentDays)</th>
+                                    <th class="summary-data rate-data">@GetOverallAttendanceRate().ToString("F0")%</th>
                                 </tr>
                             </tfoot>
                         </table>
