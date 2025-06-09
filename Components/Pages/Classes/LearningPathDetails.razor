@@ -347,15 +347,26 @@
 @if (showAttendanceModal)
 {
     <TakeAttendanceModal IsVisible="showAttendanceModal"
-                     Students="learningPath.Students"
-                     OnAttendanceSubmitted="OnAttendanceSubmitted"
-                     OnClose="CloseAttendanceModal" />
+                        Students="learningPath.Students"
+                        LearningPath="learningPath"
+                        AttendanceDate="DateTime.Today"
+                        TeacherId="101"
+                        OnAttendanceSubmitted="OnAttendanceSubmitted"
+                        OnClose="CloseAttendanceModal" />
+}
+
+@if (showDailyAttendanceModal && todaysAttendance != null)
+{
+    <DailyAttendanceViewModal IsVisible="showDailyAttendanceModal"
+                             SelectedDate="DateTime.Today"
+                             AttendanceData="dailyAttendanceData"
+                             OnClose="CloseDailyAttendanceModal" />
 }
 
 @code {
     [Parameter]
     public int Id { get; set; }
-    
+
     private LearningPath learningPath;
     private bool isTeacher = true; 
     private bool isPrincipal = true; 
@@ -370,29 +381,33 @@
     private bool showGradeDetailsModal = false;
     private bool showScheduleCreateModal = false;
     private string selectedDateForSchedule = null;
+    private DailyAttendanceLogEntry dailyAttendanceData = new();
+    private bool showAttendanceModal = false;
+    private bool showDailyAttendanceModal = false;
+    private DailyAttendanceLogEntry todaysAttendance;
 
     protected override void OnInitialized()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id);
         gradeReport = SchoolDataService.GetGradeReportForLearningPath(Id);
     }
-    
+
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
     {
         var learningPathSchedules = LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date);
-        
+
         var generalSchedules = SchoolDataService.GetAllSchoolCalendarSchedules()
             .Where(s => s.DateTime.Date == date.Date && 
                        ((!string.IsNullOrEmpty(s.Event)) || (!string.IsNullOrEmpty(s.Meeting))))
             .ToList();
-        
+
         var allSchedules = new List<ScheduleEntry>();
         allSchedules.AddRange(learningPathSchedules);
         allSchedules.AddRange(generalSchedules);
-        
+
         return allSchedules;
     }
-    
+
     private void ShowAddStudentsModal()
     {
         var allEligibleStudents = LogicMethods.GetStudentsByLevel(
@@ -535,55 +550,58 @@
         StateHasChanged();
     }
 
-    private bool showAttendanceModal = false;
 
-// Existing code...
+    // Existing code...
 
-private string GetAttendanceButtonText()
-{
-    return LogicMethods.HasAttendanceBeenTakenToday(learningPath) ? "View Attendance" : "Take Attendance";
-}
-
-private string GetAttendanceIcon()
-{
-    return LogicMethods.HasAttendanceBeenTakenToday(learningPath) ? "eye" : "check-square";
-}
-
-private void HandleAttendanceAction()
-{
-    if (LogicMethods.HasAttendanceBeenTakenToday(learningPath))
+    private string GetAttendanceButtonText()
     {
-        // Show today's attendance
-        ShowTodaysAttendance();
+        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate) ? "View Today's Attendance" : "Take Attendance";
     }
-    else
-    {
-        // Open attendance modal
-        showAttendanceModal = true;
-    }
-}
 
-private void ShowTodaysAttendance()
-{
-    var todaysLog = LogicMethods.GetTodaysAttendanceLog(learningPath);
-    if (todaysLog != null)
+    private string GetAttendanceIcon()
     {
-        // You could show a modal or navigate to a detailed view
-        // For now, we'll just show an alert (you can implement a proper modal later)
-        var presentCount = todaysLog.PresentStudents?.Count ?? 0;
-        var absentCount = todaysLog.AbsentStudents?.Count ?? 0;
-        // You could add a toast notification or modal here
+        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate) ? "eye" : "check-square";
+    }
+
+    private void HandleAttendanceAction()
+    {
+        if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate))
+        {
+            // Show today's attendance
+            ShowTodaysAttendance();
+        }
+        else
+        {
+            // Open attendance modal
+            showAttendanceModal = true;
+        }
+    }
+
+    private void ShowTodaysAttendance()
+{
+    if (learningPath != null)
+    {
+       dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(learningPath, DateTime.Today);
+        showDailyAttendanceModal = true;
     }
 }
 
-private async Task OnAttendanceSubmitted()
-{
-    showAttendanceModal = false;
-    StateHasChanged(); // Refresh the button text
-}
 
-private void CloseAttendanceModal()
-{
-    showAttendanceModal = false;
-}
+    private async Task OnAttendanceSubmitted(DailyAttendanceLogEntry attendanceLog)
+    {
+        showAttendanceModal = false;
+        learningPath = SchoolDataService.GetLearningPathById(Id);
+        StateHasChanged();
+    }
+
+    private void CloseAttendanceModal()
+    {
+        showAttendanceModal = false;
+    }
+
+    private void CloseDailyAttendanceModal()
+    {
+        showDailyAttendanceModal = false;
+        todaysAttendance = null;
+    }
 }
