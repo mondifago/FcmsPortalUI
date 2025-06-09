@@ -126,9 +126,6 @@
                 <div class="card mb-4">
                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
-                    <button class="btn btn-light btn-sm" @onclick="HandleAttendanceAction">
-                        @GetAttendanceButtonText()
-                    </button>
                 </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
@@ -157,6 +154,14 @@
                             }
                         </div>
                     </div>
+                    @if (learningPath.Students != null && learningPath.Students.Any())
+                    {
+                        <div class="card-footer text-center">
+                            <button class="@GetAttendanceButtonClass()" @onclick="HandleAttendanceAction">
+                                  @GetAttendanceButtonText()
+                             </button>
+                        </div>
+                    }
                 </div>
 
                 <!-- Add Student Grade -->
@@ -552,6 +557,13 @@
         return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate) ? "View Attendance" : "Take Attendance";
     }
 
+    private string GetAttendanceButtonClass()
+    {
+        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, currentDate) 
+            ? "btn btn-success btn-sm" 
+            : "btn btn-warning btn-sm";
+    }
+
     private void HandleAttendanceAction()
     {
         if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate))
@@ -569,6 +581,7 @@
     if (learningPath != null)
     {
        dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(learningPath, DateTime.Today);
+        todaysAttendance = dailyAttendanceData;
         showDailyAttendanceModal = true;
     }
 }
