@@ -122,14 +122,11 @@
 
             </div>
 
-            <!-- Right Column: Students and Payment Information -->
             <div class="col-md-4">
-                <!-- Enrolled Students Card -->
                 <div class="card mb-4">
                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
                     <button class="btn btn-light btn-sm" @onclick="HandleAttendanceAction">
-                        <i class="fa fa-@(GetAttendanceIcon()) me-1"></i>
                         @GetAttendanceButtonText()
                     </button>
                 </div>
@@ -550,29 +547,19 @@
         StateHasChanged();
     }
 
-
-    // Existing code...
-
     private string GetAttendanceButtonText()
     {
-        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate) ? "View Today's Attendance" : "Take Attendance";
-    }
-
-    private string GetAttendanceIcon()
-    {
-        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate) ? "eye" : "check-square";
+        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate) ? "View Attendance" : "Take Attendance";
     }
 
     private void HandleAttendanceAction()
     {
         if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate))
         {
-            // Show today's attendance
             ShowTodaysAttendance();
         }
         else
         {
-            // Open attendance modal
             showAttendanceModal = true;
         }
     }
