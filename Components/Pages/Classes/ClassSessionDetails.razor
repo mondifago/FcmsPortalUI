@@ -334,39 +334,56 @@
             <!-- Right Column (4 columns) -->
             <div class="col-md-4">
                 <!-- Students List Section (if teacher) -->
-                @if (isTeacher)
-                {
-                    <div class="card mb-4">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="mb-0">Students in Class</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            @if (learningPathStudents.Any())
-                            {
-                                <div class="list-group list-group-flush">
-                                    @foreach (var student in learningPathStudents)
-                                    {
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <ProfileThumbnailList Person="student.Person" />
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Students in Class</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (!enrolledStudents.Any())
+                        {
+                            <p class="text-muted">No students in this class.</p>
+                        }
+                        @if (enrolledStudents.Any() && (relatedLearningPath?.AttendanceLog == null || !relatedLearningPath.AttendanceLog.Any()))
+                        {
+                            <p class="text-muted">Attendance not yet taken for this class.</p>
+                        }
+                        @if (enrolledStudents.Any() && relatedLearningPath?.AttendanceLog != null && relatedLearningPath.AttendanceLog.Any())
+                        {
+                            <div class="list-group">
+                                @foreach (var student in enrolledStudents)
+                                {
+                                    var todaysAttendance = relatedLearningPath.AttendanceLog
+                                    .FirstOrDefault(log => log.TimeStamp.Date == DateTime.Today);
+
+                                    bool isPresent = todaysAttendance?.PresentStudents?.Any(s => s.Id == student.Id) == true;
+                                    bool isAbsent = todaysAttendance?.AbsentStudents?.Any(s => s.Id == student.Id) == true;
+
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <a href="/students/details/@student.Id" class="text-decoration-none">
                                                 @student.Person.FirstName @student.Person.LastName
-                                            </div>
-                                            <a href="/students/details/@student.Id" class="btn btn-sm btn-outline-primary">
-                                                <i class="fa fa-eye"></i>
                                             </a>
                                         </div>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="p-3">
-                                    <p class="text-muted">No students in this class.</p>
-                                </div>
-                            }
-                        </div>
+                                        <div>
+                                            @if (isPresent)
+                                            {
+                                                <span class="badge bg-success">P</span>
+                                            }
+                                            @if (isAbsent && !isPresent)
+                                            {
+                                                <span class="badge bg-danger">A</span>
+                                            }
+                                            @if (!isPresent && !isAbsent)
+                                            {
+                                                <span class="badge bg-secondary">-</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
-                }
+                </div>
             </div>
         </div>
     }
@@ -396,7 +413,8 @@
     private string selectedPdfUrl;
     private ClassSession classSession;
     private ScheduleEntry scheduleEntry;
-    private List<Student> learningPathStudents = new List<Student>();
+    private LearningPath relatedLearningPath;
+    private List<Student> enrolledStudents = new List<Student>();
     private bool isTeacher = true; 
     private Staff currentTeacher; 
     private Student currentStudent; 
@@ -430,13 +448,24 @@
             remarksModel.Remarks = classSession.TeacherRemarks ?? "";
             lessonPlanModel.Content = classSession.LessonPlan ?? "";
             scheduleEntry = LogicMethods.GetScheduleEntryForClassSession(school, Id);
-
             currentTeacher = classSession.Teacher;
 
-            if (learningPathStudents.Any())
+            LoadEnrolledStudents();
+
+            if (enrolledStudents.Any())
             {
-                currentStudent = learningPathStudents.First();
+                currentStudent = enrolledStudents.First();
             }
+        }
+    }
+
+    private void LoadEnrolledStudents()
+    {
+        relatedLearningPath = SchoolDataService.GetLearningPathByClassSessionId(classSession.Id);
+
+        if (relatedLearningPath != null)
+        {
+            enrolledStudents = relatedLearningPath.Students?.ToList() ?? new List<Student>();
         }
     }
 
