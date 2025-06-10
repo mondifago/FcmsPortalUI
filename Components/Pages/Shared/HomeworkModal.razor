@@ -314,12 +314,8 @@
     {
         if (!IsEditing)
         {
-            int nextId = 1;
-            if (ClassSession.HomeworkDetails != null && ClassSession.HomeworkDetails.Any())
-            {
-                nextId = ClassSession.HomeworkDetails.Max(h => h.Id) + 1;
-            }
-            homework.Id = nextId;
+            homework.Id = 0; 
+            homework.ClassSessionId = ClassSession.Id;
         }
 
         await OnSave.InvokeAsync(homework);
