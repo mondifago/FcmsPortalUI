@@ -403,7 +403,6 @@
     private void LoadSessionReports()
     {
         filteredSessionReports.Clear();
-
         if (string.IsNullOrEmpty(selectedSessionAcademicYear) || string.IsNullOrEmpty(selectedSessionSemester))
             return;
 
@@ -416,29 +415,23 @@
             if (learningPath.Schedule == null) continue;
 
             var scheduleEntries = learningPath.Schedule
-                .Where(s => s.ClassSession != null && !string.IsNullOrEmpty(s.ClassSession.TeacherRemarks))
-                .Where(s => selectedSessionDate == default || s.DateTime.Date == selectedSessionDate.Date)
+                .Where(s => s.ClassSession != null && !string.IsNullOrEmpty(s.ClassSession.TeacherRemarks) && s.DateTime.Date == selectedSessionDate.Date)
                 .ToList();
 
             foreach (var schedule in scheduleEntries)
             {
-                var report = new ClassSessionReport
-                {
-                    ClassSessionId = schedule.ClassSession.Id,
-                    LearningPathName = Util.GetLearningPathName(learningPath),
-                    Course = schedule.ClassSession.Course,
-                    Topic = schedule.ClassSession.Topic,
-                    SubmittedBy = schedule.ClassSession.Teacher?.Person?.LastName ?? "Unknown",
-                    TimeSubmitted = schedule.DateTime
-                };
-
-                filteredSessionReports.Add(report);
+                var report = LogicMethods.CreateClassSessionReport(schedule, learningPath);
+                if (report != null)
+                    filteredSessionReports.Add(report);
             }
         }
 
-        filteredSessionReports = filteredSessionReports
-            .OrderByDescending(r => r.TimeSubmitted)
-            .ToList();
+        var ordered = filteredSessionReports
+             .OrderByDescending(r => r.TimeSubmitted)
+             .ToList();
+
+        filteredSessionReports.Clear();
+        filteredSessionReports.AddRange(ordered);
     }
 
     private void ViewClassSession(int classSessionId)
