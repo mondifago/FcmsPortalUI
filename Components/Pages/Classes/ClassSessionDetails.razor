@@ -310,12 +310,16 @@
                     <button class="btn btn-outline-success" @onclick="ViewSubmissions">
                         <i class="fa fa-list"></i> View Submissions (@(classSession.HomeworkDetails.Submissions?.Count ?? 0))
                     </button>
-                    <button class="btn btn-outline-warning" @onclick="EditHomework">
-                        <i class="fa fa-edit"></i> Edit Homework
-                    </button>
-                    <button class="btn btn-outline-danger" @onclick="DeleteHomework">
-                        <i class="fa fa-trash"></i> Delete
-                    </button>
+                   @if (!HasHomeworkSubmissions())
+                    {
+                        <button class="btn btn-outline-warning" @onclick="EditHomework">
+                            <i class="fa fa-edit"></i> Edit Homework
+                        </button>
+                        <button class="btn btn-outline-danger" @onclick="DeleteHomework">
+                            <i class="fa fa-trash"></i> Delete
+                        </button>
+                    }
+
                 }
                 else
                 {
@@ -754,6 +758,12 @@
 
         SchoolDataService.UpdateHomework(classSession.HomeworkDetails);
         showGradingModal = false;
-        showSubmissionsListModal = false; // Close submissions list after grading
+        showSubmissionsListModal = false; 
+    }
+
+    private bool HasHomeworkSubmissions()
+    {
+        return classSession?.HomeworkDetails?.Submissions != null && 
+               classSession.HomeworkDetails.Submissions.Any();
     }
 }
