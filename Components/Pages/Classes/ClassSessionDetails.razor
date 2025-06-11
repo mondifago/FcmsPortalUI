@@ -264,95 +264,106 @@
                     </div>
                 </div>
 
-                <!-- Homework Section -->
+               <!-- Homework Section -->
                 <div class="card mb-4">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">Homework</h4>
-    </div>
-    <div class="card-body">
-        @if (classSession.HomeworkDetails == null)
-        {
-            <!-- No homework exists - only show create button for teachers -->
-            @if (isTeacher)
-            {
-                <div class="text-center py-4">
-                    <p class="text-muted mb-3">No homework assigned yet.</p>
-                    <button class="btn btn-primary" @onclick="CreateNewHomework">
-                        <i class="fa fa-plus"></i> Create Homework
-                    </button>
-                </div>
-            }
-            else
-            {
-                <p class="text-muted">No homework assigned yet.</p>
-            }
-        }
-        else
-        {
-            <!-- Homework exists - show appropriate action buttons -->
-            <div class="homework-overview mb-4">
-                <h5>@classSession.HomeworkDetails.Title</h5>
-                <p class="text-muted mb-2">Due: @classSession.HomeworkDetails.DueDate.ToString("MMMM d, yyyy")</p>
-                <p class="mb-0">
-                    <small class="text-muted">
-                        @(classSession.HomeworkDetails.Submissions?.Count ?? 0) submission(s) received
-                    </small>
-                </p>
-            </div>
-
-            <div class="homework-actions d-flex gap-2 flex-wrap">
-                @if (isTeacher)
-                {
-                    <!-- Teacher view buttons -->
-                    <button class="btn btn-outline-primary" @onclick="ViewHomework">
-                        <i class="fa fa-eye"></i> View Homework
-                    </button>
-                    <button class="btn btn-outline-success" @onclick="ViewSubmissions">
-                        <i class="fa fa-list"></i> View Submissions (@(classSession.HomeworkDetails.Submissions?.Count ?? 0))
-                    </button>
-                   @if (!HasHomeworkSubmissions())
-                    {
-                        <button class="btn btn-outline-warning" @onclick="EditHomework">
-                            <i class="fa fa-edit"></i> Edit Homework
-                        </button>
-                        <button class="btn btn-outline-danger" @onclick="DeleteHomework">
-                            <i class="fa fa-trash"></i> Delete
-                        </button>
-                    }
-
-                }
-                else
-                {
-                    <!-- Student view buttons -->
-                    <button class="btn btn-outline-primary" @onclick="ViewHomework">
-                        <i class="fa fa-eye"></i> View Homework
-                    </button>
-                    
-                        var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
-                    
-                    @if (studentSubmission == null)
-                    {
-                        <button class="btn btn-success" @onclick="AttemptHomework">
-                            <i class="fa fa-paper-plane"></i> Attempt Homework
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="btn btn-outline-info" @onclick="ViewMySubmission">
-                            <i class="fa fa-check-circle"></i> View My Submission
-                        </button>
-                        @if (!studentSubmission.IsGraded)
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Homework</h4>
+                    </div>
+                    <div class="card-body">
+                        @if (classSession.HomeworkDetails == null)
                         {
-                            <button class="btn btn-outline-warning" @onclick="EditMySubmission">
-                                <i class="fa fa-edit"></i> Edit Submission
-                            </button>
+                            @if (isTeacher)
+                            {
+                                <div class="text-center py-4">
+                                    <p class="text-muted mb-3">No homework assigned yet.</p>
+                                    <button class="btn btn-primary" @onclick="CreateNewHomework">
+                                        <i class="fa fa-plus"></i> Create Homework
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No homework assigned yet.</p>
+                            }
                         }
-                    }
-                }
-            </div>
-        }
-    </div>
-</div>
+                        else
+                        {
+                            <div class="homework-overview mb-4">
+                                <h5>@classSession.HomeworkDetails.Title</h5>
+                                <p class="text-muted mb-2">Due: @classSession.HomeworkDetails.DueDate.ToString("MMMM d, yyyy")</p>
+                                <p class="mb-0">
+                                    <small class="text-muted">
+                                        @(classSession.HomeworkDetails.Submissions?.Count ?? 0) submission(s) received
+                                    </small>
+                                </p>
+                            </div>
+
+                            <div class="homework-actions d-flex gap-2 flex-wrap">
+                                @if (isTeacher)
+                                {
+                                    <button class="btn btn-outline-primary" @onclick="ViewHomework">
+                                        <i class="fa fa-eye"></i> View Homework
+                                    </button>
+                                    <button class="btn btn-outline-success" @onclick="ViewSubmissions">
+                                        <i class="fa fa-list"></i> View Submissions (@(classSession.HomeworkDetails.Submissions?.Count ?? 0))
+                                    </button>
+                    
+                                    @if (classSession.HomeworkDetails.Submissions == null || !classSession.HomeworkDetails.Submissions.Any())
+                                    {
+                                        <button class="btn btn-outline-warning" @onclick="EditHomework">
+                                            <i class="fa fa-edit"></i> Edit Homework
+                                        </button>
+                                        <button class="btn btn-outline-danger" @onclick="DeleteHomework">
+                                            <i class="fa fa-trash"></i> Delete
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-info d-flex align-items-center ms-2 mb-0 py-2 px-3">
+                                            <i class="fa fa-info-circle me-2"></i>
+                                            <small>Homework cannot be modified once students have submitted.</small>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+                                    @if (studentSubmission == null)
+                                    {
+                                        <button class="btn btn-outline-primary" @onclick="ViewHomework">
+                                            <i class="fa fa-eye"></i> View Homework
+                                        </button>
+                                        <button class="btn btn-success" @onclick="AttemptHomework">
+                                            <i class="fa fa-paper-plane"></i> Attempt Homework
+                                        </button>
+                                    }
+                                    else if (!studentSubmission.IsGraded)
+                                    {
+                                        <button class="btn btn-outline-info" @onclick="ViewMySubmission">
+                                            <i class="fa fa-check-circle"></i> View My Submission
+                                        </button>
+                                        <button class="btn btn-outline-warning" @onclick="EditMySubmission">
+                                            <i class="fa fa-edit"></i> Edit Submission
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-success" @onclick="ViewMyGrade">
+                                            <i class="fa fa-star"></i> View My Grade
+                                        </button>
+                                        <div class="ms-2 d-flex align-items-center">
+                                            <span class="badge bg-success me-2">Graded</span>
+                                            @if (studentSubmission.HomeworkGrade != null)
+                                            {
+                                                <small class="text-success fw-bold">Score: @studentSubmission.HomeworkGrade.Score/100</small>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
 
 
                 <!-- Discussion Section -->
@@ -465,6 +476,10 @@
                       OnSave="HandleGradingSaved"
                       OnClose="() => showGradingModal = false" />
 
+<StudentHomeworkGradeViewModal IsVisible="showStudentGradeModal"
+                               Submission="studentGradeSubmission"
+                               OnClose="() => showStudentGradeModal = false" />
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -475,7 +490,7 @@
     private ScheduleEntry scheduleEntry;
     private LearningPath relatedLearningPath;
     private List<Student> enrolledStudents = new List<Student>();
-    private bool isTeacher = true; 
+    private bool isTeacher = false; 
     private Staff currentTeacher; 
     private Student currentStudent; 
     private bool showMaterialsUpload = false;
@@ -488,12 +503,13 @@
     private LessonPlanModel lessonPlanModel = new LessonPlanModel();
     private RemarksModel remarksModel = new RemarksModel();
 
-
     private bool showHomeworkViewModal = false;
     private bool showSubmissionsListModal = false;
     private bool showGradingModal = false;
     private HomeworkSubmission selectedSubmission;
     private HomeworkSubmission submissionToGrade;
+    private bool showStudentGradeModal = false;
+    private HomeworkSubmission studentGradeSubmission;
 
     private class LessonPlanModel
     {
@@ -766,4 +782,14 @@
         return classSession?.HomeworkDetails?.Submissions != null && 
                classSession.HomeworkDetails.Submissions.Any();
     }
+
+    private void ViewMyGrade()
+{
+    var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+    if (studentSubmission != null && studentSubmission.IsGraded)
+    {
+        studentGradeSubmission = studentSubmission;
+        showStudentGradeModal = true;
+    }
+}
 }
