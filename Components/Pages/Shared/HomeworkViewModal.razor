@@ -1,0 +1,128 @@
+﻿@using FcmsPortal.Models
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">View Homework</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Homework == null)
+                {
+                    <p class="text-muted">No homework to display.</p>
+                }
+                else
+                {
+                    <div class="homework-details">
+                        <h4 class="mb-3">@Homework.Title</h4>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <dl>
+                                    <dt>Assigned Date</dt>
+                                    <dd>@Homework.AssignedDate.ToString("MMMM d, yyyy")</dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl>
+                                    <dt>Due Date</dt>
+                                    <dd>
+                                        @Homework.DueDate.ToString("MMMM d, yyyy")
+                                        @if (Homework.DueDate < DateTime.Now)
+                                        {
+                                            <span class="badge bg-danger ms-2">Past Due</span>
+                                        }
+                                        else if (Homework.DueDate.Date == DateTime.Today)
+                                        {
+                                            <span class="badge bg-warning ms-2">Due Today</span>
+                                        }
+                                        else if (Homework.DueDate <= DateTime.Today.AddDays(3))
+                                        {
+                                            <span class="badge bg-info ms-2">Due Soon</span>
+                                        }
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5>Questions</h5>
+                            <div class="card">
+                                <div class="card-body">
+                                    @if (Homework.Question != null && Homework.Question.Any())
+                                    {
+                                        <ol>
+                                            @if (Homework?.Question != null)
+                                            {
+                                                <li class="mb-2">@Homework.Question</li>
+                                            }
+                                        </ol>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0">No questions provided.</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6>Submission Statistics</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-primary">@(Homework.Submissions?.Count ?? 0)</h5>
+                                            <p class="card-text small">Total Submissions</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-success">@(Homework.Submissions?.Count(s => s.IsGraded) ?? 0)</h5>
+                                            <p class="card-text small">Graded</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title text-warning">@(Homework.Submissions?.Count(s => !s.IsGraded) ?? 0)</h5>
+                                            <p class="card-text small">Pending</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public Homework Homework { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}
