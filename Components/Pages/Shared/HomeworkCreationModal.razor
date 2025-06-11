@@ -1,0 +1,137 @@
+﻿@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using System.ComponentModel.DataAnnotations
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">@(IsEditing ? "Edit" : "Create") Homework</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@homework" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                        <InputText id="title" @bind-Value="homework.Title" class="form-control" placeholder="Enter homework title" />
+                        <ValidationMessage For="@(() => homework.Title)" />
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="assignedDate" class="form-label">Assigned Date</label>
+                            <InputDate id="assignedDate" @bind-Value="homework.AssignedDate" class="form-control" />
+                            <ValidationMessage For="@(() => homework.AssignedDate)" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dueDate" class="form-label">Due Date <span class="text-danger">*</span></label>
+                            <InputDate id="dueDate" @bind-Value="homework.DueDate" class="form-control" />
+                            <ValidationMessage For="@(() => homework.DueDate)" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="questions" class="form-label">Questions <span class="text-danger">*</span></label>
+                        <InputTextArea id="questions" @bind-Value="questionsText" class="form-control" rows="6"
+                                       placeholder="Enter homework questions (one question per line)" />
+                        <small class="form-text text-muted">Enter each question on a new line</small>
+                        <ValidationMessage For="@(() => homework.Question)" />
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            @(IsEditing ? "Update" : "Create") Homework
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public ClassSession ClassSession { get; set; }
+
+    [Parameter]
+    public Staff CurrentTeacher { get; set; }
+
+    [Parameter]
+    public Homework ExistingHomework { get; set; }
+
+    [Parameter]
+    public EventCallback<Homework> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private Homework homework = new Homework();
+    private string questionsText = "";
+    private bool IsEditing => ExistingHomework != null;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            if (IsEditing && ExistingHomework != null)
+            {
+                homework = new Homework
+                {
+                    Id = ExistingHomework.Id,
+                    Title = ExistingHomework.Title,
+                    AssignedDate = ExistingHomework.AssignedDate,
+                    DueDate = ExistingHomework.DueDate,
+                    ClassSessionId = ExistingHomework.ClassSessionId,
+                    ClassSession = ExistingHomework.ClassSession,
+                    Question = ExistingHomework.Question,
+                    Submissions = ExistingHomework.Submissions ?? new List<HomeworkSubmission>()
+                };
+
+               
+            }
+            else
+            {
+                homework = new Homework
+                {
+                    AssignedDate = DateTime.Today,
+                    DueDate = DateTime.Today.AddDays(7),
+                    ClassSessionId = ClassSession?.Id ?? 0,
+                    ClassSession = ClassSession,
+                    Question = questionsText,
+                    Submissions = new List<HomeworkSubmission>()
+                };
+                questionsText = "";
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (!IsEditing)
+        {
+            homework.Id = 0; // Will be set by the service
+            homework.ClassSessionId = ClassSession.Id;
+        }
+
+        await OnSave.InvokeAsync(homework);
+        Close();
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}
