@@ -1,34 +1,36 @@
 ﻿@using FcmsPortal.Services
 @using FcmsPortal.Models
-@using FcmsPortal.Enums
-@using FcmsPortal
+@using FcmsPortalUI
 @using System.ComponentModel.DataAnnotations
-@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
-@inject NavigationManager NavigationManager
-@rendermode InteractiveServer
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">@(IsEditing ? "Update" : "Submit") Homework</h5>
+                <h5 class="modal-title">
+                    @if (IsViewingGradedSubmission)
+                    {
+                        <span>My Homework Submission</span>
+                    }
+                    else
+                    {
+                        <span>@(IsEditing ? "Update" : "Submit") Homework</span>
+                    }
+                </h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
                 @if (Homework == null)
                 {
-                    <p>Error: Homework not found.</p>
+                    <p class="text-muted">Error: Homework not found.</p>
                 }
-                else if (submission == null)
+                else if (IsViewingGradedSubmission)
                 {
-                    <p>Loading submission details...</p>
-                }
-                else if (submission != null && submission.IsGraded)
-                {
+                    <!-- Read-only view for graded submissions -->
                     <div class="alert alert-info">
-                        <h4 class="alert-heading">Homework Already Graded</h4>
-                        <p>This homework has already been graded and cannot be modified.</p>
+                        <h4 class="alert-heading">Homework Graded</h4>
+                        <p class="mb-0">This homework has been graded and cannot be modified.</p>
                     </div>
                     
                     <h4 class="mt-4">@Homework.Title</h4>
@@ -55,27 +57,30 @@
                         <label class="form-label fw-bold">Your Answer</label>
                         <div class="card">
                             <div class="card-body">
-                                @((MarkupString)Util.FormatTextWithLinks(submission.Answer))
+                                @((MarkupString)Util.FormatTextWithLinks(ExistingSubmission?.Answer ?? ""))
                             </div>
                         </div>
                     </div>
                     
-                    @if (submission.HomeworkGrade != null)
+                    @if (ExistingSubmission?.HomeworkGrade != null)
                     {
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Grade</label>
-                            <div class="card">
+                            <label class="form-label fw-bold">Grade & Feedback</label>
+                            <div class="card bg-light">
                                 <div class="card-body">
-                                    <p class="mb-2">Score: <span class="fw-bold">@submission.HomeworkGrade.Score</span></p>
-                                    <p class="mb-0">Feedback: @submission.FeedbackComment</p>
+                                    <p class="mb-2">Score: <span class="fw-bold text-success">@ExistingSubmission.HomeworkGrade.Score</span></p>
+                                    @if (!string.IsNullOrEmpty(ExistingSubmission.FeedbackComment))
+                                    {
+                                        <p class="mb-0">Feedback: @ExistingSubmission.FeedbackComment</p>
+                                    }
                                 </div>
                             </div>
                         </div>
                     }
-                    
                 }
                 else
                 {
+                    <!-- Editable submission form -->
                     <EditForm Model="@submission" OnValidSubmit="HandleSubmit">
                         <DataAnnotationsValidator />
                         <ValidationSummary />
@@ -98,24 +103,27 @@
                             <div class="card">
                                 <div class="card-body">
                                     <ol>
-                                        @foreach (var question in Homework.Question)
-                                        {
-                                            <li class="mb-2">@question</li>
-                                        }
+                                          @if (Homework?.Question != null)
+                                          {
+                                               <li class="mb-2">@Homework.Question</li>
+                                          }
                                     </ol>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-4">
-                            <label for="answer" class="form-label">Your Answer<span class="text-danger">*</span></label>
-                            <InputTextArea id="answer" @bind-Value="submission.Answer" class="form-control" rows="10" placeholder="Type your answer here..." />
+                            <label for="answer" class="form-label">Your Answer <span class="text-danger">*</span></label>
+                            <InputTextArea id="answer" @bind-Value="submission.Answer" class="form-control" rows="10" 
+                                           placeholder="Type your answer here..." />
                             <ValidationMessage For="@(() => submission.Answer)" />
                         </div>
 
                         <div class="d-flex justify-content-end mt-4">
                             <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
-                            <button type="submit" class="btn btn-primary">@(IsEditing ? "Update" : "Submit") Homework</button>
+                            <button type="submit" class="btn btn-success">
+                                @(IsEditing ? "Update" : "Submit") Homework
+                            </button>
                         </div>
                     </EditForm>
                 }
@@ -149,39 +157,40 @@
     public EventCallback OnClose { get; set; }
 
     private HomeworkSubmission submission = new HomeworkSubmission();
-    private bool IsEditing => ExistingSubmission != null;
+    private bool IsEditing => ExistingSubmission != null && !ExistingSubmission.IsGraded;
+    private bool IsViewingGradedSubmission => ExistingSubmission != null && ExistingSubmission.IsGraded;
     private bool IsPastDue => Homework?.DueDate < DateTime.Now;
 
     protected override void OnParametersSet()
     {
         if (IsVisible)
         {
-            if (IsEditing && ExistingSubmission != null)
+            if (ExistingSubmission != null)
             {
                 // Clone the existing submission to avoid modifying the original directly
                 submission = new HomeworkSubmission
-                    {
-                        Id = ExistingSubmission.Id,
-                        Student = ExistingSubmission.Student,
-                        Answer = ExistingSubmission.Answer,
-                        SubmissionDate = ExistingSubmission.SubmissionDate,
-                        IsGraded = ExistingSubmission.IsGraded, // Ensure IsGraded is copied
-                        FeedbackComment = ExistingSubmission.FeedbackComment,
-                        HomeworkGrade = ExistingSubmission.HomeworkGrade,
-                        Homework = ExistingSubmission.Homework
-                    };
+                {
+                    Id = ExistingSubmission.Id,
+                    Student = ExistingSubmission.Student,
+                    Answer = ExistingSubmission.Answer ?? "",
+                    SubmissionDate = ExistingSubmission.SubmissionDate,
+                    IsGraded = ExistingSubmission.IsGraded,
+                    FeedbackComment = ExistingSubmission.FeedbackComment,
+                    HomeworkGrade = ExistingSubmission.HomeworkGrade,
+                    Homework = ExistingSubmission.Homework
+                };
             }
             else
             {
                 // Create a new submission
                 submission = new HomeworkSubmission
-                    {
-                        Student = CurrentStudent,
-                        SubmissionDate = DateTime.Now,
-                        Answer = string.Empty,
-                        IsGraded = false, // Initialize IsGraded to false for new submissions
-                        Homework = Homework
-                    };
+                {
+                    Student = CurrentStudent,
+                    SubmissionDate = DateTime.Now,
+                    Answer = "",
+                    IsGraded = false,
+                    Homework = Homework
+                };
             }
         }
     }
@@ -190,18 +199,17 @@
     {
         if (string.IsNullOrWhiteSpace(submission.Answer))
         {
-            return; // Ensure answer is not empty
+            return; // Validation will handle this
         }
 
         if (!IsEditing)
         {
-            // Set homework and submission date
+            // Set submission date for new submissions
             submission.SubmissionDate = DateTime.Now;
 
             // Generate a new ID for the submission
-            // In a real app, this would be handled by the database
             int nextId = 1;
-            if (Homework.Submissions != null && Homework.Submissions.Any())
+            if (Homework?.Submissions != null && Homework.Submissions.Any())
             {
                 nextId = Homework.Submissions.Max(s => s.Id) + 1;
             }
@@ -209,7 +217,7 @@
         }
         else
         {
-            // Update submission date for edits
+            // Update submission date for edits (only if not graded)
             submission.SubmissionDate = DateTime.Now;
         }
 

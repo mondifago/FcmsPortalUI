@@ -266,53 +266,90 @@
 
                 <!-- Homework Section -->
                 <div class="card mb-4">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">Homework</h4>
-                        @if (isTeacher && classSession.HomeworkDetails == null)
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Homework</h4>
+    </div>
+    <div class="card-body">
+        @if (classSession.HomeworkDetails == null)
+        {
+            <!-- No homework exists - only show create button for teachers -->
+            @if (isTeacher)
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted mb-3">No homework assigned yet.</p>
+                    <button class="btn btn-primary" @onclick="CreateNewHomework">
+                        <i class="fa fa-plus"></i> Create Homework
+                    </button>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No homework assigned yet.</p>
+            }
+        }
+        else
+        {
+            <!-- Homework exists - show appropriate action buttons -->
+            <div class="homework-overview mb-4">
+                <h5>@classSession.HomeworkDetails.Title</h5>
+                <p class="text-muted mb-2">Due: @classSession.HomeworkDetails.DueDate.ToString("MMMM d, yyyy")</p>
+                <p class="mb-0">
+                    <small class="text-muted">
+                        @(classSession.HomeworkDetails.Submissions?.Count ?? 0) submission(s) received
+                    </small>
+                </p>
+            </div>
+
+            <div class="homework-actions d-flex gap-2 flex-wrap">
+                @if (isTeacher)
+                {
+                    <!-- Teacher view buttons -->
+                    <button class="btn btn-outline-primary" @onclick="ViewHomework">
+                        <i class="fa fa-eye"></i> View Homework
+                    </button>
+                    <button class="btn btn-outline-success" @onclick="ViewSubmissions">
+                        <i class="fa fa-list"></i> View Submissions (@(classSession.HomeworkDetails.Submissions?.Count ?? 0))
+                    </button>
+                    <button class="btn btn-outline-warning" @onclick="EditHomework">
+                        <i class="fa fa-edit"></i> Edit Homework
+                    </button>
+                    <button class="btn btn-outline-danger" @onclick="DeleteHomework">
+                        <i class="fa fa-trash"></i> Delete
+                    </button>
+                }
+                else
+                {
+                    <!-- Student view buttons -->
+                    <button class="btn btn-outline-primary" @onclick="ViewHomework">
+                        <i class="fa fa-eye"></i> View Homework
+                    </button>
+                    
+                        var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+                    
+                    @if (studentSubmission == null)
+                    {
+                        <button class="btn btn-success" @onclick="AttemptHomework">
+                            <i class="fa fa-paper-plane"></i> Attempt Homework
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-outline-info" @onclick="ViewMySubmission">
+                            <i class="fa fa-check-circle"></i> View My Submission
+                        </button>
+                        @if (!studentSubmission.IsGraded)
                         {
-                            <button class="btn btn-sm btn-light" @onclick="CreateNewHomework">
-                                <i class="fa fa-plus"></i> Add Homework
+                            <button class="btn btn-outline-warning" @onclick="EditMySubmission">
+                                <i class="fa fa-edit"></i> Edit Submission
                             </button>
                         }
-                    </div>
-                    <div class="card-body">
-                        @if (classSession.HomeworkDetails == null)
-                        {
-                            <p class="text-muted">No homework assigned yet.</p>
-                        }
-                        else
-                        {
-                            <div class="list-group">
-                                <div class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h5 class="mb-1">@classSession.HomeworkDetails.Title</h5>
-                                        <div>
-                                            @if (isTeacher)
-                                            {
-                                                <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => EditHomework(classSession.HomeworkDetails)">
-                                                    <i class="fa fa-edit"></i> Edit
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteHomework(classSession.HomeworkDetails)">
-                                                    <i class="fa fa-trash"></i> Delete
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn btn-sm btn-outline-success" @onclick="() => SubmitHomework(classSession.HomeworkDetails)">
-                                                    <i class="fa fa-paper-plane"></i> Submit
-                                                </button>
-                                            }
-                                        </div>
-                                    </div>
-                                    <p class="mb-1">Due: @classSession.HomeworkDetails.DueDate.ToString("MMMM d, yyyy")</p>
-                                    <small class="text-muted">
-                                        @(classSession.HomeworkDetails.Submissions?.Count ?? 0) submission(s)
-                                    </small>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
 
                 <!-- Discussion Section -->
                 <div class="card mb-4">
@@ -390,20 +427,39 @@
 </div>
 
 <!-- Homework Modal -->
-<HomeworkModal IsVisible="showHomeworkModal"
-               ExistingHomework="selectedHomework"
-               ClassSession="classSession"
-               CurrentTeacher="currentTeacher"
-               OnSave="HandleHomeworkSaved"
-               OnClose="() => showHomeworkModal = false" />
+<HomeworkCreationModal IsVisible="showHomeworkModal"
+                       ClassSession="classSession"
+                       CurrentTeacher="currentTeacher"
+                       ExistingHomework="selectedHomework"
+                       OnSave="HandleHomeworkSaved"
+                       OnClose="() => showHomeworkModal = false" />
+
+<!-- Homework View Modal -->
+<HomeworkViewModal IsVisible="showHomeworkViewModal"
+                   Homework="classSession.HomeworkDetails"
+                   OnClose="() => showHomeworkViewModal = false" />
 
 <!-- Homework Submission Modal -->
 <HomeworkSubmissionModal IsVisible="showSubmissionModal"
-                         Homework="selectedHomework"
+                         Homework="classSession.HomeworkDetails"
                          CurrentStudent="currentStudent"
-                         ExistingSubmission="existingSubmission"
+                         ExistingSubmission="selectedSubmission"
                          OnSave="HandleSubmissionSaved"
                          OnClose="() => showSubmissionModal = false" />
+
+<!-- Homework Submissions List Modal -->
+<HomeworkSubmissionsListModal IsVisible="showSubmissionsListModal"
+                              Homework="classSession.HomeworkDetails"
+                              CurrentTeacher="currentTeacher"
+                              OnClose="() => showSubmissionsListModal = false"
+                              OnGradeSubmission="HandleGradeSubmission" />
+
+<!-- Homework Grading Modal -->
+<HomeworkGradingModal IsVisible="showGradingModal"
+                      Submission="submissionToGrade"
+                      CurrentTeacher="currentTeacher"
+                      OnSave="HandleGradingSaved"
+                      OnClose="() => showGradingModal = false" />
 
 @code {
     [Parameter]
@@ -415,7 +471,7 @@
     private ScheduleEntry scheduleEntry;
     private LearningPath relatedLearningPath;
     private List<Student> enrolledStudents = new List<Student>();
-    private bool isTeacher = true; 
+    private bool isTeacher = false; 
     private Staff currentTeacher; 
     private Student currentStudent; 
     private bool showMaterialsUpload = false;
@@ -427,6 +483,13 @@
     private bool editingLessonPlan = false;
     private LessonPlanModel lessonPlanModel = new LessonPlanModel();
     private RemarksModel remarksModel = new RemarksModel();
+
+
+    private bool showHomeworkViewModal = false;
+    private bool showSubmissionsListModal = false;
+    private bool showGradingModal = false;
+    private HomeworkSubmission selectedSubmission;
+    private HomeworkSubmission submissionToGrade;
 
     private class LessonPlanModel
     {
@@ -497,11 +560,7 @@
         SchoolDataService.UpdateClassSession(classSession);
     }
 
-    private void CreateNewHomework()
-    {
-        selectedHomework = null;
-        showHomeworkModal = true;
-    }
+   
 
     private void EditHomework(Homework homework)     
     {
@@ -519,11 +578,7 @@
         SchoolDataService.UpdateClassSession(classSession);
     }
 
-    private void HandleHomeworkSaved(Homework homework)
-    {
-        classSession.HomeworkDetails = homework;
-        SchoolDataService.UpdateClassSession(classSession);
-    }
+   
 
     private void SubmitHomework(Homework homework)
     {
@@ -534,25 +589,7 @@
         showSubmissionModal = true;
     }
 
-    private void HandleSubmissionSaved(HomeworkSubmission submission)
-    {
-        if (selectedHomework.Submissions == null)
-        {
-            selectedHomework.Submissions = new List<HomeworkSubmission>();
-        }
-
-        var existingIndex = selectedHomework.Submissions.FindIndex(s => s.Id == submission.Id);
-        if (existingIndex >= 0)
-        {
-            selectedHomework.Submissions[existingIndex] = submission;
-        }
-        else
-        {
-            selectedHomework.Submissions.Add(submission);
-        }
-
-        SchoolDataService.UpdateClassSession(classSession);
-    }
+    
 
     private void GoBack()
     {
@@ -617,5 +654,106 @@
         }
 
         StateHasChanged();
+    }
+
+
+    // Homework action methods
+    private void CreateNewHomework()
+    {
+        selectedHomework = null;
+        showHomeworkModal = true;
+    }
+
+    private void ViewHomework()
+    {
+        showHomeworkViewModal = true;
+    }
+
+    private void EditHomework()
+    {
+        selectedHomework = classSession.HomeworkDetails;
+        showHomeworkModal = true;
+    }
+
+    private void DeleteHomework()
+    {
+        if (classSession.HomeworkDetails != null)
+        {
+            SchoolDataService.DeleteHomework(classSession.HomeworkDetails.Id);
+            classSession.HomeworkDetails = null;
+            SchoolDataService.UpdateClassSession(classSession);
+        }
+    }
+
+    private void ViewSubmissions()
+    {
+        showSubmissionsListModal = true;
+    }
+
+    private void AttemptHomework()
+    {
+        selectedSubmission = null;
+        showSubmissionModal = true;
+    }
+
+    private void ViewMySubmission()
+    {
+        selectedSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+        showSubmissionModal = true;
+    }
+
+    private void EditMySubmission()
+    {
+        selectedSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+        showSubmissionModal = true;
+    }
+
+    private void HandleHomeworkSaved(Homework homework)
+    {
+        classSession.HomeworkDetails = homework;
+        SchoolDataService.UpdateClassSession(classSession);
+        showHomeworkModal = false;
+    }
+
+    private void HandleSubmissionSaved(HomeworkSubmission submission)
+    {
+        if (classSession.HomeworkDetails.Submissions == null)
+        {
+            classSession.HomeworkDetails.Submissions = new List<HomeworkSubmission>();
+        }
+
+        var existingIndex = classSession.HomeworkDetails.Submissions.FindIndex(s => s.Id == submission.Id);
+        
+        if (existingIndex >= 0)
+        {
+            classSession.HomeworkDetails.Submissions[existingIndex] = submission;
+        }
+        else
+        {
+            classSession.HomeworkDetails.Submissions.Add(submission);
+        }
+
+        SchoolDataService.UpdateHomework(classSession.HomeworkDetails);
+        showSubmissionModal = false;
+    }
+
+    private void HandleGradeSubmission(HomeworkSubmission submission)
+    {
+        submissionToGrade = submission;
+        showGradingModal = true;
+    }
+
+    private void HandleGradingSaved(HomeworkSubmission gradedSubmission)
+    {
+        // Update the submission in the homework
+        var submissionIndex = classSession.HomeworkDetails.Submissions.FindIndex(s => s.Id == gradedSubmission.Id);
+        if (submissionIndex >= 0)
+        {
+            classSession.HomeworkDetails.Submissions[submissionIndex] = gradedSubmission;
+        }
+
+        SchoolDataService.UpdateHomework(classSession.HomeworkDetails);
+        showGradingModal = false;
+        showSubmissionsListModal = false; // Close submissions list after grading
     }
 }

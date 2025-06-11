@@ -1,0 +1,233 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortalUI
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Homework Submissions - @Homework?.Title</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Homework == null)
+                {
+                    <p class="text-muted">No homework to display submissions for.</p>
+                }
+                else if (Homework.Submissions == null || !Homework.Submissions.Any())
+                {
+                    <div class="text-center py-4">
+                        <i class="fa fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Submissions Yet</h5>
+                        <p class="text-muted">No students have submitted their homework yet.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <h6>Due: @Homework.DueDate.ToString("MMMM d, yyyy")</h6>
+                        <p class="small text-muted">@Homework.Submissions.Count submission(s) received</p>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Submission Date</th>
+                                    <th>Status</th>
+                                    <th>Grade</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var submission in Homework.Submissions.OrderBy(s => s.Student?.Person?.LastName))
+                                {
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <strong>@submission.Student?.Person?.FirstName @submission.Student?.Person?.LastName</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                @submission.SubmissionDate.ToString("MMM d, yyyy")
+                                                <br />
+                                                <small class="text-muted">@submission.SubmissionDate.ToString("h:mm tt")</small>
+                                            </div>
+                                            @if (submission.SubmissionDate > Homework.DueDate)
+                                            {
+                                                <span class="badge bg-warning">Late</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (submission.IsGraded)
+                                            {
+                                                <span class="badge bg-success">Graded</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">Pending</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (submission.IsGraded && submission.HomeworkGrade != null)
+                                            {
+                                                <strong>@submission.HomeworkGrade.Score</strong>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Not graded</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary btn-sm" @onclick="() => ViewSubmission(submission)" title="View Submission">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                                @if (!submission.IsGraded)
+                                                {
+                                                    <button class="btn btn-outline-success btn-sm" @onclick="() => GradeSubmission(submission)" title="Grade Submission">
+                                                        <i class="fa fa-check-square"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-outline-warning btn-sm" @onclick="() => GradeSubmission(submission)" title="Update Grade">
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Submission View Modal -->
+@if (showSubmissionViewModal && selectedSubmission != null)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Homework Submission</h5>
+                    <button type="button" class="btn-close" @onclick="CloseSubmissionView"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Student</dt>
+                                <dd>@selectedSubmission.Student?.Person?.FirstName @selectedSubmission.Student?.Person?.LastName</dd>
+
+                                <dt>Submission Date</dt>
+                                <dd>@selectedSubmission.SubmissionDate.ToString("MMM d, yyyy h:mm tt")</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            @if (selectedSubmission.IsGraded)
+                            {
+                                <span class="badge bg-success">Graded</span>
+                                @if (selectedSubmission.HomeworkGrade != null)
+                                {
+                                    <p class="mt-2">Score: <strong>@selectedSubmission.HomeworkGrade.Score</strong></p>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning">Pending Grade</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>Student's Answer</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                @((MarkupString)Util.FormatTextWithLinks(selectedSubmission.Answer))
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (selectedSubmission.IsGraded && !string.IsNullOrEmpty(selectedSubmission.FeedbackComment))
+                    {
+                        <div class="mb-3">
+                            <h6>Teacher Feedback</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    @selectedSubmission.FeedbackComment
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseSubmissionView">Close</button>
+                    @if (!selectedSubmission.IsGraded)
+                    {
+                        <button type="button" class="btn btn-success" @onclick="() => GradeSubmission(selectedSubmission)">
+                            Grade Submission
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public Homework Homework { get; set; }
+
+    [Parameter]
+    public Staff CurrentTeacher { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public EventCallback<HomeworkSubmission> OnGradeSubmission { get; set; }
+
+    private bool showSubmissionViewModal = false;
+    private HomeworkSubmission selectedSubmission;
+
+    private void ViewSubmission(HomeworkSubmission submission)
+    {
+        selectedSubmission = submission;
+        showSubmissionViewModal = true;
+    }
+
+    private void CloseSubmissionView()
+    {
+        showSubmissionViewModal = false;
+        selectedSubmission = null;
+    }
+
+    private void GradeSubmission(HomeworkSubmission submission)
+    {
+        OnGradeSubmission.InvokeAsync(submission);
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}
