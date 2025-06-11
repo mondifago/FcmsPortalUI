@@ -36,9 +36,8 @@
 
                     <div class="mb-3">
                         <label for="questions" class="form-label">Questions <span class="text-danger">*</span></label>
-                        <InputTextArea id="questions" @bind-Value="questionsText" class="form-control" rows="6"
-                                       placeholder="Enter homework questions (one question per line)" />
-                        <small class="form-text text-muted">Enter each question on a new line</small>
+                        <InputTextArea id="questions" @bind-Value="homework.Question" class="form-control" rows="8"
+                                       placeholder="Enter your homework questions here..." />
                         <ValidationMessage For="@(() => homework.Question)" />
                     </div>
 
@@ -79,7 +78,6 @@
     public EventCallback OnClose { get; set; }
 
     private Homework homework = new Homework();
-    private string questionsText = "";
     private bool IsEditing => ExistingHomework != null;
 
     protected override void OnParametersSet()
@@ -96,11 +94,9 @@
                     DueDate = ExistingHomework.DueDate,
                     ClassSessionId = ExistingHomework.ClassSessionId,
                     ClassSession = ExistingHomework.ClassSession,
-                    Question = ExistingHomework.Question,
+                    Question = ExistingHomework.Question ?? "",
                     Submissions = ExistingHomework.Submissions ?? new List<HomeworkSubmission>()
                 };
-
-               
             }
             else
             {
@@ -110,10 +106,9 @@
                     DueDate = DateTime.Today.AddDays(7),
                     ClassSessionId = ClassSession?.Id ?? 0,
                     ClassSession = ClassSession,
-                    Question = questionsText,
+                    Question = "",
                     Submissions = new List<HomeworkSubmission>()
                 };
-                questionsText = "";
             }
         }
     }

@@ -50,14 +50,11 @@
                             <h5>Questions</h5>
                             <div class="card">
                                 <div class="card-body">
-                                    @if (Homework.Question != null && Homework.Question.Any())
+                                    @if (!string.IsNullOrWhiteSpace(Homework.Question))
                                     {
-                                        <ol>
-                                            @if (Homework?.Question != null)
-                                            {
-                                                <li class="mb-2">@Homework.Question</li>
-                                            }
-                                        </ol>
+                                        <div class="homework-questions">
+                                            @((MarkupString)Util.FormatTextWithLinks(Homework.Question))
+                                        </div>
                                     }
                                     else
                                     {

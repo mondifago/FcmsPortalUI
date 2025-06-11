@@ -43,12 +43,14 @@
                         <label class="form-label fw-bold">Questions</label>
                         <div class="card">
                             <div class="card-body">
-                                <ol>
-                                    @foreach (var question in Homework.Question)
-                                    {
-                                        <li class="mb-2">@question</li>
-                                    }
-                                </ol>
+                                @if (!string.IsNullOrWhiteSpace(Homework.Question))
+                                {
+                                    @((MarkupString)Util.FormatTextWithLinks(Homework.Question))
+                                }
+                                else
+                                {
+                                    <p class="text-muted mb-0">No questions provided.</p>
+                                }
                             </div>
                         </div>
                     </div>
@@ -102,12 +104,14 @@
                             <label class="form-label">Questions</label>
                             <div class="card">
                                 <div class="card-body">
-                                    <ol>
-                                          @if (Homework?.Question != null)
-                                          {
-                                               <li class="mb-2">@Homework.Question</li>
-                                          }
-                                    </ol>
+                                    @if (!string.IsNullOrWhiteSpace(Homework.Question))
+                                    {
+                                        @((MarkupString)Util.FormatTextWithLinks(Homework.Question))
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0">No questions provided.</p>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -167,7 +171,6 @@
         {
             if (ExistingSubmission != null)
             {
-                // Clone the existing submission to avoid modifying the original directly
                 submission = new HomeworkSubmission
                 {
                     Id = ExistingSubmission.Id,
@@ -182,7 +185,6 @@
             }
             else
             {
-                // Create a new submission
                 submission = new HomeworkSubmission
                 {
                     Student = CurrentStudent,
@@ -199,12 +201,11 @@
     {
         if (string.IsNullOrWhiteSpace(submission.Answer))
         {
-            return; // Validation will handle this
+            return; 
         }
 
         if (!IsEditing)
         {
-            // Set submission date for new submissions
             submission.SubmissionDate = DateTime.Now;
 
             // Generate a new ID for the submission
@@ -217,7 +218,6 @@
         }
         else
         {
-            // Update submission date for edits (only if not graded)
             submission.SubmissionDate = DateTime.Now;
         }
 
