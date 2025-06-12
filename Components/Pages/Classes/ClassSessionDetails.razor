@@ -317,13 +317,6 @@
                                             <i class="fa fa-trash"></i> Delete
                                         </button>
                                     }
-                                    else
-                                    {
-                                        <div class="alert alert-info d-flex align-items-center ms-2 mb-0 py-2 px-3">
-                                            <i class="fa fa-info-circle me-2"></i>
-                                            <small>Homework cannot be modified once students have submitted.</small>
-                                        </div>
-                                    }
                                 }
                                 else
                                 {
@@ -364,7 +357,6 @@
                         }
                     </div>
                 </div>
-
 
                 <!-- Discussion Section -->
                 <div class="card mb-4">
@@ -490,7 +482,7 @@
     private ScheduleEntry scheduleEntry;
     private LearningPath relatedLearningPath;
     private List<Student> enrolledStudents = new List<Student>();
-    private bool isTeacher = false; 
+    private bool isTeacher = true; 
     private Staff currentTeacher; 
     private Student currentStudent; 
     private bool showMaterialsUpload = false;
@@ -737,23 +729,17 @@
 
     private void HandleSubmissionSaved(HomeworkSubmission submission)
     {
-        if (classSession.HomeworkDetails.Submissions == null)
+        if (submission.Id > 0)
         {
-            classSession.HomeworkDetails.Submissions = new List<HomeworkSubmission>();
-        }
-
-        var existingIndex = classSession.HomeworkDetails.Submissions.FindIndex(s => s.Id == submission.Id);
-        
-        if (existingIndex >= 0)
-        {
-            classSession.HomeworkDetails.Submissions[existingIndex] = submission;
+            SchoolDataService.UpdateHomeworkSubmission(submission);
         }
         else
         {
-            classSession.HomeworkDetails.Submissions.Add(submission);
+            submission.Homework = classSession.HomeworkDetails;
+            SchoolDataService.AddHomeworkSubmission(submission);
         }
 
-        SchoolDataService.UpdateHomework(classSession.HomeworkDetails);
+        SchoolDataService.UpdateClassSession(classSession);
         showSubmissionModal = false;
     }
 
