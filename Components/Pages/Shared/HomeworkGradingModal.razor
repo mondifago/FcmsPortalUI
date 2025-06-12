@@ -126,7 +126,6 @@
         {
             if (IsEditing && Submission.HomeworkGrade != null)
             {
-                // Load existing grade
                 gradeModel = new TestGrade
                 {
                     Score = Submission.HomeworkGrade.Score,
@@ -136,7 +135,6 @@
             }
             else
             {
-                // New grade
                 gradeModel = new TestGrade
                 {
                     Score = 0,
@@ -151,7 +149,6 @@
         {
             if (Submission == null) return;
 
-            // Create or update the homework grade
             var homeworkGrade = new FcmsPortal.Models.TestGrade 
             {
                 Course = Submission.Homework?.ClassSession?.Course ?? gradeModel.Course,
@@ -163,7 +160,6 @@
                 TeacherRemark = gradeModel.TeacherRemark
             };
 
-            // Update the submission
             Submission.HomeworkGrade = homeworkGrade; 
             Submission.IsGraded = true;
             Submission.FeedbackComment = gradeModel.TeacherRemark;

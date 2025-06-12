@@ -765,7 +765,6 @@
 
     private void HandleGradingSaved(HomeworkSubmission gradedSubmission)
     {
-        // Update the submission in the homework
         var submissionIndex = classSession.HomeworkDetails.Submissions.FindIndex(s => s.Id == gradedSubmission.Id);
         if (submissionIndex >= 0)
         {
@@ -777,19 +776,13 @@
         showSubmissionsListModal = false; 
     }
 
-    private bool HasHomeworkSubmissions()
-    {
-        return classSession?.HomeworkDetails?.Submissions != null && 
-               classSession.HomeworkDetails.Submissions.Any();
-    }
-
     private void ViewMyGrade()
-{
-    var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
-    if (studentSubmission != null && studentSubmission.IsGraded)
     {
-        studentGradeSubmission = studentSubmission;
-        showStudentGradeModal = true;
+        var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+        if (studentSubmission != null && studentSubmission.IsGraded)
+        {
+            studentGradeSubmission = studentSubmission;
+            showStudentGradeModal = true;
+        }
     }
-}
 }
