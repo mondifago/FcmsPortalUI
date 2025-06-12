@@ -204,24 +204,20 @@
             return; 
         }
 
-        if (!IsEditing)
+        HomeworkSubmission result;
+    
+        if (IsEditing && ExistingSubmission != null && ExistingSubmission.Id > 0)
         {
-            submission.SubmissionDate = DateTime.Now;
-
-            // Generate a new ID for the submission
-            int nextId = 1;
-            if (Homework?.Submissions != null && Homework.Submissions.Any())
-            {
-                nextId = Homework.Submissions.Max(s => s.Id) + 1;
-            }
-            submission.Id = nextId;
+            ExistingSubmission.Answer = submission.Answer;
+            SchoolDataService.UpdateHomeworkSubmission(ExistingSubmission);
+            result = ExistingSubmission;
         }
         else
         {
-            submission.SubmissionDate = DateTime.Now;
+            result = SchoolDataService.SubmitHomework(Homework.Id, CurrentStudent, submission.Answer);
         }
 
-        await OnSave.InvokeAsync(submission);
+        await OnSave.InvokeAsync(result);
         Close();
     }
 

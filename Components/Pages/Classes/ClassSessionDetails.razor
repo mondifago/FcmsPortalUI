@@ -482,7 +482,7 @@
     private ScheduleEntry scheduleEntry;
     private LearningPath relatedLearningPath;
     private List<Student> enrolledStudents = new List<Student>();
-    private bool isTeacher = true; 
+    private bool isTeacher = false; 
     private Staff currentTeacher; 
     private Student currentStudent; 
     private bool showMaterialsUpload = false;
@@ -529,7 +529,16 @@
 
             if (enrolledStudents.Any())
             {
-                currentStudent = enrolledStudents.First();
+                currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 302) // Dan's ID
+                                 ?? enrolledStudents.First();
+    
+                // Or pick Zak by ID
+                // currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 303) // Zak's ID
+                //                  ?? enrolledStudents.First();
+
+                 // Or pick Joe by ID
+                // currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 301) // Zak's ID
+                //                  ?? enrolledStudents.First();
             }
         }
     }
@@ -729,17 +738,7 @@
 
     private void HandleSubmissionSaved(HomeworkSubmission submission)
     {
-        if (submission.Id > 0)
-        {
-            SchoolDataService.UpdateHomeworkSubmission(submission);
-        }
-        else
-        {
-            submission.Homework = classSession.HomeworkDetails;
-            SchoolDataService.AddHomeworkSubmission(submission);
-        }
-
-        SchoolDataService.UpdateClassSession(classSession);
+        classSession = SchoolDataService.GetClassSessionById(classSession.Id);
         showSubmissionModal = false;
     }
 
