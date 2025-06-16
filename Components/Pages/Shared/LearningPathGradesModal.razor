@@ -109,14 +109,8 @@
                                                 </td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm">
-                                                        <button class="btn btn-primary" @onclick="() => ShowRecordGradeModal(config.Course, GradeType.Homework)">
-                                                            <i class="fa fa-plus"></i> Homework
-                                                        </button>
-                                                        <button class="btn btn-primary" @onclick="() => ShowRecordGradeModal(config.Course, GradeType.Quiz)">
-                                                            <i class="fa fa-plus"></i> Quiz
-                                                        </button>
-                                                        <button class="btn btn-primary" @onclick="() => ShowRecordGradeModal(config.Course, GradeType.FinalExam)">
-                                                            <i class="fa fa-plus"></i> Exam
+                                                        <button class="btn btn-primary" @onclick="() => ShowRecordGradeModal(config.Course)">
+                                                            <i class="fa fa-plus"></i> Add Grade
                                                         </button>
                                                     </div>
                                                 </td>
@@ -146,7 +140,6 @@
 <RecordGradeModal IsVisible="showRecordGradeModal"
                   LearningPath="LearningPath"
                   Course="selectedCourse"
-                  GradeType="selectedGradeType"
                   OnSave="HandleGradeSaved"
                   OnClose="() => showRecordGradeModal = false" />
 
@@ -158,9 +151,7 @@
     private List<string> allCourses = new();
     private CourseGradingConfiguration configModel = new();
     private string selectedCourse = "";
-
     private bool showRecordGradeModal = false;
-    private GradeType selectedGradeType;
 
     protected override void OnParametersSet()
     {
@@ -224,10 +215,9 @@
         return SchoolDataService.GetAllCourseGradingConfigurations(LearningPath.Id);
     }
 
-    private void ShowRecordGradeModal(string course, GradeType gradeType)
+    private void ShowRecordGradeModal(string course)
     {
         selectedCourse = course;
-        selectedGradeType = gradeType;
         showRecordGradeModal = true;
     }
 
