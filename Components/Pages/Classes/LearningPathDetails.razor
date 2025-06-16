@@ -188,9 +188,12 @@
                                     </ul>
                                 }
                 
-                                <button class="btn btn-warning" @onclick="ShowGradeConfigurationModal">
-                                    <i class="fa fa-cog"></i> Configure Grade Weights
-                                </button>
+                                <div class="d-flex justify-content-center mt-3">
+                                    <button class="btn btn-warning" @onclick="ShowMainGradePage">
+                                         Manage Grades
+                                    </button>
+                                </div>
+
                             </div>
                         }
                         else
@@ -237,9 +240,9 @@
                                     </table>
                                 </div>
                 
-                                <div class="d-flex justify-content-end mt-3">
+                                <div class="d-flex justify-content-center mt-3">
                                     <button class="btn btn-primary" @onclick="ShowMainGradePage">
-                                        <i class="fa fa-graduation-cap"></i> Manage Grades
+                                         Manage Grades
                                     </button>
                                 </div>
                             }
@@ -291,9 +294,9 @@
                                     </table>
                                 </div>
                 
-                                <div class="d-flex justify-content-end mt-3">
+                                <div class="d-flex justify-content-center mt-3">
                                     <button class="btn btn-primary" @onclick="ShowMainGradePage">
-                                        <i class="fa fa-graduation-cap"></i> Manage Grades
+                                         Manage Grades
                                     </button>
                                 </div>
                             }
@@ -401,11 +404,6 @@
                   LearningPath="learningPath"
                   OnSave="HandleSaveGrade"
                   OnClose="() => showGradeModal = false" />
-
-<GradeConfigurationModal IsVisible="showGradeConfigModal"
-                        LearningPath="learningPath"
-                        OnSave="HandleGradeConfigSaved"
-                        OnClose="() => showGradeConfigModal = false" />
 
 <LearningPathGradesModal IsVisible="showGradesModal"
                         LearningPath="learningPath"
@@ -673,14 +671,7 @@
         todaysAttendance = null;
     }
 
-    private void HandleGradeConfigSaved()
-    {
-        showGradeConfigModal = false;
-        learningPath = SchoolDataService.GetLearningPathById(Id); 
-        StateHasChanged();
-    }
-
-      private bool IsGradeConfigurationComplete()
+    private bool IsGradeConfigurationComplete()
     {
         var allCourses = CourseDefaults.GetCourseNames(learningPath.EducationLevel);
         var configuredCourses = SchoolDataService.GetAllCourseGradingConfigurations(learningPath.Id);
@@ -714,11 +705,6 @@
         }
         
         return rankedList.OrderByDescending(sg => sg.SemesterOverallGrade).ToList();
-    }
-
-    private void ShowGradeConfigurationModal()
-    {
-        showGradeConfigModal = true;
     }
 
     private void ShowMainGradePage()
