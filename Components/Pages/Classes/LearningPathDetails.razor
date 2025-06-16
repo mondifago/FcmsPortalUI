@@ -177,7 +177,7 @@
                                 @if (isTeacher)
                                 {
                                     <button class="btn btn-primary mt-3" @onclick="ShowRecordGradeModal">
-                                        <i class="fa fa-plus-circle"></i> Record Grades
+                                         Grades
                                     </button>
                                 }
                             </div>
@@ -191,7 +191,6 @@
                                             <th>Rank</th>
                                             <th>Student</th>
                                             <th>Overall Grade</th>
-                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -215,17 +214,6 @@
                                                 </td>
                                                 <td>@studentGrade.Student.Person.FirstName @studentGrade.Student.Person.LastName</td>
                                                 <td>@studentGrade.SemesterOverallGrade.ToString("F2")</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-info" @onclick="() => ViewStudentGradeDetails(studentGrade.Student)">
-                                                        <i class="fa fa-eye"></i> Details
-                                                    </button>
-                                                    @if (isTeacher)
-                                                    {
-                                                        <button class="btn btn-sm btn-warning ms-2" @onclick="() => EditStudentGrade(studentGrade.Student)">
-                                                            <i class="fa fa-pencil"></i> Edit
-                                                        </button>
-                                                    }
-                                                </td>
                                             </tr>
                                         }
                                     </tbody>
@@ -235,10 +223,10 @@
                             {
                                 <div class="mt-3">
                                     <button class="btn btn-primary" @onclick="ShowRecordGradeModal">
-                                        <i class="fa fa-plus-circle"></i> Record New Grades
+                                        Grades
                                     </button>
                                     <button class="btn btn-success ms-2" @onclick="FinalizeGrades" disabled="@gradeReport.IsFinalized">
-                                        <i class="fa fa-check-circle"></i> Finalize Grades
+                                        Finalize Grades
                                     </button>
                                 </div>
                             }
