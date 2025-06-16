@@ -163,7 +163,13 @@
             Submission.IsGraded = true;
             Submission.FeedbackComment = gradeModel.TeacherRemark;
 
-            LogicMethods.SubmitHomeworkGradeToStudent(Submission.Student, Submission);
+            var courseGrade = Submission.Student.CourseGrades.FirstOrDefault(cg => cg.Course == homeworkGrade.Course);
+            if (courseGrade == null)
+            {
+                courseGrade = new CourseGrade { Course = homeworkGrade.Course };
+                Submission.Student.CourseGrades.Add(courseGrade);
+            }
+            courseGrade.TestGrades.Add(homeworkGrade);
 
             await OnSave.InvokeAsync(Submission);
             Close();
