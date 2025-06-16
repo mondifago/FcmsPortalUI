@@ -407,6 +407,9 @@
                         OnSave="HandleGradeConfigSaved"
                         OnClose="() => showGradeConfigModal = false" />
 
+<LearningPathGradesModal IsVisible="showGradesModal"
+                        LearningPath="learningPath"
+                        OnClose="() => showGradesModal = false" />
 
 
 @if (showAttendanceModal)
@@ -450,7 +453,8 @@
     private bool showAttendanceModal = false;
     private bool showDailyAttendanceModal = false;
     private DailyAttendanceLogEntry todaysAttendance;
-     private bool showGradeConfigModal = false;
+    private bool showGradeConfigModal = false;
+    private bool showGradesModal = false;
 
     protected override void OnInitialized()
     {
@@ -719,6 +723,6 @@
 
     private void ShowMainGradePage()
     {
-        NavigationManager.NavigateTo($"/learningpath/{learningPath.Id}/grades");
+        showGradesModal = true;
     }
 }

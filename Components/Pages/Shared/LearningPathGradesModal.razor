@@ -1,0 +1,344 @@
+﻿@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-graduation-cap me-2"></i>
+                    Grade Management - @learningPath?.EducationLevel @learningPath?.ClassLevel
+                </h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (learningPath == null)
+                {
+                    <div class="alert alert-warning">
+                        <i class="fa fa-exclamation-triangle"></i> Learning path not found.
+                    </div>
+                }
+                else
+                {
+                    <!-- Course Tabs -->
+                    <ul class="nav nav-tabs mb-4">
+                        @foreach (var course in allCourses)
+                        {
+                            <li class="nav-item">
+                                <button class="nav-link @(selectedCourse == course ? "active" : "")" 
+                                        @onclick="() => SelectCourse(course)">
+                                    @course
+                                    @if (HasGradesForCourse(course))
+                                    {
+                                        <span class="badge bg-success ms-1">@GetGradeCountForCourse(course)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary ms-1">0</span>
+                                    }
+                                </button>
+                            </li>
+                        }
+                    </ul>
+
+                    <!-- Course Grade Content -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">@selectedCourse - Grade Management</h5>
+                            <div>
+                                @if (CanRecordGrades())
+                                {
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-primary btn-sm" @onclick="() => ShowRecordGradeModal(GradeType.Homework)">
+                                            <i class="fa fa-plus"></i> Record Homework
+                                        </button>
+                                        <button class="btn btn-primary btn-sm" @onclick="() => ShowRecordGradeModal(GradeType.Quiz)">
+                                            <i class="fa fa-plus"></i> Record Quiz
+                                        </button>
+                                        <button class="btn btn-primary btn-sm" @onclick="() => ShowRecordGradeModal(GradeType.FinalExam)">
+                                            <i class="fa fa-plus"></i> Record Exam
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning alert-sm mb-0" style="padding: 0.25rem 0.5rem;">
+                                        <small><i class="fa fa-exclamation-triangle"></i> Grade configuration required</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (!CanRecordGrades())
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-cog"></i>
+                                    <strong>Configuration Required</strong>
+                                    <p class="mb-2">Grade weights must be configured for @selectedCourse before recording grades.</p>
+                                    <button class="btn btn-warning btn-sm" @onclick="ShowGradeConfigurationModal">
+                                        Configure Grade Weights
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Grade Weight Summary -->
+                                <div class="row mb-4">
+                                    <div class="col-md-12">
+                                        <div class="card bg-light">
+                                            <div class="card-body py-2">
+                                                <small class="text-muted">Grade Weights for @selectedCourse:</small>
+                                                <div class="d-flex justify-content-around">
+                                                    <span><strong>Homework:</strong> @GetCourseConfig()?.HomeworkWeightPercentage%</span>
+                                                    <span><strong>Quiz:</strong> @GetCourseConfig()?.QuizWeightPercentage%</span>
+                                                    <span><strong>Final Exam:</strong> @GetCourseConfig()?.FinalExamWeightPercentage%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Students Grade Table -->
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 20%;">Student</th>
+                                                <th style="width: 15%;">Homework Avg</th>
+                                                <th style="width: 15%;">Quiz Avg</th>
+                                                <th style="width: 15%;">Exam Avg</th>
+                                                <th style="width: 15%;">Course Total</th>
+                                                <th style="width: 10%;">Grade</th>
+                                                <th style="width: 10%;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var student in learningPath.Students.OrderBy(s => s.Person.LastName))
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <strong>@student.Person.FirstName @student.Person.LastName</strong>
+                                                    </td>
+                                                    <td>
+                                                        @GetGradeAverage(student, GradeType.Homework)
+                                                        <small class="text-muted">(@GetGradeCount(student, GradeType.Homework))</small>
+                                                    </td>
+                                                    <td>
+                                                        @GetGradeAverage(student, GradeType.Quiz)
+                                                        <small class="text-muted">(@GetGradeCount(student, GradeType.Quiz))</small>
+                                                    </td>
+                                                    <td>
+                                                        @GetGradeAverage(student, GradeType.FinalExam)
+                                                        <small class="text-muted">(@GetGradeCount(student, GradeType.FinalExam))</small>
+                                                    </td>
+                                                    <td>
+                                                        <strong class="text-@GetGradeColorClass(GetStudentCourseTotal(student))">
+                                                            @GetStudentCourseTotal(student).ToString("F1")%
+                                                        </strong>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-@GetGradeColorClass(GetStudentCourseTotal(student))">
+                                                            @Util.GetGradeCode(GetStudentCourseTotal(student))
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewStudentGradeDetails(student)">
+                                                            <i class="fa fa-eye"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                @if (CanFinalizeGrades())
+                {
+                    <button class="btn btn-success" @onclick="ShowFinalizeGradesModal">
+                        <i class="fa fa-check-circle"></i> Finalize Semester Grades
+                    </button>
+                }
+                <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+<!-- Child Modals -->
+<GradeConfigurationModal IsVisible="showGradeConfigModal"
+                        LearningPath="learningPath"
+                        OnSave="HandleGradeConfigSaved"
+                        OnClose="() => showGradeConfigModal = false" />
+
+<RecordGradeModal IsVisible="showRecordGradeModal"
+                 LearningPath="learningPath"
+                 Course="selectedCourse"
+                 GradeType="selectedGradeType"
+                 OnSave="HandleGradeSaved"
+                 OnClose="() => showRecordGradeModal = false" />
+
+<StudentGradeDetailsModal IsVisible="showStudentGradeDetailsModal"
+                         Student="selectedStudent"
+                         Course="selectedCourse"
+                         LearningPath="learningPath"
+                         OnClose="() => showStudentGradeDetailsModal = false" />
+
+<FinalizeGradesModal IsVisible="showFinalizeGradesModal"
+                    LearningPath="learningPath"
+                    OnSave="HandleGradesFinalized"
+                    OnClose="() => showFinalizeGradesModal = false" />
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private LearningPath learningPath;
+    private List<string> allCourses = new();
+    private string selectedCourse = "";
+    
+    private bool showGradeConfigModal = false;
+    private bool showRecordGradeModal = false;
+    private bool showStudentGradeDetailsModal = false;
+    private bool showFinalizeGradesModal = false;
+    
+    private GradeType selectedGradeType;
+    private Student selectedStudent;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && LearningPath != null)
+        {
+            learningPath = LearningPath;
+            allCourses = CourseDefaults.GetCourseNames(learningPath.EducationLevel);
+            selectedCourse = allCourses.FirstOrDefault() ?? "";
+        }
+    }
+
+    private void SelectCourse(string course)
+    {
+        selectedCourse = course;
+    }
+
+    private bool CanRecordGrades()
+    {
+        return SchoolDataService.GetCourseGradingConfiguration(learningPath.Id, selectedCourse) != null;
+    }
+
+    private bool CanFinalizeGrades()
+    {
+        return allCourses.All(course => 
+            SchoolDataService.GetCourseGradingConfiguration(learningPath.Id, course) != null);
+    }
+
+    private CourseGradingConfiguration GetCourseConfig()
+    {
+        return SchoolDataService.GetCourseGradingConfiguration(learningPath.Id, selectedCourse);
+    }
+
+    private bool HasGradesForCourse(string course)
+    {
+        return learningPath.Students.Any(s => 
+            s.CourseGrades.Any(cg => cg.Course == course && cg.LearningPathId == learningPath.Id && cg.TestGrades.Any()));
+    }
+
+    private int GetGradeCountForCourse(string course)
+    {
+        return learningPath.Students.Sum(s => 
+            s.CourseGrades.Where(cg => cg.Course == course && cg.LearningPathId == learningPath.Id)
+                         .Sum(cg => cg.TestGrades.Count));
+    }
+
+    private CourseGrade GetStudentCourseGrade(Student student)
+    {
+        return student.CourseGrades.FirstOrDefault(cg => 
+            cg.Course == selectedCourse && cg.LearningPathId == learningPath.Id);
+    }
+
+    private string GetGradeAverage(Student student, GradeType gradeType)
+    {
+        var courseGrade = GetStudentCourseGrade(student);
+        if (courseGrade == null) return "N/A";
+
+        var grades = courseGrade.TestGrades.Where(tg => tg.GradeType == gradeType);
+        return grades.Any() ? grades.Average(g => g.Score).ToString("F1") : "N/A";
+    }
+
+    private int GetGradeCount(Student student, GradeType gradeType)
+    {
+        var courseGrade = GetStudentCourseGrade(student);
+        return courseGrade?.TestGrades.Count(tg => tg.GradeType == gradeType) ?? 0;
+    }
+
+    private double GetStudentCourseTotal(Student student)
+    {
+        return LogicMethods.ComputeTotalGrade(student, selectedCourse, learningPath);
+    }
+
+    private string GetGradeColorClass(double grade)
+    {
+        return grade >= 70 ? "success" : grade >= 60 ? "warning" : "danger";
+    }
+
+    private void ShowGradeConfigurationModal()
+    {
+        showGradeConfigModal = true;
+    }
+
+    private void ShowRecordGradeModal(GradeType gradeType)
+    {
+        selectedGradeType = gradeType;
+        showRecordGradeModal = true;
+    }
+
+    private void ViewStudentGradeDetails(Student student)
+    {
+        selectedStudent = student;
+        showStudentGradeDetailsModal = true;
+    }
+
+    private void ShowFinalizeGradesModal()
+    {
+        showFinalizeGradesModal = true;
+    }
+
+    private void HandleGradeConfigSaved()
+    {
+        showGradeConfigModal = false;
+        learningPath = SchoolDataService.GetLearningPathById(learningPath.Id); 
+        StateHasChanged();
+    }
+
+    private void HandleGradeSaved()
+    {
+        showRecordGradeModal = false;
+        learningPath = SchoolDataService.GetLearningPathById(learningPath.Id);
+        StateHasChanged();
+    }
+
+    private void HandleGradesFinalized()
+    {
+        showFinalizeGradesModal = false;
+        learningPath = SchoolDataService.GetLearningPathById(learningPath.Id);
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}
