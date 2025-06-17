@@ -230,7 +230,7 @@
                                                         <span class="badge bg-secondary">No Grades</span>
                                                     </td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-primary" @onclick="() => ViewStudentGradeDetails(student)">
+                                                        <button class="btn btn-sm btn-primary">
                                                             View Details
                                                         </button>
                                                     </td>
@@ -284,7 +284,7 @@
                                                         <span class="fw-bold">@studentGrade.SemesterOverallGrade.ToString("F2")%</span>
                                                     </td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-primary" @onclick="() => ViewStudentGradeDetails(studentGrade.Student)">
+                                                        <button class="btn btn-sm btn-primary">
                                                             View Details
                                                         </button>
                                                     </td>
@@ -399,11 +399,6 @@
     <div class="modal-backdrop fade show"></div>
 }
 
-<StudentGradeModal IsVisible="showGradeModal"
-                  Student="selectedStudent"
-                  LearningPath="learningPath"
-                  OnSave="HandleSaveGrade"
-                  OnClose="() => showGradeModal = false" />
 
 <LearningPathGradesModal IsVisible="showGradesModal"
                         LearningPath="learningPath"
@@ -556,39 +551,7 @@
         NavigationManager.NavigateTo($"/learningpath/{learningPath.Id}/schedules/{formattedDate}");
     }
 
-    private void ShowRecordGradeModal()
-    {
-        showGradeModal = true;
-    }
-
-    private void ViewStudentGradeDetails(Student student)
-    {
-        selectedStudent = student;
-        showGradeDetailsModal = true;
-    }
-
-    private void EditStudentGrade(Student student)
-    {
-        selectedStudent = student;
-        showGradeModal = true;
-    }
-
-    private void FinalizeGrades()
-    {
-        if (gradeReport != null && !gradeReport.IsFinalized)
-        {
-            gradeReport.IsFinalized = true;
-            SchoolDataService.UpdateGradeReport(gradeReport);
-        }
-    }
-
-    private async Task HandleSaveGrade(CourseGrade grade)
-    {
-        SchoolDataService.SaveCourseGrade(grade);
-        gradeReport = SchoolDataService.GetGradeReportForLearningPath(Id);
-
-        showGradeModal = false;
-    }
+    
 
     private void HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
     {

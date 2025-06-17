@@ -37,9 +37,9 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="maxScore" class="form-label">Maximum Score</label>
-                                <InputNumber id="maxScore" @bind-Value="maxScore" 
-                                           class="form-control" placeholder="@FcmsConstants.TOTAL_SCORE" 
-                                           @onchange="UpdateMaxScores" />
+                                <InputNumber id="maxScore" @bind-Value="maxScore"
+                                             class="form-control" placeholder="@FcmsConstants.TOTAL_SCORE"
+                                             @onchange="UpdateMaxScores" />
                             </div>
                         </div>
 
@@ -48,36 +48,44 @@
                             <table class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 40%;">Student</th>
-                                        <th style="width: 20%;">Raw Score</th>
-                                        <th style="width: 20%;">Percentage</th>
-                                        <th style="width: 20%;">Grade</th>
+                                        <th>Student</th>
+                                        <th>Raw Score (/@maxScore)</th>
+                                        <th>Percentage</th>
+                                        <th>Grade</th>
+                                        <th>Remarks</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @for (int i = 0; i < studentTestGrades.Count; i++)
                                     {
                                         var testGrade = studentTestGrades[i];
-                                        var student = LearningPath.Students.OrderBy(s => s.Person.LastName).ToList()[i];
+                                        var student = GetStudentForTestGrade(testGrade);
+                                        var percentage = GetPercentage(testGrade);
+
                                         <tr>
                                             <td>
                                                 <strong>@student.Person.FirstName @student.Person.LastName</strong>
                                             </td>
                                             <td>
-                                                <InputNumber class="form-control" 
-                                                           @bind-Value="testGrade.Score" 
-                                                           @onchange="@(() => CalculatePercentage(testGrade))"
-                                                           placeholder="0" />
+                                                <InputNumber @bind-Value="testGrade.Score"
+                                                             class="form-control"
+                                                             @onchange="() => CalculatePercentage(testGrade)"
+                                                             min="0" max="@maxScore" step="0.1" />
                                             </td>
                                             <td>
-                                                <span class="@GetScoreColorClass(GetPercentage(testGrade))">
-                                                    @GetPercentage(testGrade).ToString("F1")%
+                                                <span class="fw-bold @GetScoreColorClass(percentage)">
+                                                    @percentage.ToString("F1")%
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="badge bg-@GetGradeColorClass(GetPercentage(testGrade))">
-                                                    @Util.GetGradeCode(GetPercentage(testGrade))
+                                                <span class="badge bg-@GetGradeColorClass(percentage)">
+                                                    @Util.GetGradeCode(percentage)
                                                 </span>
+                                            </td>
+                                            <td>
+                                                <InputText @bind-Value="testGrade.TeacherRemark"
+                                                           class="form-control"
+                                                           placeholder="Optional remarks..." />
                                             </td>
                                         </tr>
                                     }
@@ -85,30 +93,49 @@
                             </table>
                         </div>
 
-                        <!-- Statistics -->
+                        <!-- Summary Statistics -->
                         @if (GetValidScoreCount() > 0)
                         {
-                            <div class="row mb-3">
-                                <div class="col-md-12">
-                                    <div class="card bg-light">
-                                        <div class="card-body py-2">
-                                            <small class="text-muted">Assessment Statistics:</small>
-                                            <div class="d-flex justify-content-around">
-                                                <span><strong>Submissions:</strong> @GetValidScoreCount()/@studentTestGrades.Count</span>
-                                                <span><strong>Highest:</strong> @GetHighestScore().ToString("F1")%</span>
-                                                <span><strong>Lowest:</strong> @GetLowestScore().ToString("F1")%</span>
-                                                <span><strong>Average:</strong> @GetAverageScore().ToString("F1")%</span>
-                                            </div>
+                            <div class="row mt-4">
+                                <div class="col-md-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-success">Highest</h6>
+                                            <p class="card-text fw-bold">@GetHighestScore().ToString("F1")%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-danger">Lowest</h6>
+                                            <p class="card-text fw-bold">@GetLowestScore().ToString("F1")%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-info">Average</h6>
+                                            <p class="card-text fw-bold">@GetAverageScore().ToString("F1")%</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card text-center">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Graded</h6>
+                                            <p class="card-text fw-bold">@GetValidScoreCount()/@studentTestGrades.Count</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         }
 
-                        <div class="d-flex justify-content-end">
+                        <div class="d-flex justify-content-end mt-4">
                             <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
                             <button type="submit" class="btn btn-primary" disabled="@(!IsFormValid())">
-                                <i class="fa fa-save"></i> Save Grades
+                                Save Grades
                             </button>
                         </div>
                     </EditForm>
@@ -132,7 +159,7 @@
 
     private GradeType selectedGradeType = GradeType.Quiz;
     private List<TestGrade> studentTestGrades = new();
-    
+
     [Range(1, 1000, ErrorMessage = "Maximum score must be greater than 0")]
     private double maxScore = FcmsConstants.TOTAL_SCORE;
 
@@ -148,36 +175,20 @@
     {
         maxScore = FcmsConstants.TOTAL_SCORE;
         var currentTeacher = GetCurrentTeacher();
-    
+
         studentTestGrades.Clear();
-    
+
         foreach (var student in LearningPath.Students.OrderBy(s => s.Person.LastName))
         {
-            var courseGrade = student.CourseGrades.FirstOrDefault(cg => 
-                cg.Course == Course && cg.LearningPathId == LearningPath.Id);
-        
-            if (courseGrade == null)
-            {
-                courseGrade = new CourseGrade
-                {
-                    Course = Course,
-                    StudentId = student.Id,
-                    LearningPathId = LearningPath.Id,
-                    TestGrades = new List<TestGrade>()
-                };
-                student.CourseGrades.Add(courseGrade);
-            }
-
             var testGrade = new TestGrade
             {
-                Course = Course,
                 GradeType = selectedGradeType,
                 Teacher = currentTeacher,
                 Date = DateTime.Now,
-                LearningPath = LearningPath,
-                Score = 0
+                Score = 0,
+                TeacherRemark = ""
             };
-        
+
             studentTestGrades.Add(testGrade);
         }
     }
@@ -200,19 +211,19 @@
 
     private double GetPercentage(TestGrade testGrade)
     {
-        return maxScore > 0 ? 
+        return maxScore > 0 ?
             Math.Round((testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE, FcmsConstants.GRADE_ROUNDING_DIGIT) : 0;
     }
 
     private string GetScoreColorClass(double percentage)
     {
-        return percentage >= FcmsConstants.A_GRADE_MIN ? "text-success" : 
+        return percentage >= FcmsConstants.A_GRADE_MIN ? "text-success" :
                percentage >= FcmsConstants.B_GRADE_MIN ? "text-warning" : "text-danger";
     }
 
     private string GetGradeColorClass(double percentage)
     {
-        return percentage >= FcmsConstants.A_GRADE_MIN ? "success" : 
+        return percentage >= FcmsConstants.A_GRADE_MIN ? "success" :
                percentage >= FcmsConstants.B_GRADE_MIN ? "warning" : "danger";
     }
 
@@ -254,15 +265,19 @@
             var student = LearningPath.Students.OrderBy(s => s.Person.LastName).ToList()[i];
             var finalScore = GetPercentage(testGrade);
 
-            LogicMethods.AddTestGrade(
-                student,
-                Course,
-                finalScore,
-                selectedGradeType,
-                testGrade.Teacher,
-                LearningPath.Id.ToString(),
-                Course
-            );
+            // Only add grades for students who have scores > 0
+            if (testGrade.Score > 0)
+            {
+                LogicMethods.AddTestGrade(
+                    student,
+                    Course,
+                    finalScore,
+                    selectedGradeType,
+                    testGrade.Teacher,
+                    testGrade.TeacherRemark,
+                    LearningPath
+                );
+            }
         }
 
         await OnSave.InvokeAsync();

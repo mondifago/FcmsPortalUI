@@ -2,6 +2,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortal.Constants
 @using FcmsPortal.Services
+@using FcmsPortal
 @using FcmsPortalUI.Services
 @using System.ComponentModel.DataAnnotations
 @inject ISchoolDataService SchoolDataService
@@ -16,6 +17,7 @@
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
+                <!-- Course Grade Weight Configuration Section -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h6 class="mb-0"><i class="fa fa-cog"></i> Course Grade Weight Configuration</h6>
@@ -27,59 +29,65 @@
                             <div class="row">
                                 <div class="col-md-3">
                                     <label class="form-label">Select Course</label>
-                                    <select class="form-select" @bind="selectedCourse">
+                                    <select class="form-select" @bind="selectedCourse" @bind:after="OnCourseSelectionChanged">
                                         <option value="">-- Select Course --</option>
                                         @foreach (var course in allCourses)
                                         {
                                             <option value="@course">@course</option>
                                         }
                                     </select>
+
                                 </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Homework %</label>
-                                    <InputNumber class="form-control" @bind-Value="configModel.HomeworkWeightPercentage" />
-                                    <ValidationMessage For="@(() => configModel.HomeworkWeightPercentage)" />
+                                <div class="col-md-3">
+                                    <label class="form-label">Homework Weight (%)</label>
+                                    <InputNumber @bind-Value="configModel.HomeworkWeightPercentage" 
+                                               class="form-control" min="0" max="100" />
                                 </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Quiz %</label>
-                                    <InputNumber class="form-control" @bind-Value="configModel.QuizWeightPercentage" />
-                                    <ValidationMessage For="@(() => configModel.QuizWeightPercentage)" />
+                                <div class="col-md-3">
+                                    <label class="form-label">Quiz Weight (%)</label>
+                                    <InputNumber @bind-Value="configModel.QuizWeightPercentage" 
+                                               class="form-control" min="0" max="100" />
                                 </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Exam %</label>
-                                    <InputNumber class="form-control" @bind-Value="configModel.FinalExamWeightPercentage" />
-                                    <ValidationMessage For="@(() => configModel.FinalExamWeightPercentage)" />
+                                <div class="col-md-3">
+                                    <label class="form-label">Exam Weight (%)</label>
+                                    <InputNumber @bind-Value="configModel.FinalExamWeightPercentage" 
+                                               class="form-control" min="0" max="100" />
                                 </div>
-                                <div class="col-md-1">
-                                    <label class="form-label">Total</label>
-                                    <input class="form-control" value="@GetTotal()" readonly />
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="alert @(GetTotal() == 100 ? "alert-success" : "alert-warning")">
+                                        <strong>Total: @GetTotal().ToString("F1")%</strong>
+                                        @if (GetTotal() != 100)
+                                        {
+                                            <span> - Must equal 100%</span>
+                                        }
+                                    </div>
                                 </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-warning w-100" disabled="@(!IsConfigurationValid())">
-                                        <i class="fa fa-save"></i> Done
+                                <div class="col-md-6 text-end">
+                                    <button type="submit" class="btn btn-success" disabled="@(!IsConfigurationValid())">
+                                        <i class="fa fa-save"></i> Save Configuration
                                     </button>
                                 </div>
                             </div>
 
-                            @if (GetTotal() != 100 && !string.IsNullOrEmpty(selectedCourse))
-                            {
-                                <div class="alert alert-warning mt-2 mb-0">
-                                    <small><i class="fa fa-exclamation-triangle"></i> Total must equal @FcmsConstants.TOTAL_SCORE%</small>
-                                </div>
-                            }
+                            <ValidationSummary />
                         </EditForm>
                     </div>
                 </div>
 
+                <!-- Grade Recording Section -->
                 <div class="card">
                     <div class="card-header">
-                        <h6 class="mb-0"><i class="fa fa-list"></i> Configured Courses & Grade Recording</h6>
+                        <h6 class="mb-0"><i class="fa fa-clipboard-list"></i> Record Grades</h6>
                     </div>
                     <div class="card-body">
                         @if (!GetConfiguredCourses().Any())
                         {
                             <div class="alert alert-info">
-                                <i class="fa fa-info-circle"></i> No courses configured yet. Configure at least one course above to start recording grades.
+                                <i class="fa fa-info-circle"></i>
+                                Configure at least one course above to start recording grades.
                             </div>
                         }
                         else
@@ -90,6 +98,7 @@
                                         <tr>
                                             <th>Course</th>
                                             <th>Grade Weights</th>
+                                            <th>Student Progress</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -108,9 +117,17 @@
                                                     </small>
                                                 </td>
                                                 <td>
+                                                    <small class="text-muted">
+                                                        @GetStudentProgressText(config.Course)
+                                                    </small>
+                                                </td>
+                                                <td>
                                                     <div class="btn-group btn-group-sm">
                                                         <button class="btn btn-primary" @onclick="() => ShowRecordGradeModal(config.Course)">
                                                             <i class="fa fa-plus"></i> Add Grade
+                                                        </button>
+                                                        <button class="btn btn-info" @onclick="() => ViewCourseGrades(config.Course)">
+                                                            <i class="fa fa-eye"></i> View All
                                                         </button>
                                                     </div>
                                                 </td>
@@ -123,6 +140,60 @@
                     </div>
                 </div>
 
+                <!-- Current Grades Overview -->
+                @if (GetConfiguredCourses().Any())
+                {
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fa fa-chart-bar"></i> Current Standings</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            @foreach (var config in GetConfiguredCourses())
+                                            {
+                                                <th class="text-center">@config.Course</th>
+                                            }
+                                            <th class="text-center">Overall</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var student in LearningPath.Students.OrderBy(s => s.Person.LastName))
+                                        {
+                                            <tr>
+                                                <td><strong>@student.Person.FirstName @student.Person.LastName</strong></td>
+                                                @foreach (var config in GetConfiguredCourses())
+                                                {
+                                                    var courseGrade = GetStudentCourseGrade(student, config.Course);
+                                                    <td class="text-center">
+                                                        @if (courseGrade != null)
+                                                        {
+                                                            <span class="badge bg-@GetGradeColorClass(courseGrade.TotalGrade)">
+                                                                @courseGrade.TotalGrade.ToString("F1")%
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">-</span>
+                                                        }
+                                                    </td>
+                                                }
+                                                <td class="text-center">
+                                                    <strong class="text-primary">
+                                                        @LogicMethods.CalculateSemesterOverallGrade(student, LearningPath).ToString("F1")%
+                                                    </strong>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
@@ -163,24 +234,37 @@
 
     private void LoadExistingConfiguration()
     {
-        var currentSelection = selectedCourse;
         configModel = new CourseGradingConfiguration();
 
-        if (!string.IsNullOrEmpty(currentSelection) && allCourses.Contains(currentSelection))
+        if (!string.IsNullOrEmpty(selectedCourse) && allCourses.Contains(selectedCourse))
         {
-            selectedCourse = currentSelection;
-            LoadCourseWeights(currentSelection);
+            LoadCourseWeights(selectedCourse);
         }
     }
 
+    private void OnCourseSelectionChanged()
+    {
+        LoadCourseWeights(selectedCourse);
+        StateHasChanged();
+    }
+
+
     private void LoadCourseWeights(string course)
     {
+        if (string.IsNullOrEmpty(course)) return;
+
         var existingConfig = SchoolDataService.GetCourseGradingConfiguration(LearningPath.Id, course);
         if (existingConfig != null)
         {
             configModel.HomeworkWeightPercentage = existingConfig.HomeworkWeightPercentage;
             configModel.QuizWeightPercentage = existingConfig.QuizWeightPercentage;
             configModel.FinalExamWeightPercentage = existingConfig.FinalExamWeightPercentage;
+        }
+        else
+        {
+            configModel.HomeworkWeightPercentage = 30;
+            configModel.QuizWeightPercentage = 30;
+            configModel.FinalExamWeightPercentage = 40;
         }
     }
 
@@ -202,7 +286,10 @@
         configModel.Course = selectedCourse;
         configModel.LearningPathId = LearningPath.Id;
         SchoolDataService.SaveCourseGradingConfiguration(configModel);
+        
+        // Reset form
         configModel = new CourseGradingConfiguration();
+        selectedCourse = "";
         StateHasChanged();
     }
 
@@ -218,10 +305,35 @@
         StateHasChanged();
     }
 
+    private void ViewCourseGrades(string course)
+    {
+        ShowRecordGradeModal(course);
+    }
+
     private void HandleGradeSaved()
     {
         showRecordGradeModal = false;
         StateHasChanged();
+    }
+
+    private string GetStudentProgressText(string course)
+    {
+        var studentsWithGrades = LearningPath.Students.Count(s => 
+            s.CourseGrades.Any(cg => cg.Course == course && cg.TestGrades.Any()));
+        
+        return $"{studentsWithGrades}/{LearningPath.Students.Count} students have grades";
+    }
+
+    private CourseGrade GetStudentCourseGrade(Student student, string course)
+    {
+        return student.CourseGrades.FirstOrDefault(cg => 
+            cg.Course == course && cg.LearningPathId == LearningPath.Id);
+    }
+
+    private string GetGradeColorClass(double totalGrade)
+    {
+        return totalGrade >= FcmsConstants.A_GRADE_MIN ? "success" : 
+               totalGrade >= FcmsConstants.B_GRADE_MIN ? "warning" : "danger";
     }
 
     private void Close()

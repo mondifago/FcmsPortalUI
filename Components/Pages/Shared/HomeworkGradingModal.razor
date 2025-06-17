@@ -151,7 +151,7 @@
 
             var homeworkGrade = new FcmsPortal.Models.TestGrade 
             {
-                Course = Submission.Homework?.ClassSession?.Course ?? gradeModel.Course,
+                //Course = Submission.Homework?.ClassSession?.Course ?? gradeModel.Course,
                 Score = gradeModel.Score,
                 GradeType = GradeType.Homework,
                 Teacher = CurrentTeacher, 
@@ -163,7 +163,7 @@
             Submission.IsGraded = true;
             Submission.FeedbackComment = gradeModel.TeacherRemark;
 
-            var courseGrade = Submission.Student.CourseGrades.FirstOrDefault(cg => cg.Course == homeworkGrade.Course);
+            /*var courseGrade = Submission.Student.CourseGrades.FirstOrDefault(cg => cg.Course == homeworkGrade.Course);
             if (courseGrade == null)
             {
                 courseGrade = new CourseGrade { Course = homeworkGrade.Course };
@@ -172,7 +172,7 @@
             courseGrade.TestGrades.Add(homeworkGrade);
 
             await OnSave.InvokeAsync(Submission);
-            Close();
+            Close();*/
         }
 
     private void Close()
