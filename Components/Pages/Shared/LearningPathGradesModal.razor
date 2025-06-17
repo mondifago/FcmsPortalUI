@@ -136,7 +136,6 @@
     <div class="modal-backdrop fade show"></div>
 }
 
-<!-- Child Modal -->
 <RecordGradeModal IsVisible="showRecordGradeModal"
                   LearningPath="LearningPath"
                   Course="selectedCourse"
@@ -202,10 +201,7 @@
 
         configModel.Course = selectedCourse;
         configModel.LearningPathId = LearningPath.Id;
-
         SchoolDataService.SaveCourseGradingConfiguration(configModel);
-
-        selectedCourse = "";
         configModel = new CourseGradingConfiguration();
         StateHasChanged();
     }
@@ -219,6 +215,7 @@
     {
         selectedCourse = course;
         showRecordGradeModal = true;
+        StateHasChanged();
     }
 
     private void HandleGradeSaved()
