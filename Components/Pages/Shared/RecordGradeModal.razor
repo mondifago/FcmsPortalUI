@@ -24,7 +24,6 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
-                        <!-- Assessment Details -->
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label for="gradeType" class="form-label">Grade Type</label>
@@ -43,16 +42,12 @@
                             </div>
                         </div>
 
-                        <!-- Student Scores -->
                         <div class="table-responsive">
                             <table class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Student</th>
-                                        <th>Raw Score (/@maxScore)</th>
-                                        <th>Percentage</th>
-                                        <th>Grade</th>
-                                        <th>Remarks</th>
+                                        <th>Score (/@maxScore)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -64,7 +59,7 @@
 
                                         <tr>
                                             <td>
-                                                <strong>@student.Person.FirstName @student.Person.LastName</strong>
+                                                <strong>@Util.GetFullName(student.Person)</strong>
                                             </td>
                                             <td>
                                                 <InputNumber @bind-Value="testGrade.Score"
@@ -72,65 +67,11 @@
                                                              @onchange="() => CalculatePercentage(testGrade)"
                                                              min="0" max="@maxScore" step="0.1" />
                                             </td>
-                                            <td>
-                                                <span class="fw-bold @GetScoreColorClass(percentage)">
-                                                    @percentage.ToString("F1")%
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-@GetGradeColorClass(percentage)">
-                                                    @Util.GetGradeCode(percentage)
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <InputText @bind-Value="testGrade.TeacherRemark"
-                                                           class="form-control"
-                                                           placeholder="Optional remarks..." />
-                                            </td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
                         </div>
-
-                        <!-- Summary Statistics -->
-                        @if (GetValidScoreCount() > 0)
-                        {
-                            <div class="row mt-4">
-                                <div class="col-md-3">
-                                    <div class="card text-center">
-                                        <div class="card-body">
-                                            <h6 class="card-title text-success">Highest</h6>
-                                            <p class="card-text fw-bold">@GetHighestScore().ToString("F1")%</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card text-center">
-                                        <div class="card-body">
-                                            <h6 class="card-title text-danger">Lowest</h6>
-                                            <p class="card-text fw-bold">@GetLowestScore().ToString("F1")%</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card text-center">
-                                        <div class="card-body">
-                                            <h6 class="card-title text-info">Average</h6>
-                                            <p class="card-text fw-bold">@GetAverageScore().ToString("F1")%</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card text-center">
-                                        <div class="card-body">
-                                            <h6 class="card-title">Graded</h6>
-                                            <p class="card-text fw-bold">@GetValidScoreCount()/@studentTestGrades.Count</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
 
                         <div class="d-flex justify-content-end mt-4">
                             <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
@@ -215,40 +156,7 @@
             Math.Round((testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE, FcmsConstants.GRADE_ROUNDING_DIGIT) : 0;
     }
 
-    private string GetScoreColorClass(double percentage)
-    {
-        return percentage >= FcmsConstants.A_GRADE_MIN ? "text-success" :
-               percentage >= FcmsConstants.B_GRADE_MIN ? "text-warning" : "text-danger";
-    }
-
-    private string GetGradeColorClass(double percentage)
-    {
-        return percentage >= FcmsConstants.A_GRADE_MIN ? "success" :
-               percentage >= FcmsConstants.B_GRADE_MIN ? "warning" : "danger";
-    }
-
-    private double GetHighestScore()
-    {
-        var validScores = studentTestGrades.Where(tg => tg.Score > 0).Select(tg => GetPercentage(tg));
-        return validScores.Any() ? validScores.Max() : 0;
-    }
-
-    private double GetLowestScore()
-    {
-        var validScores = studentTestGrades.Where(tg => tg.Score > 0).Select(tg => GetPercentage(tg));
-        return validScores.Any() ? validScores.Min() : 0;
-    }
-
-    private double GetAverageScore()
-    {
-        var validScores = studentTestGrades.Where(tg => tg.Score > 0).Select(tg => GetPercentage(tg));
-        return validScores.Any() ? Math.Round(validScores.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT) : 0;
-    }
-
-    private int GetValidScoreCount()
-    {
-        return studentTestGrades.Count(tg => tg.Score > 0);
-    }
+    
 
     private bool IsFormValid()
     {
@@ -265,7 +173,6 @@
             var student = LearningPath.Students.OrderBy(s => s.Person.LastName).ToList()[i];
             var finalScore = GetPercentage(testGrade);
 
-            // Only add grades for students who have scores > 0
             if (testGrade.Score > 0)
             {
                 LogicMethods.AddTestGrade(
@@ -277,6 +184,17 @@
                     testGrade.TeacherRemark,
                     LearningPath
                 );
+            }
+        }
+
+        foreach (var student in LearningPath.Students)
+        {
+            var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
+                cg.Course == Course && cg.LearningPathId == LearningPath.Id);
+
+            if (courseGrade != null && courseGrade.TestGrades.Any())
+            {
+                SchoolDataService.SaveCourseGrade(courseGrade);
             }
         }
 
