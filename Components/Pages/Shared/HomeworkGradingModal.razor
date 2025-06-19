@@ -145,35 +145,50 @@
         }
     }
 
-     private async Task HandleSubmit()
+    private async Task HandleSubmit()
+    {
+        if (Submission == null) return;
+
+        // Create the TestGrade for the submission
+        var homeworkGrade = new FcmsPortal.Models.TestGrade
         {
-            if (Submission == null) return;
+            Score = gradeModel.Score,
+            GradeType = GradeType.Homework,
+            Teacher = CurrentTeacher,
+            Date = DateTime.Now,
+            TeacherRemark = gradeModel.TeacherRemark
+        };
 
-            var homeworkGrade = new FcmsPortal.Models.TestGrade 
+        // Update the submission
+        Submission.HomeworkGrade = homeworkGrade;
+        Submission.IsGraded = true;
+        Submission.FeedbackComment = gradeModel.TeacherRemark;
+
+        // Get the course and learning path from the homework
+        var course = Submission.Homework?.ClassSession?.Course;
+        if (!string.IsNullOrEmpty(course))
+        {
+            // Find the learning path this student belongs to for this course
+            var learningPath = SchoolDataService.GetLearningPathByClassSessionId(Submission.Homework.ClassSession.Id);
+
+            if (learningPath != null)
             {
-                //Course = Submission.Homework?.ClassSession?.Course ?? gradeModel.Course,
-                Score = gradeModel.Score,
-                GradeType = GradeType.Homework,
-                Teacher = CurrentTeacher, 
-                Date = DateTime.Now,
-                TeacherRemark = gradeModel.TeacherRemark
-            };
-
-            Submission.HomeworkGrade = homeworkGrade; 
-            Submission.IsGraded = true;
-            Submission.FeedbackComment = gradeModel.TeacherRemark;
-
-            /*var courseGrade = Submission.Student.CourseGrades.FirstOrDefault(cg => cg.Course == homeworkGrade.Course);
-            if (courseGrade == null)
-            {
-                courseGrade = new CourseGrade { Course = homeworkGrade.Course };
-                Submission.Student.CourseGrades.Add(courseGrade);
+                // Add to the new grading system using LogicMethods
+                LogicMethods.AddTestGrade(
+                    Submission.Student,
+                    course,
+                    gradeModel.Score, 
+                    GradeType.Homework,
+                    CurrentTeacher,
+                    gradeModel.TeacherRemark,
+                    learningPath
+                );
             }
-            courseGrade.TestGrades.Add(homeworkGrade);
-
-            await OnSave.InvokeAsync(Submission);
-            Close();*/
         }
+
+        await OnSave.InvokeAsync(Submission);
+        Close();
+    }
 
     private void Close()
     {
