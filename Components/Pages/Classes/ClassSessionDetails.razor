@@ -482,7 +482,7 @@
     private ScheduleEntry scheduleEntry;
     private LearningPath relatedLearningPath;
     private List<Student> enrolledStudents = new List<Student>();
-    private bool isTeacher = false; 
+    private bool isTeacher = true; 
     private Staff currentTeacher; 
     private Student currentStudent; 
     private bool showMaterialsUpload = false;
@@ -529,12 +529,12 @@
 
             if (enrolledStudents.Any())
             {
-                currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 302) // Dan's ID
-                                 ?? enrolledStudents.First();
+                //currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 302) // Dan's ID
+                //                 ?? enrolledStudents.First();
     
                 // Or pick Zak by ID
-                // currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 303) // Zak's ID
-                //                  ?? enrolledStudents.First();
+                currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 303) // Zak's ID
+                                  ?? enrolledStudents.First();
 
                  // Or pick Joe by ID
                 // currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 301) // Zak's ID
