@@ -10,7 +10,12 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Record Grades - @Course</h5>
+                <h5 class="modal-title">
+                    Record Grades - @Course
+                    <small class="text-muted d-block">
+                        Teacher: @(GetCurrentTeacher()?.Person?.FirstName ?? "Unknown")
+                    </small>
+                </h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
@@ -37,8 +42,7 @@
                             <div class="col-md-6">
                                 <label for="maxScore" class="form-label">Maximum Score</label>
                                 <InputNumber id="maxScore" @bind-Value="maxScore"
-                                             class="form-control" placeholder="@FcmsConstants.TOTAL_SCORE"
-                                             @onchange="UpdateMaxScores" />
+                                             class="form-control" placeholder="@FcmsConstants.TOTAL_SCORE" />
                             </div>
                         </div>
 
@@ -55,7 +59,6 @@
                                     {
                                         var testGrade = studentTestGrades[i];
                                         var student = GetStudentForTestGrade(testGrade);
-                                        var percentage = GetPercentage(testGrade);
 
                                         <tr>
                                             <td>
@@ -64,7 +67,6 @@
                                             <td>
                                                 <InputNumber @bind-Value="testGrade.Score"
                                                              class="form-control"
-                                                             @onchange="() => CalculatePercentage(testGrade)"
                                                              min="0" max="@maxScore" step="0.1" />
                                             </td>
                                         </tr>
@@ -140,24 +142,6 @@
         return LearningPath.Students.OrderBy(s => s.Person.LastName).ToList()[index];
     }
 
-    private void UpdateMaxScores()
-    {
-        StateHasChanged();
-    }
-
-    private void CalculatePercentage(TestGrade testGrade)
-    {
-        StateHasChanged();
-    }
-
-    private double GetPercentage(TestGrade testGrade)
-    {
-        return maxScore > 0 ?
-            Math.Round((testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE, FcmsConstants.GRADE_ROUNDING_DIGIT) : 0;
-    }
-
-    
-
     private bool IsFormValid()
     {
         return maxScore > 0;
@@ -171,30 +155,20 @@
         {
             var testGrade = studentTestGrades[i];
             var student = LearningPath.Students.OrderBy(s => s.Person.LastName).ToList()[i];
-            var finalScore = GetPercentage(testGrade);
 
             if (testGrade.Score > 0)
             {
+                var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
+
                 LogicMethods.AddTestGrade(
                     student,
                     Course,
-                    finalScore,
+                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),
                     selectedGradeType,
                     testGrade.Teacher,
                     testGrade.TeacherRemark,
                     LearningPath
                 );
-            }
-        }
-
-        foreach (var student in LearningPath.Students)
-        {
-            var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
-                cg.Course == Course && cg.LearningPathId == LearningPath.Id);
-
-            if (courseGrade != null && courseGrade.TestGrades.Any())
-            {
-                SchoolDataService.SaveCourseGrade(courseGrade);
             }
         }
 
