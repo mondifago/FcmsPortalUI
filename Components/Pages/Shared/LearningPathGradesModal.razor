@@ -98,7 +98,7 @@
                                         <tr>
                                             <th>Course</th>
                                             <th>Grade Weights</th>
-                                            <th>Student Progress</th>
+                                            <th>Grade Counts</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -118,7 +118,7 @@
                                                 </td>
                                                 <td>
                                                     <small class="text-muted">
-                                                        @GetStudentProgressText(config.Course)
+                                                        @GetGradeCountsText(config.Course)
                                                     </small>
                                                 </td>
                                                 <td>
@@ -209,7 +209,7 @@
 
 <RecordGradeModal IsVisible="showRecordGradeModal"
                   LearningPath="LearningPath"
-                  Course="selectedCourse"
+                  Course="@selectedCourse"
                   OnSave="HandleGradeSaved"
                   OnClose="() => showRecordGradeModal = false" />
 
@@ -235,11 +235,6 @@
     private void LoadExistingConfiguration()
     {
         configModel = new CourseGradingConfiguration();
-
-        if (!string.IsNullOrEmpty(selectedCourse) && allCourses.Contains(selectedCourse))
-        {
-            LoadCourseWeights(selectedCourse);
-        }
     }
 
     private void OnCourseSelectionChanged()
@@ -262,9 +257,9 @@
         }
         else
         {
-            configModel.HomeworkWeightPercentage = 30;
-            configModel.QuizWeightPercentage = 30;
-            configModel.FinalExamWeightPercentage = 40;
+            configModel.HomeworkWeightPercentage = 0;
+            configModel.QuizWeightPercentage = 40;
+            configModel.FinalExamWeightPercentage = 60;
         }
     }
 
@@ -313,15 +308,34 @@
     private void HandleGradeSaved()
     {
         showRecordGradeModal = false;
+        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id);
         StateHasChanged();
     }
 
-    private string GetStudentProgressText(string course)
+    private string GetGradeCountsText(string course)
     {
-        var studentsWithGrades = LearningPath.Students.Count(s => 
-            s.CourseGrades.Any(cg => cg.Course == course && cg.TestGrades.Any()));
-        
-        return $"{studentsWithGrades}/{LearningPath.Students.Count} students have grades";
+        var allTestGrades = LearningPath.Students
+            .SelectMany(s => s.CourseGrades
+                .Where(cg => cg.Course == course && cg.LearningPathId == LearningPath.Id)
+                .SelectMany(cg => cg.TestGrades))
+            .ToList();
+
+        var homeworkCount = allTestGrades
+            .Where(tg => tg.GradeType == GradeType.Homework)
+            .GroupBy(tg => tg.Date.Date)
+            .Count();
+
+        var quizCount = allTestGrades
+            .Where(tg => tg.GradeType == GradeType.Quiz)
+            .GroupBy(tg => tg.Date.Date)
+            .Count();
+
+        var examCount = allTestGrades
+            .Where(tg => tg.GradeType == GradeType.FinalExam)
+            .GroupBy(tg => tg.Date.Date)
+            .Count();
+
+        return $"HW: {homeworkCount} | Quiz: {quizCount} | Exam: {examCount}";
     }
 
     private CourseGrade GetStudentCourseGrade(Student student, string course)

@@ -102,8 +102,6 @@
 
     private GradeType selectedGradeType = GradeType.Quiz;
     private List<TestGrade> studentTestGrades = new();
-
-    [Range(1, 1000, ErrorMessage = "Maximum score must be greater than 0")]
     private double maxScore = FcmsConstants.TOTAL_SCORE;
 
     protected override void OnParametersSet()
