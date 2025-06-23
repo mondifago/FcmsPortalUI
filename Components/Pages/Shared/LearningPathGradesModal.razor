@@ -224,6 +224,11 @@
                           LearningPath="LearningPath"
                           OnClose="CloseStudentDetailsModal" />
 
+<CourseGradeDetailsModal IsVisible="showCourseGradeDetailsModal"
+                    LearningPath="LearningPath"
+                    Course="@selectedCourse"
+                    OnClose="() => { showCourseGradeDetailsModal = false; LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id); StateHasChanged(); }" />
+
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public LearningPath LearningPath { get; set; }
@@ -234,6 +239,7 @@
     private string selectedCourse = "";
     private bool showRecordGradeModal = false;
     private bool showStudentDetailsModal = false;
+    private bool showCourseGradeDetailsModal = false;
     private Student selectedStudent = null;
   
 
@@ -315,7 +321,9 @@
 
     private void ViewCourseGrades(string course)
     {
-        ShowRecordGradeModal(course);
+        selectedCourse = course;
+        showCourseGradeDetailsModal = true;
+        StateHasChanged();
     }
 
     private void HandleGradeSaved()

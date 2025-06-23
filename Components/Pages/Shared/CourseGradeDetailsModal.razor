@@ -1,0 +1,292 @@
+﻿@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Constants
+@using FcmsPortal
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-table"></i> All Grades - @Course
+                    <small class="text-muted d-block">
+                        @Util.GetLearningPathName(LearningPath)
+                    </small>
+                </h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (LearningPath == null || string.IsNullOrEmpty(Course))
+                {
+                    <p class="text-muted">No learning path or course provided.</p>
+                }
+                else
+                {
+                    <div class="table-container">
+                        <table class="table table-bordered table-sm attendance-table">
+                            <thead>
+                                <tr>
+                                    <th class="student-name">Student</th>
+                                    @foreach (var section in gradeSections)
+                                    {
+                                        @if (section.Dates.Any())
+                                        {
+                                            <th @attributes="@(new Dictionary<string, object> { ["colspan"] = section.Dates.Count })" class="text-center summary-col">
+                                                @((section.GradeType))
+                                            </th>
+                                        }
+                                    }
+                                    <th class="text-center">Action</th>
+                                </tr>
+                                <tr>
+                                    <th class="student-name"></th>
+                                    @foreach (var section in gradeSections)
+                                    {
+                                        @foreach (var date in section.Dates)
+                                        {
+                                            <th class="date-header">
+                                                @date.ToString("MM/dd")
+                                            </th>
+                                        }
+                                    }
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var student in LearningPath.Students.OrderBy(s => s.Person.LastName))
+                                {
+                                    <tr>
+                                        <td class="student-name">
+                                            @student.Person.FirstName @student.Person.LastName
+                                        </td>
+                                        @foreach (var section in gradeSections)
+                                        {
+                                            @for (int i = 0; i < section.Dates.Count; i++)
+                                            {
+                                                <td class="text-center">
+                                                    @if (editingStudentId == student.Id)
+                                                    {
+                                                        <input type="number"
+                                                               class="form-control form-control-sm"
+                                                               style="width: 50px; font-size: 0.8rem;"
+                                                               value="@GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[i], i)"
+                                                               @onchange="@(e => UpdateStudentGrade(student, section.GradeType, section.Dates[i], i, e.Value?.ToString()))"
+                                                               min="0" max="100" />
+                                                    }
+                                                    else
+                                                    {
+                                                        var grade = GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[i], i);
+                                                        <span class="@GetScoreColorClass(grade)">
+                                                            @(grade > 0 ? grade.ToString("F0") : "-")
+                                                        </span>
+                                                    }
+                                                </td>
+                                            }
+                                        }
+                                        <td class="text-center">
+                                            @if (editingStudentId == student.Id)
+                                            {
+                                                <button class="btn btn-success btn-sm me-1" @onclick="() => SaveStudentGrades(student)">
+                                                    <i class="fa fa-save"></i>
+                                                </button>
+                                                <button class="btn btn-secondary btn-sm" @onclick="CancelEdit">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-primary btn-sm" @onclick="() => EditStudent(student.Id)">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public string Course { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private List<GradeSection> gradeSections = new();
+    private int editingStudentId = 0;
+    private Dictionary<string, double> pendingGradeChanges = new();
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && LearningPath != null && !string.IsNullOrEmpty(Course))
+        {
+            LoadGradeData();
+        }
+    }
+
+    private void LoadGradeData()
+    {
+        gradeSections.Clear();
+
+        // Get all test grades for this course
+        var allTestGrades = LearningPath.Students
+            .SelectMany(s => s.CourseGrades
+                .Where(cg => cg.Course == Course && cg.LearningPathId == LearningPath.Id)
+                .SelectMany(cg => cg.TestGrades))
+            .ToList();
+
+        foreach (GradeType gradeType in Enum.GetValues<GradeType>())
+        {
+            var gradeTypeGrades = allTestGrades.Where(tg => tg.GradeType == gradeType).ToList();
+            var uniqueDates = gradeTypeGrades
+                .Select(tg => tg.Date.Date)
+                .OrderBy(d => d)
+                .ToList();
+
+            if (uniqueDates.Any())
+            {
+                gradeSections.Add(new GradeSection
+                {
+                    GradeType = gradeType,
+                    Dates = uniqueDates
+                });
+            }
+        }
+    }
+
+    private double GetStudentGradeForDateAndIndex(Student student, GradeType gradeType, DateTime date, int index)
+    {
+        var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
+            cg.Course == Course && cg.LearningPathId == LearningPath.Id);
+
+        if (courseGrade == null) return 0;
+
+        var testGrades = courseGrade.TestGrades.Where(tg =>
+            tg.GradeType == gradeType && tg.Date.Date == date.Date).ToList();
+
+        return index < testGrades.Count ? testGrades[index].Score : 0;
+    }
+
+    private void EditStudent(int studentId)
+    {
+        editingStudentId = studentId;
+        pendingGradeChanges.Clear();
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        editingStudentId = 0;
+        pendingGradeChanges.Clear();
+        StateHasChanged();
+    }
+
+    private void UpdateStudentGrade(Student student, GradeType gradeType, DateTime date, int index, string scoreString)
+    {
+        var key = $"{student.Id}_{gradeType}_{date:yyyy-MM-dd}_{index}";
+
+        if (double.TryParse(scoreString, out double score))
+        {
+            if (score >= 0 && score <= 100)
+            {
+                pendingGradeChanges[key] = score;
+            }
+        }
+    }
+
+    private void SaveStudentGrades(Student student)
+    {
+        var currentTeacher = GetCurrentTeacher();
+
+        foreach (var change in pendingGradeChanges)
+        {
+            var parts = change.Key.Split('_');
+            if (parts.Length == 4 && 
+            int.Parse(parts[0]) == student.Id &&
+            Enum.TryParse<GradeType>(parts[1], out var gradeType) &&
+            DateTime.TryParse(parts[2], out var date) &&
+            int.TryParse(parts[3], out var index))
+            {
+                // Find existing grade or create new one
+                var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
+                    cg.Course == Course && cg.LearningPathId == LearningPath.Id);
+
+                if (courseGrade != null)
+                {
+                    var existingGrades = courseGrade.TestGrades.Where(tg =>
+                        tg.GradeType == gradeType && tg.Date.Date == date.Date).ToList();
+
+                    if (index < existingGrades.Count)
+                    {
+                        existingGrades[index].Score = change.Value;
+                    }
+                    else
+                    {
+                        // Create new test grade
+                        var newGrade = new TestGrade
+                        {
+                            Score = change.Value,
+                            GradeType = gradeType,
+                            Teacher = currentTeacher,
+                            Date = date,
+                            TeacherRemark = "",
+                            CourseGradeId = courseGrade.Id,
+                            CourseGrade = courseGrade
+                        };
+                        courseGrade.TestGrades.Add(newGrade);
+                    }
+
+                    // Recalculate course grade
+                    LogicMethods.RecalculateCourseGrade(courseGrade);
+                }
+            }
+        }
+
+        // Save changes
+        SchoolDataService.UpdateLearningPath(LearningPath);
+
+        editingStudentId = 0;
+        pendingGradeChanges.Clear();
+        LoadGradeData();
+        StateHasChanged();
+    }
+
+    private string GetScoreColorClass(double score)
+    {
+        if (score == 0) return "";
+        return score >= 70 ? "text-success" : score >= 60 ? "text-warning" : "text-danger";
+    }
+
+    private Staff GetCurrentTeacher()
+    {
+        return SchoolDataService.GetSchool().Staff.FirstOrDefault(s => s.JobRole == JobRole.Teacher) ?? new Staff();
+    }
+
+    private void Close()
+    {
+        editingStudentId = 0;
+        pendingGradeChanges.Clear();
+        OnClose.InvokeAsync();
+    }
+
+    private class GradeSection
+    {
+        public GradeType GradeType { get; set; }
+        public List<DateTime> Dates { get; set; } = new();
+    }
+}
