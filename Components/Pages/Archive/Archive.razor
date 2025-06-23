@@ -1,0 +1,259 @@
+﻿@page "/archive"
+@using FcmsPortal.Models
+@using FcmsPortal.Services
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Archive Center</PageTitle>
+
+<div class="container-fluid mt-3">
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fa fa-archive me-2"></i>Archive Center</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fa fa-user-graduate fa-2x mb-2"></i>
+                    <h4>@archivedStudentsCount</h4>
+                    <p class="mb-0">Graduated Students</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="fa fa-user-tie fa-2x mb-2"></i>
+                    <h4>0</h4>
+                    <p class="mb-0">Former Staff</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fa fa-chalkboard-teacher fa-2x mb-2"></i>
+                    <h4>0</h4>
+                    <p class="mb-0">Old Classes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fa fa-file-alt fa-2x mb-2"></i>
+                    <h4>0</h4>
+                    <p class="mb-0">Historical Records</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Archive Categories -->
+    <div class="row">
+        <!-- Students Archive -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fa fa-user-graduate me-2"></i>Student Archives
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Manage graduated students and their academic records. View certificates,
+                        transcripts, and alumni information.
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Graduated Students:</span>
+                            <span class="badge bg-primary">@archivedStudentsCount</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Recent Graduates:</span>
+                            <span class="badge bg-secondary">@recentGraduatesCount</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-primary" @onclick="() => NavigateToStudentArchive()">
+                        <i class="fa fa-eye me-2"></i>View Student Archives
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Archive (Placeholder) -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">
+                        <i class="fa fa-user-tie me-2"></i>Staff Archives
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Manage records of former staff members, their employment history,
+                        and professional contributions.
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Former Staff:</span>
+                            <span class="badge bg-warning">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-warning" disabled>
+                        <i class="fa fa-clock me-2"></i>View
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learning Paths Archive (Placeholder) -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fa fa-chalkboard-teacher me-2"></i>Class Archives
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Historical learning paths, completed classes, and academic session records
+                        from previous years.
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Archived Classes:</span>
+                            <span class="badge bg-info">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-info" disabled>
+                        <i class="fa fa-clock me-2"></i>View
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Records Archive (Placeholder) -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fa fa-file-alt me-2"></i>Historical Records
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">
+                        Important school documents, policies, financial records, and other
+                        institutional archives.
+                    </p>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Document Types:</span>
+                            <span class="badge bg-success">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-success" disabled>
+                        <i class="fa fa-clock me-2"></i>View
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fa fa-clock me-2"></i>Recent Archive Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (recentArchivedStudents.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Name</th>
+                                        <th>Action</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var student in recentArchivedStudents)
+                                    {
+                                        <tr>
+                                            <td>@(student.ArchivedDate?.ToString("MMM dd, yyyy") ?? "Unknown")</td>
+                                            <td><span class="badge bg-primary">Student</span></td>
+                                            <td>@student.Person.FirstName @student.Person.LastName</td>
+                                            <td>Graduated</td>
+                                            <td><span class="badge bg-success">Archived</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted">
+                            <i class="fa fa-inbox fa-3x mb-3"></i>
+                            <p>No recent archive activity</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int archivedStudentsCount = 0;
+    private int recentGraduatesCount = 0;
+    private List<Student> recentArchivedStudents = new();
+
+    protected override void OnInitialized()
+    {
+        LoadArchiveStats();
+    }
+
+    private void LoadArchiveStats()
+    {
+        var archivedStudents = SchoolDataService.GetArchivedStudents();
+        archivedStudentsCount = archivedStudents.Count;
+
+        // Get recent graduates (last 30 days)
+        var thirtyDaysAgo = DateTime.Now.AddDays(-30);
+        recentArchivedStudents = archivedStudents
+            .Where(s => s.ArchivedDate.HasValue && s.ArchivedDate >= thirtyDaysAgo)
+            .OrderByDescending(s => s.ArchivedDate)
+            .Take(10)
+            .ToList();
+
+        recentGraduatesCount = recentArchivedStudents.Count;
+    }
+
+    private void NavigateToStudentArchive()
+    {
+        NavigationManager.NavigateTo("/archive/students");
+    }
+}
