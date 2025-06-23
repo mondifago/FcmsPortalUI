@@ -158,6 +158,7 @@
                                                 <th class="text-center">@config.Course</th>
                                             }
                                             <th class="text-center">Overall</th>
+                                            <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -186,6 +187,11 @@
                                                         @LogicMethods.CalculateSemesterOverallGrade(student, LearningPath).ToString("F1")%
                                                     </strong>
                                                 </td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-primary" @onclick="() => ShowStudentGradeDetails(student)">
+                                                         Details
+                                                    </button>
+                                                </td>
                                             </tr>
                                         }
                                     </tbody>
@@ -213,6 +219,11 @@
                   OnSave="HandleGradeSaved"
                   OnClose="() => showRecordGradeModal = false" />
 
+<StudentGradeDetailsModal IsVisible="showStudentDetailsModal"
+                          Student="selectedStudent"
+                          LearningPath="LearningPath"
+                          OnClose="CloseStudentDetailsModal" />
+
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public LearningPath LearningPath { get; set; }
@@ -222,6 +233,9 @@
     private CourseGradingConfiguration configModel = new();
     private string selectedCourse = "";
     private bool showRecordGradeModal = false;
+    private bool showStudentDetailsModal = false;
+    private Student selectedStudent = null;
+  
 
     protected override void OnParametersSet()
     {
@@ -282,7 +296,6 @@
         configModel.LearningPathId = LearningPath.Id;
         SchoolDataService.SaveCourseGradingConfiguration(configModel);
         
-        // Reset form
         configModel = new CourseGradingConfiguration();
         selectedCourse = "";
         StateHasChanged();
@@ -348,6 +361,19 @@
     {
         return totalGrade >= FcmsConstants.A_GRADE_MIN ? "success" : 
                totalGrade >= FcmsConstants.B_GRADE_MIN ? "warning" : "danger";
+    }
+
+    private void ShowStudentGradeDetails(Student student)
+    {
+        selectedStudent = student;
+        showStudentDetailsModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseStudentDetailsModal()
+    {
+        showStudentDetailsModal = false;
+        selectedStudent = null;
     }
 
     private void Close()
