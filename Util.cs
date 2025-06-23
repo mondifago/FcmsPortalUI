@@ -201,80 +201,77 @@ namespace FcmsPortalUI
             };
         }
 
-        public static class StudentPromotionUtil
+        public static bool IsLastClassInEducationLevel(EducationLevel educationLevel, ClassLevel classLevel)
         {
-            public static bool IsLastClassInEducationLevel(EducationLevel educationLevel, ClassLevel classLevel)
+            var classLevelMapping = new ClassLevelMapping();
+            var mappings = classLevelMapping.GetClassLevelsByEducationLevel();
+
+            if (mappings.TryGetValue(educationLevel, out var levels))
             {
-                var classLevelMapping = new ClassLevelMapping();
-                var mappings = classLevelMapping.GetClassLevelsByEducationLevel();
-
-                if (mappings.TryGetValue(educationLevel, out var levels))
-                {
-                    return levels.LastOrDefault() == classLevel;
-                }
-
-                return false;
+                return levels.LastOrDefault() == classLevel;
             }
 
-            public static ClassLevel? GetNextClassLevel(EducationLevel educationLevel, ClassLevel currentClassLevel)
-            {
-                var classLevelMapping = new ClassLevelMapping();
-                var mappings = classLevelMapping.GetClassLevelsByEducationLevel();
+            return false;
+        }
 
-                if (mappings.TryGetValue(educationLevel, out var levels))
+        public static ClassLevel? GetNextClassLevel(EducationLevel educationLevel, ClassLevel currentClassLevel)
+        {
+            var classLevelMapping = new ClassLevelMapping();
+            var mappings = classLevelMapping.GetClassLevelsByEducationLevel();
+
+            if (mappings.TryGetValue(educationLevel, out var levels))
+            {
+                var currentIndex = levels.IndexOf(currentClassLevel);
+                if (currentIndex >= 0 && currentIndex < levels.Count - 1)
                 {
-                    var currentIndex = levels.IndexOf(currentClassLevel);
-                    if (currentIndex >= 0 && currentIndex < levels.Count - 1)
+                    return levels[currentIndex + 1];
+                }
+            }
+
+            return null;
+        }
+
+        public static (EducationLevel?, ClassLevel?) GetNextEducationLevelAndClass(EducationLevel currentEducationLevel, ClassLevel currentClassLevel)
+        {
+            var classLevelMapping = new ClassLevelMapping();
+            var mappings = classLevelMapping.GetClassLevelsByEducationLevel();
+
+            if (mappings.TryGetValue(currentEducationLevel, out var currentLevels))
+            {
+                if (currentLevels.LastOrDefault() == currentClassLevel)
+                {
+                    switch (currentEducationLevel)
                     {
-                        return levels[currentIndex + 1];
+                        case EducationLevel.Kindergarten:
+                            return (EducationLevel.Primary, ClassLevel.PRI_1);
+                        case EducationLevel.Primary:
+                            return (EducationLevel.JuniorCollege, ClassLevel.JC_1);
+                        case EducationLevel.JuniorCollege:
+                            return (EducationLevel.SeniorCollege, ClassLevel.SC_1);
+                        case EducationLevel.SeniorCollege:
+                            return (null, null);
+                        default:
+                            return (null, null);
                     }
                 }
-
-                return null;
             }
 
-            public static (EducationLevel?, ClassLevel?) GetNextEducationLevelAndClass(EducationLevel currentEducationLevel, ClassLevel currentClassLevel)
+            return (null, null);
+        }
+
+        public static bool ShouldArchiveStudent(EducationLevel educationLevel, ClassLevel classLevel)
+        {
+            return educationLevel == EducationLevel.SeniorCollege && classLevel == ClassLevel.SC_3;
+        }
+
+        public static string GetPromotionButtonText(EducationLevel educationLevel, ClassLevel classLevel)
+        {
+            if (IsLastClassInEducationLevel(educationLevel, classLevel))
             {
-                var classLevelMapping = new ClassLevelMapping();
-                var mappings = classLevelMapping.GetClassLevelsByEducationLevel();
-
-                if (mappings.TryGetValue(currentEducationLevel, out var currentLevels))
-                {
-                    if (currentLevels.LastOrDefault() == currentClassLevel)
-                    {
-                        switch (currentEducationLevel)
-                        {
-                            case EducationLevel.Kindergarten:
-                                return (EducationLevel.Primary, ClassLevel.PRI_1);
-                            case EducationLevel.Primary:
-                                return (EducationLevel.JuniorCollege, ClassLevel.JC_1);
-                            case EducationLevel.JuniorCollege:
-                                return (EducationLevel.SeniorCollege, ClassLevel.SC_1);
-                            case EducationLevel.SeniorCollege:
-                                return (null, null);
-                            default:
-                                return (null, null);
-                        }
-                    }
-                }
-
-                return (null, null);
+                return "Graduate";
             }
 
-            public static bool ShouldArchiveStudent(EducationLevel educationLevel, ClassLevel classLevel)
-            {
-                return educationLevel == EducationLevel.SeniorCollege && classLevel == ClassLevel.SC_3;
-            }
-
-            public static string GetPromotionButtonText(EducationLevel educationLevel, ClassLevel classLevel)
-            {
-                if (IsLastClassInEducationLevel(educationLevel, classLevel))
-                {
-                    return "Graduate";
-                }
-
-                return "Promote";
-            }
+            return "Promote";
         }
     }
 }

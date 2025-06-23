@@ -3,7 +3,6 @@
 @using FcmsPortal.Constants
 @using FcmsPortal.Services
 @using FcmsPortal
-@using FcmsPortalUI.Services
 @using System.ComponentModel.DataAnnotations
 @inject ISchoolDataService SchoolDataService
 
@@ -191,6 +190,13 @@
                                                     <button class="btn btn-sm btn-primary" @onclick="() => ShowStudentGradeDetails(student)">
                                                          Details
                                                     </button>
+                                                    @if (LearningPath.Semester == Semester.Third)
+                                                    {
+                                                        <button class="btn btn-sm @(Util.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel) ? "btn-success" : "btn-warning")"
+                                                                @onclick="() => ProcessStudentPromotion(student)">
+                                                            @Util.GetPromotionButtonText(LearningPath.EducationLevel, LearningPath.ClassLevel)
+                                                        </button>
+                                                    }
                                                 </td>
                                             </tr>
                                         }
@@ -387,5 +393,58 @@
     private void Close()
     {
         OnClose.InvokeAsync();
+    }
+
+    private void ProcessStudentPromotion(Student student)
+    {
+        if (Util.ShouldArchiveStudent(student.Person.EducationLevel, student.Person.ClassLevel))
+        {
+            ArchiveStudent(student);
+        }
+        else
+        {
+            PromoteStudent(student);
+        }
+    }
+
+    private void PromoteStudent(Student student)
+    {
+        var (nextEducationLevel, nextClassLevel) = Util.GetNextEducationLevelAndClass(
+            student.Person.EducationLevel, student.Person.ClassLevel);
+
+        if (nextEducationLevel.HasValue && nextClassLevel.HasValue)
+        {
+            student.Person.EducationLevel = nextEducationLevel.Value;
+            student.Person.ClassLevel = nextClassLevel.Value;
+        }
+        else
+        {
+            var nextClass = Util.GetNextClassLevel(
+                student.Person.EducationLevel, student.Person.ClassLevel);
+
+            if (nextClass.HasValue)
+            {
+                student.Person.ClassLevel = nextClass.Value;
+            }
+        }
+
+        LearningPath.Students.Remove(student);
+        SchoolDataService.UpdateStudent(student);
+        SchoolDataService.UpdateLearningPath(LearningPath);
+        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id);
+        StateHasChanged();
+    }
+
+    private void ArchiveStudent(Student student)
+    {
+        LearningPath.Students.Remove(student);
+        SchoolDataService.ArchiveStudent(student);
+        SchoolDataService.UpdateLearningPath(LearningPath);
+        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id);
+        StateHasChanged();
+
+        // TODO: Show graduation success message
+        // TODO: Generate graduation certificate
+        // TODO: Send notifications
     }
 }
