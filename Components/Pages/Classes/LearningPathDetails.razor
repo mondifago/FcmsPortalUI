@@ -164,7 +164,7 @@
                     }
                 </div>
 
-                <!-- Add Student Grade -->
+                <!-- Student Grade -->
                <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Student Grades</h4>
@@ -176,7 +176,7 @@
                                 <i class="fa fa-exclamation-triangle"></i>
                                 <strong>Grade Configuration Required</strong>
                                 <p class="mb-3">Grade weights must be configured for all courses before recording grades or issuing homework.</p>
-                
+
                                 @if (GetUnconfiguredCourses().Any())
                                 {
                                     <p class="mb-2"><strong>Courses needing configuration:</strong></p>
@@ -187,123 +187,89 @@
                                         }
                                     </ul>
                                 }
-                
-                                <div class="d-flex justify-content-center mt-3">
-                                    <button class="btn btn-warning" @onclick="ShowMainGradePage">
-                                         Manage Grades
-                                    </button>
-                                </div>
-
                             </div>
                         }
-                        else
+                        @if (!learningPath.Students.Any())
                         {
-                            @if (!learningPath.Students.Any())
-                            {
-                                <div class="alert alert-info">
-                                    <p class="mb-0">No students enrolled in this learning path yet.</p>
-                                </div>
-                            }
-                            else if (!HasAnyGrades())
-                            {
-                                <div class="alert alert-info mb-3">
-                                    <p class="mb-0">Grade configuration is complete. Students are listed alphabetically. Grades will be ranked once recorded.</p>
-                                </div>
-                
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Student</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var student in learningPath.Students.OrderBy(s => s.Person.FirstName))
-                                            {
-                                                <tr>
-                                                    <td>
-                                                        <strong>@student.Person.FirstName @student.Person.LastName</strong>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-secondary">No Grades</span>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-primary">
-                                                            View Details
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                
-                                <div class="d-flex justify-content-center mt-3">
-                                    <button class="btn btn-primary" @onclick="ShowMainGradePage">
-                                         Manage Grades
-                                    </button>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Rank</th>
-                                                <th>Student</th>
-                                                <th>Overall Grade</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @for (int i = 0; i < GetRankedStudents().Count; i++)
-                                            {
-                                                var studentGrade = GetRankedStudents()[i];
-                                                var rank = i + 1;
-
-                                                <tr>
-                                                    <td>
-                                                        @if (rank <= 3)
-                                                        {
-                                                            <span class="badge rounded-pill bg-@(rank == 1 ? "warning text-dark" : rank == 2 ? "secondary" : "bronze")">
-                                                                @rank@(rank == 1 ? "st" : rank == 2 ? "nd" : "rd")
-                                                            </span>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span class="badge rounded-pill bg-light text-dark">@rank</span>
-                                                        }
-                                                    </td>
-                                                    <td>
-                                                        <strong>@studentGrade.Student.Person.FirstName @studentGrade.Student.Person.LastName</strong>
-                                                    </td>
-                                                    <td>
-                                                        <span class="fw-bold">@studentGrade.SemesterOverallGrade.ToString("F2")%</span>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-primary">
-                                                            Details
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                
-                                <div class="d-flex justify-content-center mt-3">
-                                    <button class="btn btn-primary" @onclick="ShowMainGradePage">
-                                         Manage Grades
-                                    </button>
-                                </div>
-                            }
+                            <div class="alert alert-info">
+                                <p class="mb-0">No students enrolled in this learning path yet.</p>
+                            </div>
                         }
+                        @if (learningPath.Students.Any() && !HasAnyGrades())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Student</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var student in learningPath.Students.OrderBy(s => s.Person.FirstName))
+                                        {
+                                            <tr>
+                                                <td>@student.Person.FirstName @student.Person.LastName</td>
+                                                <td><span class="badge bg-secondary">No Grades</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary">View Details</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        @if (learningPath.Students.Any() && HasAnyGrades())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Student</th>
+                                            <th>Ave. Grade</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < GetRankedStudents().Count; i++)
+                                        {
+                                            var studentGrade = GetRankedStudents()[i];
+                                            var rank = i + 1;
+
+                                            <tr>
+                                                <td>
+                                                    @if (rank <= 3)
+                                                    {
+                                                        <span class="badge rounded-pill bg-@(rank == 1 ? "warning text-dark" : rank == 2 ? "secondary" : "bronze")">
+                                                            @rank@(rank == 1 ? "st" : rank == 2 ? "nd" : "rd")
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge rounded-pill bg-light text-dark">@rank</span>
+                                                    }
+                                                </td>
+                                                <td>@studentGrade.Student.Person.LastName</td>
+                                                <td>@studentGrade.SemesterOverallGrade.ToString("F2")%</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary">Details</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        <div class="d-flex justify-content-center mt-4">
+                            <button class="btn btn-primary" @onclick="ShowMainGradePage">
+                                Manage Grades
+                            </button>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </div>
     }
