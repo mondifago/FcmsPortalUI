@@ -158,9 +158,11 @@
         if (!IsFormValid() || Submission == null) return;
 
         var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
+        var homeworkGradeId = SchoolDataService.GetNextTestGradeId();
 
         var homeworkGrade = new TestGrade
         {
+            Id = homeworkGradeId, 
             Score = Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),
             GradeType = GradeType.Homework,
             Teacher = CurrentTeacher,
@@ -179,6 +181,17 @@
 
             if (learningPath != null)
             {
+                var courseGradeTestGradeId = SchoolDataService.GetNextTestGradeId();
+
+                var existingCourseGrade = Submission.Student.CourseGrades.FirstOrDefault(cg =>
+                    cg.Course == course && cg.LearningPathId == learningPath.Id);
+
+                int? courseGradeId = null;
+                if (existingCourseGrade == null)
+                {
+                    courseGradeId = SchoolDataService.GetNextCourseGradeId();
+                }
+
                 LogicMethods.AddTestGrade(
                     Submission.Student,
                     course,
@@ -186,7 +199,9 @@
                     GradeType.Homework,
                     CurrentTeacher,
                     testGrade.TeacherRemark,
-                    learningPath
+                    learningPath,
+                    courseGradeTestGradeId, 
+                    courseGradeId
                 );
             }
         }

@@ -482,7 +482,7 @@
     private ScheduleEntry scheduleEntry;
     private LearningPath relatedLearningPath;
     private List<Student> enrolledStudents = new List<Student>();
-    private bool isTeacher = false; 
+    private bool isTeacher = true; 
     private Staff currentTeacher; 
     private Student currentStudent; 
     private bool showMaterialsUpload = false;
@@ -731,6 +731,11 @@
 
     private void HandleHomeworkSaved(Homework homework)
     {
+        if (homework.Id <= 0)
+        {
+            homework.Id = SchoolDataService.GetNextHomeworkId();
+        }
+
         classSession.HomeworkDetails = homework;
         SchoolDataService.UpdateClassSession(classSession);
         showHomeworkModal = false;
