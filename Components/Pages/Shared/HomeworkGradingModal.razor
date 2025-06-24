@@ -1,8 +1,8 @@
 ﻿@using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortal
-@using System.ComponentModel.DataAnnotations
 @inject ISchoolDataService SchoolDataService
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -54,27 +54,37 @@
                     </div>
 
                     <!-- Grading Form -->
-                    <EditForm Model="@gradeModel" OnValidSubmit="HandleSubmit">
+                    <EditForm Model="@testGrade" OnValidSubmit="HandleSubmit">
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
                         <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="score" class="form-label">Score <span class="text-danger">*</span></label>
-                                <InputNumber id="score" @bind-Value="gradeModel.Score" class="form-control" placeholder="0-100" />
-                                <ValidationMessage For="@(() => gradeModel.Score)" />
+                            <div class="col-md-6">
+                                <label for="maxScore" class="form-label">Maximum Score</label>
+                                <InputNumber id="maxScore" @bind-Value="maxScore"
+                                             class="form-control" placeholder="@FcmsConstants.TOTAL_SCORE" />
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-6">
+                                <label for="score" class="form-label">Score (/@maxScore) <span class="text-danger">*</span></label>
+                                <InputNumber id="score" @bind-Value="testGrade.Score"
+                                             class="form-control" placeholder="@($"0-{maxScore}")"
+                                             min="0" max="@maxScore" step="0.1" />
+                                <ValidationMessage For="@(() => testGrade.Score)" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
                                 <label for="feedback" class="form-label">Feedback</label>
-                                <InputTextArea id="feedback" @bind-Value="gradeModel.TeacherRemark" class="form-control" rows="3" 
+                                <InputTextArea id="feedback" @bind-Value="testGrade.TeacherRemark" class="form-control" rows="3"
                                                placeholder="Optional feedback for the student..." />
-                                <ValidationMessage For="@(() => gradeModel.TeacherRemark)" />
+                                <ValidationMessage For="@(() => testGrade.TeacherRemark)" />
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
-                            <button type="submit" class="btn btn-warning">
+                            <button type="submit" class="btn btn-warning" disabled="@(!IsFormValid())">
                                 @(IsEditing ? "Update Grade" : "Submit Grade")
                             </button>
                         </div>
@@ -106,81 +116,76 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private TestGrade gradeModel = new TestGrade();
+    private TestGrade testGrade = new TestGrade();
+    private double maxScore = FcmsConstants.TOTAL_SCORE;
     private bool IsEditing => Submission?.IsGraded == true;
-
-    public class TestGrade
-    {
-        [Required]
-        [Range(0, 100, ErrorMessage = "Score must be between 0 and 100")]
-        public double Score { get; set; }
-
-        public string TeacherRemark { get; set; } = "";
-
-        public string Course { get; set; } = "";
-    }
 
     protected override void OnParametersSet()
     {
         if (IsVisible && Submission != null)
         {
+            maxScore = FcmsConstants.TOTAL_SCORE;
+
             if (IsEditing && Submission.HomeworkGrade != null)
             {
-                gradeModel = new TestGrade
-                {
-                    Score = Submission.HomeworkGrade.Score,
-                    TeacherRemark = Submission.FeedbackComment ?? "",
-                    Course = Submission.Homework?.ClassSession?.Course ?? ""
-                };
+                testGrade.TeacherRemark = Submission.FeedbackComment ?? "";
+                testGrade.Teacher = CurrentTeacher;
+                testGrade.GradeType = GradeType.Homework;
+                testGrade.Date = DateTime.Now;
+                testGrade.Score = (Submission.HomeworkGrade.Score / FcmsConstants.TOTAL_SCORE) * maxScore;
             }
             else
             {
-                gradeModel = new TestGrade
+                testGrade = new TestGrade
                 {
+                    Teacher = CurrentTeacher,
+                    Date = DateTime.Now,
+                    GradeType = GradeType.Homework,
                     Score = 0,
-                    TeacherRemark = "",
-                    Course = Submission.Homework?.ClassSession?.Course ?? ""
+                    TeacherRemark = ""
                 };
             }
         }
     }
 
+    private bool IsFormValid()
+    {
+        return maxScore > 0 && testGrade.Score >= 0 && testGrade.Score <= maxScore;
+    }
+
     private async Task HandleSubmit()
     {
-        if (Submission == null) return;
+        if (!IsFormValid() || Submission == null) return;
 
-        // Create the TestGrade for the submission
-        var homeworkGrade = new FcmsPortal.Models.TestGrade
+        var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
+
+        var homeworkGrade = new TestGrade
         {
-            Score = gradeModel.Score,
+            Score = Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),
             GradeType = GradeType.Homework,
             Teacher = CurrentTeacher,
             Date = DateTime.Now,
-            TeacherRemark = gradeModel.TeacherRemark
+            TeacherRemark = testGrade.TeacherRemark
         };
 
-        // Update the submission
         Submission.HomeworkGrade = homeworkGrade;
         Submission.IsGraded = true;
-        Submission.FeedbackComment = gradeModel.TeacherRemark;
+        Submission.FeedbackComment = testGrade.TeacherRemark;
 
-        // Get the course and learning path from the homework
         var course = Submission.Homework?.ClassSession?.Course;
         if (!string.IsNullOrEmpty(course))
         {
-            // Find the learning path this student belongs to for this course
             var learningPath = SchoolDataService.GetLearningPathByClassSessionId(Submission.Homework.ClassSession.Id);
 
             if (learningPath != null)
             {
-                // Add to the new grading system using LogicMethods
                 LogicMethods.AddTestGrade(
                     Submission.Student,
                     course,
-                    gradeModel.Score, 
+                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),
                     GradeType.Homework,
                     CurrentTeacher,
-                    gradeModel.TeacherRemark,
+                    testGrade.TeacherRemark,
                     learningPath
                 );
             }

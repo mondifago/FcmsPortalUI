@@ -52,6 +52,7 @@
                                     <tr>
                                         <th>Student</th>
                                         <th>Score (/@maxScore)</th>
+                                        <th>Teacher Remark</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -69,6 +70,13 @@
                                                              class="form-control"
                                                              min="0" max="@maxScore" step="0.1" />
                                             </td>
+                                            <td>
+                                                <InputTextArea @bind-Value="testGrade.TeacherRemark"
+                                                               class="form-control"
+                                                               rows="2"
+                                                               placeholder=" teacher's remark..." />
+                                            </td>
+
                                         </tr>
                                     }
                                 </tbody>
