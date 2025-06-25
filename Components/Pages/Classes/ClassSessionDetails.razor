@@ -95,7 +95,7 @@
                         <div class="pdf-viewer-container mb-4">
                             @if (selectedPdfUrl != null)
                             {
-                                <embed src="@selectedPdfUrl" type="application/pdf" width="100%" height="100%" />
+                                <embed src="@selectedPdfUrl" type="application/pdf" style="width:100%; height:100%;" />
                             }
                             else
                             {
@@ -106,7 +106,7 @@
                                     {
                                         <p class="text-muted">Upload a PDF file to display your presentation slides here</p>
                                         <button class="btn btn-primary btn-sm mt-1" @onclick="ToggleMaterialsUpload">
-                                           Upload Slides
+                                            Upload Slides
                                         </button>
                                     }
                                 </div>
@@ -482,7 +482,7 @@
     private ScheduleEntry scheduleEntry;
     private LearningPath relatedLearningPath;
     private List<Student> enrolledStudents = new List<Student>();
-    private bool isTeacher = true; 
+    private bool isTeacher = false; 
     private Staff currentTeacher; 
     private Student currentStudent; 
     private bool showMaterialsUpload = false;
@@ -677,8 +677,6 @@
         StateHasChanged();
     }
 
-
-    // Homework action methods
     private void CreateNewHomework()
     {
         selectedHomework = null;

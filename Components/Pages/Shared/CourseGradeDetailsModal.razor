@@ -79,7 +79,7 @@
                                                     else
                                                     {
                                                         var grade = GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[localIndex], localIndex);
-                                                        <span class="@GetScoreColorClass(grade)">
+                                                        <span class="@Util.GetGradeColorClass(grade, useTextPrefix: true)">
                                                             @(grade > 0 ? grade.ToString("F0") : "-")
                                                         </span>
                                                     }
@@ -144,7 +144,6 @@
     {
         gradeSections.Clear();
 
-        // Get all test grades for this course
         var allTestGrades = LearningPath.Students
             .SelectMany(s => s.CourseGrades
                 .Where(cg => cg.Course == Course && cg.LearningPathId == LearningPath.Id)
@@ -223,7 +222,6 @@
             DateTime.TryParse(parts[2], out var date) &&
             int.TryParse(parts[3], out var index))
             {
-                // Find existing grade or create new one
                 var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
                     cg.Course == Course && cg.LearningPathId == LearningPath.Id);
 
@@ -238,7 +236,6 @@
                     }
                     else
                     {
-                        // Create new test grade
                         var newGrade = new TestGrade
                         {
                             Score = change.Value,
@@ -252,25 +249,17 @@
                         courseGrade.TestGrades.Add(newGrade);
                     }
 
-                    // Recalculate course grade
                     LogicMethods.RecalculateCourseGrade(courseGrade);
                 }
             }
         }
 
-        // Save changes
         SchoolDataService.UpdateLearningPath(LearningPath);
 
         editingStudentId = 0;
         pendingGradeChanges.Clear();
         LoadGradeData();
         StateHasChanged();
-    }
-
-    private string GetScoreColorClass(double score)
-    {
-        if (score == 0) return "";
-        return score >= 70 ? "text-success" : score >= 60 ? "text-warning" : "text-danger";
     }
 
     private Staff GetCurrentTeacher()

@@ -35,7 +35,7 @@
                                     <div class="text-center">
                                         <h4 class="text-primary">Semester Overall Grade</h4>
                                         <h2 class="text-success">@GetSemesterOverallGrade().ToString("F2")%</h2>
-                                        <span class="badge bg-@GetOverallGradeColorClass() fs-6">
+                                        <span class="badge bg-@Util.GetGradeColorClass(GetSemesterOverallGrade()) fs-6">
                                             @Util.GetGradeCode(GetSemesterOverallGrade())
                                         </span>
                                     </div>
@@ -62,7 +62,7 @@
                                                 <h6 class="mb-0">@course</h6>
                                             </div>
                                             <div class="col-auto">
-                                                <span class="badge bg-@GetCourseGradeColorClass(courseGrade?.TotalGrade ?? 0) fs-6">
+                                                <span class="badge bg-@Util.GetGradeColorClass(courseGrade?.TotalGrade ?? 0) fs-6">
                                                     @(courseGrade?.TotalGrade.ToString("F1") ?? "0.0")%
                                                 </span>
                                             </div>
@@ -146,7 +146,7 @@
                                                                         </span>
                                                                     </td>
                                                                     <td>
-                                                                        <span class="fw-bold text-@GetScoreColorClass(grade.Score)">
+                                                                        <span class="fw-bold @Util.GetGradeColorClass(grade.Score, useTextPrefix: true)">
                                                                             @grade.Score.ToString("F1")%
                                                                         </span>
                                                                     </td>
@@ -276,24 +276,6 @@
     private double GetSemesterOverallGrade()
     {
         return LearningPath != null ? LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath) : 0;
-    }
-
-    private string GetOverallGradeColorClass()
-    {
-        var grade = GetSemesterOverallGrade();
-        return grade >= FcmsConstants.A_GRADE_MIN ? "success" :
-               grade >= FcmsConstants.B_GRADE_MIN ? "warning" : "danger";
-    }
-
-    private string GetCourseGradeColorClass(double grade)
-    {
-        return grade >= FcmsConstants.A_GRADE_MIN ? "success" :
-               grade >= FcmsConstants.B_GRADE_MIN ? "warning" : "danger";
-    }
-
-    private string GetScoreColorClass(double score)
-    {
-        return score >= 70 ? "success" : score >= 60 ? "warning" : "danger";
     }
 
     private string GetGradeTypeName(GradeType gradeType)

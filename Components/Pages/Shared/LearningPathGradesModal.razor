@@ -171,7 +171,7 @@
                                                     <td class="text-center">
                                                         @if (courseGrade != null)
                                                         {
-                                                            <span class="badge bg-@GetGradeColorClass(courseGrade.TotalGrade)">
+                                                            <span class="badge bg-@Util.GetGradeColorClass(courseGrade.TotalGrade)">
                                                                 @courseGrade.TotalGrade.ToString("F1")%
                                                             </span>
                                                         }
@@ -369,12 +369,6 @@
     {
         return student.CourseGrades.FirstOrDefault(cg => 
             cg.Course == course && cg.LearningPathId == LearningPath.Id);
-    }
-
-    private string GetGradeColorClass(double totalGrade)
-    {
-        return totalGrade >= FcmsConstants.A_GRADE_MIN ? "success" : 
-               totalGrade >= FcmsConstants.B_GRADE_MIN ? "warning" : "danger";
     }
 
     private void ShowStudentGradeDetails(Student student)

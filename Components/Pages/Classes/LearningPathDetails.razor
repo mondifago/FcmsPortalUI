@@ -243,8 +243,9 @@
                                                 <td>
                                                     @if (rank <= 3)
                                                     {
-                                                        <span class="badge rounded-pill bg-@(rank == 1 ? "warning text-dark" : rank == 2 ? "secondary" : "bronze")">
-                                                            @rank@(rank == 1 ? "st" : rank == 2 ? "nd" : "rd")
+                                                        var badgeInfo = Util.GetRankBadgeInfo(rank);
+                                                        <span class="badge rounded-pill @badgeInfo.CssClass">
+                                                            @rank@badgeInfo.OrdinalSuffix
                                                         </span>
                                                     }
                                                     else

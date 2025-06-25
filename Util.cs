@@ -201,6 +201,27 @@ namespace FcmsPortalUI
             };
         }
 
+        public static string GetGradeColorClass(double grade, bool useTextPrefix = false)
+        {
+            string prefix = useTextPrefix ? "text-" : "";
+
+            if (grade >= FcmsConstants.A_GRADE_MIN) return $"{prefix}success";
+            if (grade >= FcmsConstants.B_GRADE_MIN) return $"{prefix}warning";
+            return $"{prefix}danger";
+        }
+
+        public static (string CssClass, string OrdinalSuffix) GetRankBadgeInfo(int rank)
+        {
+            if (rank == 1)
+                return ("bg-warning text-dark", "st");
+            else if (rank == 2)
+                return ("bg-secondary", "nd");
+            else if (rank == 3)
+                return ("bg-bronze", "rd");
+            else
+                return (string.Empty, "");
+        }
+
         public static bool IsLastClassInEducationLevel(EducationLevel educationLevel, ClassLevel classLevel)
         {
             var classLevelMapping = new ClassLevelMapping();
