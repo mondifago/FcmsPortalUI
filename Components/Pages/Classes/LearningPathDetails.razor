@@ -256,7 +256,7 @@
                                                 <td>@studentGrade.Student.Person.LastName</td>
                                                 <td>@studentGrade.SemesterOverallGrade.ToString("F2")%</td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-primary">Details</button>
+                                                    <button class="btn btn-sm btn-primary" @onclick="() => ShowStudentDetails(studentGrade.Student)">Details</button>
                                                 </td>
                                             </tr>
                                         }
@@ -267,6 +267,9 @@
                         <div class="d-flex justify-content-center mt-4">
                             <button class="btn btn-primary" @onclick="ShowMainGradePage">
                                 Manage Grades
+                            </button>
+                            <button class="btn btn-success ms-2">
+                                Finalize Grades
                             </button>
                         </div>
                     </div>
@@ -391,6 +394,11 @@
                              OnClose="CloseDailyAttendanceModal" />
 }
 
+<StudentGradeDetailsModal IsVisible="showStudentDetailsModal"
+                          Student="selectedStudent"
+                          LearningPath="learningPath"
+                          OnClose="CloseStudentDetailsModal" />
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -415,6 +423,7 @@
     private DailyAttendanceLogEntry todaysAttendance;
     private bool showGradeConfigModal = false;
     private bool showGradesModal = false;
+    private bool showStudentDetailsModal = false;
 
 
     protected override void OnInitialized()
@@ -641,5 +650,17 @@
     private void ShowMainGradePage()
     {
         showGradesModal = true;
+    }
+
+    private void ShowStudentDetails(Student student)
+    {
+        selectedStudent = student;
+        showStudentDetailsModal = true;
+    }
+
+    private void CloseStudentDetailsModal()
+    {
+        showStudentDetailsModal = false;
+        selectedStudent = null;
     }
 }
