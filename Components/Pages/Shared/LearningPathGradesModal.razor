@@ -117,7 +117,9 @@
                                                 </td>
                                                 <td>
                                                     <small class="text-muted">
-                                                        @GetGradeCountsText(config.Course)
+                                                        HW: @LogicMethods.GetHomeworkCount(LearningPath, config.Course) |
+                                                        Quiz: @LogicMethods.GetQuizCount(LearningPath, config.Course) |
+                                                        Exam: @LogicMethods.GetExamCount(LearningPath, config.Course)
                                                     </small>
                                                 </td>
                                                 <td>
@@ -192,9 +194,9 @@
                                                     </button>
                                                     @if (LearningPath.Semester == Semester.Third)
                                                     {
-                                                        <button class="btn btn-sm @(Util.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel) ? "btn-success" : "btn-warning")"
+                                                        <button class="btn btn-sm @(LogicMethods.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel) ? "btn-success" : "btn-warning")"
                                                                 @onclick="() => ProcessStudentPromotion(student)">
-                                                            @Util.GetPromotionButtonText(LearningPath.EducationLevel, LearningPath.ClassLevel)
+                                                            @LogicMethods.GetPromotionButtonText(LearningPath.EducationLevel, LearningPath.ClassLevel)
                                                         </button>
                                                     }
                                                 </td>
@@ -339,32 +341,6 @@
         StateHasChanged();
     }
 
-    private string GetGradeCountsText(string course)
-    {
-        var allTestGrades = LearningPath.Students
-            .SelectMany(s => s.CourseGrades
-                .Where(cg => cg.Course == course && cg.LearningPathId == LearningPath.Id)
-                .SelectMany(cg => cg.TestGrades))
-            .ToList();
-
-        var homeworkCount = allTestGrades
-            .Where(tg => tg.GradeType == GradeType.Homework)
-            .GroupBy(tg => tg.Date.Date)
-            .Count();
-
-        var quizCount = allTestGrades
-            .Where(tg => tg.GradeType == GradeType.Quiz)
-            .GroupBy(tg => tg.Date.Date)
-            .Count();
-
-        var examCount = allTestGrades
-            .Where(tg => tg.GradeType == GradeType.FinalExam)
-            .GroupBy(tg => tg.Date.Date)
-            .Count();
-
-        return $"HW: {homeworkCount} | Quiz: {quizCount} | Exam: {examCount}";
-    }
-
     private CourseGrade GetStudentCourseGrade(Student student, string course)
     {
         return student.CourseGrades.FirstOrDefault(cg => 
@@ -391,7 +367,7 @@
 
     private void ProcessStudentPromotion(Student student)
     {
-        if (Util.ShouldArchiveStudent(student.Person.EducationLevel, student.Person.ClassLevel))
+        if (LogicMethods.ShouldArchiveStudent(student.Person.EducationLevel, student.Person.ClassLevel))
         {
             ArchiveStudent(student);
         }
@@ -403,7 +379,7 @@
 
     private void PromoteStudent(Student student)
     {
-        var (nextEducationLevel, nextClassLevel) = Util.GetNextEducationLevelAndClass(
+        var (nextEducationLevel, nextClassLevel) = LogicMethods.GetNextEducationLevelAndClass(
             student.Person.EducationLevel, student.Person.ClassLevel);
 
         if (nextEducationLevel.HasValue && nextClassLevel.HasValue)
@@ -413,7 +389,7 @@
         }
         else
         {
-            var nextClass = Util.GetNextClassLevel(
+            var nextClass = LogicMethods.GetNextClassLevel(
                 student.Person.EducationLevel, student.Person.ClassLevel);
 
             if (nextClass.HasValue)
