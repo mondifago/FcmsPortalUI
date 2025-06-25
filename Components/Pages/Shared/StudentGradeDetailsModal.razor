@@ -35,9 +35,20 @@
                                     <div class="text-center">
                                         <h4 class="text-primary">Semester Overall Grade</h4>
                                         <h2 class="text-success">@GetSemesterOverallGrade().ToString("F2")%</h2>
-                                        <span class="badge bg-@Util.GetGradeColorClass(GetSemesterOverallGrade()) fs-6">
-                                            @Util.GetGradeCode(GetSemesterOverallGrade())
-                                        </span>
+                                        @{
+                                            var rank = GetStudentRank();
+                                        }
+                                        @if (rank <= 3)
+                                        {
+                                            var badgeInfo = Util.GetRankBadgeInfo(rank);
+                                            <span class="badge rounded-pill @badgeInfo.CssClass">
+                                                @rank@badgeInfo.OrdinalSuffix
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill bg-light text-dark">@rank</span>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -377,5 +388,15 @@
 
         var lowest = courseGrades.OrderBy(cg => cg.TotalGrade).First();
         return lowest.Course;
+    }
+
+    private int GetStudentRank()
+    {
+        if (LearningPath == null || Student == null) return 0;
+
+        var rankedStudents = LogicMethods.RankStudentsBySemesterGrade(LearningPath);
+        var position = rankedStudents.FindIndex(s => s.Student.Id == Student.Id) + 1;
+
+        return position > 0 ? position : 0;
     }
 }
