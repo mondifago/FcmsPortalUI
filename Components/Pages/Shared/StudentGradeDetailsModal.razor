@@ -37,17 +37,12 @@
                                         <h2 class="text-success">@GetSemesterOverallGrade().ToString("F2")%</h2>
                                         @{
                                             var rank = GetStudentRank();
-                                        }
-                                        @if (rank <= 3)
-                                        {
-                                            var badgeInfo = Util.GetRankBadgeInfo(rank);
-                                            <span class="badge rounded-pill @badgeInfo.CssClass">
-                                                @rank@badgeInfo.OrdinalSuffix
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge rounded-pill bg-light text-dark">@rank</span>
+                                            if (rank > 0)
+                                            {
+                                                <span class="fs-4 fw-bold @Util.GetRankColorClass(rank)">
+                                                    @Util.GetOrdinalNumber(rank)
+                                                </span>
+                                            }
                                         }
                                     </div>
                                 </div>
@@ -92,7 +87,7 @@
                                                             <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Homework) assignments</small>
                                                             @if (config != null)
                                                             {
-                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Homework, config.HomeworkWeightPercentage)%</strong></small>
+                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Homework, config.HomeworkWeightPercentage).ToString("F1")%</strong></small>
                                                                 <small class="text-muted">Weight: @config.HomeworkWeightPercentage%</small>
                                                             }
                                                         </div>
@@ -108,7 +103,7 @@
                                                             <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Quiz) quizzes</small>
                                                             @if (config != null)
                                                             {
-                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Quiz, config.QuizWeightPercentage)%</strong></small>
+                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Quiz, config.QuizWeightPercentage).ToString("F1")%</strong></small>
                                                                 <small class="text-muted">Weight: @config.QuizWeightPercentage%</small>
                                                             }
                                                         </div>
@@ -124,7 +119,7 @@
                                                             <small class="text-muted">@GetGradeCount(courseGrade, GradeType.FinalExam) exams</small>
                                                             @if (config != null)
                                                             {
-                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.FinalExam, config.FinalExamWeightPercentage)%</strong></small>
+                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.FinalExam, config.FinalExamWeightPercentage).ToString("F1")%</strong></small>
                                                                 <small class="text-muted">Weight: @config.FinalExamWeightPercentage%</small>
                                                             }
                                                         </div>
@@ -153,7 +148,7 @@
                                                                     <td>@grade.Date.ToString("MMM dd, yyyy")</td>
                                                                     <td>
                                                                         <span class="badge bg-secondary">
-                                                                            @GetGradeTypeName(grade.GradeType)
+                                                                            @Util.GetGradeTypeName(grade.GradeType)
                                                                         </span>
                                                                     </td>
                                                                     <td>
@@ -198,14 +193,9 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
-                                        <h6 class="text-muted">Total Students</h6>
-                                        <h4>@GetTotalStudentsInClass()</h4>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="text-center">
-                                        <h6 class="text-muted">Class Position</h6>
-                                        <h4 class="text-info">@GetStudentPosition()</h4>
+                                        <h6 class="text-muted">Position in Class</h6>
+                                        <h4>@(GetStudentRank() > 0 ? Util.GetOrdinalNumber(GetStudentRank()) : "N/A")</h4>
+                                        <h6 class="text-muted">out of @GetTotalStudentsInClass()</h6>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -215,11 +205,6 @@
                                         <small class="text-muted">@GetHighestCourseName()</small>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-3"></div>
-                                <div class="col-md-3"></div>
-                                <div class="col-md-3"></div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h6 class="text-muted">Lowest Course</h6>
@@ -228,7 +213,6 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 }
@@ -256,10 +240,7 @@
 
     private List<string> GetStudentCourses()
     {
-        if (Student == null || LearningPath == null) return new List<string>();
-
-        var configuredCourses = SchoolDataService.GetAllCourseGradingConfigurations(LearningPath.Id);
-        return configuredCourses.Select(c => c.Course).ToList();
+        return CourseDefaults.GetCourseNames(LearningPath.EducationLevel);
     }
 
     private CourseGrade GetCourseGrade(string course)
@@ -286,18 +267,7 @@
 
     private double GetSemesterOverallGrade()
     {
-        return LearningPath != null ? LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath) : 0;
-    }
-
-    private string GetGradeTypeName(GradeType gradeType)
-    {
-        return gradeType switch
-        {
-            GradeType.Homework => "HW",
-            GradeType.Quiz => "Quiz",
-            GradeType.FinalExam => "Exam",
-            _ => gradeType.ToString()
-        };
+        return LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath);
     }
 
     private int GetTotalGradeCount()
@@ -309,20 +279,14 @@
 
     private double GetHighestCourseGrade()
     {
-        var grades = Student?.CourseGrades
-            .Where(cg => cg.LearningPathId == LearningPath?.Id && cg.TotalGrade > 0)
-            .Select(cg => cg.TotalGrade) ?? Enumerable.Empty<double>();
-
-        return grades.Any() ? grades.Max() : 0;
+        var (_, grade) = LogicMethods.GetHighestCourseGrade(Student, LearningPath.Id);
+        return grade;
     }
 
     private double GetLowestCourseGrade()
     {
-        var grades = Student?.CourseGrades
-            .Where(cg => cg.LearningPathId == LearningPath?.Id && cg.TotalGrade > 0)
-            .Select(cg => cg.TotalGrade) ?? Enumerable.Empty<double>();
-
-        return grades.Any() ? grades.Min() : 0;
+        var (_, grade) = LogicMethods.GetLowestCourseGrade(Student, LearningPath.Id);
+        return grade;
     }
 
     private void Close()
@@ -330,14 +294,9 @@
         OnClose.InvokeAsync();
     }
 
-    private string GetWeightedContribution(CourseGrade courseGrade, GradeType gradeType, double weightPercentage)
+    private double GetWeightedContribution(CourseGrade courseGrade, GradeType gradeType, double weightPercentage)
     {
-        var grades = courseGrade.TestGrades.Where(g => g.GradeType == gradeType).ToList();
-        if (!grades.Any()) return "0.0";
-
-        var average = grades.Average(g => g.Score);
-        var contribution = (average / 100) * weightPercentage;
-        return contribution.ToString("F1");
+        return LogicMethods.CalculateWeightedContribution(courseGrade, gradeType, weightPercentage);
     }
 
     private int GetTotalStudentsInClass()
@@ -345,49 +304,16 @@
         return LearningPath?.Students.Count ?? 0;
     }
 
-    private string GetStudentPosition()
-    {
-        if (LearningPath == null || Student == null) return "N/A";
-
-        var rankedStudents = LogicMethods.RankStudentsBySemesterGrade(LearningPath);
-        var position = rankedStudents.FindIndex(s => s.Student.Id == Student.Id) + 1;
-
-        return position > 0 ? GetOrdinalNumber(position) : "N/A";
-    }
-
-    private string GetOrdinalNumber(int number)
-    {
-        return number switch
-        {
-            1 => "1st",
-            2 => "2nd",
-            3 => "3rd",
-            _ => $"{number}th"
-        };
-    }
-
     private string GetHighestCourseName()
     {
-        var courseGrades = Student?.CourseGrades
-            .Where(cg => cg.LearningPathId == LearningPath?.Id && cg.TotalGrade > 0)
-            .ToList();
-
-        if (courseGrades == null || !courseGrades.Any()) return "N/A";
-
-        var highest = courseGrades.OrderByDescending(cg => cg.TotalGrade).First();
-        return highest.Course;
+        var (courseName, _) = LogicMethods.GetHighestCourseGrade(Student, LearningPath.Id);
+        return courseName;
     }
 
     private string GetLowestCourseName()
     {
-        var courseGrades = Student?.CourseGrades
-            .Where(cg => cg.LearningPathId == LearningPath?.Id && cg.TotalGrade > 0)
-            .ToList();
-
-        if (courseGrades == null || !courseGrades.Any()) return "N/A";
-
-        var lowest = courseGrades.OrderBy(cg => cg.TotalGrade).First();
-        return lowest.Course;
+        var (courseName, _) = LogicMethods.GetLowestCourseGrade(Student, LearningPath.Id);
+        return courseName;
     }
 
     private int GetStudentRank()

@@ -241,17 +241,9 @@
 
                                             <tr>
                                                 <td>
-                                                    @if (rank <= 3)
-                                                    {
-                                                        var badgeInfo = Util.GetRankBadgeInfo(rank);
-                                                        <span class="badge rounded-pill @badgeInfo.CssClass">
-                                                            @rank@badgeInfo.OrdinalSuffix
-                                                        </span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge rounded-pill bg-light text-dark">@rank</span>
-                                                    }
+                                                    <span class="fw-light @Util.GetRankColorClass(rank)">
+                                                        @Util.GetOrdinalNumber(rank)
+                                                    </span>
                                                 </td>
                                                 <td>@studentGrade.Student.Person.LastName</td>
                                                 <td>@studentGrade.SemesterOverallGrade.ToString("F2")%</td>

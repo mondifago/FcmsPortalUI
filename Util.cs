@@ -210,16 +210,42 @@ namespace FcmsPortalUI
             return $"{prefix}danger";
         }
 
-        public static (string CssClass, string OrdinalSuffix) GetRankBadgeInfo(int rank)
+        public static string GetOrdinalNumber(int number)
         {
-            if (rank == 1)
-                return ("bg-warning text-dark", "st");
-            else if (rank == 2)
-                return ("bg-secondary", "nd");
-            else if (rank == 3)
-                return ("bg-bronze", "rd");
-            else
-                return (string.Empty, "");
+            if (number <= 0) return number.ToString();
+
+            if (number % 100 >= 11 && number % 100 <= 13)
+                return $"{number}th";
+
+            return (number % 10) switch
+            {
+                1 => $"{number}st",
+                2 => $"{number}nd",
+                3 => $"{number}rd",
+                _ => $"{number}th"
+            };
+        }
+
+        public static string GetRankColorClass(int rank)
+        {
+            return rank switch
+            {
+                1 => "text-warning",
+                2 => "text-secondary",
+                3 => "text-danger",
+                _ => "text-muted"
+            };
+        }
+
+        public static string GetGradeTypeName(GradeType gradeType)
+        {
+            return gradeType switch
+            {
+                GradeType.Homework => "HW",
+                GradeType.Quiz => "Quiz",
+                GradeType.FinalExam => "Exam",
+                _ => gradeType.ToString()
+            };
         }
     }
 }
