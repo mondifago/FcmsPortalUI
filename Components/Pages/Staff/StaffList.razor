@@ -112,6 +112,12 @@
 
     private void ConfirmDelete()
     {
+        var staff = SchoolDataService.GetStaffById(staffIdToDelete);
+        if (staff != null && !string.IsNullOrEmpty(staff.Person.ProfilePictureUrl) && !staff.Person.ProfilePictureUrl.StartsWith("data:"))
+        {
+            var attachment = new FileAttachment { FilePath = staff.Person.ProfilePictureUrl };
+            SchoolDataService.DeleteFileAsync(attachment);
+        }
         var result = SchoolDataService.DeleteStaff(staffIdToDelete);
         if (result)
         {

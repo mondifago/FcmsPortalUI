@@ -16,7 +16,8 @@
             <div class="row">
                 <div class="col-md-12 mb-4 text-center">
                     <ProfileThumbnailForm ImageUrl="@profilePictureUrl"
-                                          ImageUrlChanged="HandleProfilePictureChanged" />
+                                          ImageUrlChanged="HandleProfilePictureChanged"
+                                          Category="StaffProfilePictures" />
                 </div>
             </div>
 
@@ -255,6 +256,7 @@
     public EventCallback OnCancel { get; set; }
 
     private string profilePictureUrl = "";
+    private string oldProfilePictureUrl = "";
     private DateTime employmentDate = DateTime.Today;
     private bool showAddressForm = false;
     private Address currentAddress = new();
@@ -272,9 +274,9 @@
             Staff.Person.Addresses = new List<Address>();
 
         Staff.Person.DateOfBirth = DateTime.Today;
-        profilePictureUrl = Staff.Person.ProfilePictureUrl;
+        profilePictureUrl = Staff.Person.ProfilePictureUrl ?? "";
+        oldProfilePictureUrl = profilePictureUrl;
 
-        // Initialize available courses based on current education level
         availableCourses = CourseDefaults.GetCourseNames(Staff.Person.EducationLevel);
     }
 
@@ -285,9 +287,28 @@
         StateHasChanged();
     }
 
-    private void HandleProfilePictureChanged(string newImageUrl)
+    private async Task HandleProfilePictureChanged(string newImageUrl)
     {
+        if (!string.IsNullOrEmpty(oldProfilePictureUrl) &&
+            !oldProfilePictureUrl.StartsWith("data:") &&
+            oldProfilePictureUrl != newImageUrl)
+        {
+            try
+            {
+                var oldAttachment = new FileAttachment
+                {
+                    FilePath = oldProfilePictureUrl
+                };
+                await SchoolDataService.DeleteFileAsync(oldAttachment);
+            }
+            catch
+            {
+                // Log error but don't stop the process
+            }
+        }
+
         profilePictureUrl = newImageUrl;
+        oldProfilePictureUrl = newImageUrl;
         StateHasChanged();
     }
 

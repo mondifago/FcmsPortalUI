@@ -108,6 +108,14 @@
 
     private void ConfirmDelete()
     {
+        var guardian = SchoolDataService.GetGuardianById(guardianIdToDelete);
+
+        if (guardian != null && !string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl) && !guardian.Person.ProfilePictureUrl.StartsWith("data:"))
+        {
+            var attachment = new FileAttachment { FilePath = guardian.Person.ProfilePictureUrl };
+            SchoolDataService.DeleteFileAsync(attachment);
+        }
+
         var result = SchoolDataService.DeleteGuardian(guardianIdToDelete);
         if (result)
         {
