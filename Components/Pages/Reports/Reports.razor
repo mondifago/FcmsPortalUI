@@ -403,7 +403,7 @@
 
     private void LoadAvailableAcademicYears()
     {
-        availableAcademicYears = school.LearningPath
+        availableAcademicYears = school.LearningPaths
             .Select(lp => lp.AcademicYear)
             .Distinct()
             .OrderByDescending(year => year)
@@ -429,7 +429,7 @@
 
     private void LoadAvailableSemesters()
     {
-        availableSemesters = school.LearningPath
+        availableSemesters = school.LearningPaths
             .Where(lp => lp.AcademicYear == selectedAcademicYear)
             .Select(lp => lp.Semester.ToString())
             .Distinct()
@@ -447,7 +447,7 @@
 
     private void LoadFilteredLearningPaths()
     {
-        filteredLearningPaths = school.LearningPath
+        filteredLearningPaths = school.LearningPaths
             .Where(lp => lp.AcademicYear == selectedAcademicYear &&
                          lp.Semester.ToString() == selectedSemester)
             .ToList();
@@ -504,7 +504,7 @@
         if (string.IsNullOrEmpty(selectedSessionAcademicYear) || string.IsNullOrEmpty(selectedSessionSemester))
             return;
 
-        var learningPaths = school.LearningPath
+        var learningPaths = school.LearningPaths
             .Where(lp => lp.AcademicYear == selectedSessionAcademicYear && lp.Semester.ToString() == selectedSessionSemester)
             .ToList();
 

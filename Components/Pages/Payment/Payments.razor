@@ -223,7 +223,7 @@ OnClose="CloseLearningPathReport" />
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
-        allLearningPaths = school.LearningPath.ToList();
+        allLearningPaths = school.LearningPaths.ToList();
         selectedSemester = Semester.First;
         FilterData();
     }

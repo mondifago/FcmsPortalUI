@@ -149,9 +149,9 @@ else if (selectedClassLevel != ClassLevel.None)
         allCurriculum = SchoolDataService.GetFullCurriculum();
         availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
 
-          if (school?.LearningPath != null)
+          if (school?.LearningPaths != null)
           {
-              foreach (var path in school.LearningPath)
+              foreach (var path in school.LearningPaths)
               {
                   if (path.Schedule != null)
                   {
