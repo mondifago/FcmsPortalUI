@@ -1,4 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms
+@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Constants
+@inject ISchoolDataService SchoolDataService
+
 
 <div class="mb-3">
     <label for="profilePicture" class="form-label">@Label</label>
@@ -18,11 +23,29 @@
     </div>
     @if (AllowUpload)
     {
-        <InputFile OnChange="HandleFileSelection" class="form-control mt-2" accept="image/*" />
+        <InputFile OnChange="HandleFileSelection" class="form-control mt-2" accept="image/*" disabled="@IsUploading" />
+    }
+
+    @if (IsUploading)
+    {
+        <div class="text-center mt-2">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Uploading...</span>
+            </div>
+            <small class="text-muted ms-2">Uploading...</small>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="text-danger mt-2">@ErrorMessage</div>
     }
 </div>
 
 @code {
+    [Parameter]
+    public string Category { get; set; } = "ProfilePictures";
+
     [Parameter]
     public string Label { get; set; } = "Profile Picture";
 
@@ -41,14 +64,43 @@
     [Parameter]
     public EventCallback<string> ImageUrlChanged { get; set; }
 
+    private string ErrorMessage = "";
+    private bool IsUploading = false;
+
     private async Task HandleFileSelection(InputFileChangeEventArgs e)
     {
+        ErrorMessage = "";
         var file = e.File;
-        var buffer = new byte[file.Size];
-        await file.OpenReadStream().ReadAsync(buffer);
-        var imageType = file.ContentType;
-        var imageUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffer)}";
 
-        await ImageUrlChanged.InvokeAsync(imageUrl);
+        if (file.Size > FcmsConstants.MAX_FILE_SIZE)
+        {
+            ErrorMessage = $"File size exceeds the maximum allowed size of {FcmsConstants.MAX_FILE_SIZE_MB}MB.";
+            return;
+        }
+
+        var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+        if (!allowedTypes.Contains(file.ContentType.ToLower()))
+        {
+            ErrorMessage = "Please select a valid image file (JPEG, PNG, GIF, or WebP).";
+            return;
+        }
+
+        IsUploading = true;
+        StateHasChanged();
+
+        try
+        {
+            var attachment = await SchoolDataService.UploadFileAsync(file, Category);
+            await ImageUrlChanged.InvokeAsync(attachment.FilePath);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error uploading image: {ex.Message}";
+        }
+        finally
+        {
+            IsUploading = false;
+            StateHasChanged();
+        }
     }
 }

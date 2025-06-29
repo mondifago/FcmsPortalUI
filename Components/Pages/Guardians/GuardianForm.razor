@@ -2,6 +2,8 @@
 @using FcmsPortalUI.Components.Pages.Shared
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Services
+@inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
 <EditForm Model="@Guardian" OnValidSubmit="HandleValidSubmit">
@@ -12,7 +14,8 @@
             <div class="row">
                 <div class="col-md-12 mb-4 text-center">
                     <ProfileThumbnailForm ImageUrl="@profilePictureUrl"
-                                          ImageUrlChanged="HandleProfilePictureChanged" />
+                                          ImageUrlChanged="HandleProfilePictureChanged"
+                                          Category="GuardianProfilePictures" />
                 </div>
             </div>
 
@@ -184,6 +187,7 @@
     [Parameter, EditorRequired]
     public EventCallback OnCancel { get; set; }
 
+    private string oldProfilePictureUrl = "";
     private string profilePictureUrl = "";
     private DateTime enrollmentDate;
     private bool showAddressForm = false;
@@ -203,11 +207,31 @@
             Guardian.Person.Addresses = new List<Address>();
 
         profilePictureUrl = Guardian.Person.ProfilePictureUrl ?? "";
+        oldProfilePictureUrl = profilePictureUrl;
     }
 
-    private void HandleProfilePictureChanged(string newImageUrl)
+    private async Task HandleProfilePictureChanged(string newImageUrl)
     {
+        if (!string.IsNullOrEmpty(oldProfilePictureUrl) &&
+            !oldProfilePictureUrl.StartsWith("data:") &&
+            oldProfilePictureUrl != newImageUrl)
+        {
+            try
+            {
+                var oldAttachment = new FileAttachment
+                {
+                    FilePath = oldProfilePictureUrl
+                };
+                await SchoolDataService.DeleteFileAsync(oldAttachment);
+            }
+            catch
+            {
+                // Log error but don't stop the process
+            }
+        }
+
         profilePictureUrl = newImageUrl;
+        oldProfilePictureUrl = newImageUrl;
         StateHasChanged();
     }
 
