@@ -67,9 +67,13 @@
                                             <td class="text-center bg-info bg-opacity-10">
                                                 <strong>
                                                     @{
-                                                        var promotionGrade = allSemesterGrades.Count == 3
-                                                        ? allSemesterGrades.Average()
-                                                        : 0;
+                                                        var allLearningPaths = school.LearningPaths
+                                                        .Where(lp => lp.EducationLevel == LearningPath.EducationLevel &&
+                                                        lp.ClassLevel == LearningPath.ClassLevel &&
+                                                        lp.AcademicYear == LearningPath.AcademicYear)
+                                                        .ToList();
+
+                                                        var promotionGrade = LogicMethods.CalculatePromotionGrade(student, allLearningPaths);
                                                     }
                                                     @promotionGrade.ToString("F1")%
                                                 </strong>
@@ -200,6 +204,10 @@
         SchoolDataService.UpdateLearningPath(LearningPath);
         LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id);
         StateHasChanged();
+
+        // TODO: Show graduation success message
+        // TODO: Generate graduation certificate
+        // TODO: Send notifications
     }
 
     private void Close()
