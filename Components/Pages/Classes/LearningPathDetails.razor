@@ -260,7 +260,7 @@
                             <button class="btn btn-primary" @onclick="ShowMainGradePage">
                                 Manage Grades
                             </button>
-                            <button class="btn btn-success ms-2">
+                            <button class="btn btn-success ms-2" @onclick="ShowFinalizeGradesModal">
                                 Finalize Grades
                             </button>
                         </div>
@@ -361,6 +361,9 @@
     <div class="modal-backdrop fade show"></div>
 }
 
+<FinalizeGradesModal IsVisible="showFinalizeGradesModal"
+                     LearningPath="learningPath"
+                     OnClose="CloseFinalizeGradesModal" />
 
 <LearningPathGradesModal IsVisible="showGradesModal"
                         LearningPath="learningPath"
@@ -399,29 +402,23 @@
     private bool isTeacher = true; 
     private bool isPrincipal = true; 
     private DateTime currentDate = DateTime.Now;
-    private int selectedStudentId = 0;
     private bool showAddStudentsModal = false;
     private List<Student> availableStudents = new List<Student>();
     private HashSet<int> selectedStudentIds = new HashSet<int>();
-    private LearningPathGradeReport gradeReport;
     private Student selectedStudent;
-    private bool showGradeModal = false;
-    private bool showGradeDetailsModal = false;
     private bool showScheduleCreateModal = false;
     private string selectedDateForSchedule = null;
     private DailyAttendanceLogEntry dailyAttendanceData = new();
     private bool showAttendanceModal = false;
     private bool showDailyAttendanceModal = false;
     private DailyAttendanceLogEntry todaysAttendance;
-    private bool showGradeConfigModal = false;
     private bool showGradesModal = false;
     private bool showStudentDetailsModal = false;
-
+    private bool showFinalizeGradesModal = false;
 
     protected override void OnInitialized()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id);
-        gradeReport = SchoolDataService.GetGradeReportForLearningPath(Id);
     }
 
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
@@ -654,5 +651,17 @@
     {
         showStudentDetailsModal = false;
         selectedStudent = null;
+    }
+
+    private void ShowFinalizeGradesModal()
+    {
+        showFinalizeGradesModal = true;
+    }
+
+    private void CloseFinalizeGradesModal()
+    {
+        showFinalizeGradesModal = false;
+        learningPath = SchoolDataService.GetLearningPathById(learningPath.Id);
+        StateHasChanged();
     }
 }
