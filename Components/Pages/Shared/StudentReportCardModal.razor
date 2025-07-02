@@ -1,0 +1,440 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Services
+@using FcmsPortal.Enums
+@using FcmsPortal
+@using System.Globalization
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal fade @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa fa-file-alt"></i> Student Report Card
+                </h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Student != null && LearningPath != null)
+                {
+                    <div class="report-card-container" id="reportCard">
+                        <!-- Header Section -->
+                        <div class="text-center mb-4">
+                            <div class="school-logo mb-2">
+                                @if (!string.IsNullOrEmpty(school?.LogoUrl))
+                                {
+                                    <img src="@school.LogoUrl" alt="School Logo" style="max-height: 80px;">
+                                }
+                                else
+                                {
+                                    <i class="fa fa-graduation-cap fa-3x text-primary"></i>
+                                }
+                            </div>
+                            <h3 class="mb-1">@school?.Name</h3>
+                            <h4 class="text-primary">Academic Report Card</h4>
+                            <hr class="w-50 mx-auto">
+                            <p class="mb-0"><strong>Academic Year:</strong> @LearningPath.AcademicYear</p>
+                            <p><strong>Semester:</strong> @LearningPath.Semester</p>
+                        </div>
+
+                        <!-- Student Information -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Student Name:</strong> @Student.Person.FirstName @Student.Person.LastName</p>
+                                        <p><strong>Student ID:</strong> @Student.Id</p>
+                                        <p><strong>Age:</strong> @Student.Person.Age years</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Class:</strong> @LearningPath.EducationLevel - @LearningPath.ClassLevel</p>
+                                        <p><strong>Guardian:</strong> @GetGuardianName()</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Performance Table -->
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Course</th>
+                                        <th class="text-center">Homework<br /><small>(@GetHomeworkWeight()%)</small></th>
+                                        <th class="text-center">Quiz<br /><small>(@GetQuizWeight()%)</small></th>
+                                        <th class="text-center">Exam<br /><small>(@GetExamWeight()%)</small></th>
+                                        <th class="text-center">Total</th>
+                                        <th class="text-center">Grade</th>
+                                        <th>Remark</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var course in GetCourses())
+                                    {
+                                        var courseGrade = GetCourseGrade(course);
+                                        <tr>
+                                            <td>@course</td>
+                                            <td class="text-center">@GetWeightedScore(courseGrade, GradeType.Homework).ToString("F1")</td>
+                                            <td class="text-center">@GetWeightedScore(courseGrade, GradeType.Quiz).ToString("F1")</td>
+                                            <td class="text-center">@GetWeightedScore(courseGrade, GradeType.FinalExam).ToString("F1")</td>
+                                            <td class="text-center"><strong>@courseGrade?.TotalGrade.ToString("F1")</strong></td>
+                                            <td class="text-center">@GetGradeCode(courseGrade?.TotalGrade ?? 0)</td>
+                                            <td>@GetGradeRemark(courseGrade?.TotalGrade ?? 0)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Summary Statistics -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <p>
+                                            <strong>Overall Semester Grade:</strong>
+                                            <span class="text-primary fs-5">@GetSemesterGrade().ToString("F1")%</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p>
+                                            <strong>Class Position:</strong>
+                                            <span class="text-primary fs-5">@GetStudentRank() out of @GetTotalStudents()</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p>
+                                            <strong>Attendance Rate:</strong>
+                                            <span class="text-primary fs-5">@GetAttendanceRate()%</span>
+                                            <small>(@GetAttendanceDetails())</small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Promotion Section (Third Semester Only) -->
+                        @if (LearningPath.Semester == Semester.Third)
+                        {
+                            <div class="card mb-4 border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">Promotion Summary</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tbody>
+                                            @{
+                                                var allSemesterGrades = LogicMethods.GetStudentAllSemesterGrades(Student, school, LearningPath.EducationLevel, LearningPath.ClassLevel);
+                                                var semesterNames = new[] { "First Semester", "Second Semester", "Third Semester" };
+                                            }
+                                            @for (int i = 0; i < 3; i++)
+                                            {
+                                                <tr>
+                                                    <td>@semesterNames[i]</td>
+                                                    <td class="text-end">
+                                                        @if (i < allSemesterGrades.Count)
+                                                        {
+                                                            <span>@allSemesterGrades[i].ToString("F1")%</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">-</span>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                            <tr class="table-primary">
+                                                <td><strong>PROMOTION GRADE</strong></td>
+                                                <td class="text-end">
+                                                    <strong>@GetPromotionGrade().ToString("F1")%</strong>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="text-center mt-3">
+                                        <h5 class="@(IsPromoted() ? "text-success" : "text-danger")">
+                                            <i class="fa @(IsPromoted() ? "fa-check-circle" : "fa-times-circle")"></i>
+                                            Promotion Status: @GetPromotionStatus()
+                                        </h5>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Comments Section -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h6>Class Teacher's Remarks:</h6>
+                                @if (isTeacher || string.IsNullOrEmpty(TeacherRemarks))
+                                {
+                                    <textarea class="form-control mb-3" @bind="TeacherRemarks" @bind:event="oninput"
+                                              placeholder="Enter teacher remarks..." rows="3"></textarea>
+                                }
+                                else
+                                {
+                                    <p class="ps-3">@TeacherRemarks</p>
+                                }
+
+                                <h6 class="mt-3">Principal's Remarks:</h6>
+                                @if (isPrincipal)
+                                {
+                                    <textarea class="form-control" @bind="PrincipalRemarks" @bind:event="oninput"
+                                              placeholder="Enter principal remarks..." rows="3"></textarea>
+                                }
+                                else
+                                {
+                                    <p class="ps-3">@(string.IsNullOrEmpty(PrincipalRemarks) ? "Pending..." : PrincipalRemarks)</p>
+                                }
+                            </div>
+
+                        </div>
+
+                        <!-- Signature Section -->
+                        <div class="row mt-5 mb-3">
+                            <div class="col-md-4 text-center">
+                                <div class="signature-line"></div>
+                                <p class="mb-0">Class Teacher</p>
+                                <small>Signature</small>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="signature-line"></div>
+                                <p class="mb-0">Principal</p>
+                                <small>Signature</small>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="signature-line"></div>
+                                <p class="mb-0">Parent/Guardian</p>
+                                <small>Signature</small>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="text-center text-muted">
+                            <p>Date Issued: @DateTime.Now.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p>Loading report card...</p>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">
+                    <i class="fa fa-times"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" @onclick="PrintReportCard">
+                    <i class="fa fa-print"></i> Print
+                </button>
+                <button type="button" class="btn btn-info" @onclick="EmailToGuardian">
+                    <i class="fa fa-envelope"></i> Email to Guardian
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+<style>
+    .report-card-container {
+        padding: 20px;
+        background: white;
+    }
+
+    .signature-line {
+        border-bottom: 1px solid #000;
+        height: 40px;
+        margin-bottom: 5px;
+    }
+
+    @@media print {
+        .modal-header,
+        .modal-footer {
+            display: none !important;
+        }
+
+        .report-card-container {
+            padding: 0;
+        }
+
+        .card {
+            border: 1px solid #000 !important;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public Student Student { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private School school;
+
+    protected override void OnInitialized()
+    {
+        school = SchoolDataService.GetSchool();
+    }
+
+    private List<string> GetCourses()
+    {
+        return CourseDefaults.GetCourseNames(LearningPath.EducationLevel);
+    }
+
+    private CourseGrade GetCourseGrade(string course)
+    {
+        return Student.CourseGrades.FirstOrDefault(cg =>
+            cg.Course == course && cg.LearningPathId == LearningPath.Id);
+    }
+
+    private double GetWeightedScore(CourseGrade courseGrade, GradeType gradeType)
+    {
+        if (courseGrade == null || courseGrade.GradingConfiguration == null) return 0;
+
+        var config = courseGrade.GradingConfiguration;
+        var weightPercentage = gradeType switch
+        {
+            GradeType.Homework => config.HomeworkWeightPercentage,
+            GradeType.Quiz => config.QuizWeightPercentage,
+            GradeType.FinalExam => config.FinalExamWeightPercentage,
+            _ => 0
+        };
+
+        return LogicMethods.CalculateWeightedContribution(courseGrade, gradeType, weightPercentage);
+    }
+
+    private int GetHomeworkWeight()
+    {
+        var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
+        return (int)(config?.HomeworkWeightPercentage ?? 20);
+    }
+
+    private int GetQuizWeight()
+    {
+        var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
+        return (int)(config?.QuizWeightPercentage ?? 30);
+    }
+
+    private int GetExamWeight()
+    {
+        var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
+        return (int)(config?.FinalExamWeightPercentage ?? 50);
+    }
+
+    private string GetGradeCode(double grade)
+    {
+        return Util.GetGradeCode(grade);
+    }
+
+    private string GetGradeRemark(double grade)
+    {
+        if (grade >= 90) return "Excellent";
+        if (grade >= 80) return "Very Good";
+        if (grade >= 70) return "Good";
+        if (grade >= 60) return "Average";
+        if (grade >= 50) return "Fair";
+        return "Needs Improvement";
+    }
+
+    private double GetSemesterGrade()
+    {
+        return LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath);
+    }
+
+    private int GetStudentRank()
+    {
+        var rankedStudents = LogicMethods.RankStudentsBySemesterGrade(LearningPath);
+        var position = rankedStudents.FindIndex(s => s.Student.Id == Student.Id) + 1;
+        return position > 0 ? position : 0;
+    }
+
+    private int GetTotalStudents()
+    {
+        return LearningPath.Students.Count;
+    }
+
+    private string GetAttendanceRate()
+    {
+        var attendanceRecords = LearningPath.AttendanceLog;
+        if (!attendanceRecords.Any()) return "0";
+
+        var totalDays = attendanceRecords.Count;
+        var presentDays = attendanceRecords.Count(log =>
+            log.PresentStudents?.Any(s => s.Id == Student.Id) == true);
+
+        var rate = (double)presentDays / totalDays * 100;
+        return rate.ToString("F0");
+    }
+
+    private string GetAttendanceDetails()
+    {
+        var attendanceRecords = LearningPath.AttendanceLog;
+        if (!attendanceRecords.Any()) return "No records";
+
+        var totalDays = attendanceRecords.Count;
+        var presentDays = attendanceRecords.Count(log =>
+            log.PresentStudents?.Any(s => s.Id == Student.Id) == true);
+
+        return $"Present: {presentDays}/{totalDays} days";
+    }
+
+    private double GetPromotionGrade()
+    {
+        var allLearningPaths = school.LearningPaths
+            .Where(lp => lp.EducationLevel == LearningPath.EducationLevel &&
+                         lp.ClassLevel == LearningPath.ClassLevel &&
+                         lp.AcademicYear == LearningPath.AcademicYear)
+            .ToList();
+
+        return LogicMethods.CalculatePromotionGrade(Student, allLearningPaths);
+    }
+
+    private bool IsPromoted()
+    {
+        return GetPromotionGrade() >= 50;
+    }
+
+    private string GetPromotionStatus()
+    {
+        if (!IsPromoted()) return "NOT PROMOTED";
+
+        if (LogicMethods.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel))
+        {
+            return "GRADUATED";
+        }
+
+        var (nextEducation, nextClass) = LogicMethods.GetNextEducationLevelAndClass(
+            LearningPath.EducationLevel, LearningPath.ClassLevel);
+
+        if (nextEducation.HasValue && nextEducation != LearningPath.EducationLevel)
+        {
+            return $"PROMOTED to {nextEducation} {nextClass}";
+        }
+
+        var nextClassLevel = LogicMethods.GetNextClassLevel(LearningPath.EducationLevel, LearningPath.ClassLevel);
+        return $"PROMOTED to {LearningPath.EducationLevel} {nextClassLevel}";
+    }
+
+    private string GetGuardianName()
+    {
+        var guardian = Student.Guardian;
+        if (guardian == null) return "N/A";
+        return $"{guardian.Person.FirstName} {guardian.Person.LastName}";
+    }
+
+    private async Task PrintReportCard()
+    {
+        await Task.Delay(100); // Small delay for UI
+        // In a real implementation, you would use JavaScript interop
+        // await JSRuntime.InvokeVoidAsync("window.print");
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}

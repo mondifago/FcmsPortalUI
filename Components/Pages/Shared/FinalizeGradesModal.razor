@@ -131,12 +131,19 @@
     <div class="modal-backdrop fade show"></div>
 }
 
+<StudentReportCardModal IsVisible="showReportCardModal"
+                        Student="selectedStudentForReport"
+                        LearningPath="LearningPath"
+                        OnClose="() => showReportCardModal = false" />
+
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public LearningPath LearningPath { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
     private School school;
+    private bool showReportCardModal = false;
+    private Student selectedStudentForReport;
 
     protected override void OnInitialized()
     {
@@ -152,9 +159,8 @@
 
     private void GenerateGradeReport(Student student)
     {
-        // TODO: Navigate to grade report generation page
-        // This is a placeholder as requested
-        Console.WriteLine($"Generate grade report for student: {student.Person.FirstName} {student.Person.LastName}");
+        selectedStudentForReport = student;
+        showReportCardModal = true;
     }
 
     private void ProcessStudentPromotion(Student student)
