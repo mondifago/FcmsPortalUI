@@ -134,12 +134,18 @@
 <StudentReportCardModal IsVisible="showReportCardModal"
                         Student="selectedStudentForReport"
                         LearningPath="LearningPath"
+                        TeacherRemarks="@(teacherRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
+                        PrincipalRemarks="@(principalRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
+                        TeacherRemarksChanged="@((remarks) => UpdateTeacherRemarks(selectedStudentForReport.Id, remarks))"
+                        PrincipalRemarksChanged="@((remarks) => UpdatePrincipalRemarks(selectedStudentForReport.Id, remarks))"
                         OnClose="() => showReportCardModal = false" />
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public LearningPath LearningPath { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+    private Dictionary<int, string> teacherRemarks = new();
+    private Dictionary<int, string> principalRemarks = new();
 
     private School school;
     private bool showReportCardModal = false;
@@ -161,6 +167,16 @@
     {
         selectedStudentForReport = student;
         showReportCardModal = true;
+    }
+
+    private void UpdateTeacherRemarks(int studentId, string remarks)
+    {
+        teacherRemarks[studentId] = remarks;
+    }
+
+    private void UpdatePrincipalRemarks(int studentId, string remarks)
+    {
+        principalRemarks[studentId] = remarks;
     }
 
     private void ProcessStudentPromotion(Student student)

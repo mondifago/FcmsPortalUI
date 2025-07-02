@@ -1,9 +1,11 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Services
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortal
 @using System.Globalization
 @inject ISchoolDataService SchoolDataService
+@inject IJSRuntime JSRuntime
 
 <div class="modal fade @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -36,19 +38,19 @@
                             <p class="mb-0"><strong>Academic Year:</strong> @LearningPath.AcademicYear</p>
                             <p><strong>Semester:</strong> @LearningPath.Semester</p>
                         </div>
-
+                        
                         <!-- Student Information -->
                         <div class="card mb-4">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <p><strong>Student Name:</strong> @Student.Person.FirstName @Student.Person.LastName</p>
+                                        <p><strong>Student Name:</strong> @Util.GetFullName(Student.Person)</p>
                                         <p><strong>Student ID:</strong> @Student.Id</p>
                                         <p><strong>Age:</strong> @Student.Person.Age years</p>
                                     </div>
                                     <div class="col-md-6">
                                         <p><strong>Class:</strong> @LearningPath.EducationLevel - @LearningPath.ClassLevel</p>
-                                        <p><strong>Guardian:</strong> @GetGuardianName()</p>
+                                        <p><strong>Guardian:</strong> @Util.GetFullName(Student.Guardian?.Person)</p>
                                     </div>
                                 </div>
                             </div>
@@ -69,16 +71,17 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var course in GetCourses())
+                                    @foreach (var course in CourseDefaults.GetCourseNames(LearningPath.EducationLevel))
                                     {
-                                        var courseGrade = GetCourseGrade(course);
+                                        var courseGrade = Student.CourseGrades.FirstOrDefault(cg =>
+                                        cg.Course == course && cg.LearningPathId == LearningPath.Id);
                                         <tr>
                                             <td>@course</td>
                                             <td class="text-center">@GetWeightedScore(courseGrade, GradeType.Homework).ToString("F1")</td>
                                             <td class="text-center">@GetWeightedScore(courseGrade, GradeType.Quiz).ToString("F1")</td>
                                             <td class="text-center">@GetWeightedScore(courseGrade, GradeType.FinalExam).ToString("F1")</td>
-                                            <td class="text-center"><strong>@courseGrade?.TotalGrade.ToString("F1")</strong></td>
-                                            <td class="text-center">@GetGradeCode(courseGrade?.TotalGrade ?? 0)</td>
+                                            <td class="text-center"><strong>@(courseGrade?.TotalGrade.ToString("F1") ?? "0.0")</strong></td>
+                                            <td class="text-center">@Util.GetGradeCode(courseGrade?.TotalGrade ?? 0)</td>
                                             <td>@GetGradeRemark(courseGrade?.TotalGrade ?? 0)</td>
                                         </tr>
                                     }
@@ -93,13 +96,13 @@
                                     <div class="col-md-4">
                                         <p>
                                             <strong>Overall Semester Grade:</strong>
-                                            <span class="text-primary fs-5">@GetSemesterGrade().ToString("F1")%</span>
+                                            <span class="text-primary fs-5">@LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath).ToString("F1")%</span>
                                         </p>
                                     </div>
                                     <div class="col-md-4">
                                         <p>
                                             <strong>Class Position:</strong>
-                                            <span class="text-primary fs-5">@GetStudentRank() out of @GetTotalStudents()</span>
+                                            <span class="text-primary fs-5">@GetStudentRank() out of @LearningPath.Students.Count</span>
                                         </p>
                                     </div>
                                     <div class="col-md-4">
@@ -186,7 +189,6 @@
                                     <p class="ps-3">@(string.IsNullOrEmpty(PrincipalRemarks) ? "Pending..." : PrincipalRemarks)</p>
                                 }
                             </div>
-
                         </div>
 
                         <!-- Signature Section -->
@@ -239,56 +241,35 @@
     <div class="modal-backdrop fade show"></div>
 }
 
-<style>
-    .report-card-container {
-        padding: 20px;
-        background: white;
-    }
-
-    .signature-line {
-        border-bottom: 1px solid #000;
-        height: 40px;
-        margin-bottom: 5px;
-    }
-
-    @@media print {
-        .modal-header,
-        .modal-footer {
-            display: none !important;
-        }
-
-        .report-card-container {
-            padding: 0;
-        }
-
-        .card {
-            border: 1px solid #000 !important;
-        }
-    }
-</style>
-
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public Student Student { get; set; }
     [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public string TeacherRemarks { get; set; } = "";
+    [Parameter] public string PrincipalRemarks { get; set; } = "";
+    [Parameter] public EventCallback<string> TeacherRemarksChanged { get; set; }
+    [Parameter] public EventCallback<string> PrincipalRemarksChanged { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
     private School school;
+    private bool isTeacher = true; // TODO: Get from current user context
+    private bool isPrincipal = false; // TODO: Get from current user context
 
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
     }
 
-    private List<string> GetCourses()
+    protected override async Task OnParametersSetAsync()
     {
-        return CourseDefaults.GetCourseNames(LearningPath.EducationLevel);
-    }
-
-    private CourseGrade GetCourseGrade(string course)
-    {
-        return Student.CourseGrades.FirstOrDefault(cg =>
-            cg.Course == course && cg.LearningPathId == LearningPath.Id);
+        if (!string.IsNullOrEmpty(TeacherRemarks))
+        {
+            await TeacherRemarksChanged.InvokeAsync(TeacherRemarks);
+        }
+        if (!string.IsNullOrEmpty(PrincipalRemarks))
+        {
+            await PrincipalRemarksChanged.InvokeAsync(PrincipalRemarks);
+        }
     }
 
     private double GetWeightedScore(CourseGrade courseGrade, GradeType gradeType)
@@ -310,24 +291,19 @@
     private int GetHomeworkWeight()
     {
         var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
-        return (int)(config?.HomeworkWeightPercentage ?? 20);
+        return (int)(config?.HomeworkWeightPercentage ?? FcmsConstants.DEFAULT_HOMEWORK_WEIGHT);
     }
 
     private int GetQuizWeight()
     {
         var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
-        return (int)(config?.QuizWeightPercentage ?? 30);
+        return (int)(config?.QuizWeightPercentage ?? FcmsConstants.DEFAULT_QUIZ_WEIGHT);
     }
 
     private int GetExamWeight()
     {
         var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
-        return (int)(config?.FinalExamWeightPercentage ?? 50);
-    }
-
-    private string GetGradeCode(double grade)
-    {
-        return Util.GetGradeCode(grade);
+        return (int)(config?.FinalExamWeightPercentage ?? FcmsConstants.DEFAULT_EXAM_WEIGHT);
     }
 
     private string GetGradeRemark(double grade)
@@ -340,21 +316,11 @@
         return "Needs Improvement";
     }
 
-    private double GetSemesterGrade()
-    {
-        return LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath);
-    }
-
     private int GetStudentRank()
     {
         var rankedStudents = LogicMethods.RankStudentsBySemesterGrade(LearningPath);
         var position = rankedStudents.FindIndex(s => s.Student.Id == Student.Id) + 1;
         return position > 0 ? position : 0;
-    }
-
-    private int GetTotalStudents()
-    {
-        return LearningPath.Students.Count;
     }
 
     private string GetAttendanceRate()
@@ -395,7 +361,7 @@
 
     private bool IsPromoted()
     {
-        return GetPromotionGrade() >= 50;
+        return GetPromotionGrade() >= FcmsConstants.PASSING_GRADE;
     }
 
     private string GetPromotionStatus()
@@ -419,18 +385,22 @@
         return $"PROMOTED to {LearningPath.EducationLevel} {nextClassLevel}";
     }
 
-    private string GetGuardianName()
-    {
-        var guardian = Student.Guardian;
-        if (guardian == null) return "N/A";
-        return $"{guardian.Person.FirstName} {guardian.Person.LastName}";
-    }
-
     private async Task PrintReportCard()
     {
-        await Task.Delay(100); // Small delay for UI
-        // In a real implementation, you would use JavaScript interop
-        // await JSRuntime.InvokeVoidAsync("window.print");
+        await JSRuntime.InvokeVoidAsync("window.print");
+    }
+
+    private async Task EmailToGuardian()
+    {
+        var guardianEmail = Student.Guardian?.Person?.Email;
+        if (string.IsNullOrEmpty(guardianEmail))
+        {
+            // TODO: Show error message
+            return;
+        }
+
+        // TODO: Implement email functionality
+        Console.WriteLine($"Email report card to: {guardianEmail}");
     }
 
     private void Close()
