@@ -201,6 +201,16 @@ namespace FcmsPortalUI
             };
         }
 
+        public static string GetGradeRemark(double grade)
+        {
+            if (grade >= 90) return "Excellent";
+            if (grade >= 80) return "Very Good";
+            if (grade >= 70) return "Good";
+            if (grade >= 60) return "Average";
+            if (grade >= 50) return "Fair";
+            return "Needs Improvement";
+        }
+
         public static string GetGradeColorClass(double grade, bool useTextPrefix = false)
         {
             string prefix = useTextPrefix ? "text-" : "";

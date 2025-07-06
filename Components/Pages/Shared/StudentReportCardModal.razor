@@ -50,7 +50,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <p><strong>Class:</strong> @LearningPath.EducationLevel - @LearningPath.ClassLevel</p>
-                                        <p><strong>Guardian:</strong> @Util.GetFullName(Student.Guardian?.Person)</p>
+                                        <p><strong>Guardian:</strong> @(guardian != null ? Util.GetFullName(guardian.Person) : "N/A")</p>
                                     </div>
                                 </div>
                             </div>
@@ -82,7 +82,7 @@
                                             <td class="text-center">@GetWeightedScore(courseGrade, GradeType.FinalExam).ToString("F1")</td>
                                             <td class="text-center"><strong>@(courseGrade?.TotalGrade.ToString("F1") ?? "0.0")</strong></td>
                                             <td class="text-center">@Util.GetGradeCode(courseGrade?.TotalGrade ?? 0)</td>
-                                            <td>@GetGradeRemark(courseGrade?.TotalGrade ?? 0)</td>
+                                            <td>@Util.GetGradeRemark(courseGrade?.TotalGrade ?? 0)</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -252,16 +252,27 @@
     [Parameter] public EventCallback OnClose { get; set; }
 
     private School school;
-    private bool isTeacher = true; // TODO: Get from current user context
-    private bool isPrincipal = false; // TODO: Get from current user context
+    private bool isTeacher = true; 
+    private bool isPrincipal = false; 
+    private Guardian guardian;
 
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
+
+        if (Student != null)
+        {
+            guardian = SchoolDataService.GetGuardianByStudentId(Student.Id);
+        }
     }
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Student != null && (guardian == null || guardian.Id != Student.GuardianId))
+        {
+            guardian = SchoolDataService.GetGuardianByStudentId(Student.Id);
+        }
+
         if (!string.IsNullOrEmpty(TeacherRemarks))
         {
             await TeacherRemarksChanged.InvokeAsync(TeacherRemarks);
@@ -306,16 +317,6 @@
         return (int)(config?.FinalExamWeightPercentage ?? FcmsConstants.DEFAULT_EXAM_WEIGHT);
     }
 
-    private string GetGradeRemark(double grade)
-    {
-        if (grade >= 90) return "Excellent";
-        if (grade >= 80) return "Very Good";
-        if (grade >= 70) return "Good";
-        if (grade >= 60) return "Average";
-        if (grade >= 50) return "Fair";
-        return "Needs Improvement";
-    }
-
     private int GetStudentRank()
     {
         var rankedStudents = LogicMethods.RankStudentsBySemesterGrade(LearningPath);
@@ -325,27 +326,16 @@
 
     private string GetAttendanceRate()
     {
-        var attendanceRecords = LearningPath.AttendanceLog;
-        if (!attendanceRecords.Any()) return "0";
-
-        var totalDays = attendanceRecords.Count;
-        var presentDays = attendanceRecords.Count(log =>
-            log.PresentStudents?.Any(s => s.Id == Student.Id) == true);
-
-        var rate = (double)presentDays / totalDays * 100;
+        var (_, _, rate) = LogicMethods.CalculateStudentAttendance(LearningPath.AttendanceLog, Student.Id);
         return rate.ToString("F0");
     }
 
     private string GetAttendanceDetails()
     {
-        var attendanceRecords = LearningPath.AttendanceLog;
-        if (!attendanceRecords.Any()) return "No records";
+        var (presentDays, totalDays, rate) = LogicMethods.CalculateStudentAttendance(LearningPath.AttendanceLog, Student.Id);
 
-        var totalDays = attendanceRecords.Count;
-        var presentDays = attendanceRecords.Count(log =>
-            log.PresentStudents?.Any(s => s.Id == Student.Id) == true);
-
-        return $"Present: {presentDays}/{totalDays} days";
+        if (totalDays == 0) return "No records";
+        return $"Present: {presentDays}/{totalDays} days ({rate:F0}%)";
     }
 
     private double GetPromotionGrade()
@@ -392,10 +382,9 @@
 
     private async Task EmailToGuardian()
     {
-        var guardianEmail = Student.Guardian?.Person?.Email;
+        var guardianEmail = guardian?.Person?.Email;
         if (string.IsNullOrEmpty(guardianEmail))
         {
-            // TODO: Show error message
             return;
         }
 
