@@ -165,7 +165,6 @@
         </div>
     }
 
-    @* Original Schedule Display Section (kept for compatibility) *@
     @if (LearningPath.Schedule != null && LearningPath.Schedule.Any())
     {
         <div class="card mb-4">
@@ -207,7 +206,6 @@
         </div>
     }
 
-    @* Students Section *@
     @if (availableStudents != null && availableStudents.Any())
     {
         <div class="card mb-4">
@@ -283,6 +281,27 @@
         <button type="button" class="btn btn-secondary ms-2" @onclick="OnCancel">Cancel</button>
     </div>
 </EditForm>
+
+<ScheduleEntryCreate IsVisible="showCreateScheduleModal"
+                     LearningPathId="@(LearningPath.Id > 0 ? LearningPath.Id : null)"
+                     AllowClassSchedule="true"
+                     RestrictToClassOnly="true"
+                     OnSave="HandleScheduleCreated"
+                     OnClose="() => showCreateScheduleModal = false" />
+
+<ScheduleEntryEdit IsVisible="showEditScheduleModal"
+                   LearningPathId="@(LearningPath.Id > 0 ? LearningPath.Id : null)"
+                   ExistingScheduleEntry="scheduleToEdit"
+                   AllowClassSchedule="true"
+                   RestrictToClassOnly="true"
+                   OnSave="HandleScheduleUpdated"
+                   OnClose="() => { showEditScheduleModal = false; scheduleToEdit = null; }" />
+
+<ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                    Title="Confirm Delete Schedule"
+                    Message="Are you sure you want to delete this schedule? This action cannot be undone."
+                    OnConfirm="ConfirmDeleteSchedule"
+                    OnCancel="CancelDeleteSchedule" />
 
 @code {
     [Parameter]
@@ -428,20 +447,93 @@
         StateHasChanged();
     }
 
+    private bool showCreateScheduleModal = false;
+    private bool showEditScheduleModal = false;
+    private bool showDeleteConfirmation = false;
+    private ScheduleEntry scheduleToEdit = null;
+    private ScheduleEntry scheduleToDelete = null;
+
     private void EditSchedule(ScheduleEntry schedule)
     {
-        // TODO: Implement schedule editing modal
+        scheduleToEdit = schedule;
+        showEditScheduleModal = true;
     }
 
     private void DeleteSchedule(ScheduleEntry schedule)
     {
-        LearningPath.Schedule.Remove(schedule);
-        StateHasChanged();
+        scheduleToDelete = schedule;
+        showDeleteConfirmation = true;
     }
 
     private void AddNewSchedule()
     {
-        // TODO: Implement add schedule modal
+        showCreateScheduleModal = true;
+    }
+
+    private void HandleScheduleCreated(ScheduleEntry newSchedule)
+    {
+        if (newSchedule != null)
+        {
+            if (newSchedule.Id <= 0)
+            {
+                newSchedule.Id = LearningPath.Schedule.Count > 0
+                    ? LearningPath.Schedule.Max(s => s.Id) + 1
+                    : 1;
+            }
+
+            if (newSchedule.ClassSession != null && newSchedule.ClassSession.Id <= 0)
+            {
+                var allClassSessions = LearningPath.Schedule
+                    .Where(s => s.ClassSession != null)
+                    .Select(s => s.ClassSession.Id);
+                newSchedule.ClassSession.Id = allClassSessions.Any()
+                    ? allClassSessions.Max() + 1
+                    : 1;
+            }
+
+            LearningPath.Schedule.Add(newSchedule);
+            StateHasChanged();
+        }
+        showCreateScheduleModal = false;
+    }
+
+    private void HandleScheduleUpdated(ScheduleEntry updatedSchedule)
+    {
+        if (updatedSchedule != null && scheduleToEdit != null)
+        {
+            var index = LearningPath.Schedule.IndexOf(scheduleToEdit);
+            if (index >= 0)
+            {
+                updatedSchedule.Id = scheduleToEdit.Id;
+
+                if (updatedSchedule.ClassSession != null && scheduleToEdit.ClassSession != null)
+                {
+                    updatedSchedule.ClassSession.Id = scheduleToEdit.ClassSession.Id;
+                }
+
+                LearningPath.Schedule[index] = updatedSchedule;
+                StateHasChanged();
+            }
+        }
+        showEditScheduleModal = false;
+        scheduleToEdit = null;
+    }
+
+    private void ConfirmDeleteSchedule()
+    {
+        if (scheduleToDelete != null)
+        {
+            LearningPath.Schedule.Remove(scheduleToDelete);
+            StateHasChanged();
+        }
+        showDeleteConfirmation = false;
+        scheduleToDelete = null;
+    }
+
+    private void CancelDeleteSchedule()
+    {
+        showDeleteConfirmation = false;
+        scheduleToDelete = null;
     }
 
     private void HandleValidSubmit()
