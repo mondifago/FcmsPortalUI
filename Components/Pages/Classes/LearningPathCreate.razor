@@ -10,27 +10,154 @@
 
 <h3>Create Learning Path</h3>
 
+@if (templateApplied && showTemplateAlert)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="fa fa-magic"></i>
+        <strong>Template Applied!</strong> Using template from @templateSource academic year.
+        <button type="button" class="btn btn-sm btn-outline-primary ms-2" @onclick="ClearTemplate">
+            <i class="fa fa-refresh"></i> Start Fresh
+        </button>
+        <button type="button" class="btn-close" @onclick="DismissTemplateAlert"></button>
+    </div>
+}
+
 <div class="row">
     <div class="col-md-8">
         <LearningPathForm LearningPath="learningPath"
                           SubmitButtonText="Create Learning Path"
                           OnSubmit="HandleValidSubmit"
-                          OnCancel="NavigateToList" />
+                          OnCancel="NavigateToList"
+                          OnEducationLevelChanged="HandleEducationLevelChanged"
+                          OnClassLevelChanged="HandleClassLevelChanged"
+                          OnSemesterChanged="HandleSemesterChanged"
+                          TemplateApplied="templateApplied"
+                          TemplateSource="templateSource"
+                          OnClearTemplate="ClearTemplate" />
     </div>
 </div>
 
 @code {
     private LearningPath learningPath = new LearningPath();
+    private bool templateApplied = false;
+    private string templateSource = "";
+    private bool showTemplateAlert = true;
 
     protected override void OnInitialized()
     {
-        learningPath.Students = new List<Student>();
-        learningPath.StudentsWithAccess = new List<Student>();
-        learningPath.Schedule = new List<ScheduleEntry>();
-        learningPath.AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1);
-        learningPath.SemesterStartDate = new DateTime(DateTime.Now.Year, 9, 1);
-        learningPath.SemesterEndDate = new DateTime(DateTime.Now.Year, 12, 15);
-        learningPath.ExamsStartDate = new DateTime(DateTime.Now.Year, 12, 1);
+        InitializeNewLearningPath();
+    }
+
+    private void InitializeNewLearningPath()
+    {
+        learningPath = new LearningPath
+        {
+            Students = new List<Student>(),
+            StudentsWithAccess = new List<Student>(),
+            Schedule = new List<ScheduleEntry>(),
+            AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1),
+            SemesterStartDate = new DateTime(DateTime.Now.Year, 9, 1),
+            SemesterEndDate = new DateTime(DateTime.Now.Year, 12, 15),
+            ExamsStartDate = new DateTime(DateTime.Now.Year, 12, 1),
+            Semester = Semester.First 
+        };
+
+        templateApplied = false;
+        templateSource = "";
+        showTemplateAlert = true;
+    }
+
+    private void HandleEducationLevelChanged(EducationLevel educationLevel)
+    {
+        learningPath.EducationLevel = educationLevel;
+        CheckAndApplyTemplate();
+    }
+
+    private void HandleClassLevelChanged(ClassLevel classLevel)
+    {
+        learningPath.ClassLevel = classLevel;
+        CheckAndApplyTemplate();
+    }
+
+    private void HandleSemesterChanged(Semester semester)
+    {
+        learningPath.Semester = semester;
+        CheckAndApplyTemplate();
+    }
+
+    private void CheckAndApplyTemplate()
+    {
+        if (learningPath.EducationLevel != EducationLevel.None &&
+            learningPath.ClassLevel != ClassLevel.None)
+        {
+            if (SchoolDataService.HasTemplate(learningPath.EducationLevel, learningPath.ClassLevel, learningPath.Semester))
+            {
+                ApplyTemplate();
+            }
+            else
+            {
+                ClearTemplateData();
+            }
+        }
+    }
+
+    private void ApplyTemplate()
+    {
+        var template = SchoolDataService.GetTemplate(learningPath.EducationLevel, learningPath.ClassLevel, learningPath.Semester);
+        if (template != null)
+        {
+            var templatedLearningPath = SchoolDataService.ApplyTemplateToNewLearningPath(template, learningPath.AcademicYearStart);
+            if (templatedLearningPath != null)
+            {
+                templatedLearningPath.Students = learningPath.Students;
+                templatedLearningPath.StudentsWithAccess = learningPath.StudentsWithAccess;
+
+                learningPath = templatedLearningPath;
+
+                templateApplied = true;
+                templateSource = template.AcademicYear;
+                showTemplateAlert = true;
+
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void ClearTemplate()
+    {
+        var currentEducationLevel = learningPath.EducationLevel;
+        var currentClassLevel = learningPath.ClassLevel;
+        var currentSemester = learningPath.Semester;
+        var currentStudents = learningPath.Students;
+        var currentStudentsWithAccess = learningPath.StudentsWithAccess;
+        var currentAcademicYearStart = learningPath.AcademicYearStart;
+
+        InitializeNewLearningPath();
+
+        learningPath.EducationLevel = currentEducationLevel;
+        learningPath.ClassLevel = currentClassLevel;
+        learningPath.Semester = currentSemester;
+        learningPath.Students = currentStudents;
+        learningPath.StudentsWithAccess = currentStudentsWithAccess;
+        learningPath.AcademicYearStart = currentAcademicYearStart;
+
+        StateHasChanged();
+    }
+
+    private void ClearTemplateData()
+    {
+        if (templateApplied)
+        {
+            learningPath.Schedule.Clear();
+            templateApplied = false;
+            templateSource = "";
+            StateHasChanged();
+        }
+    }
+
+    private void DismissTemplateAlert()
+    {
+        showTemplateAlert = false;
     }
 
     private void HandleValidSubmit(LearningPath submittedLearningPath)

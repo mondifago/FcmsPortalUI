@@ -503,6 +503,8 @@
     {
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
         SchoolDataService.UpdateLearningPath(learningPath);
+        SchoolDataService.CreateTemplateFromLearningPath(learningPath);
+        StateHasChanged();
     }
 
     private void RestoreLearningPath()

@@ -18,11 +18,11 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
-                    <InputSelect id="educationLevel" class="form-select" @bind-Value="LearningPath.EducationLevel" @bind-Value:after="OnEducationLevelChanged">
+                    <InputSelect id="educationLevel" class="form-select" @bind-Value="LearningPath.EducationLevel" @bind-Value:after="NotifyEducationLevelChanged">
                         <option value="@EducationLevel.None">-- Select Education Level --</option>
                         @foreach (var level in Enum.GetValues(typeof(EducationLevel))
-                        .Cast<EducationLevel>()
-                        .Where(l => l != EducationLevel.None))
+                                                .Cast<EducationLevel>()
+                                                .Where(l => l != EducationLevel.None))
                         {
                             <option value="@level">@level</option>
                         }
@@ -31,7 +31,7 @@
                 </div>
                 <div class="col-md-6">
                     <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
-                    <select @bind="LearningPath.ClassLevel" @bind:after="OnClassLevelChanged" class="form-select">
+                    <select @bind="LearningPath.ClassLevel" @bind:after="NotifyClassLevelChanged" class="form-select">
                         <option value="@ClassLevel.None">-- Select Class Level --</option>
                         @foreach (var level in availableClassLevels)
                         {
@@ -45,30 +45,12 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="semester" class="form-label">Semester*</label>
-                    <InputSelect id="semester" @bind-Value="LearningPath.Semester" class="form-select">
-                        <option value="0">-- Select Semester --</option>
+                    <InputSelect id="semester" @bind-Value="LearningPath.Semester" @bind-Value:after="NotifySemesterChanged" class="form-select">
                         @foreach (var semester in Enum.GetValues(typeof(Semester)))
                         {
                             <option value="@semester">@semester</option>
                         }
                     </InputSelect>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label for="semesterStartDate" class="form-label">Semester Start Date<span class="text-danger">*</span></label>
-                        <InputDate id="semesterStartDate" @bind-Value="LearningPath.SemesterStartDate" class="form-control" />
-                        <ValidationMessage For="@(() => LearningPath.SemesterStartDate)" />
-                    </div>
-                    <div class="col-md-4">
-                        <label for="semesterEndDate" class="form-label">Semester End Date<span class="text-danger">*</span></label>
-                        <InputDate id="semesterEndDate" @bind-Value="LearningPath.SemesterEndDate" class="form-control" />
-                        <ValidationMessage For="@(() => LearningPath.SemesterEndDate)" />
-                    </div>
-                    <div class="col-md-4">
-                        <label for="examsStartDate" class="form-label">Exams Start Date<span class="text-danger">*</span></label>
-                        <InputDate id="examsStartDate" @bind-Value="LearningPath.ExamsStartDate" class="form-control" />
-                        <ValidationMessage For="@(() => LearningPath.ExamsStartDate)" />
-                    </div>
                 </div>
                 <div class="col-md-6">
                     <label for="academicYearStart" class="form-label">Academic Year<span class="text-danger">*</span></label>
@@ -78,6 +60,24 @@
                             <option value="@year">@year-@(year + 1)</option>
                         }
                     </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="semesterStartDate" class="form-label">Semester Start Date<span class="text-danger">*</span></label>
+                    <InputDate id="semesterStartDate" @bind-Value="LearningPath.SemesterStartDate" class="form-control" />
+                    <ValidationMessage For="@(() => LearningPath.SemesterStartDate)" />
+                </div>
+                <div class="col-md-4">
+                    <label for="semesterEndDate" class="form-label">Semester End Date<span class="text-danger">*</span></label>
+                    <InputDate id="semesterEndDate" @bind-Value="LearningPath.SemesterEndDate" class="form-control" />
+                    <ValidationMessage For="@(() => LearningPath.SemesterEndDate)" />
+                </div>
+                <div class="col-md-4">
+                    <label for="examsStartDate" class="form-label">Exams Start Date<span class="text-danger">*</span></label>
+                    <InputDate id="examsStartDate" @bind-Value="LearningPath.ExamsStartDate" class="form-control" />
+                    <ValidationMessage For="@(() => LearningPath.ExamsStartDate)" />
                 </div>
             </div>
 
@@ -101,6 +101,113 @@
         </div>
     </div>
 
+    @* Schedule & Sessions Management Section *@
+    @if (LearningPath.Schedule != null && LearningPath.Schedule.Any())
+    {
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Schedule & Sessions Management</h5>
+                @if (TemplateApplied)
+                {
+                    <div>
+                        <span class="badge bg-info me-2">
+                            <i class="fa fa-magic"></i> From Template (@TemplateSource)
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="OnClearTemplate">
+                            <i class="fa fa-refresh"></i> Start Fresh
+                        </button>
+                    </div>
+                }
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Venue</th>
+                                <th>Course</th>
+                                <th>Topic</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var schedule in LearningPath.Schedule)
+                            {
+                                <tr>
+                                    <td>@schedule.Title</td>
+                                    <td>@schedule.DateTime.ToString("g")</td>
+                                    <td>@schedule.Duration.ToString(@"hh\:mm")</td>
+                                    <td>@schedule.Venue</td>
+                                    <td>@(schedule.ClassSession?.Course ?? "N/A")</td>
+                                    <td>@(schedule.ClassSession?.Topic ?? "N/A")</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" @onclick="() => EditSchedule(schedule)">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" @onclick="() => DeleteSchedule(schedule)">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-success btn-sm mt-2" @onclick="AddNewSchedule">
+                    <i class="fa fa-plus"></i> Add Schedule
+                </button>
+            </div>
+        </div>
+    }
+
+    @* Original Schedule Display Section (kept for compatibility) *@
+    @if (LearningPath.Schedule != null && LearningPath.Schedule.Any())
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Schedule Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Venue</th>
+                                <th>Course</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var schedule in LearningPath.Schedule)
+                            {
+                                <tr>
+                                    <td>@schedule.Id</td>
+                                    <td>@schedule.Title</td>
+                                    <td>@schedule.DateTime.ToString("g")</td>
+                                    <td>@schedule.Duration.ToString(@"hh\:mm")</td>
+                                    <td>@schedule.Venue</td>
+                                    <td>@(schedule.ClassSession?.Course ?? "N/A")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-muted mt-2">
+                    <small>Note: To manage schedules, please use the Schedule Management section above</small>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* Students Section *@
     @if (availableStudents != null && availableStudents.Any())
     {
         <div class="card mb-4">
@@ -171,47 +278,6 @@
         </div>
     }
 
-    @if (LearningPath.Schedule != null && LearningPath.Schedule.Any())
-    {
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Schedule</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Date</th>
-                                <th>Duration</th>
-                                <th>Venue</th>
-                                <th>Course</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var schedule in LearningPath.Schedule)
-                            {
-                                <tr>
-                                    <td>@schedule.Id</td>
-                                    <td>@schedule.Title</td>
-                                    <td>@schedule.DateTime.ToString("g")</td>
-                                    <td>@schedule.Duration.ToString(@"hh\:mm")</td>
-                                    <td>@schedule.Venue</td>
-                                    <td>@(schedule.ClassSession?.Course ?? "N/A")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <div class="text-muted mt-2">
-                    <small>Note: To manage schedules, please use the Schedule Management section</small>
-                </div>
-            </div>
-        </div>
-    }
-
     <div class="mb-3">
         <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
         <button type="button" class="btn btn-secondary ms-2" @onclick="OnCancel">Cancel</button>
@@ -231,6 +297,24 @@
     [Parameter]
     public EventCallback OnCancel { get; set; }
 
+    [Parameter]
+    public EventCallback<EducationLevel> OnEducationLevelChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<ClassLevel> OnClassLevelChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<Semester> OnSemesterChanged { get; set; }
+
+    [Parameter]
+    public bool TemplateApplied { get; set; } = false;
+
+    [Parameter]
+    public string TemplateSource { get; set; } = "";
+
+    [Parameter]
+    public EventCallback OnClearTemplate { get; set; }
+
     private School school;
     private List<Student> availableStudents = new List<Student>();
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
@@ -241,78 +325,71 @@
     {
         school = SchoolDataService.GetSchool();
 
-        if (LearningPath.Students == null)
-            LearningPath.Students = new List<Student>();
+        if (LearningPath.Students != null)
+        {
+            selectedStudentIds = new HashSet<int>(LearningPath.Students.Select(s => s.Id));
+        }
 
-        if (LearningPath.StudentsWithAccess == null)
-            LearningPath.StudentsWithAccess = new List<Student>();
+        LoadAvailableStudents();
+        LoadAvailableClassLevels();
 
-        if (LearningPath.Schedule == null)
-            LearningPath.Schedule = new List<ScheduleEntry>();
-
-        if (LearningPath.AcademicYearStart == default)
-            LearningPath.AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1);
-
-        academicYearStartYear = LearningPath.AcademicYearStart.Year;
-        availableClassLevels = LogicMethods.GetAvailableClassLevels(LearningPath.EducationLevel);
-        UpdateAvailableStudents();
-        selectedStudentIds = new HashSet<int>(LearningPath.Students.Select(s => s.Id));
+        academicYearStartYear = LearningPath.AcademicYearStart.Year != 1 ?
+            LearningPath.AcademicYearStart.Year : DateTime.Now.Year;
     }
 
-    private async Task OnEducationLevelChanged()
-    {
-        LearningPath.ClassLevel = ClassLevel.None;
-        availableClassLevels = LogicMethods.GetAvailableClassLevels(LearningPath.EducationLevel);
-        UpdateAvailableStudents();
-        StateHasChanged();
-    }
-
-    private async Task OnClassLevelChanged()
-    {
-        UpdateAvailableStudents();
-        StateHasChanged();
-    }
-
-    private void UpdateAvailableStudents()
+    private void LoadAvailableStudents()
     {
         if (LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
         {
             availableStudents = LogicMethods.GetStudentsByLevel(school, LearningPath.EducationLevel, LearningPath.ClassLevel);
-
-            var existingIds = new HashSet<int>(LearningPath.Students.Select(s => s.Id));
-
-            var newSelectedIds = new HashSet<int>();
-
-            foreach (var id in selectedStudentIds)
-            {
-                if (availableStudents.Any(s => s.Id == id))
-                {
-                    newSelectedIds.Add(id);
-                }
-            }
-            foreach (var id in existingIds)
-            {
-                if (availableStudents.Any(s => s.Id == id))
-                {
-                    newSelectedIds.Add(id);
-                }
-            }
-            selectedStudentIds = newSelectedIds;
-        }
-        else
-        {
-            availableStudents.Clear();
-            selectedStudentIds.Clear();
         }
     }
 
-    private async Task OnFeePerSemesterChanged()
+    private void LoadAvailableClassLevels()
     {
-        if (LearningPath.Students != null && LearningPath.Students.Any())
-        {
-            LogicMethods.HandleFeeChangeForLearningPath(LearningPath, LearningPath.FeePerSemester);
-        }
+        var classLevelMapping = new ClassLevelMapping();
+        var mappings = classLevelMapping.GetClassLevelsByEducationLevel();
 
+        if (mappings.TryGetValue(LearningPath.EducationLevel, out var levels))
+        {
+            availableClassLevels = levels;
+        }
+        else
+        {
+            availableClassLevels = new List<ClassLevel>();
+        }
+    }
+
+    private async Task NotifyEducationLevelChanged()
+    {
+        await OnEducationLevelChanged.InvokeAsync(LearningPath.EducationLevel);
+        OnEducationLevelChangedInternal();
+    }
+
+    private async Task NotifyClassLevelChanged()
+    {
+        await OnClassLevelChanged.InvokeAsync(LearningPath.ClassLevel);
+        OnClassLevelChangedInternal();
+    }
+
+    private async Task NotifySemesterChanged()
+    {
+        await OnSemesterChanged.InvokeAsync(LearningPath.Semester);
+    }
+
+    private void OnEducationLevelChangedInternal()
+    {
+        LearningPath.ClassLevel = ClassLevel.None;
+        selectedStudentIds.Clear();
+        LoadAvailableClassLevels();
+        LoadAvailableStudents();
+        StateHasChanged();
+    }
+
+    private void OnClassLevelChangedInternal()
+    {
+        selectedStudentIds.Clear();
+        LoadAvailableStudents();
         StateHasChanged();
     }
 
@@ -323,6 +400,11 @@
             LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : 9,
             LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : 1
         );
+    }
+
+    private void OnFeePerSemesterChanged()
+    {
+        StateHasChanged();
     }
 
     private bool IsStudentSelected(int studentId)
@@ -344,6 +426,22 @@
     {
         selectedStudentIds.Clear();
         StateHasChanged();
+    }
+
+    private void EditSchedule(ScheduleEntry schedule)
+    {
+        // TODO: Implement schedule editing modal
+    }
+
+    private void DeleteSchedule(ScheduleEntry schedule)
+    {
+        LearningPath.Schedule.Remove(schedule);
+        StateHasChanged();
+    }
+
+    private void AddNewSchedule()
+    {
+        // TODO: Implement add schedule modal
     }
 
     private void HandleValidSubmit()
