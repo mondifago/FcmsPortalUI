@@ -1,6 +1,7 @@
 ﻿using FcmsPortal.Constants;
 using FcmsPortal.Enums;
 using FcmsPortal.Models;
+using Microsoft.AspNetCore.Components.Forms;
 using System.Text.RegularExpressions;
 
 namespace FcmsPortalUI
@@ -256,6 +257,28 @@ namespace FcmsPortalUI
                 GradeType.FinalExam => "Exam",
                 _ => gradeType.ToString()
             };
+        }
+
+        public static bool IsValidImageFile(IBrowserFile file)
+        {
+            var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" };
+            return allowedTypes.Contains(file.ContentType.ToLower());
+        }
+
+        public static string GetLogoDisplayUrl(string logoUrl)
+        {
+            if (string.IsNullOrEmpty(logoUrl))
+                return "";
+
+            if (logoUrl.StartsWith("data:image"))
+                return logoUrl;
+
+            return logoUrl;
+        }
+
+        public static async Task<IBrowserFile> ResizeImageForLogo(IBrowserFile originalFile)
+        {
+            return await originalFile.RequestImageFileAsync("image/jpeg", 400, 400);
         }
     }
 }

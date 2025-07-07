@@ -4,7 +4,6 @@
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
 @using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
 
@@ -144,23 +143,16 @@ else
             var file = e.File;
             if (file != null)
             {
-                // Create a resized image file stream
-                var resizedImageFile = await file.RequestImageFileAsync("image/jpeg", 400, 400);
+                if (!Util.IsValidImageFile(file))
+                {
+                    // Show error message
+                    return;
+                }
+                var resizedImageFile = await Util.ResizeImageForLogo(file);
+                var attachment = await SchoolDataService.UploadFileAsync(resizedImageFile, "SchoolLogos");
+                school.LogoUrl = attachment.FilePath;
+                logoUrl = Util.GetLogoDisplayUrl(attachment.FilePath);
 
-                // Read the file content
-                using var stream = resizedImageFile.OpenReadStream();
-                using var ms = new MemoryStream();
-                await stream.CopyToAsync(ms);
-                var imageBytes = ms.ToArray();
-
-                // Convert to base64 for preview
-                var base64String = Convert.ToBase64String(imageBytes);
-                logoUrl = $"data:image/jpeg;base64,{base64String}";
-
-                // Update the school model with the logo URL
-                school.LogoUrl = logoUrl;
-
-                // Force UI refresh
                 StateHasChanged();
             }
         }
@@ -173,9 +165,6 @@ else
 
     private void HandleValidSubmit()
     {
-        // In a real application, this would create the school in the database
-        // For now, we'll simulate it by updating the school in our service
-
         // Add code here to save the new school to your service
         // Example: SchoolDataService.CreateSchool(school);
 
