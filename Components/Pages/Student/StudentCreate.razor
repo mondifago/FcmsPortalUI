@@ -18,17 +18,17 @@
 
 @code {
     private Student newStudent = new Student
+    {
+        Person = new Person
         {
-            Person = new Person
-            {
-                DateOfEnrollment = DateTime.Now,
-                IsActive = true
-            }
-        };
+            DateOfEnrollment = DateTime.Now,
+            IsActive = true
+        }
+    };
 
     //private FcmsPortal.Models.School school;
     //private Guardian assotiatedguardian;
-    
+
     protected override void OnInitialized()
     {
         // Check if a guardian ID was passed in the query string
@@ -42,10 +42,23 @@
             {
                 newStudent.GuardianId = selectedGuardian.Id;
                 newStudent.Person.LastName = selectedGuardian.Person.LastName;
-                newStudent.Person.Addresses = selectedGuardian.Person.Addresses;
                 newStudent.Person.StateOfOrigin = selectedGuardian.Person.StateOfOrigin;
                 newStudent.Person.LgaOfOrigin = selectedGuardian.Person.LgaOfOrigin;
                 newStudent.Person.EmergencyContact = selectedGuardian.Person.PhoneNumber;
+                foreach (var guardianAddress in selectedGuardian.Person.Addresses)
+                {
+                    var newAddress = new Address
+                    {
+                        Street = guardianAddress.Street,
+                        City = guardianAddress.City,
+                        State = guardianAddress.State,
+                        PostalCode = guardianAddress.PostalCode,
+                        Country = guardianAddress.Country,
+                        AddressType = guardianAddress.AddressType
+                    };
+                    var savedAddress = SchoolDataService.AddAddress(newAddress);
+                    newStudent.Person.Addresses.Add(savedAddress);
+                }
             }
         }
     }

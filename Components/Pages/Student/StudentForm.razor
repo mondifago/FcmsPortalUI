@@ -214,12 +214,12 @@
 @code {
     [Parameter, EditorRequired]
     public Student Student { get; set; } = new()
+    {
+        Person = new Person()
         {
-            Person = new Person()
-            {
-                IsActive = true
-            }
-        };
+            IsActive = true
+        }
+    };
 
     [Parameter]
     public string SubmitButtonText { get; set; } = "Save";
@@ -297,7 +297,8 @@
 
     private void SaveAddress(Address address)
     {
-        Student.Person.Addresses.Add(address);
+        var savedAddress = SchoolDataService.AddAddress(address);
+        Student.Person.Addresses.Add(savedAddress);
         showAddressForm = false;
         currentAddress = new Address();
     }

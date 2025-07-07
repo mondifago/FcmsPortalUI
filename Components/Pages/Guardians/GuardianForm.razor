@@ -256,7 +256,8 @@
 
     private void SaveAddress(Address address)
     {
-        Guardian.Person.Addresses.Add(address);
+        var savedAddress = SchoolDataService.AddAddress(address);
+        Guardian.Person.Addresses.Add(savedAddress);
         showAddressForm = false;
         currentAddress = new Address();
     }

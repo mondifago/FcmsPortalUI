@@ -237,14 +237,14 @@
 @code {
     [Parameter, EditorRequired]
     public Staff Staff { get; set; } = new()
+    {
+        Person = new Person()
         {
-            Person = new Person()
-            {
-                IsActive = true
-            },
-            Qualifications = new List<string>(),
-            WorkExperience = new List<string>()
-        };
+            IsActive = true
+        },
+        Qualifications = new List<string>(),
+        WorkExperience = new List<string>()
+    };
 
     [Parameter]
     public string SubmitButtonText { get; set; } = "Save";
@@ -357,7 +357,8 @@
 
     private void SaveAddress(Address address)
     {
-        Staff.Person.Addresses.Add(address);
+        var savedAddress = SchoolDataService.AddAddress(address);
+        Staff.Person.Addresses.Add(savedAddress);
         showAddressForm = false;
         currentAddress = new Address();
     }

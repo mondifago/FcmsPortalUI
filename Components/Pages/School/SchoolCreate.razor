@@ -1,7 +1,6 @@
 ﻿@page "/school/create"
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
-@inject AddressService AddressService
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
@@ -23,7 +22,7 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    
+
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="name" class="form-label">School Name</label>
@@ -116,20 +115,26 @@ else
 
     protected override void OnInitialized()
     {
-        // Initialize a new school object
         school = new FcmsPortal.Models.School
+        {
+            Name = "",
+            Email = "",
+            PhoneNumber = "",
+            WebsiteUrl = "",
+            LogoUrl = "",
+            Students = new List<Student>(),
+            Staff = new List<Staff>(),
+            Guardians = new List<Guardian>(),
+            SchoolCalendar = new List<CalendarModel>(),
+            Address = SchoolDataService.AddAddress(new Address
             {
-                Name = "",
-                Email = "",
-                PhoneNumber = "",
-                WebsiteUrl = "",
-                LogoUrl = "",
-                Address = new Address(),
-                Students = new List<Student>(),
-                Staff = new List<Staff>(),
-                Guardians = new List<Guardian>(),
-                SchoolCalendar = new List<CalendarModel>()
-            };
+                Street = "",
+                City = "",
+                State = "",
+                Country = "",
+                AddressType = AddressType.Office
+            })
+        };
     }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
