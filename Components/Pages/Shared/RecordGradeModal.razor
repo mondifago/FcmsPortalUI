@@ -111,6 +111,7 @@
     private GradeType selectedGradeType = GradeType.Quiz;
     private List<TestGrade> studentTestGrades = new();
     private double maxScore = FcmsConstants.TOTAL_SCORE;
+    private Dictionary<TestGrade, Student> testGradeStudentMap = new();
 
     protected override void OnParametersSet()
     {
@@ -126,6 +127,7 @@
         var currentTeacher = GetCurrentTeacher();
 
         studentTestGrades.Clear();
+        testGradeStudentMap.Clear();
 
         foreach (var student in LearningPath.Students.OrderBy(s => s.Person.LastName))
         {
@@ -139,13 +141,13 @@
             };
 
             studentTestGrades.Add(testGrade);
+            testGradeStudentMap[testGrade] = student;
         }
     }
 
     private Student GetStudentForTestGrade(TestGrade testGrade)
     {
-        var index = studentTestGrades.IndexOf(testGrade);
-        return LearningPath.Students.OrderBy(s => s.Person.LastName).ToList()[index];
+        return testGradeStudentMap.GetValueOrDefault(testGrade);
     }
 
     private bool IsFormValid()

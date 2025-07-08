@@ -2,6 +2,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Services
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject IJSRuntime JSRuntime
@@ -35,31 +36,17 @@
                                     <p><strong>Date of Birth:</strong> @student.Person.DateOfBirth.ToString("MMMM d, yyyy")</p>
                                     <p><strong>State of Origin:</strong> @student.Person.StateOfOrigin</p>
                                     <p><strong>LGA of Origin:</strong> @student.Person.LgaOfOrigin</p>
-                                    <p><strong>Age at Graduation:</strong> @CalculateAgeAtGraduation() years</p>
+                                    <p><strong>Age at Graduation:</strong> @student.Person.Age years</p>
 
                                 </div>
                                 <div class="col-md-6">
                                     <h5 class="text-primary mb-3">Academic Details</h5>
                                     <p><strong>Enrollment Date:</strong> @student.Person.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
-                                    <p><strong>Enrollment Class Level:</strong> @student.Person.ClassLevel</p>
+                                    <p><strong>Enrollment Class Level:</strong> @GetEnrollmentClassLevel()</p>
                                     <p><strong>Enrollment Duration:</strong> @CalculateEnrollmentDuration()</p>
-                                    <p><strong>Graduation Class:</strong> Senior College 3 (SC 3)</p>
+                                    <p><strong>Graduation Class:</strong> @student.Person.ClassLevel</p>
                                     <p><strong>Graduation Academic Year:</strong> @GetGraduationAcademicYear()</p>
                                     <p><strong>Graduation Date:</strong> @GetGraduationDate()</p>
-                                    @if (student.Person.Addresses.Any())
-                                    {
-                                        var address = student.Person.Addresses.First();
-                                        <p>
-                                            <strong>Student Address:</strong><br />
-                                            @address.Street, @address.City<br />
-                                            @address.State, @address.Country
-                                            @if (!string.IsNullOrEmpty(address.PostalCode))
-                                            {
-                                                <br />
-                                                @address.PostalCode
-                                            }
-                                        </p>
-                                    }
                                 </div>
                             </div>
                         </div>
@@ -159,19 +146,17 @@
         }
     }
 
-    private int CalculateAgeAtGraduation()
+    private string GetEnrollmentClassLevel()
     {
-        if (student?.ArchivedDate.HasValue == true)
-        {
-            var graduationDate = student.ArchivedDate.Value;
-            int age = graduationDate.Year - student.Person.DateOfBirth.Year;
-            if (graduationDate < student.Person.DateOfBirth.AddYears(age))
-            {
-                age--;
-            }
-            return age;
-        }
-        return student?.Person.Age ?? 0;
+        if (student == null) return "N/A";
+
+        var earliestLearningPath = SchoolDataService.GetAllLearningPaths()
+            .Where(lp => lp.Students.Any(s => s.Id == student.Id))
+            .OrderBy(lp => lp.AcademicYearStart)
+            .ThenBy(lp => lp.Semester)
+            .FirstOrDefault();
+
+        return earliestLearningPath?.ClassLevel.ToString() ?? "N/A";
     }
 
     private string CalculateEnrollmentDuration()
@@ -179,27 +164,27 @@
         if (student?.ArchivedDate.HasValue == true)
         {
             var duration = student.ArchivedDate.Value - student.Person.DateOfEnrollment;
-            var years = duration.Days / 365;
-            var months = (duration.Days % 365) / 30;
+            var years = Math.Round((double)duration.Days / FcmsConstants.DAYS_IN_YEAR, 1);
 
-            if (years > 0)
-            {
-                return months > 0 ? $"{years} years, {months} months" : $"{years} years";
-            }
-            return $"{months} months";
+            return $"{years} years";
         }
         return "N/A";
     }
 
     private string GetGraduationAcademicYear()
     {
-        if (student?.ArchivedDate.HasValue == true)
-        {
-            var graduationYear = student.ArchivedDate.Value.Year;
-            return $"{graduationYear - 1}-{graduationYear}";
-        }
-        return "N/A";
+        if (student == null) return "N/A";
+
+        var graduationLearningPath = SchoolDataService.GetAllLearningPaths()
+            .FirstOrDefault(lp =>
+                lp.EducationLevel == EducationLevel.SeniorCollege &&
+                lp.ClassLevel == ClassLevel.SC_3 &&
+                lp.Semester == Semester.Third &&
+                lp.Students.Any(s => s.Id == student.Id));
+
+        return graduationLearningPath?.AcademicYear ?? "N/A";
     }
+
 
     private string GetGraduationDate()
     {
