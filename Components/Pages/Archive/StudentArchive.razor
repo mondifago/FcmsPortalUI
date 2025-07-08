@@ -1,7 +1,10 @@
 ﻿@page "/archive/students"
 @using FcmsPortal.Models
 @using FcmsPortal.Services
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <PageTitle>Archived Students</PageTitle>
@@ -10,7 +13,11 @@
     <div class="row mb-4">
         <div class="col">
             <div class="d-flex justify-content-between align-items-center">
-                <h1><i class="fa fa-archive"></i> Archived Students (Graduates)</h1>
+                <h1><i class="fa fa-archive"></i> Archived Students </h1>
+                <a href="/archive" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left"></i> Back
+                </a>
+
             </div>
         </div>
     </div>
@@ -43,14 +50,11 @@
                                     <td>@(student.ArchivedDate?.ToString("MMM dd, yyyy") ?? "Unknown")</td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary" @onclick="() => ViewStudentDetails(student)">
-                                                <i class="fa fa-eye"></i> View Details
+                                            <button class="btn btn-outline-primary" @onclick="() => NavigateToTestimonial(student)">
+                                                 Testimonial
                                             </button>
-                                            <button class="btn btn-outline-warning" @onclick="() => RestoreStudent(student)">
-                                                <i class="fa fa-undo"></i> Restore
-                                            </button>
-                                            <button class="btn btn-outline-success" @onclick="() => GenerateCertificate(student)">
-                                                <i class="fa fa-certificate"></i> Certificate
+                                            <button class="btn btn-outline-success" @onclick="() => ShowFinalResult(student)">
+                                                 Final Result
                                             </button>
                                         </div>
                                     </td>
@@ -68,14 +72,24 @@
             <div class="card-body text-center">
                 <i class="fa fa-archive file-icon-large text-muted"></i>
                 <h4 class="mt-3">No Archived Students</h4>
-                <p class="text-muted">Students who graduate from Senior College 3 (SSS3) will appear here.</p>
             </div>
         </div>
     }
 </div>
+<!-- Final Result Modal -->
+@if (showReportCardModal && selectedStudent != null && ss3LearningPath != null)
+{
+    <StudentReportCardModal Student="selectedStudent"
+                            LearningPath="ss3LearningPath"
+                            IsVisible="showReportCardModal"
+                            OnClose="CloseReportCardModal" />
+}
 
 @code {
     private List<Student> archivedStudents = new();
+    private bool showReportCardModal = false;
+    private Student? selectedStudent = null;
+    private LearningPath? ss3LearningPath = null;
 
     protected override void OnInitialized()
     {
@@ -87,23 +101,31 @@
         archivedStudents = SchoolDataService.GetArchivedStudents();
     }
 
-    private void ViewStudentDetails(Student student)
+    private void NavigateToTestimonial(Student student)
     {
-        // TODO: Implement archived student details view
-        // This could show academic history, grades, graduation details, etc.
+        NavigationManager.NavigateTo($"/students/details/{student.Id}");
     }
 
-    private void RestoreStudent(Student student)
+    private void ShowFinalResult(Student student)
     {
-        // TODO: Add confirmation dialog
-        SchoolDataService.RestoreStudentFromArchive(student.Id);
-        LoadArchivedStudents();
-        StateHasChanged();
+        selectedStudent = student;
+
+        ss3LearningPath = SchoolDataService.GetAllLearningPaths()
+            .FirstOrDefault(lp =>
+                lp.EducationLevel == EducationLevel.SeniorCollege &&
+                lp.ClassLevel == ClassLevel.SC_3 &&
+                lp.Semester == Semester.Third);
+
+        if (ss3LearningPath != null)
+        {
+            showReportCardModal = true;
+        }
     }
 
-    private void GenerateCertificate(Student student)
+    private void CloseReportCardModal()
     {
-        // TODO: Implement graduation certificate generation
-        // This would generate a PDF certificate for the graduated student
+        showReportCardModal = false;
+        selectedStudent = null;
+        ss3LearningPath = null;
     }
 }
