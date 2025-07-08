@@ -1,0 +1,213 @@
+﻿@page "/testimonial/{studentId:int}"
+@using FcmsPortal.Models
+@using FcmsPortal.Services
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Student Testimonial</PageTitle>
+
+<div class="container-fluid">
+    @if (student != null && guardian != null)
+    {
+        <div id="testimonial-content">
+            <div class="card">
+                <div class="card-header text-center bg-primary text-white">
+                    <h3 class="mb-0">Student Testimonial</h3>
+                    <p class="mb-0">@SchoolDataService.GetSchool().Name</p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4">
+                            <div class="card-body text-center">
+                                <ProfileThumbnailDetail Person="student.Person" />
+                            </div>
+
+                        </div>
+
+                        <!-- Student Information -->
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="text-primary mb-3">Student Information</h5>
+                                    <p><strong>Full Name:</strong> @Util.GetFullName(student.Person)</p>
+                                    <p><strong>Date of Birth:</strong> @student.Person.DateOfBirth.ToString("MMMM d, yyyy")</p>
+                                    <p><strong>State of Origin:</strong> @student.Person.StateOfOrigin</p>
+                                    <p><strong>LGA of Origin:</strong> @student.Person.LgaOfOrigin</p>
+                                    <p><strong>Age at Graduation:</strong> @CalculateAgeAtGraduation() years</p>
+
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="text-primary mb-3">Academic Details</h5>
+                                    <p><strong>Enrollment Date:</strong> @student.Person.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
+                                    <p><strong>Enrollment Class Level:</strong> @student.Person.ClassLevel</p>
+                                    <p><strong>Enrollment Duration:</strong> @CalculateEnrollmentDuration()</p>
+                                    <p><strong>Graduation Class:</strong> Senior College 3 (SC 3)</p>
+                                    <p><strong>Graduation Academic Year:</strong> @GetGraduationAcademicYear()</p>
+                                    <p><strong>Graduation Date:</strong> @GetGraduationDate()</p>
+                                    @if (student.Person.Addresses.Any())
+                                    {
+                                        var address = student.Person.Addresses.First();
+                                        <p>
+                                            <strong>Student Address:</strong><br />
+                                            @address.Street, @address.City<br />
+                                            @address.State, @address.Country
+                                            @if (!string.IsNullOrEmpty(address.PostalCode))
+                                            {
+                                                <br />
+                                                @address.PostalCode
+                                            }
+                                        </p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Guardian Information -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">Guardian Information</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Guardian Name:</strong> @Util.GetFullName(guardian.Person)</p>
+                            <p><strong>Relationship:</strong> @guardian.RelationshipToStudent</p>
+                            <p><strong>Occupation:</strong> @guardian.Occupation</p>
+                            <p><strong>Email:</strong> @guardian.Person.Email</p>
+                            <p><strong>Phone Number:</strong> @guardian.Person.PhoneNumber</p>
+                        </div>
+                        <div class="col-md-6">
+                            @if (guardian.Person.Addresses.Any())
+                            {
+                                var guardianAddress = guardian.Person.Addresses.First();
+                                <p>
+                                    <strong>Guardian Address:</strong><br />
+                                    @guardianAddress.Street, @guardianAddress.City<br />
+                                    @guardianAddress.State, @guardianAddress.Country
+                                    @if (!string.IsNullOrEmpty(guardianAddress.PostalCode))
+                                    {
+                                        <br />
+                                        @guardianAddress.PostalCode
+                                    }
+                                </p>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Principal Remark -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">Principal Remark</h5>
+                            <div class="form-group">
+                                <textarea class="form-control" rows="5" @bind="principalRemark"
+                                          placeholder="Principal's remark..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center d-print-none">
+                    <button class="btn btn-primary" @onclick="PrintTestimonial">
+                        <i class="fa fa-print"></i> Print Testimonial
+                    </button>
+                    <a href="/archive" class="btn btn-secondary ms-2">
+                        <i class="fa fa-arrow-left"></i> Back to Archive
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fa fa-user-times fa-3x text-muted mb-3"></i>
+                <h4>Student Not Found</h4>
+                <p class="text-muted">The requested student could not be found in the archive.</p>
+                <a href="/archive" class="btn btn-primary">
+                    <i class="fa fa-arrow-left"></i> Back to Archive
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int StudentId { get; set; }
+
+    private Student? student;
+    private Guardian? guardian;
+    private string principalRemark = "";
+
+    protected override void OnInitialized()
+    {
+        LoadStudentData();
+    }
+
+    private void LoadStudentData()
+    {
+        var archivedStudents = SchoolDataService.GetArchivedStudents();
+        student = archivedStudents.FirstOrDefault(s => s.Id == StudentId);
+
+        if (student != null)
+        {
+            guardian = SchoolDataService.GetGuardianById(student.GuardianId);
+        }
+    }
+
+    private int CalculateAgeAtGraduation()
+    {
+        if (student?.ArchivedDate.HasValue == true)
+        {
+            var graduationDate = student.ArchivedDate.Value;
+            int age = graduationDate.Year - student.Person.DateOfBirth.Year;
+            if (graduationDate < student.Person.DateOfBirth.AddYears(age))
+            {
+                age--;
+            }
+            return age;
+        }
+        return student?.Person.Age ?? 0;
+    }
+
+    private string CalculateEnrollmentDuration()
+    {
+        if (student?.ArchivedDate.HasValue == true)
+        {
+            var duration = student.ArchivedDate.Value - student.Person.DateOfEnrollment;
+            var years = duration.Days / 365;
+            var months = (duration.Days % 365) / 30;
+
+            if (years > 0)
+            {
+                return months > 0 ? $"{years} years, {months} months" : $"{years} years";
+            }
+            return $"{months} months";
+        }
+        return "N/A";
+    }
+
+    private string GetGraduationAcademicYear()
+    {
+        if (student?.ArchivedDate.HasValue == true)
+        {
+            var graduationYear = student.ArchivedDate.Value.Year;
+            return $"{graduationYear - 1}-{graduationYear}";
+        }
+        return "N/A";
+    }
+
+    private string GetGraduationDate()
+    {
+        return student?.ArchivedDate?.ToString("MMMM d, yyyy") ?? "N/A";
+    }
+
+    private async Task PrintTestimonial()
+    {
+        await JSRuntime.InvokeVoidAsync("window.print");
+    }
+}

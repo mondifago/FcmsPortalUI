@@ -864,3 +864,50 @@ main {
     }
 }
 
+/* Print-specific styles for testimonial */
+@media print {
+    /* Hide print button and navigation in testimonial */
+    .d-print-none {
+        display: none !important;
+    }
+
+    /* Testimonial print formatting */
+    #testimonial-content {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+    }
+
+        #testimonial-content .card {
+            border: 2px solid #000 !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+        }
+
+        #testimonial-content .card-header {
+            background-color: #000 !important;
+            color: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        #testimonial-content h3,
+        #testimonial-content h5 {
+            color: #000 !important;
+        }
+
+        #testimonial-content .text-primary {
+            color: #000 !important;
+        }
+
+        /* Ensure student photo prints properly */
+        #testimonial-content img {
+            border: 1px solid #000 !important;
+        }
+
+    /* Page break settings */
+    #testimonial-content {
+        page-break-inside: avoid;
+    }
+}
+
