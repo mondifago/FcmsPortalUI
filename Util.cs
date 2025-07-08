@@ -1,4 +1,5 @@
-﻿using FcmsPortal.Constants;
+﻿using FcmsPortal;
+using FcmsPortal.Constants;
 using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using Microsoft.AspNetCore.Components.Forms;
@@ -257,6 +258,15 @@ namespace FcmsPortalUI
                 GradeType.FinalExam => "Exam",
                 _ => gradeType.ToString()
             };
+        }
+
+        public static string GetPromotionButtonText(EducationLevel educationLevel, ClassLevel classLevel)
+        {
+            if (LogicMethods.IsLastClassInEducationLevel(educationLevel, classLevel))
+            {
+                return "Graduate";
+            }
+            return "Promote";
         }
 
         public static bool IsValidImageFile(IBrowserFile file)

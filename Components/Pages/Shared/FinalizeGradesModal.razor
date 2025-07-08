@@ -98,7 +98,7 @@
                                                 <button class="btn btn-sm @(LogicMethods.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel) ? "btn-success" : "btn-warning")"
                                                         @onclick="() => ProcessStudentPromotion(student)">
                                                     <i class="fa @(LogicMethods.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel) ? "fa-graduation-cap" : "fa-arrow-up")"></i>
-                                                    @LogicMethods.GetPromotionButtonText(LearningPath.EducationLevel, LearningPath.ClassLevel)
+                                                    @Util.GetPromotionButtonText(LearningPath.EducationLevel, LearningPath.ClassLevel)
                                                 </button>
                                             }
                                         </td>
