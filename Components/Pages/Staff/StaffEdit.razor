@@ -27,7 +27,7 @@ else
 
     private Staff? staff;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         staff = SchoolDataService.GetStaffById(Id);
 
@@ -38,7 +38,7 @@ else
         } 
     }
 
-    private async Task UpdateStaff(Staff updatedStaff)
+    private void UpdateStaff(Staff updatedStaff)
     {
         updatedStaff.Id = Id;
         SchoolDataService.UpdateStaff(updatedStaff);

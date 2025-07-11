@@ -86,11 +86,11 @@
 </div>
 
 @code {
-    private IEnumerable<Guardian> guardians;
+    private IEnumerable<Guardian>? guardians;
     private int guardianIdToDelete;
     private bool showDeleteConfirmation = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         guardians = SchoolDataService.GetGuardians();
     }

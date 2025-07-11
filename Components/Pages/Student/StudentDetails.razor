@@ -260,13 +260,13 @@
 @code {
     [Parameter]
     public int Id { get; set; }
-    private Student student;
-    private Guardian guardian;
+    private Student? student;
+    private Guardian? guardian;
     private bool showLearningPathModal = false;
     private int selectedLearningPathId = 0;
     private List<LearningPath> availableLearningPaths = new List<LearningPath>();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         student = SchoolDataService.GetStudentById(Id);
 

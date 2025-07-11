@@ -146,10 +146,10 @@
 </div>
 
 @code {
-    [Parameter] public DiscussionThread Thread { get; set; }
-    [Parameter] public List<DiscussionThread> AllThreads { get; set; }
+    [Parameter] public DiscussionThread? Thread { get; set; }
+    [Parameter] public List<DiscussionThread>? AllThreads { get; set; }
     [Parameter] public bool AllowReplies { get; set; } = true;
-    [Parameter] public Person CurrentUser { get; set; }
+    [Parameter] public Person? CurrentUser { get; set; }
     [Parameter] public EventCallback<DiscussionThread> OnThreadUpdated { get; set; }
     [Parameter] public EventCallback<DiscussionThread> OnNewThreadCreated { get; set; }
     [Parameter] public int ClassSessionId { get; set; }
@@ -163,7 +163,7 @@
     {
         if (!string.IsNullOrWhiteSpace(newReply.Comment) && CurrentUser != null)
         {
-            int replyId = await SchoolDataService.GetNextPostId();
+            int replyId = SchoolDataService.GetNextPostId();
             LogicMethods.AddReply(thread, replyId, CurrentUser, newReply.Comment);
 
             newReply = new();
@@ -180,8 +180,8 @@
     {
         if (!string.IsNullOrWhiteSpace(newFirstPost.Comment) && CurrentUser != null)
         {
-            int threadId = await SchoolDataService.GetNextThreadId(ClassSessionId);
-            int postId = await SchoolDataService.GetNextPostId();
+            int threadId = SchoolDataService.GetNextThreadId(ClassSessionId);
+            int postId = SchoolDataService.GetNextPostId();
 
             var newThread = LogicMethods.StartDiscussion(
                 threadId,
