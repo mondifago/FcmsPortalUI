@@ -2,6 +2,7 @@
 @using FcmsPortal.Services
 @using FcmsPortal
 @using System.Globalization
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <div class="modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -24,7 +25,7 @@
                         <div class="report-section">
                             <div class="report-grid">
                                 <div>
-                                    <p><strong>Learning Path:</strong> @reportData.LearningPathName</p>
+                                    <p><strong>Learning Path:</strong> @Util.GetLearningPathName(LearningPath)</p>
                                     <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>
                                     <p><strong>Semester:</strong> @reportData.Semester</p>
                                 </div>
@@ -76,7 +77,7 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public LearningPath LearningPath { get; set; }
+    public LearningPath? LearningPath { get; set; }
 
     [Parameter]
     public EventCallback OnClose { get; set; }
@@ -91,9 +92,9 @@
         }
     }
 
-    private void PrintReport()
+    private async Task PrintReport()
     {
-        // placeholder
+        await JSRuntime.InvokeVoidAsync("window.print");
     }
 
     private void Close()

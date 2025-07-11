@@ -3,6 +3,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortal
 @using System.Globalization
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <div class="modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -76,10 +77,10 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public FcmsPortal.Models.School School { get; set; }
+    public FcmsPortal.Models.School? School { get; set; }
 
     [Parameter]
-    public string AcademicYear { get; set; }
+    public string? AcademicYear { get; set; }
 
     [Parameter]
     public Semester Semester { get; set; }
@@ -97,9 +98,9 @@
         }
     }
 
-    private void PrintReport()
+    private async Task PrintReport()
     {
-        // placeholder
+        await JSRuntime.InvokeVoidAsync("window.print");
     }
 
     private void Close()
