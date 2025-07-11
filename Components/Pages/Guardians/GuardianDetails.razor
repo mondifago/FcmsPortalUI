@@ -132,16 +132,13 @@
     [Parameter]
     public int Id { get; set; }
 
-    private Guardian guardian;
-    private List<Student> associatedStudents;
-    private FcmsPortal.Models.School school;
+    private Guardian? guardian;
+    private List<Student>? associatedStudents;
+    private FcmsPortal.Models.School? school;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        // Get the school first
         school = SchoolDataService.GetSchool();
-
-        // Get the guardian by ID
         guardian = SchoolDataService.GetGuardianById(Id);
 
         if (guardian == null)
@@ -150,7 +147,7 @@
         }
         else
         {
-            associatedStudents = guardian.Wards;//FcmsPortal.LogicMethods.GetStudentsByGuardianId(school, Id);
+            associatedStudents = guardian.Wards;
         }
     }
 }

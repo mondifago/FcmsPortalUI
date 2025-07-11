@@ -284,7 +284,7 @@
     {
         availableLearningPaths = SchoolDataService.GetAllLearningPaths()
             .Where(lp =>
-                lp.EducationLevel == student.Person.EducationLevel &&
+                lp.EducationLevel == student?.Person.EducationLevel &&
                 lp.ClassLevel == student.Person.ClassLevel)
             .ToList();
 
@@ -299,7 +299,7 @@
 
     private void AddStudentToSelectedLearningPath()
     {
-        if (selectedLearningPathId == 0)
+        if (selectedLearningPathId == 0 || student == null)
             return;
 
         var learningPath = SchoolDataService.GetLearningPathById(selectedLearningPathId);
@@ -326,6 +326,9 @@
 
     private void NavigateToManagePayments()
     {
+        if (student?.Person?.SchoolFees == null)
+            return; 
+
         NavigationManager.NavigateTo($"/schoolfees/{student.Person.SchoolFees.Id}/payments");
     }
 }

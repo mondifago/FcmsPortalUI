@@ -30,7 +30,7 @@
 
     private Guardian? guardian;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         guardian = SchoolDataService.GetGuardianById(Id);
 
