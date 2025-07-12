@@ -26,9 +26,6 @@
         }
     };
 
-    //private FcmsPortal.Models.School school;
-    //private Guardian assotiatedguardian;
-
     protected override void OnInitialized()
     {
         // Check if a guardian ID was passed in the query string
@@ -66,10 +63,16 @@
     private void CreateStudent(Student student)
     {
         var createdStudent = SchoolDataService.AddStudent(student);
-        var assotiatedguardian = SchoolDataService.GetGuardianById(student.GuardianId);
-        FcmsPortal.LogicMethods.AddStudentToGuardianWards(assotiatedguardian, createdStudent);
+        var associatedGuardian = SchoolDataService.GetGuardianById(student.GuardianId);
+
+        if (associatedGuardian != null)
+        {
+            FcmsPortal.LogicMethods.AddStudentToGuardianWards(associatedGuardian, createdStudent);
+        }
+
         NavigationManager.NavigateTo("/students");
     }
+
 
     private void CancelCreate()
     {

@@ -62,9 +62,9 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Course</th>
-                                        <th class="text-center">Homework<br /><small>(@GetHomeworkWeight()%)</small></th>
-                                        <th class="text-center">Quiz<br /><small>(@GetQuizWeight()%)</small></th>
-                                        <th class="text-center">Exam<br /><small>(@GetExamWeight()%)</small></th>
+                                        <th class="text-center">Homework<br /><small>(@GetHomeworkWeight().ToString("F0")%)</small></th>
+                                        <th class="text-center">Quiz<br /><small>(@GetQuizWeight().ToString("F0")%)</small></th>
+                                        <th class="text-center">Exam<br /><small>(@GetExamWeight().ToString("F0")%)</small></th>
                                         <th class="text-center">Total</th>
                                         <th class="text-center">Grade</th>
                                         <th>Remark</th>
@@ -108,8 +108,15 @@
                                     <div class="col-md-4">
                                         <p>
                                             <strong>Attendance Rate:</strong>
-                                            <span class="text-primary fs-5">@GetAttendanceRate()%</span>
-                                            <small>(@GetAttendanceDetails())</small>
+                                            <span class="text-primary fs-5">@GetAttendanceRate().ToString("F0")%</span>
+                                            @{
+                                                var (present, total, rate) = GetAttendanceDetails();
+                                            }
+                                        <small>
+                                            @(total == 0
+                                                                                        ? "No records"
+                                                                                        : $"Present: {present}/{total} days ({rate.ToString("F0")}%)")
+                                        </small>
                                         </p>
                                     </div>
                                 </div>
@@ -243,18 +250,18 @@
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public Student Student { get; set; }
-    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public Student? Student { get; set; }
+    [Parameter] public LearningPath? LearningPath { get; set; }
     [Parameter] public string TeacherRemarks { get; set; } = "";
     [Parameter] public string PrincipalRemarks { get; set; } = "";
     [Parameter] public EventCallback<string> TeacherRemarksChanged { get; set; }
     [Parameter] public EventCallback<string> PrincipalRemarksChanged { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
-    private School school;
+    private School? school;
     private bool isTeacher = true; 
     private bool isPrincipal = false; 
-    private Guardian guardian;
+    private Guardian? guardian;
 
     protected override void OnInitialized()
     {
@@ -283,7 +290,7 @@
         }
     }
 
-    private double GetWeightedScore(CourseGrade courseGrade, GradeType gradeType)
+    private double GetWeightedScore(CourseGrade? courseGrade, GradeType gradeType)
     {
         if (courseGrade == null || courseGrade.GradingConfiguration == null) return 0;
 
@@ -299,51 +306,72 @@
         return LogicMethods.CalculateWeightedContribution(courseGrade, gradeType, weightPercentage);
     }
 
-    private int GetHomeworkWeight()
+    private double GetHomeworkWeight()
     {
+        if (LearningPath?.CourseGradingConfigurations == null)
+            return FcmsConstants.DEFAULT_HOMEWORK_WEIGHT;
+
         var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
-        return (int)(config?.HomeworkWeightPercentage ?? FcmsConstants.DEFAULT_HOMEWORK_WEIGHT);
+        return config?.HomeworkWeightPercentage ?? FcmsConstants.DEFAULT_HOMEWORK_WEIGHT;
     }
 
-    private int GetQuizWeight()
+    private double GetQuizWeight()
     {
+        if (LearningPath?.CourseGradingConfigurations == null)
+            return FcmsConstants.DEFAULT_QUIZ_WEIGHT;
+
         var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
-        return (int)(config?.QuizWeightPercentage ?? FcmsConstants.DEFAULT_QUIZ_WEIGHT);
+        return config?.QuizWeightPercentage ?? FcmsConstants.DEFAULT_QUIZ_WEIGHT;
     }
 
-    private int GetExamWeight()
+    private double GetExamWeight()
     {
+        if (LearningPath?.CourseGradingConfigurations == null)
+            return FcmsConstants.DEFAULT_EXAM_WEIGHT;
+
         var config = LearningPath.CourseGradingConfigurations.FirstOrDefault();
-        return (int)(config?.FinalExamWeightPercentage ?? FcmsConstants.DEFAULT_EXAM_WEIGHT);
+        return config?.FinalExamWeightPercentage ?? FcmsConstants.DEFAULT_EXAM_WEIGHT;
     }
+
 
     private int GetStudentRank()
     {
+        if (Student == null || LearningPath == null)
+            return 0;
+
         var rankedStudents = LogicMethods.RankStudentsBySemesterGrade(LearningPath);
         var position = rankedStudents.FindIndex(s => s.Student.Id == Student.Id) + 1;
         return position > 0 ? position : 0;
     }
 
-    private string GetAttendanceRate()
+    private double GetAttendanceRate()
     {
+        if (LearningPath == null || Student == null)
+            return 0;
+
         var (_, _, rate) = LogicMethods.CalculateStudentAttendance(LearningPath.AttendanceLog, Student.Id);
-        return rate.ToString("F0");
+        return rate;
     }
 
-    private string GetAttendanceDetails()
-    {
-        var (presentDays, totalDays, rate) = LogicMethods.CalculateStudentAttendance(LearningPath.AttendanceLog, Student.Id);
 
-        if (totalDays == 0) return "No records";
-        return $"Present: {presentDays}/{totalDays} days ({rate:F0}%)";
+    private (int PresentDays, int TotalDays, double Rate) GetAttendanceDetails()
+    {
+        if (LearningPath == null || Student == null)
+            return (0, 0, 0);
+
+        return LogicMethods.CalculateStudentAttendance(LearningPath.AttendanceLog, Student.Id);
     }
 
     private double GetPromotionGrade()
     {
+        if (school == null || LearningPath == null || Student == null)
+            return 0;
+
         var allLearningPaths = school.LearningPaths
-            .Where(lp => lp.EducationLevel == LearningPath.EducationLevel &&
-                         lp.ClassLevel == LearningPath.ClassLevel &&
-                         lp.AcademicYear == LearningPath.AcademicYear)
+            .Where(lp =>
+                lp.EducationLevel == LearningPath.EducationLevel &&
+                lp.ClassLevel == LearningPath.ClassLevel &&
+                lp.AcademicYear == LearningPath.AcademicYear)
             .ToList();
 
         return LogicMethods.CalculatePromotionGrade(Student, allLearningPaths);
@@ -356,7 +384,8 @@
 
     private string GetPromotionStatus()
     {
-        if (!IsPromoted()) return "NOT PROMOTED";
+        if (LearningPath == null || !IsPromoted())
+            return "NOT PROMOTED";
 
         if (LogicMethods.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel))
         {
@@ -375,12 +404,12 @@
         return $"PROMOTED to {LearningPath.EducationLevel} {nextClassLevel}";
     }
 
-    private async Task PrintReportCard()
+    private void PrintReportCard()
     {
-        await JSRuntime.InvokeVoidAsync("window.print");
+        JSRuntime.InvokeVoidAsync("window.print");
     }
 
-    private async Task EmailToGuardian()
+    private void EmailToGuardian()
     {
         var guardianEmail = guardian?.Person?.Email;
         if (string.IsNullOrEmpty(guardianEmail))

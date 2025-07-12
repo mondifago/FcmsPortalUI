@@ -95,12 +95,12 @@
 </div>
 
 @code {
-    private IEnumerable<Student> students;
+    private IEnumerable<Student>? students;
     private int studentIdToDelete;
     private bool showDeleteConfirmation = false;
     private bool showGuardianSelectionModal = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         students = SchoolDataService.GetStudents();
        
@@ -138,21 +138,18 @@
         var student = SchoolDataService.GetStudentById(studentIdToDelete);
         if (student != null)
         {
-            // Clean up profile picture
             if (!string.IsNullOrEmpty(student.Person.ProfilePictureUrl) && !student.Person.ProfilePictureUrl.StartsWith("data:"))
             {
                 var attachment = new FileAttachment { FilePath = student.Person.ProfilePictureUrl };
                 SchoolDataService.DeleteFileAsync(attachment);
             }
 
-            // Remove student from guardian's ward list
             var guardian = SchoolDataService.GetGuardianByStudentId(student.Id);
             if (guardian != null)
             {
                 FcmsPortal.LogicMethods.RemoveStudentFromGuardianWards(guardian, student);
             }
 
-            // Remove student from any learning paths
             var school = SchoolDataService.GetSchool();
             FcmsPortal.LogicMethods.RemoveStudentFromAllLearningPaths(school, student);
         }

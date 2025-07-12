@@ -1,7 +1,7 @@
 ﻿@using FcmsPortal.Models
 
 
-@if (Person.Addresses != null && Person.Addresses.Any())
+@if (Person?.Addresses != null && Person.Addresses.Any())
 {
     <div class="card">
         <div class="card-header">
@@ -44,6 +44,5 @@
 }
 @code {
     [Parameter]
-    public Person Person { get; set; }
-
+    public Person? Person { get; set; }
 }

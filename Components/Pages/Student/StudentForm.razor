@@ -233,12 +233,12 @@
     private string profilePictureUrl = "";
     private string oldProfilePictureUrl = "";
     private List<Guardian> guardians = new();
-    private FcmsPortal.Models.School school;
+    private FcmsPortal.Models.School? school;
     private bool showAddressForm = false;
     private Address currentAddress = new();
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
         guardians = FcmsPortal.LogicMethods.GetAllGuardians(school);
@@ -257,7 +257,7 @@
         availableClassLevels = LogicMethods.GetAvailableClassLevels(Student.Person.EducationLevel);
     }
 
-    private async Task OnEducationLevelChanged()
+    private void OnEducationLevelChanged()
     {
         Student.Person.ClassLevel = ClassLevel.None;
         availableClassLevels = LogicMethods.GetAvailableClassLevels(Student.Person.EducationLevel);

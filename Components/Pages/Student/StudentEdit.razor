@@ -27,9 +27,9 @@
     [Parameter]
     public int Id { get; set; }
 
-    private Student student;
+    private Student? student;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         student = SchoolDataService.GetStudentById(Id);
 
@@ -43,17 +43,14 @@
     {
         SchoolDataService.UpdateStudent(updatedStudent);
 
-        // If the guardian has changed, update guardian associations
         if (updatedStudent.GuardianId > 0)
         {
             var previousGuardian = SchoolDataService.GetGuardianByStudentId(updatedStudent.Id);
             var newGuardian = SchoolDataService.GetGuardianById(updatedStudent.GuardianId);
 
-            if (previousGuardian != null && previousGuardian.Id != newGuardian.Id)
+            if (previousGuardian != null && newGuardian != null && previousGuardian.Id != newGuardian.Id)
             {
-                // Remove student from previous guardian's wards
                 FcmsPortal.LogicMethods.RemoveStudentFromGuardianWards(previousGuardian, updatedStudent);
-                // Add student to new guardian's wards
                 FcmsPortal.LogicMethods.AddStudentToGuardianWards(newGuardian, updatedStudent);
             }
         }
