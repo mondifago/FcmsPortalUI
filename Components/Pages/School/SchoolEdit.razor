@@ -115,7 +115,7 @@ else
 }
 
 @code {
-    private FcmsPortal.Models.School school;
+    private FcmsPortal.Models.School? school;
     private string logoUrl = "";
 
     protected override void OnInitialized()
@@ -138,7 +138,11 @@ else
                 }
                 var resizedImageFile = await Util.ResizeImageForLogo(file);
                 var attachment = await SchoolDataService.UploadFileAsync(resizedImageFile, "SchoolLogos");
-                school.LogoUrl = attachment.FilePath;
+                if (school != null)
+                {
+                    school.LogoUrl = attachment.FilePath;
+
+                }
                 logoUrl = Util.GetLogoDisplayUrl(attachment.FilePath);
 
                 StateHasChanged();
@@ -153,8 +157,11 @@ else
 
     private void HandleValidSubmit()
     {
-        SchoolDataService.UpdateSchool(school);
-        NavigationManager.NavigateTo("/school");
+        if (school != null)
+        {
+            SchoolDataService.UpdateSchool(school);
+            NavigationManager.NavigateTo("/school");
+        }
     }
 
     private void Cancel()

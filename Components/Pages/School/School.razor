@@ -10,7 +10,7 @@
 
 <div class="school-logo-container">
     <div class="school-logo-display">
-        @if (!string.IsNullOrEmpty(school.LogoUrl))
+        @if (!string.IsNullOrEmpty(school?.LogoUrl))
         {
             <img src="@school.LogoUrl" alt="School Logo" class="school-logo" />
         }
@@ -21,7 +21,7 @@
             </div>
         }
     </div>
-    <h3 class="school-name">@school.Name</h3>
+    <h3 class="school-name">@school?.Name</h3>
 </div>
 
 @if (school != null)
@@ -169,9 +169,9 @@ else
 }
 
 @code {
-    private FcmsPortal.Models.School school { get; set; }
-    private List<EducationLevel> educationLevels;
-    private IList<ClassLevel> classlevels;
+    private FcmsPortal.Models.School? school { get; set; }
+    private List<EducationLevel>? educationLevels;
+    private IList<ClassLevel>? classlevels;
 
 
     protected override void OnInitialized()
