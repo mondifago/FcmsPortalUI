@@ -476,7 +476,7 @@
     [Parameter]
     public int Id { get; set; }
 
-    private School? school;
+    private School school = new();
     private string selectedPdfUrl = string.Empty;
     private ClassSession classSession = new(); 
     private ScheduleEntry scheduleEntry = new();

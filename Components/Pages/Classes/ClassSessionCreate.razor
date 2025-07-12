@@ -78,7 +78,7 @@
     public EducationLevel EducationLevel { get; set; }
 
     [Parameter]
-    public ScheduleEntry ScheduleEntry { get; set; }
+    public ScheduleEntry ScheduleEntry { get; set; } = new ScheduleEntry();
 
     [Parameter]
     public EventCallback<ClassSession> OnSave { get; set; }
@@ -86,7 +86,7 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private School school;
+    private School school = new();
     private ClassSession classSession = new ClassSession();
     private string selectedCourse = "";
     private int selectedTeacherId = 0;
@@ -113,7 +113,7 @@
     private void LoadData()
     {
         availableCourses = CourseDefaults.GetCourseNames(EducationLevel);
-        availableTeachers = LogicMethods.GetTeachersByEducationLevel(school,EducationLevel);
+        availableTeachers = LogicMethods.GetTeachersByEducationLevel(school, EducationLevel);
     }
 
     private void Close()

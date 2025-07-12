@@ -83,10 +83,10 @@
     public EducationLevel EducationLevel { get; set; }
 
     [Parameter]
-    public ClassSession ExistingClassSession { get; set; }
+    public ClassSession ExistingClassSession { get; set; } = new();
 
     [Parameter]
-    public ScheduleEntry ScheduleEntry { get; set; }
+    public ScheduleEntry ScheduleEntry { get; set; } = new();
 
     [Parameter]
     public EventCallback<ClassSession> OnSave { get; set; }
@@ -94,7 +94,7 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private School school;
+    private School school = new();
     private ClassSession classSession = new ClassSession();
     private string selectedCourse = "";
     private int selectedTeacherId = 0;
@@ -154,6 +154,7 @@
         {
             classSession.Teacher = null;
         }
+        
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }
