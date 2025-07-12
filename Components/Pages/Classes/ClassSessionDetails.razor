@@ -175,9 +175,9 @@
                     <div class="card-body">
                         @if (editingLessonPlan)
                         {
-                            <EditForm Model="@lessonPlanModel" OnValidSubmit="SaveLessonPlan">
+                            <EditForm Model="@classSession" OnValidSubmit="SaveLessonPlan">
                                 <div class="mb-3">
-                                    <InputTextArea @bind-Value="lessonPlanModel.Content"
+                                    <InputTextArea @bind-Value="classSession.LessonPlan"
                                                    class="form-control"
                                                    rows="10"
                                                    placeholder="Enter your lesson plan content here..." />
@@ -229,9 +229,9 @@
                     <div class="card-body">
                         @if (showRemarksEditor)
                         {
-                            <EditForm Model="@remarksModel" OnValidSubmit="SaveRemarks">
+                            <EditForm Model="@classSession" OnValidSubmit="SaveRemarks">
                                 <div class="mb-3">
-                                    <InputTextArea @bind-Value="remarksModel.Remarks" class="form-control" rows="5" placeholder="Add your remarks about this class session..." />
+                                    <InputTextArea @bind-Value="classSession.TeacherRemarks" class="form-control" rows="5" placeholder="Add your remarks about this class session..." />
                                 </div>
                                 <div class="d-flex justify-content-end">
                                     <button type="button" class="btn btn-secondary me-2" @onclick="() => showRemarksEditor = false">Cancel</button>
@@ -443,12 +443,12 @@
 
 <!-- Homework View Modal -->
 <HomeworkViewModal IsVisible="showHomeworkViewModal"
-                   Homework="classSession.HomeworkDetails"
+                   Homework="classSession?.HomeworkDetails"
                    OnClose="() => showHomeworkViewModal = false" />
 
 <!-- Homework Submission Modal -->
 <HomeworkSubmissionModal IsVisible="showSubmissionModal"
-                         Homework="classSession.HomeworkDetails"
+                         Homework="classSession?.HomeworkDetails"
                          CurrentStudent="currentStudent"
                          ExistingSubmission="selectedSubmission"
                          OnSave="HandleSubmissionSaved"
@@ -456,7 +456,7 @@
 
 <!-- Homework Submissions List Modal -->
 <HomeworkSubmissionsListModal IsVisible="showSubmissionsListModal"
-                              Homework="classSession.HomeworkDetails"
+                              Homework="classSession?.HomeworkDetails"
                               CurrentTeacher="currentTeacher"
                               OnClose="() => showSubmissionsListModal = false"
                               OnGradeSubmission="HandleGradeSubmission" />
@@ -476,53 +476,38 @@
     [Parameter]
     public int Id { get; set; }
 
-    private School school;
-    private string selectedPdfUrl;
-    private ClassSession classSession;
-    private ScheduleEntry scheduleEntry;
-    private LearningPath relatedLearningPath;
+    private School? school;
+    private string selectedPdfUrl = string.Empty;
+    private ClassSession classSession = new(); 
+    private ScheduleEntry scheduleEntry = new();
+    private LearningPath relatedLearningPath = new();
     private List<Student> enrolledStudents = new List<Student>();
     private bool isTeacher = true; 
-    private Staff currentTeacher; 
-    private Student currentStudent; 
+    private Staff currentTeacher = new(); 
+    private Student currentStudent = new();
     private bool showMaterialsUpload = false;
     private bool showRemarksEditor = false;
     private bool showHomeworkModal = false;
     private bool showSubmissionModal = false;
-    private Homework selectedHomework;
-    private HomeworkSubmission existingSubmission;
+    private Homework selectedHomework = new();
+    private HomeworkSubmission existingSubmission = new();
     private bool editingLessonPlan = false;
-    private LessonPlanModel lessonPlanModel = new LessonPlanModel();
-    private RemarksModel remarksModel = new RemarksModel();
-
     private bool showHomeworkViewModal = false;
     private bool showSubmissionsListModal = false;
     private bool showGradingModal = false;
-    private HomeworkSubmission selectedSubmission;
-    private HomeworkSubmission submissionToGrade;
+    private HomeworkSubmission selectedSubmission = new();
+    private HomeworkSubmission submissionToGrade = new();
     private bool showStudentGradeModal = false;
-    private HomeworkSubmission studentGradeSubmission;
-
-    private class LessonPlanModel
-    {
-        public string Content { get; set; } = "";
-    }
-
-    private class RemarksModel
-    {
-        public string Remarks { get; set; }
-    }
+    private HomeworkSubmission studentGradeSubmission = new();
 
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
-        classSession = SchoolDataService.GetClassSessionById(Id);
+        classSession = SchoolDataService.GetClassSessionById(Id) ?? new ClassSession();
 
         if (classSession != null)
         {
-            remarksModel.Remarks = classSession.TeacherRemarks ?? "";
-            lessonPlanModel.Content = classSession.LessonPlan ?? "";
-            scheduleEntry = LogicMethods.GetScheduleEntryForClassSession(school, Id);
+            scheduleEntry = LogicMethods.GetScheduleEntryForClassSession(school, Id) ?? new ScheduleEntry();
             currentTeacher = classSession.Teacher;
 
             LoadEnrolledStudents();
@@ -540,17 +525,17 @@
                 // currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 301) // Zak's ID
                 //                  ?? enrolledStudents.First();
             }
+            else
+            {
+                currentStudent = new Student(); 
+            }
         }
     }
 
     private void LoadEnrolledStudents()
     {
-        relatedLearningPath = SchoolDataService.GetLearningPathByClassSessionId(classSession.Id);
-
-        if (relatedLearningPath != null)
-        {
-            enrolledStudents = relatedLearningPath.Students?.ToList() ?? new List<Student>();
-        }
+        relatedLearningPath = SchoolDataService.GetLearningPathByClassSessionId(classSession.Id) ?? new LearningPath();
+        enrolledStudents = relatedLearningPath.Students?.ToList() ?? new List<Student>();
     }
 
     private void ToggleMaterialsUpload()
@@ -576,12 +561,9 @@
 
     private void SaveRemarks()
     {
-        classSession.TeacherRemarks = remarksModel.Remarks;
-        showRemarksEditor = false;
         SchoolDataService.UpdateClassSession(classSession);
+        showRemarksEditor = false;
     }
-
-   
 
     private void EditHomework(Homework homework)     
     {
@@ -599,18 +581,12 @@
         SchoolDataService.UpdateClassSession(classSession);
     }
 
-   
-
     private void SubmitHomework(Homework homework)
     {
         selectedHomework = homework;
-
-        existingSubmission = homework.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent.Id);
-
+        existingSubmission = homework.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent.Id) ?? new HomeworkSubmission();
         showSubmissionModal = true;
     }
-
-    
 
     private void GoBack()
     {
@@ -630,18 +606,14 @@
         return !string.IsNullOrEmpty(fileName) && fileName.ToLower().EndsWith(".pdf");
     }
 
-   
-
-    private async Task SaveLessonPlan()
+    private void SaveLessonPlan()
     {
-        classSession.LessonPlan = lessonPlanModel.Content;
         SchoolDataService.UpdateClassSession(classSession);
         editingLessonPlan = false;
     }
 
     private void EditLessonPlan()
     {
-        lessonPlanModel.Content = classSession.LessonPlan ?? "";
         editingLessonPlan = true;
     }
 
@@ -650,7 +622,7 @@
         editingLessonPlan = false;
     }
 
-    private async Task HandleThreadUpdated(DiscussionThread updatedThread)
+    private void HandleThreadUpdated(DiscussionThread updatedThread)
     {
         if (classSession.DiscussionThreads == null)
             classSession.DiscussionThreads = new List<DiscussionThread>();
@@ -664,7 +636,7 @@
         StateHasChanged();
     }
 
-    private async Task HandleNewThreadCreated(DiscussionThread newThread)
+    private void HandleNewThreadCreated(DiscussionThread newThread)
     {
         if (classSession.DiscussionThreads == null)
             classSession.DiscussionThreads = new List<DiscussionThread>();
@@ -679,7 +651,7 @@
 
     private void CreateNewHomework()
     {
-        selectedHomework = null;
+        selectedHomework = new Homework();
         showHomeworkModal = true;
     }
 
@@ -690,7 +662,7 @@
 
     private void EditHomework()
     {
-        selectedHomework = classSession.HomeworkDetails;
+        selectedHomework = classSession.HomeworkDetails ?? new Homework();
         showHomeworkModal = true;
     }
 
@@ -711,19 +683,21 @@
 
     private void AttemptHomework()
     {
-        selectedSubmission = null;
+        selectedSubmission = new HomeworkSubmission();
         showSubmissionModal = true;
     }
 
     private void ViewMySubmission()
     {
-        selectedSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+        selectedSubmission = classSession.HomeworkDetails?.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id)
+                             ?? new HomeworkSubmission();
         showSubmissionModal = true;
     }
 
     private void EditMySubmission()
     {
-        selectedSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+        selectedSubmission = classSession.HomeworkDetails?.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id)
+                             ?? new HomeworkSubmission();
         showSubmissionModal = true;
     }
 
@@ -741,7 +715,7 @@
 
     private void HandleSubmissionSaved(HomeworkSubmission submission)
     {
-        classSession = SchoolDataService.GetClassSessionById(classSession.Id);
+        classSession = SchoolDataService.GetClassSessionById(classSession.Id) ?? new ClassSession();
         showSubmissionModal = false;
     }
 
@@ -753,6 +727,9 @@
 
     private void HandleGradingSaved(HomeworkSubmission gradedSubmission)
     {
+        if (classSession.HomeworkDetails?.Submissions == null)
+            return;
+
         var submissionIndex = classSession.HomeworkDetails.Submissions.FindIndex(s => s.Id == gradedSubmission.Id);
         if (submissionIndex >= 0)
         {
@@ -766,7 +743,9 @@
 
     private void ViewMyGrade()
     {
-        var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+        var studentSubmission = classSession.HomeworkDetails?.Submissions?
+            .FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+
         if (studentSubmission != null && studentSubmission.IsGraded)
         {
             studentGradeSubmission = studentSubmission;
