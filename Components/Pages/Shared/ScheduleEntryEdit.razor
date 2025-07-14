@@ -221,7 +221,7 @@
     public int? ScheduleId { get; set; }
 
     [Parameter]
-    public ScheduleEntry ExistingScheduleEntry { get; set; }
+    public ScheduleEntry? ExistingScheduleEntry { get; set; }
 
     [Parameter]
     public EventCallback<ScheduleEntry> OnSave { get; set; }
@@ -235,8 +235,8 @@
     [Parameter]
     public bool RestrictToClassOnly { get; set; } = false;
 
-    private LearningPath learningPath;
-    private ScheduleEntry scheduleEntry;
+    private LearningPath? learningPath;
+    private ScheduleEntry scheduleEntry = new ScheduleEntry();
     private string startTimeString = "09:00";
     private DateTime scheduleDate = DateTime.Today;
     private int durationMinutes = 60;
@@ -254,14 +254,21 @@
 
     private void LoadScheduleEntry()
     {
+        scheduleEntry = new ScheduleEntry();
+
         if (ExistingScheduleEntry != null)
         {
             scheduleEntry = ExistingScheduleEntry;
         }
-        else if (LearningPathId.HasValue && ScheduleId.HasValue)
+
+        if (ExistingScheduleEntry == null && LearningPathId.HasValue && ScheduleId.HasValue)
         {
             learningPath = SchoolDataService.GetLearningPathById(LearningPathId.Value);
-            scheduleEntry = learningPath?.Schedule?.FirstOrDefault(s => s.Id == ScheduleId.Value);
+            var foundEntry = learningPath?.Schedule?.FirstOrDefault(s => s.Id == ScheduleId.Value);
+            if (foundEntry != null)
+            {
+                scheduleEntry = foundEntry;
+            }
         }
 
         if (scheduleEntry != null)
@@ -274,11 +281,13 @@
             {
                 scheduleType = ScheduleType.ClassSession;
             }
-            else if (!string.IsNullOrEmpty(scheduleEntry.Meeting))
+
+            if (scheduleEntry.ClassSession == null && !string.IsNullOrEmpty(scheduleEntry.Meeting))
             {
                 scheduleType = ScheduleType.Meeting;
             }
-            else if (!string.IsNullOrEmpty(scheduleEntry.Event))
+
+            if (scheduleEntry.ClassSession == null && string.IsNullOrEmpty(scheduleEntry.Meeting) && !string.IsNullOrEmpty(scheduleEntry.Event))
             {
                 scheduleType = ScheduleType.Event;
             }

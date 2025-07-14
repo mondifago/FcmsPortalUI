@@ -118,7 +118,7 @@
                                     <p>
                                         <i class="fa fa-repeat me-2"></i>
                                         Repeats every @ScheduleEntry.RecurrenceInterval
-                                        @ScheduleEntry.RecurrencePattern.ToString().ToLower()@(ScheduleEntry.RecurrenceInterval > 1 ? "s" : "")
+                                        @ScheduleEntry.RecurrencePattern?.ToString().ToLower()@(ScheduleEntry.RecurrenceInterval > 1 ? "s" : "")
 
                                         @if (ScheduleEntry.RecurrencePattern == RecurrenceType.Weekly && ScheduleEntry.DaysOfWeek?.Any() == true)
                                         {
@@ -144,7 +144,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
-                @if (ScheduleEntry.ClassSession == null)
+                @if (ScheduleEntry?.ClassSession == null)
                 {
                     <button type="button" class="btn btn-warning" @onclick="Edit">Edit</button>
                 }
@@ -160,7 +160,7 @@
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public ScheduleEntry ScheduleEntry { get; set; }
+    [Parameter] public ScheduleEntry ScheduleEntry { get; set; } = new ScheduleEntry();
     [Parameter] public EventCallback<ScheduleEntry> OnEdit { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 

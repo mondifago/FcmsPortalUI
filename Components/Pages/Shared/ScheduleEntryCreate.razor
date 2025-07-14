@@ -163,7 +163,7 @@
     public int? LearningPathId { get; set; }
 
     [Parameter]
-    public string DateParam { get; set; }
+    public string? DateParam { get; set; }
 
     [Parameter]
     public EventCallback<ScheduleEntry> OnSave { get; set; }
@@ -179,7 +179,7 @@
 
     private bool dateIsLocked = false;
     private string startTimeString = "09:00";
-    private LearningPath learningPath;
+    private LearningPath? learningPath;
     private ScheduleEntry scheduleEntry = new ScheduleEntry();
     private int durationMinutes = 60;
     private bool showClassSessionModal = false;

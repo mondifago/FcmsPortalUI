@@ -167,19 +167,19 @@
     public int LearningPathId { get; set; }
 
     [Parameter]
-    public string Date { get; set; }
+    public string? Date { get; set; }
 
-    private LearningPath learningPath;
+    private LearningPath? learningPath;
     private List<ScheduleEntry> scheduleEntries = new List<ScheduleEntry>();
     private DateTime? filterDate;
     private bool showDeleteConfirmation = false;
-    private ScheduleEntry scheduleToDelete;
+    private ScheduleEntry? scheduleToDelete;
     private bool showDetailsModal = false;
-    private ScheduleEntry selectedSchedule;
+    private ScheduleEntry? selectedSchedule;
     private bool showClassSessionModal = false;
-    private ScheduleEntry selectedScheduleForClassSession;
+    private ScheduleEntry? selectedScheduleForClassSession;
     private bool showEditModal = false;
-    private ScheduleEntry selectedScheduleForEdit;
+    private ScheduleEntry? selectedScheduleForEdit;
     private bool showCreateModal = false;
 
     protected override void OnParametersSet()
@@ -222,7 +222,7 @@
         showCreateModal = false;
     }
 
-    private string GetDateParam()
+    private string? GetDateParam()
     {
         if (filterDate.HasValue)
         {
@@ -293,7 +293,7 @@
 
     private void HandleClassSessionCreated(ClassSession classSession)
     {
-        if (selectedScheduleForClassSession != null)
+        if (selectedScheduleForClassSession != null && learningPath != null)
         {
             selectedScheduleForClassSession.ClassSession = classSession;
 
