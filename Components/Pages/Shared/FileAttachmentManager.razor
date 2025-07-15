@@ -149,14 +149,15 @@
     [Parameter] public bool AllowMultiple { get; set; } = true;
     [Parameter] public EventCallback<List<FileAttachment>> OnAttachmentsChanged { get; set; }
 
+    private FileAttachment? FileToDelete { get; set; }
     private List<FileAttachment> Attachments { get; set; } = new List<FileAttachment>();
     private List<IBrowserFile> SelectedFiles { get; set; } = new List<IBrowserFile>();
+    private string ErrorMessage { get; set; } = "";
     private bool ShowUploadForm { get; set; } = false;
     private bool IsLoading { get; set; } = false;
-    private string ErrorMessage { get; set; } = "";
     private bool HasSelectedFiles => SelectedFiles.Count > 0;
     private bool ShowDeleteConfirmation { get; set; } = false;
-    private FileAttachment? FileToDelete { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {

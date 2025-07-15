@@ -136,20 +136,20 @@
                         LearningPath="LearningPath"
                         TeacherRemarks="@(teacherRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
                         PrincipalRemarks="@(principalRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
-                        TeacherRemarksChanged="@((remarks) => UpdateTeacherRemarks(selectedStudentForReport.Id, remarks))"
-                        PrincipalRemarksChanged="@((remarks) => UpdatePrincipalRemarks(selectedStudentForReport.Id, remarks))"
+                        TeacherRemarksChanged="@((remarks) => UpdateTeacherRemarks(selectedStudentForReport?.Id ?? 0, remarks))"
+                        PrincipalRemarksChanged="@((remarks) => UpdatePrincipalRemarks(selectedStudentForReport?.Id ?? 0, remarks))"
                         OnClose="() => showReportCardModal = false" />
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
     [Parameter] public EventCallback OnClose { get; set; }
+
+    private School school = new School();
+    private Student? selectedStudentForReport = null;
     private Dictionary<int, string> teacherRemarks = new();
     private Dictionary<int, string> principalRemarks = new();
-
-    private School school;
     private bool showReportCardModal = false;
-    private Student selectedStudentForReport;
 
     protected override void OnInitialized()
     {
@@ -215,7 +215,7 @@
         LearningPath.Students.Remove(student);
         SchoolDataService.UpdateStudent(student);
         SchoolDataService.UpdateLearningPath(LearningPath);
-        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id);
+        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id) ?? new LearningPath();
         StateHasChanged();
     }
 
@@ -224,7 +224,7 @@
         LearningPath.Students.Remove(student);
         SchoolDataService.ArchiveStudent(student);
         SchoolDataService.UpdateLearningPath(LearningPath);
-        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id);
+        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id) ?? new LearningPath();
         StateHasChanged();
     }
 
