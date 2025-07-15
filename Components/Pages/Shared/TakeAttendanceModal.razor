@@ -130,7 +130,7 @@
 @code {
     [Parameter] public bool IsVisible { get; set; }
     [Parameter] public List<Student> Students { get; set; } = new();
-    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
     [Parameter] public DateTime AttendanceDate { get; set; } = DateTime.Today;
     [Parameter] public int TeacherId { get; set; }
     [Parameter] public EventCallback<DailyAttendanceLogEntry> OnAttendanceSubmitted { get; set; }

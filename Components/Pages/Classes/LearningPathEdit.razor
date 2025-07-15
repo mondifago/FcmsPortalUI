@@ -30,7 +30,7 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private LearningPath learningPath;
+    private LearningPath? learningPath;
 
     protected override void OnInitialized()
     {
@@ -66,7 +66,7 @@ else
 
     private void HandleValidSubmit(LearningPath submittedLearningPath)
     {
-        var previousStudents = new List<Student>(learningPath.Students);
+        var previousStudents = new List<Student>(learningPath?.Students ?? new List<Student>());
         foreach (var student in previousStudents)
         {
             if (!submittedLearningPath.Students.Contains(student))

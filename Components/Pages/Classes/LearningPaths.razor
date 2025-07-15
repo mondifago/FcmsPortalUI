@@ -79,9 +79,9 @@ else
 
 
 @code {
-    private IEnumerable<LearningPath> learningPaths;
+    private IEnumerable<LearningPath> learningPaths = Enumerable.Empty<LearningPath>();
     private bool showDeleteConfirmation = false;
-    private LearningPath learningPathToDelete;
+    private LearningPath? learningPathToDelete;
 
     protected override void OnInitialized()
     {

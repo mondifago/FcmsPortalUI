@@ -110,23 +110,22 @@
                         <i class="fa fa-plus"></i> Schedule A Class
                     </button>
                 </div>
-                <MonthlyCalendarView 
-                    Title="Class Schedule"
-                    CurrentDate="@currentDate"
-                    CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
-                    OnDateSelected="NavigateToScheduleList"
-                    OnScheduleTypeClicked="HandleScheduleTypeClicked"
-                    GetSchedulesForDate="date => GetSessionsForDate(date)"
-                    ScheduleTypeLabel="Class"
-                    ScheduleTypesLabel="Classes" />
+                <MonthlyCalendarView Title="Class Schedule"
+                                     CurrentDate="@currentDate"
+                                     CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
+                                     OnDateSelected="NavigateToScheduleList"
+                                     OnScheduleTypeClicked="HandleScheduleTypeClicked"
+                                     GetSchedulesForDate="date => GetSessionsForDate(date)"
+                                     ScheduleTypeLabel="Class"
+                                     ScheduleTypesLabel="Classes" />
 
             </div>
 
             <div class="col-md-4">
                 <div class="card mb-4">
-                   <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
-                </div>
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
+                    </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
                             @if (learningPath.Students == null || !learningPath.Students.Any())
@@ -141,14 +140,14 @@
                                 {
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
-                                           <a href="/students/details/@student.Id" class="text-decoration-none">
-                                            @Util.GetFullName(student.Person)
-                                           </a>
+                                            <a href="/students/details/@student.Id" class="text-decoration-none">
+                                                @Util.GetFullName(student.Person)
+                                            </a>
                                         </div>
-                                         @{
+                                        @{
                                             var (statusText, badgeClass) = Util.GetPaymentStatus(student);
-                                         }
-                                         <span class="badge @badgeClass">@statusText</span>
+                                        }
+                                        <span class="badge @badgeClass">@statusText</span>
                                     </div>
                                 }
                             }
@@ -158,14 +157,14 @@
                     {
                         <div class="card-footer text-center">
                             <button class="@GetAttendanceButtonClass()" @onclick="HandleAttendanceAction">
-                                  @GetAttendanceButtonText()
-                             </button>
+                                @GetAttendanceButtonText()
+                            </button>
                         </div>
                     }
                 </div>
 
                 <!-- Student Grade -->
-               <div class="card mb-4">
+                <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Student Grades</h4>
                     </div>
@@ -189,13 +188,13 @@
                                 }
                             </div>
                         }
-                        @if (!learningPath.Students.Any())
+                        @if (learningPath.Students?.Any() != true)
                         {
                             <div class="alert alert-info">
                                 <p class="mb-0">No students enrolled in this learning path yet.</p>
                             </div>
                         }
-                        @if (learningPath.Students.Any() && !HasAnyGrades())
+                        @if (learningPath.Students?.Any() == true && !HasAnyGrades())
                         {
                             <div class="table-responsive">
                                 <table class="table table-hover">
@@ -217,7 +216,7 @@
                                 </table>
                             </div>
                         }
-                        @if (learningPath.Students.Any() && HasAnyGrades())
+                        @if (learningPath.Students?.Any() == true && HasAnyGrades())
                         {
                             <div class="table-responsive">
                                 <table class="table table-hover">
@@ -241,10 +240,13 @@
                                                         @Util.GetOrdinalNumber(rank)
                                                     </span>
                                                 </td>
-                                                <td>@studentGrade.Student.Person.LastName</td>
+                                                <td>@(studentGrade.Student?.Person?.LastName ?? "Unknown")</td>
                                                 <td>@studentGrade.SemesterOverallGrade.ToString("F2")%</td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-primary" @onclick="() => ShowStudentDetails(studentGrade.Student)">Details</button>
+                                                    @if (studentGrade.Student != null)
+                                                    {
+                                                        <button class="btn btn-sm btn-primary" @onclick="() => ShowStudentDetails(studentGrade.Student)">Details</button>
+                                                    }
                                                 </td>
                                             </tr>
                                         }
@@ -266,13 +268,13 @@
         </div>
     }
 
-       <ScheduleEntryCreate IsVisible="showScheduleCreateModal"
-                     LearningPathId="learningPath?.Id"
-                     DateParam="@selectedDateForSchedule"
-                     AllowClassSchedule="true"
-                     RestrictToClassOnly="true"
-                     OnSave="HandleScheduleCreated"
-                     OnClose="() => showScheduleCreateModal = false" />
+    <ScheduleEntryCreate IsVisible="showScheduleCreateModal"
+                         LearningPathId="learningPath?.Id"
+                         DateParam="@selectedDateForSchedule"
+                         AllowClassSchedule="true"
+                         RestrictToClassOnly="true"
+                         OnSave="HandleScheduleCreated"
+                         OnClose="() => showScheduleCreateModal = false" />
 </div>
 
 @if (showAddStudentsModal)
@@ -328,7 +330,7 @@
                                                         <input type="checkbox"
                                                                class="form-check-input"
                                                                checked="@IsStudentSelected(student.Id)"
-                                                               @onchange="(e) => ToggleStudentSelection(student.Id, e.Value)" />
+                                                               @onchange="(e) => ToggleStudentSelection(student.Id, e.Value as bool? ?? false)" />
                                                     </div>
                                                 </td>
                                                 <td>@student.Id</td>
@@ -362,27 +364,27 @@
                      OnClose="CloseFinalizeGradesModal" />
 
 <LearningPathGradesModal IsVisible="showGradesModal"
-                        LearningPath="learningPath"
-                        OnClose="() => showGradesModal = false" />
+                         LearningPath="learningPath"
+                         OnClose="() => showGradesModal = false" />
 
 
 @if (showAttendanceModal)
 {
     <TakeAttendanceModal IsVisible="showAttendanceModal"
-                        Students="learningPath.Students"
-                        LearningPath="learningPath"
-                        AttendanceDate="DateTime.Today"
-                        TeacherId="101"
-                        OnAttendanceSubmitted="OnAttendanceSubmitted"
-                        OnClose="CloseAttendanceModal" />
+                         Students="@(learningPath?.Students ?? new List<Student>())"
+                         LearningPath="learningPath"
+                         AttendanceDate="DateTime.Today"
+                         TeacherId="101"
+                         OnAttendanceSubmitted="OnAttendanceSubmitted"
+                         OnClose="CloseAttendanceModal" />
 }
 
 @if (showDailyAttendanceModal && todaysAttendance != null)
 {
     <DailyAttendanceViewModal IsVisible="showDailyAttendanceModal"
-                             SelectedDate="DateTime.Today"
-                             AttendanceData="dailyAttendanceData"
-                             OnClose="CloseDailyAttendanceModal" />
+                              SelectedDate="DateTime.Today"
+                              AttendanceData="dailyAttendanceData"
+                              OnClose="CloseDailyAttendanceModal" />
 }
 
 <StudentGradeDetailsModal IsVisible="showStudentDetailsModal"
@@ -394,35 +396,37 @@
     [Parameter]
     public int Id { get; set; }
 
-    private LearningPath learningPath;
-    private bool isTeacher = true; 
-    private bool isPrincipal = true; 
-    private DateTime currentDate = DateTime.Now;
-    private bool showAddStudentsModal = false;
+    private LearningPath learningPath = new LearningPath();
+    private DailyAttendanceLogEntry? dailyAttendanceData;
+    private DailyAttendanceLogEntry? todaysAttendance;
     private List<Student> availableStudents = new List<Student>();
     private HashSet<int> selectedStudentIds = new HashSet<int>();
-    private Student selectedStudent;
-    private bool showScheduleCreateModal = false;
-    private string selectedDateForSchedule = null;
-    private DailyAttendanceLogEntry dailyAttendanceData = new();
-    private bool showAttendanceModal = false;
-    private bool showDailyAttendanceModal = false;
-    private DailyAttendanceLogEntry todaysAttendance;
+    private Student? selectedStudent;
+    private DateTime currentDate = DateTime.Now;
+    private string? selectedDateForSchedule = null;
     private bool showGradesModal = false;
     private bool showStudentDetailsModal = false;
     private bool showFinalizeGradesModal = false;
+    private bool showAttendanceModal = false;
+    private bool showDailyAttendanceModal = false;
+    private bool showScheduleCreateModal = false;
+    private bool showAddStudentsModal = false;
+    private bool isPrincipal = true;
+    private bool isTeacher = true;
 
     protected override void OnInitialized()
     {
-        learningPath = SchoolDataService.GetLearningPathById(Id);
+        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
     }
 
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
     {
-        var learningPathSchedules = LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date);
+        var learningPathSchedules = learningPath != null
+      ? LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date)
+      : new List<ScheduleEntry>();
 
         var generalSchedules = SchoolDataService.GetAllSchoolCalendarSchedules()
-            .Where(s => s.DateTime.Date == date.Date && 
+            .Where(s => s.DateTime.Date == date.Date &&
                        ((!string.IsNullOrEmpty(s.Event)) || (!string.IsNullOrEmpty(s.Meeting))))
             .ToList();
 
@@ -484,7 +488,7 @@
 
         SchoolDataService.AddMultipleStudentsToLearningPath(learningPath, studentsToAdd);
         SchoolDataService.UpdateLearningPath(learningPath);
-        learningPath = SchoolDataService.GetLearningPathById(Id);
+        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
 
         CloseAddStudentsModal();
     }
@@ -515,7 +519,7 @@
         NavigationManager.NavigateTo($"/learningpath/{learningPath.Id}/schedules/{formattedDate}");
     }
 
-    
+
 
     private void HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
     {
@@ -539,7 +543,7 @@
 
     private void HandleScheduleCreated(ScheduleEntry scheduleEntry)
     {
-        learningPath = SchoolDataService.GetLearningPathById(Id);
+        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
         showScheduleCreateModal = false;
         selectedDateForSchedule = null;
         StateHasChanged();
@@ -547,19 +551,19 @@
 
     private string GetAttendanceButtonText()
     {
-        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate) ? "View Attendance" : "Take Attendance";
+        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, currentDate) ? "View Attendance" : "Take Attendance";
     }
 
     private string GetAttendanceButtonClass()
     {
-        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, currentDate) 
-            ? "btn btn-success btn-sm" 
+        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, currentDate)
+            ? "btn btn-success btn-sm"
             : "btn btn-warning btn-sm";
     }
 
     private void HandleAttendanceAction()
     {
-        if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id,currentDate))
+        if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, currentDate))
         {
             ShowTodaysAttendance();
         }
@@ -570,20 +574,20 @@
     }
 
     private void ShowTodaysAttendance()
-{
-    if (learningPath != null)
     {
-       dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(learningPath, DateTime.Today);
-        todaysAttendance = dailyAttendanceData;
-        showDailyAttendanceModal = true;
+        if (learningPath != null)
+        {
+            dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(learningPath, DateTime.Today);
+            todaysAttendance = dailyAttendanceData;
+            showDailyAttendanceModal = true;
+        }
     }
-}
 
 
-    private async Task OnAttendanceSubmitted(DailyAttendanceLogEntry attendanceLog)
+    private void OnAttendanceSubmitted(DailyAttendanceLogEntry attendanceLog)
     {
         showAttendanceModal = false;
-        learningPath = SchoolDataService.GetLearningPathById(Id);
+        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
         StateHasChanged();
     }
 
@@ -602,7 +606,7 @@
     {
         var allCourses = CourseDefaults.GetCourseNames(learningPath.EducationLevel);
         var configuredCourses = SchoolDataService.GetAllCourseGradingConfigurations(learningPath.Id);
-        
+
         return allCourses.All(course => configuredCourses.Any(config => config.Course == course));
     }
 
@@ -613,24 +617,24 @@
 
     private bool HasAnyGrades()
     {
-        return learningPath.Students.Any(s => s.CourseGrades.Any(cg => 
+        return learningPath.Students.Any(s => s.CourseGrades.Any(cg =>
             cg.LearningPathId == learningPath.Id && cg.TestGrades.Any()));
     }
 
     private List<StudentGradeSummary> GetRankedStudents()
     {
         var rankedList = new List<StudentGradeSummary>();
-        
+
         foreach (var student in learningPath.Students)
         {
             double semesterGrade = LogicMethods.CalculateSemesterOverallGrade(student, learningPath);
-            rankedList.Add(new StudentGradeSummary 
-            { 
-                Student = student, 
-                SemesterOverallGrade = semesterGrade 
+            rankedList.Add(new StudentGradeSummary
+            {
+                Student = student,
+                SemesterOverallGrade = semesterGrade
             });
         }
-        
+
         return rankedList.OrderByDescending(sg => sg.SemesterOverallGrade).ToList();
     }
 
@@ -659,7 +663,7 @@
     private void CloseFinalizeGradesModal()
     {
         showFinalizeGradesModal = false;
-        learningPath = SchoolDataService.GetLearningPathById(learningPath.Id);
+        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
         StateHasChanged();
     }
 }
