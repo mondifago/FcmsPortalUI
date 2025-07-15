@@ -146,13 +146,13 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public Homework Homework { get; set; }
+    public Homework Homework { get; set; } = new Homework();
 
     [Parameter]
-    public Student CurrentStudent { get; set; }
+    public Student CurrentStudent { get; set; } = new Student();
 
     [Parameter]
-    public HomeworkSubmission ExistingSubmission { get; set; }
+    public HomeworkSubmission? ExistingSubmission { get; set; } = null;
 
     [Parameter]
     public EventCallback<HomeworkSubmission> OnSave { get; set; }
@@ -204,7 +204,7 @@
             return; 
         }
 
-        HomeworkSubmission result;
+        HomeworkSubmission? result;
     
         if (IsEditing && ExistingSubmission != null && ExistingSubmission.Id > 0)
         {

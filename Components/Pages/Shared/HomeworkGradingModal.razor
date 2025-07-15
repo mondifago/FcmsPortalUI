@@ -105,10 +105,10 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public HomeworkSubmission Submission { get; set; }
+    public HomeworkSubmission Submission { get; set; } = new HomeworkSubmission();
 
     [Parameter]
-    public Staff CurrentTeacher { get; set; }
+    public Staff CurrentTeacher { get; set; } = new Staff();
 
     [Parameter]
     public EventCallback<HomeworkSubmission> OnSave { get; set; }
@@ -155,7 +155,9 @@
 
     private async Task HandleSubmit()
     {
-        if (!IsFormValid() || Submission == null) return;
+        if (!IsFormValid() || Submission == null || Submission.Student == null ||
+        Submission.Homework?.ClassSession == null)
+            return;
 
         var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
         var homeworkGradeId = SchoolDataService.GetNextTestGradeId();
@@ -177,7 +179,9 @@
         var course = Submission.Homework?.ClassSession?.Course;
         if (!string.IsNullOrEmpty(course))
         {
-            var learningPath = SchoolDataService.GetLearningPathByClassSessionId(Submission.Homework.ClassSession.Id);
+            var learningPath = Submission.Homework?.ClassSession?.Id != null
+         ? SchoolDataService.GetLearningPathByClassSessionId(Submission.Homework.ClassSession.Id)
+         : null;
 
             if (learningPath != null)
             {

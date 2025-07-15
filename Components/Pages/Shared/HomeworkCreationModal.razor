@@ -63,14 +63,13 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public ClassSession ClassSession { get; set; }
+    public ClassSession ClassSession { get; set; } = new ClassSession();
 
     [Parameter]
-    public Staff CurrentTeacher { get; set; }
+    public Staff CurrentTeacher { get; set; } = new Staff();
 
     [Parameter]
-    public Homework ExistingHomework { get; set; }
-
+    public Homework? ExistingHomework { get; set; } = null;
     [Parameter]
     public EventCallback<Homework> OnSave { get; set; }
 

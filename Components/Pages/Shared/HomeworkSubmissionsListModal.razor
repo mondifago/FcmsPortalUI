@@ -195,10 +195,10 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public Homework Homework { get; set; }
+    public Homework Homework { get; set; } = new Homework();
 
     [Parameter]
-    public Staff CurrentTeacher { get; set; }
+    public Staff CurrentTeacher { get; set; } = new Staff();
 
     [Parameter]
     public EventCallback OnClose { get; set; }
@@ -206,8 +206,8 @@
     [Parameter]
     public EventCallback<HomeworkSubmission> OnGradeSubmission { get; set; }
 
+    private HomeworkSubmission? selectedSubmission = null;
     private bool showSubmissionViewModal = false;
-    private HomeworkSubmission selectedSubmission;
 
     private void ViewSubmission(HomeworkSubmission submission)
     {
