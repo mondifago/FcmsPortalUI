@@ -148,7 +148,7 @@
         <div class="row mb-3">
             <div class="col-md-3">
                 <label for="sessionAcademicYear" class="form-label">Academic Year:</label>
-                <select class="form-select" id="sessionAcademicYear" @bind="selectedSessionAcademicYear" @bind:after="OnSessionFiltersChanged">
+                <select class="form-select" id="sessionAcademicYear" @bind="selectedAcademicYear" @bind:after="OnSessionFiltersChanged">
                     <option value="">Select Academic Year</option>
                     @foreach (var year in availableAcademicYears)
                     {
@@ -158,9 +158,9 @@
             </div>
             <div class="col-md-3">
                 <label for="sessionSemester" class="form-label">Semester:</label>
-                <select class="form-select" id="sessionSemester" @bind="selectedSessionSemester" @bind:after="OnSessionFiltersChanged">
+                <select class="form-select" id="sessionSemester" @bind="selectedSemester" @bind:after="OnSessionFiltersChanged">
                     <option value="">Select Semester</option>
-                    @if (!string.IsNullOrEmpty(selectedSessionAcademicYear))
+                    @if (!string.IsNullOrEmpty(selectedAcademicYear))
                     {
                         @foreach (var semester in availableSemesters)
                         {
@@ -171,11 +171,11 @@
             </div>
             <div class="col-md-3">
                 <label for="sessionDate" class="form-label">Select Date:</label>
-                <input type="date" class="form-control" id="sessionDate" @bind="selectedSessionDate" @bind:after="OnSessionDateChanged" />
+                <input type="date" class="form-control" id="sessionDate" @bind="selectedDate" @bind:after="OnSessionDateChanged" />
             </div>
         </div>
 
-        @if (!string.IsNullOrEmpty(selectedSessionAcademicYear) && !string.IsNullOrEmpty(selectedSessionSemester))
+        @if (!string.IsNullOrEmpty(selectedAcademicYear) && !string.IsNullOrEmpty(selectedSemester))
         {
             @if (filteredSessionReports != null && filteredSessionReports.Any())
             {
@@ -217,13 +217,13 @@
                     <i class="fa fa-comments fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No class session reports found</h5>
                     <p class="text-muted">
-                        @if (selectedSessionDate == default)
+                        @if (selectedDate == default)
                         {
                             <span>Please select a date to view class session reports.</span>
                         }
                         else
                         {
-                            <span>No class session reports found for @selectedSessionDate.ToString("MMMM dd, yyyy") in @selectedSessionAcademicYear @selectedSessionSemester semester.</span>
+                            <span>No class session reports found for @selectedDate.ToString("MMMM dd, yyyy") in @selectedAcademicYear @selectedSemester semester.</span>
                         }
                     </p>
                 </div>
@@ -251,7 +251,7 @@
         <div class="row mb-3">
             <div class="col-md-3">
                 <label for="gradesAcademicYear" class="form-label">Academic Year:</label>
-                <select class="form-select" id="gradesAcademicYear" @bind="selectedGradesAcademicYear" @bind:after="OnGradesFiltersChanged">
+                <select class="form-select" id="gradesAcademicYear" @bind="selectedAcademicYear" @bind:after="OnGradesFiltersChanged">
                     <option value="">Select Academic Year</option>
                     @foreach (var year in availableAcademicYears)
                     {
@@ -261,9 +261,9 @@
             </div>
             <div class="col-md-3">
                 <label for="gradesSemester" class="form-label">Semester:</label>
-                <select class="form-select" id="gradesSemester" @bind="selectedGradesSemester" @bind:after="OnGradesFiltersChanged">
+                <select class="form-select" id="gradesSemester" @bind="selectedSemester" @bind:after="OnGradesFiltersChanged">
                     <option value="">Select Semester</option>
-                    @if (!string.IsNullOrEmpty(selectedGradesAcademicYear))
+                    @if (!string.IsNullOrEmpty(selectedAcademicYear))
                     {
                         @foreach (var semester in availableSemesters)
                         {
@@ -274,7 +274,7 @@
             </div>
         </div>
 
-        @if (!string.IsNullOrEmpty(selectedGradesAcademicYear) && !string.IsNullOrEmpty(selectedGradesSemester))
+        @if (!string.IsNullOrEmpty(selectedAcademicYear) && !string.IsNullOrEmpty(selectedSemester))
         {
             @if (filteredGradesReports != null && filteredGradesReports.Any())
             {
@@ -320,7 +320,7 @@
                     <i class="fa fa-chart-bar fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">No grades reports found</h5>
                     <p class="text-muted">
-                        <span>No grades reports found for @selectedGradesAcademicYear @selectedGradesSemester semester.</span>
+                        <span>No grades reports found for @selectedAcademicYear @selectedSemester semester.</span>
                     </p>
                 </div>
             }
@@ -346,28 +346,20 @@
                              AttendanceReport="semesterAttendanceReport"
                              OnClose="CloseSemesterAttendanceModal" />
 @code {
-    private School school;
+    private School school = new School();
+    private LearningPath? selectedLearningPath = null;
+    private DailyAttendanceLogEntry dailyAttendanceData = new();
+    private SemesterAttendanceReport semesterAttendanceReport = new();
     private DateTime selectedDate = DateTime.Today;
-    private string selectedAcademicYear = "";
-    private string selectedSemester = "";
+    private List<ClassSessionReport> filteredSessionReports = new List<ClassSessionReport>();
+    private List<GradesReport> filteredGradesReports = new List<GradesReport>();
     private List<string> availableAcademicYears = new();
     private List<string> availableSemesters = new();
     private List<LearningPath> filteredLearningPaths = new();
-
+    private string selectedAcademicYear = "";
+    private string selectedSemester = "";
     private bool showDailyAttendanceModal = false;
     private bool showSemesterAttendanceModal = false;
-    private DailyAttendanceLogEntry dailyAttendanceData = new();
-    private SemesterAttendanceReport semesterAttendanceReport = new();
-    private LearningPath selectedLearningPath;
-
-    private DateTime selectedSessionDate = DateTime.Today;
-    private string selectedSessionAcademicYear = "";
-    private string selectedSessionSemester = "";
-    private List<ClassSessionReport> filteredSessionReports = new List<ClassSessionReport>();
-
-    private string selectedGradesAcademicYear = "";
-    private string selectedGradesSemester = "";
-    private List<GradesReport> filteredGradesReports = new List<GradesReport>();
 
     protected override void OnInitialized()
     {
@@ -381,18 +373,12 @@
         if (availableAcademicYears.Any())
         {
             selectedAcademicYear = availableAcademicYears.First();
-            selectedSessionAcademicYear = availableAcademicYears.First();
-            selectedGradesAcademicYear = availableAcademicYears.First(); 
             LoadAvailableSemesters();
 
             if (availableSemesters.Any())
             {
                 selectedSemester = availableSemesters.First();
-                selectedSessionSemester = availableSemesters.First();
-                selectedGradesSemester = availableSemesters.First(); 
-
                 selectedDate = DateTime.Today;
-                selectedSessionDate = DateTime.Today;
 
                 LoadFilteredLearningPaths();
                 LoadSessionReports();
@@ -421,9 +407,6 @@
         {
             LoadFilteredLearningPaths();
         }
-
-        selectedSessionAcademicYear = selectedAcademicYear;
-        selectedSessionSemester = selectedSemester;
         LoadSessionReports();
     }
 
@@ -455,11 +438,11 @@
 
     private void ViewDailyAttendance(int learningPathId)
     {
-        selectedLearningPath = SchoolDataService.GetLearningPathById(learningPathId);
+        selectedLearningPath = SchoolDataService.GetLearningPathById(learningPathId) ?? new LearningPath();
         if (selectedLearningPath != null)
         {
             var learningPaths = new List<LearningPath> { selectedLearningPath };
-            dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(selectedLearningPath, selectedDate);
+            dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(selectedLearningPath, selectedDate) ?? new DailyAttendanceLogEntry();
             showDailyAttendanceModal = true;
         }
     }
@@ -477,8 +460,8 @@
     private void CloseDailyAttendanceModal()
     {
         showDailyAttendanceModal = false;
-        dailyAttendanceData = null;
-        selectedLearningPath = null;
+        dailyAttendanceData = new DailyAttendanceLogEntry();
+        selectedLearningPath = new LearningPath();
     }
 
     private void CloseSemesterAttendanceModal()
@@ -501,11 +484,11 @@
     private void LoadSessionReports()
     {
         filteredSessionReports.Clear();
-        if (string.IsNullOrEmpty(selectedSessionAcademicYear) || string.IsNullOrEmpty(selectedSessionSemester))
+        if (string.IsNullOrEmpty(selectedAcademicYear) || string.IsNullOrEmpty(selectedSemester))
             return;
 
         var learningPaths = school.LearningPaths
-            .Where(lp => lp.AcademicYear == selectedSessionAcademicYear && lp.Semester.ToString() == selectedSessionSemester)
+            .Where(lp => lp.AcademicYear == selectedAcademicYear && lp.Semester.ToString() == selectedSemester)
             .ToList();
 
         foreach (var learningPath in learningPaths)
@@ -513,7 +496,7 @@
             if (learningPath.Schedule == null) continue;
 
             var scheduleEntries = learningPath.Schedule
-                .Where(s => s.ClassSession != null && !string.IsNullOrEmpty(s.ClassSession.TeacherRemarks) && s.DateTime.Date == selectedSessionDate.Date)
+                .Where(s => s.ClassSession != null && !string.IsNullOrEmpty(s.ClassSession.TeacherRemarks) && s.DateTime.Date == selectedDate.Date)
                 .ToList();
 
             foreach (var schedule in scheduleEntries)
@@ -540,10 +523,10 @@
     private void LoadGradesReports()
     {
         filteredGradesReports.Clear();
-        if (string.IsNullOrEmpty(selectedGradesAcademicYear) || string.IsNullOrEmpty(selectedGradesSemester))
+        if (string.IsNullOrEmpty(selectedAcademicYear) || string.IsNullOrEmpty(selectedSemester))
             return;
 
-        var reports = SchoolDataService.GetGradesReports(selectedGradesAcademicYear, selectedGradesSemester);
+        var reports = SchoolDataService.GetGradesReports(selectedAcademicYear, selectedSemester);
         filteredGradesReports.AddRange(reports);
     }
 
