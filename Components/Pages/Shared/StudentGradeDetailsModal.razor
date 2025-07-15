@@ -237,8 +237,8 @@
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public Student Student { get; set; }
-    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public Student Student { get; set; } = new Student();
+    [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
     [Parameter] public EventCallback OnClose { get; set; }
 
     private List<string> GetStudentCourses()
@@ -246,13 +246,13 @@
         return CourseDefaults.GetCourseNames(LearningPath.EducationLevel);
     }
 
-    private CourseGrade GetCourseGrade(string course)
+    private CourseGrade? GetCourseGrade(string course)
     {
         return Student?.CourseGrades.FirstOrDefault(cg =>
             cg.Course == course && cg.LearningPathId == LearningPath?.Id);
     }
 
-    private CourseGradingConfiguration GetCourseConfig(string course)
+    private CourseGradingConfiguration? GetCourseConfig(string course)
     {
         return SchoolDataService.GetCourseGradingConfiguration(LearningPath?.Id ?? 0, course);
     }

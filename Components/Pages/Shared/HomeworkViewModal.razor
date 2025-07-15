@@ -113,7 +113,7 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public Homework Homework { get; set; }
+    public Homework Homework { get; set; } = new Homework();
 
     [Parameter]
     public EventCallback OnClose { get; set; }

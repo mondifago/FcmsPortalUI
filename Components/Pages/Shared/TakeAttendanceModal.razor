@@ -155,9 +155,12 @@
         return selectedStudentIds.Contains(studentId);
     }
 
-    private void ToggleStudentSelection(int studentId, object isChecked)
+    private void ToggleStudentSelection(int studentId, object? isChecked)
     {
-        Util.ToggleItemSelection<Student>(studentId, isChecked, selectedStudentIds);
+        if (isChecked != null)
+        {
+            Util.ToggleItemSelection<Student>(studentId, isChecked, selectedStudentIds);
+        }
     }
 
     private void MarkAllPresent()

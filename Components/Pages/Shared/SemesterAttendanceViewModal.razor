@@ -126,8 +126,8 @@
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public LearningPath LearningPath { get; set; }
-    [Parameter] public SemesterAttendanceReport AttendanceReport { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
+    [Parameter] public SemesterAttendanceReport AttendanceReport { get; set; } = new SemesterAttendanceReport();
     [Parameter] public EventCallback OnClose { get; set; }
 
     private string GetAttendanceRateClass(double rate)

@@ -110,7 +110,7 @@
     [Parameter] public DateTime CurrentDate { get; set; } = DateTime.Now;
     [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
     [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
-    [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; }
+    [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; } = _ => new List<ScheduleEntry>();
     [Parameter] public string ScheduleTypeLabel { get; set; } = "Event";
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Events";
     [Parameter] public EventCallback<(DateTime date, ScheduleType? type)> OnScheduleTypeClicked { get; set; }

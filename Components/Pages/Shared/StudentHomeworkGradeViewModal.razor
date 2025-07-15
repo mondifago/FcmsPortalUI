@@ -75,7 +75,9 @@
                                     <div class="d-flex mb-2">
                                         <small class="text-muted">
                                             <i class="fa fa-user me-1"></i>
-                                            @(Util.GetFullName(Submission.HomeworkGrade?.Teacher?.Person) ?? "Teacher")
+                                            @(Submission.HomeworkGrade?.Teacher?.Person != null
+                                                                                ? Util.GetFullName(Submission.HomeworkGrade.Teacher.Person)
+                                                                                : "Teacher")
                                         </small>
                                         <small class="text-muted ms-auto">
                                             @(Submission.HomeworkGrade?.Date.ToString("MMM d, yyyy") ?? "")
@@ -130,7 +132,7 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public HomeworkSubmission Submission { get; set; }
+    public HomeworkSubmission Submission { get; set; } = new HomeworkSubmission();
 
     [Parameter]
     public EventCallback OnClose { get; set; }

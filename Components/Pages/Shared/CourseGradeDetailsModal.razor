@@ -124,8 +124,8 @@
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public LearningPath LearningPath { get; set; }
-    [Parameter] public string Course { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
+    [Parameter] public string Course { get; set; } = string.Empty;
     [Parameter] public EventCallback OnClose { get; set; }
 
     private List<GradeSection> gradeSections = new();
@@ -196,7 +196,7 @@
         StateHasChanged();
     }
 
-    private void UpdateStudentGrade(Student student, GradeType gradeType, DateTime date, int index, string scoreString)
+    private void UpdateStudentGrade(Student student, GradeType gradeType, DateTime date, int index, string? scoreString)
     {
         var key = $"{student.Id}_{gradeType}_{date:yyyy-MM-dd}_{index}";
 
