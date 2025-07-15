@@ -47,7 +47,7 @@ else
                         <td>@learningPath.Semester</td>
                         <td>@learningPath.AcademicYear</td>
                         <td>
-                            <span class="@GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">
+                            <span class="@Util.GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">
                                 @learningPath.ApprovalStatus
                             </span>
                         </td>
@@ -80,8 +80,8 @@ else
 
 @code {
     private IEnumerable<LearningPath> learningPaths = Enumerable.Empty<LearningPath>();
-    private bool showDeleteConfirmation = false;
     private LearningPath? learningPathToDelete;
+    private bool showDeleteConfirmation = false;
 
     protected override void OnInitialized()
     {
@@ -91,17 +91,6 @@ else
     private void LoadLearningPaths()
     {
         learningPaths = SchoolDataService.GetAllLearningPaths();
-    }
-
-    private string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
-    {
-        return status switch
-        {
-            PrincipalApprovalStatus.Approved => "badge bg-success",
-            PrincipalApprovalStatus.Review => "badge bg-danger",
-            PrincipalApprovalStatus.Pending => "badge bg-warning",
-            _ => "badge bg-secondary"
-        };
     }
 
     private void DeleteConfirmation(LearningPath learningPath)

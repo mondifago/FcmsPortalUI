@@ -78,7 +78,7 @@
     [Parameter] public DateTime CurrentDate { get; set; }
     [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
     [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
-    [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; }
+    [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; } = _ => new List<ScheduleEntry>();
 
     private DateTime StartOfWeek => CurrentDate.AddDays(-(int)CurrentDate.DayOfWeek);
 

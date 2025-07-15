@@ -198,27 +198,23 @@ LearningPath="selectedLearningPath"
 OnClose="CloseLearningPathReport" />
 
 @code {
-    private School school;
+    private School school = new School();
+    private LearningPath? selectedLearningPath = null;
     private List<LearningPath> allLearningPaths = new List<LearningPath>();
     private List<LearningPath> filteredLearningPaths = new List<LearningPath>();
-    private int academicYearStartYear = DateTime.Now.Year;
     private Semester selectedSemester = Semester.First;
-
-    // Summary data
+    private int academicYearStartYear = DateTime.Now.Year;
+    private int totalLearningPaths = 0;
+    private int totalStudents = 0;
+    private int fullyPaidStudents = 0;
+    private int studentsWithBalance = 0;
     private double totalExpectedRevenue = 0;
     private double totalAmountReceived = 0;
     private double totalOutstandingBalance = 0;
     private double schoolWidePaymentCompletionRate = 0;
     private double schoolWideTimelyCompletionRate = 0;
-    private int totalLearningPaths = 0;
-    private int totalStudents = 0;
-    private int fullyPaidStudents = 0;
-    private int studentsWithBalance = 0;
-
-    // Modals
     private bool showSchoolReport = false;
     private bool showLearningPathReport = false;
-    private LearningPath selectedLearningPath;
 
     protected override void OnInitialized()
     {
@@ -237,7 +233,6 @@ OnClose="CloseLearningPathReport" />
 
         CalculateSummaryData();
     }
-
 
     private void CalculateSummaryData()
     {

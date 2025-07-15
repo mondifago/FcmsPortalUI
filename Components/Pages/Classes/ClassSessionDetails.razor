@@ -482,23 +482,24 @@
     private ScheduleEntry scheduleEntry = new();
     private LearningPath relatedLearningPath = new();
     private List<Student> enrolledStudents = new List<Student>();
-    private bool isTeacher = true; 
-    private Staff currentTeacher = new(); 
+    private Staff currentTeacher = new();
     private Student currentStudent = new();
+    private Homework selectedHomework = new();
+    private HomeworkSubmission existingSubmission = new();
+    private HomeworkSubmission selectedSubmission = new();
+    private HomeworkSubmission submissionToGrade = new();
+    private HomeworkSubmission studentGradeSubmission = new();
     private bool showMaterialsUpload = false;
     private bool showRemarksEditor = false;
     private bool showHomeworkModal = false;
     private bool showSubmissionModal = false;
-    private Homework selectedHomework = new();
-    private HomeworkSubmission existingSubmission = new();
     private bool editingLessonPlan = false;
     private bool showHomeworkViewModal = false;
     private bool showSubmissionsListModal = false;
     private bool showGradingModal = false;
-    private HomeworkSubmission selectedSubmission = new();
-    private HomeworkSubmission submissionToGrade = new();
     private bool showStudentGradeModal = false;
-    private HomeworkSubmission studentGradeSubmission = new();
+    private bool isTeacher = true;
+
 
     protected override void OnInitialized()
     {
@@ -508,7 +509,7 @@
         if (classSession != null)
         {
             scheduleEntry = LogicMethods.GetScheduleEntryForClassSession(school, Id) ?? new ScheduleEntry();
-            currentTeacher = classSession.Teacher;
+            currentTeacher = classSession.Teacher ?? new Staff();
 
             LoadEnrolledStudents();
 

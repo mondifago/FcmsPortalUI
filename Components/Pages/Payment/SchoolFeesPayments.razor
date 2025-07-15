@@ -266,19 +266,19 @@ else
     [Parameter]
     public int SchoolFeesId { get; set; }
 
-    private SchoolFees schoolFees;
-    private Student student;
-    private Payment newPayment;
+    private SchoolFees schoolFees = new SchoolFees();
+    private Student student = new Student();
+    private LearningPath? selectedPaymentLearningPath = null;
+    private Payment newPayment = new Payment();
+    private Payment? editingPayment = null;
+    private Payment? selectedPayment = null;
     private bool showPaymentDetailsModal = false;
-    private Payment selectedPayment;
-    private LearningPath selectedPaymentLearningPath;
     private bool showEditPaymentModal = false;
-    private Payment editingPayment = null;
 
     protected override void OnInitialized()
     {
-        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
-        student = SchoolDataService.GetStudentBySchoolFeesId(SchoolFeesId);
+        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
+        student = SchoolDataService.GetStudentBySchoolFeesId(SchoolFeesId) ?? new Student();
 
         if (student != null)
         {
@@ -289,14 +289,14 @@ else
     private void AddPayment()
     {
         SchoolDataService.AddPayment(newPayment);
-        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
+        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
         newPayment = SchoolDataService.PrepareNewPayment(student);
     }
 
     private void RemovePayment(int paymentId)
     {
         SchoolDataService.DeletePayment(paymentId);
-        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
+        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
     }
 
     private void ViewPaymentDetails(Payment payment)
@@ -342,8 +342,11 @@ else
 
     private void UpdatePayment()
     {
-        SchoolDataService.UpdatePayment(editingPayment);
-        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId);
+        if (editingPayment != null)
+        {
+            SchoolDataService.UpdatePayment(editingPayment);
+            schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
+        }
         CloseEditPaymentModal();
     }
 
