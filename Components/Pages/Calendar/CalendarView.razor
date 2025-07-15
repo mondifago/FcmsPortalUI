@@ -197,6 +197,10 @@
 }
 
 @code {
+    private School school = new School();
+    private ScheduleEntry? scheduleToDelete = null;
+    private ScheduleEntry? selectedSchedule = null;
+    private ScheduleType? selectedScheduleType = null;
     private DateTime currentDate = DateTime.Now;
     private DateTime? selectedDate = null;
     private string viewMode = "month";
@@ -205,13 +209,9 @@
     private bool showEvents = true;
     private bool showDailyView = false;
     private bool showEditModal = false;
-    private School school;
     private bool showDeleteConfirmation = false;
-    private ScheduleEntry scheduleToDelete;
     private bool showAddEventModal = false;
     private bool showScheduleDetailsModal = false;
-    private ScheduleEntry selectedSchedule;
-    private ScheduleType? selectedScheduleType = null;
 
     protected override void OnInitialized()
     {
