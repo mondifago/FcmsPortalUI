@@ -253,7 +253,7 @@
                                                 <input type="checkbox"
                                                        class="form-check-input"
                                                        checked="@IsStudentSelected(student.Id)"
-                                                       @onchange="(e) => ToggleStudentSelection(student.Id, e.Value)" />
+                                                       @onchange="(e) => ToggleStudentSelection(student.Id, (bool?)e.Value ?? false)" />
                                             </div>
                                         </td>
                                         <td>@student.Id</td>
@@ -305,7 +305,7 @@
 
 @code {
     [Parameter]
-    public LearningPath LearningPath { get; set; }
+    public LearningPath LearningPath { get; set; } = new LearningPath();
 
     [Parameter]
     public string SubmitButtonText { get; set; } = "Save";
@@ -334,11 +334,17 @@
     [Parameter]
     public EventCallback OnClearTemplate { get; set; }
 
-    private School school;
+    private School? school;
     private List<Student> availableStudents = new List<Student>();
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
     private HashSet<int> selectedStudentIds = new HashSet<int>();
+    private ScheduleEntry? scheduleToEdit = null;
+    private ScheduleEntry? scheduleToDelete = null;
     private int academicYearStartYear = DateTime.Now.Year;
+    private bool showCreateScheduleModal = false;
+    private bool showEditScheduleModal = false;
+    private bool showDeleteConfirmation = false;
+ 
 
     protected override void OnInitialized()
     {
@@ -358,7 +364,7 @@
 
     private void LoadAvailableStudents()
     {
-        if (LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
+        if (school != null && LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
         {
             availableStudents = LogicMethods.GetStudentsByLevel(school, LearningPath.EducationLevel, LearningPath.ClassLevel);
         }
@@ -447,12 +453,6 @@
         StateHasChanged();
     }
 
-    private bool showCreateScheduleModal = false;
-    private bool showEditScheduleModal = false;
-    private bool showDeleteConfirmation = false;
-    private ScheduleEntry scheduleToEdit = null;
-    private ScheduleEntry scheduleToDelete = null;
-
     private void EditSchedule(ScheduleEntry schedule)
     {
         scheduleToEdit = schedule;
@@ -483,11 +483,16 @@
 
             if (newSchedule.ClassSession != null && newSchedule.ClassSession.Id <= 0)
             {
-                var allClassSessions = LearningPath.Schedule
-                    .Where(s => s.ClassSession != null)
-                    .Select(s => s.ClassSession.Id);
-                newSchedule.ClassSession.Id = allClassSessions.Any()
-                    ? allClassSessions.Max() + 1
+                var allClassSessionIds = new List<int>();
+                foreach (var schedule in LearningPath.Schedule)
+                {
+                    if (schedule.ClassSession?.Id != null)
+                    {
+                        allClassSessionIds.Add(schedule.ClassSession.Id);
+                    }
+                }
+                newSchedule.ClassSession.Id = allClassSessionIds.Any()
+                    ? allClassSessionIds.Max() + 1
                     : 1;
             }
 
