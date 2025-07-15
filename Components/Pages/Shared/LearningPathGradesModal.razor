@@ -228,20 +228,21 @@
 <CourseGradeDetailsModal IsVisible="showCourseGradeDetailsModal"
                     LearningPath="LearningPath"
                     Course="@selectedCourse"
-                    OnClose="() => { showCourseGradeDetailsModal = false; LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id); StateHasChanged(); }" />
+                    OnClose="() => { showCourseGradeDetailsModal = false; LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id) ?? new LearningPath(); StateHasChanged(); }" />
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public LearningPath LearningPath { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
     [Parameter] public EventCallback OnClose { get; set; }
 
+    private Student? selectedStudent = null;
     private List<string> allCourses = new();
     private CourseGradingConfiguration configModel = new();
     private string selectedCourse = "";
     private bool showRecordGradeModal = false;
     private bool showStudentDetailsModal = false;
     private bool showCourseGradeDetailsModal = false;
-    private Student selectedStudent = null;
+
   
 
     protected override void OnParametersSet()
@@ -330,13 +331,13 @@
     private void HandleGradeSaved()
     {
         showRecordGradeModal = false;
-        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id);
+        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id) ?? new LearningPath();
         StateHasChanged();
     }
 
-    private CourseGrade GetStudentCourseGrade(Student student, string course)
+    private CourseGrade? GetStudentCourseGrade(Student student, string course)
     {
-        return student.CourseGrades.FirstOrDefault(cg => 
+        return student.CourseGrades?.FirstOrDefault(cg =>
             cg.Course == course && cg.LearningPathId == LearningPath.Id);
     }
 

@@ -103,8 +103,8 @@
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public LearningPath LearningPath { get; set; }
-    [Parameter] public string Course { get; set; }
+    [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
+    [Parameter] public string Course { get; set; } = string.Empty;
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
@@ -147,7 +147,12 @@
 
     private Student GetStudentForTestGrade(TestGrade testGrade)
     {
-        return testGradeStudentMap.GetValueOrDefault(testGrade);
+        return testGradeStudentMap.GetValueOrDefault(testGrade) ?? new Student();
+    }
+
+    private Staff? GetCurrentTeacher()
+    {
+        return SchoolDataService.GetSchool()?.Staff?.FirstOrDefault(s => s.JobRole == JobRole.Teacher);
     }
 
     private bool IsFormValid()
@@ -164,7 +169,7 @@
             var testGrade = studentTestGrades[i];
             var student = LearningPath.Students.OrderBy(s => s.Person.LastName).ToList()[i];
 
-            if (testGrade.Score > 0)
+            if (testGrade.Score > 0 && testGrade.Teacher != null)
             {
                 var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
 
@@ -195,11 +200,6 @@
 
         await OnSave.InvokeAsync();
         Close();
-    }
-
-    private Staff GetCurrentTeacher()
-    {
-        return SchoolDataService.GetSchool().Staff.FirstOrDefault(s => s.JobRole == JobRole.Teacher);
     }
 
     private void Close()
