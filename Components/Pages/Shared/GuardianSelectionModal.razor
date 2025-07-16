@@ -99,16 +99,22 @@
     protected override void OnInitialized()
     {
         allGuardians = SchoolDataService.GetGuardians();
-        filteredGuardians = allGuardians;
+        filteredGuardians = new List<Guardian>();
     }
 
-    private void FilterGuardians(ChangeEventArgs e)
+    private void FilterGuardians()
     {
-        searchTerm = e.Value?.ToString() ?? "";
-        filteredGuardians = allGuardians
-            .Where(g => string.IsNullOrEmpty(searchTerm) ||
-                   g.Person.LastName.StartsWith(searchTerm, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredGuardians = new List<Guardian>(); 
+        }
+        else
+        {
+            filteredGuardians = allGuardians
+                .Where(g => g.Person.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                           g.Person.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
     }
 
     private void SelectGuardian(Guardian guardian)
