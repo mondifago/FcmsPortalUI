@@ -1,5 +1,6 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Services
+@using FcmsPortal.Enums
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 
@@ -35,10 +36,14 @@
                         <label class="form-label">Search Guardian</label>
                         <div class="input-group">
                             <input type="text" class="form-control"
-                                   placeholder="Search by last name"
-                                   @oninput="FilterGuardians"
-                                   value="@searchTerm" />
+                                   placeholder="Search guardian by name..."
+                                   @bind="searchTerm"
+                                   @oninput="OnSearchTermChanged" />
                         </div>
+                        @if (!string.IsNullOrWhiteSpace(searchTerm) && searchTerm.Length < 1)
+                        {
+                            <small class="text-muted">Please search guardian by lastname</small>
+                        }
                     </div>
 
                     @if (filteredGuardians.Any())
@@ -57,10 +62,18 @@
                             }
                         </div>
                     }
-                    else
+
+                    @if (!filteredGuardians.Any() && !string.IsNullOrWhiteSpace(searchTerm) && searchTerm.Length >= 2)
                     {
                         <div class="alert alert-info">
-                            No guardians found matching the search term.
+                            <i class="fa fa-info-circle"></i> No guardians found matching "@searchTerm".
+                        </div>
+                    }
+
+                    @if (string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        <div class="alert alert-secondary">
+                            <i class="fa fa-search"></i> Start typing to search for guardians...
                         </div>
                     }
                 }
@@ -80,6 +93,7 @@
         </div>
     </div>
 </div>
+
 
 @code {
     [Parameter]
@@ -102,11 +116,17 @@
         filteredGuardians = new List<Guardian>();
     }
 
+    private void OnSearchTermChanged(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        FilterGuardians();
+    }
+
     private void FilterGuardians()
     {
-        if (string.IsNullOrWhiteSpace(searchTerm))
+        if (string.IsNullOrWhiteSpace(searchTerm) || searchTerm.Length < 1)
         {
-            filteredGuardians = new List<Guardian>(); 
+            filteredGuardians = new List<Guardian>();
         }
         else
         {
@@ -130,11 +150,5 @@
     private void NavigateToGuardianCreation()
     {
         NavigationManager.NavigateTo("/guardians/create?returnUrl=/students/create");
-    }
-
-    private enum GuardianSelectionMode
-    {
-        Existing,
-        New
     }
 }
