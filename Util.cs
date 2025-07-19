@@ -162,7 +162,7 @@ namespace FcmsPortalUI
                 return "Meeting";
             if (!string.IsNullOrEmpty(schedule.Event))
                 return "Event";
-            return string.Empty;
+            return "Add Session";
         }
 
         public static (string Text, string CssClass) GetPaymentStatus(Student student)

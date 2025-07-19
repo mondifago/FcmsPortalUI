@@ -177,14 +177,14 @@
     [Parameter]
     public bool RestrictToClassOnly { get; set; } = false;
 
-    private bool dateIsLocked = false;
-    private string startTimeString = "09:00";
     private LearningPath? learningPath;
     private ScheduleEntry scheduleEntry = new ScheduleEntry();
-    private int durationMinutes = 60;
-    private bool showClassSessionModal = false;
-    private DateTime scheduleDate = DateTime.Today;
     private ScheduleType scheduleType = ScheduleType.Event;
+    private DateTime scheduleDate = DateTime.Today;
+    private int durationMinutes = 60;
+    private string startTimeString = "09:00";
+    private bool dateIsLocked = false;
+    private bool showClassSessionModal = false;
 
     protected override void OnParametersSet()
     {

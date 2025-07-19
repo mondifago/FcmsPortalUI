@@ -27,7 +27,6 @@
                 }
                 else if (IsViewingGradedSubmission)
                 {
-                    <!-- Read-only view for graded submissions -->
                     <div class="alert alert-info">
                         <h4 class="alert-heading">Homework Graded</h4>
                         <p class="mb-0">This homework has been graded and cannot be modified.</p>
@@ -82,7 +81,6 @@
                 }
                 else
                 {
-                    <!-- Editable submission form -->
                     <EditForm Model="@submission" OnValidSubmit="HandleSubmit">
                         <DataAnnotationsValidator />
                         <ValidationSummary />

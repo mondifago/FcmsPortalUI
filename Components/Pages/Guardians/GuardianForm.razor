@@ -6,8 +6,8 @@
 @inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
-<EditForm Model="@Guardian" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
+<EditForm EditContext="@editContext" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInvalidSubmit">
+    <ObjectGraphDataAnnotationsValidator />
 
     <div class="card">
         <div class="card-body">
@@ -187,11 +187,13 @@
     [Parameter, EditorRequired]
     public EventCallback OnCancel { get; set; }
 
+    private EditContext? editContext;
     private string oldProfilePictureUrl = "";
     private string profilePictureUrl = "";
     private DateTime enrollmentDate;
     private bool showAddressForm = false;
     private Address currentAddress = new();
+
     protected override void OnInitialized()
     {
         if (Guardian.Person.DateOfEnrollment != default)
@@ -208,6 +210,7 @@
 
         profilePictureUrl = Guardian.Person.ProfilePictureUrl ?? "";
         oldProfilePictureUrl = profilePictureUrl;
+        editContext = new EditContext(Guardian);
     }
 
     private async Task HandleProfilePictureChanged(string newImageUrl)
@@ -239,8 +242,13 @@
     {
         Guardian.Person.ProfilePictureUrl = profilePictureUrl;
         Guardian.Person.DateOfEnrollment = enrollmentDate;
-
         await OnSubmit.InvokeAsync(Guardian);
+    }
+
+    private Task HandleInvalidSubmit()
+    {
+        Console.WriteLine("Form is invalid — including nested properties.");
+        return Task.CompletedTask;
     }
 
     private async Task Cancel()
