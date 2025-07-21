@@ -6,8 +6,9 @@
 @inject ISchoolDataService SchoolDataService
 @rendermode InteractiveServer
 
-<EditForm EditContext="@editContext" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInvalidSubmit">
-    <ObjectGraphDataAnnotationsValidator />
+<EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
     <div class="card">
         <div class="card-body">
@@ -39,7 +40,7 @@
 
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="gender" class="form-label">Gender</label>
+                    <label for="gender" class="form-label">Gender<span class="text-danger">*</span></label>
                     <InputSelect id="gender" class="form-select" @bind-Value="Guardian.Person.Sex">
                         <option value="">-- Select Gender --</option>
                         @foreach (var gender in Enum.GetValues(typeof(Gender)))
@@ -76,7 +77,7 @@
             <h4 class="mb-3">Guardian Details</h4>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="relationship" class="form-label">Relationship to Student</label>
+                    <label for="relationship" class="form-label">Relationship to Student<span class="text-danger">*</span></label>
                     <InputSelect id="relationship" class="form-select" @bind-Value="Guardian.RelationshipToStudent">
                         <option value="">-- Select Relationship --</option>
                         @foreach (var relationship in Enum.GetValues(typeof(Relationship)))
@@ -94,7 +95,7 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="dateOfEnrollment" class="form-label">Date of Enrollment</label>
+                    <label for="dateOfEnrollment" class="form-label">Date of Enrollment<span class="text-danger">*</span></label>
                     <InputDate id="dateOfEnrollment" class="form-control" @bind-Value="enrollmentDate" />
                 </div>
                 <div class="col-md-6 mb-3">
@@ -238,18 +239,38 @@
         StateHasChanged();
     }
 
-    private async Task HandleValidSubmit()
+    private async Task HandleSubmit(EditContext context)
     {
+        bool isValid = context.Validate();
+
+        var person = Guardian.Person;
+        var personContext = new EditContext(person);
+        bool personValid = personContext.Validate();
+
+        bool hasAddress = person.Addresses != null && person.Addresses.Count > 0;
+
+        bool hasFirstName = !string.IsNullOrWhiteSpace(person.FirstName);
+        bool hasLastName = !string.IsNullOrWhiteSpace(person.LastName);
+        bool hasEmailAddress = !string.IsNullOrWhiteSpace(person.Email);
+        bool hasPhoneNumber = !string.IsNullOrWhiteSpace(person.PhoneNumber);
+        bool hasStateOfOrigin = !string.IsNullOrWhiteSpace(person.StateOfOrigin);
+        bool hasLgaOfOrigin = !string.IsNullOrWhiteSpace(person.LgaOfOrigin);
+      
+        if (!isValid || !personValid || !hasAddress || !hasFirstName || !hasLastName || !hasEmailAddress || !hasPhoneNumber || !hasStateOfOrigin || !hasLgaOfOrigin)
+        {
+            Console.WriteLine("Form is invalid — blocking submission.");
+            return;
+        }
+
         Guardian.Person.ProfilePictureUrl = profilePictureUrl;
         Guardian.Person.DateOfEnrollment = enrollmentDate;
+
         await OnSubmit.InvokeAsync(Guardian);
     }
 
-    private Task HandleInvalidSubmit()
-    {
-        Console.WriteLine("Form is invalid — including nested properties.");
-        return Task.CompletedTask;
-    }
+
+
+
 
     private async Task Cancel()
     {
