@@ -1,9 +1,11 @@
 ﻿@using Microsoft.AspNetCore.Components.Forms
 @using FcmsPortalUI.Components.Pages.Shared
+@using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
 @inject ISchoolDataService SchoolDataService
+@inject ValidationService ValidationService
 @rendermode InteractiveServer
 
 <EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
@@ -244,41 +246,7 @@
 
     private async Task HandleSubmit(EditContext context)
     {
-        messageStore?.Clear();
-
-        bool isValid = context.Validate();
-
-        var person = Guardian.Person;
-        var personContext = new EditContext(person);
-        bool personValid = personContext.Validate();
-
-        bool hasAddress = person.Addresses != null && person.Addresses.Count > 0;
-
-        bool hasFirstName = !string.IsNullOrWhiteSpace(person.FirstName);
-        bool hasLastName = !string.IsNullOrWhiteSpace(person.LastName);
-        bool hasEmailAddress = !string.IsNullOrWhiteSpace(person.Email);
-        bool hasPhoneNumber = !string.IsNullOrWhiteSpace(person.PhoneNumber);
-        bool hasStateOfOrigin = !string.IsNullOrWhiteSpace(person.StateOfOrigin);
-        bool hasLgaOfOrigin = !string.IsNullOrWhiteSpace(person.LgaOfOrigin);
-
-        if (!hasFirstName)
-            messageStore?.Add(() => person.FirstName, "First name is required.");
-        if (!hasLastName)
-            messageStore?.Add(() => person.LastName, "Last name is required.");
-        if (!hasEmailAddress)
-            messageStore?.Add(() => person.Email, "Email is required.");
-        if (!hasPhoneNumber)
-            messageStore?.Add(() => person.PhoneNumber, "Phone number is required.");
-        if (!hasStateOfOrigin)
-            messageStore?.Add(() => person.StateOfOrigin, "State of origin is required.");
-        if (!hasLgaOfOrigin)
-            messageStore?.Add(() => person.LgaOfOrigin, "LGA of origin is required.");
-        if (!hasAddress)
-            messageStore?.Add(() => person.Addresses, "At least one address is required.");
-
-        editContext?.NotifyValidationStateChanged();
-
-        if (!isValid || !personValid || !hasAddress || !hasFirstName || !hasLastName || !hasEmailAddress || !hasPhoneNumber || !hasStateOfOrigin || !hasLgaOfOrigin)
+        if (!ValidationService.ValidateGuardian(context, Guardian, messageStore!))
         {
             return;
         }
@@ -288,7 +256,6 @@
 
         await OnSubmit.InvokeAsync(Guardian);
     }
-
 
     private async Task Cancel()
     {

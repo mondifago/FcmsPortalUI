@@ -6,6 +6,7 @@ using FcmsPortalUI.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<ISchoolDataService, SchoolDataService>();
+builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<ExceptionHandlerService>();
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
