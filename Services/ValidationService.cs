@@ -63,6 +63,19 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
+            if (person.EducationLevel == default)
+            {
+                var field = new FieldIdentifier(person, nameof(person.EducationLevel));
+                messageStore.Add(field, "Education level is required.");
+                isValid = false;
+            }
+
+            if (person.ClassLevel == default)
+            {
+                var field = new FieldIdentifier(person, nameof(person.ClassLevel));
+                messageStore.Add(field, "Class level is required.");
+                isValid = false;
+            }
             return isValid;
         }
     }

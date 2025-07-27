@@ -1,14 +1,16 @@
 ﻿@inject ISchoolDataService SchoolDataService
+@inject ValidationService ValidationService
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.Components.Forms
 @using FcmsPortalUI.Components.Pages.Shared
+@using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
 @using FcmsPortal
 @rendermode InteractiveServer
 
-<EditForm Model="@Student" OnValidSubmit="HandleValidSubmit">
+<EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -230,6 +232,8 @@
     [Parameter, EditorRequired]
     public EventCallback OnCancel { get; set; }
 
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
     private string profilePictureUrl = "";
     private string oldProfilePictureUrl = "";
     private List<Guardian> guardians = new();
@@ -255,6 +259,9 @@
         profilePictureUrl = Student.Person.ProfilePictureUrl ?? "";
         oldProfilePictureUrl = profilePictureUrl;
         availableClassLevels = LogicMethods.GetAvailableClassLevels(Student.Person.EducationLevel);
+
+        editContext = new EditContext(Student);
+        messageStore = new ValidationMessageStore(editContext);
     }
 
     private void OnEducationLevelChanged()
@@ -314,8 +321,13 @@
         Student.Person.Addresses.Remove(address);
     }
 
-    private async Task HandleValidSubmit()
+    private async Task HandleSubmit(EditContext context)
     {
+        if (!ValidationService.ValidateStudent(context, Student, messageStore!))
+        {
+            return;
+        }
+
         Student.Person.ProfilePictureUrl = profilePictureUrl;
         await OnSubmit.InvokeAsync(Student);
     }
