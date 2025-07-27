@@ -189,6 +189,7 @@
     public EventCallback OnCancel { get; set; }
 
     private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
     private string oldProfilePictureUrl = "";
     private string profilePictureUrl = "";
     private DateTime enrollmentDate;
@@ -211,7 +212,9 @@
 
         profilePictureUrl = Guardian.Person.ProfilePictureUrl ?? "";
         oldProfilePictureUrl = profilePictureUrl;
+
         editContext = new EditContext(Guardian);
+        messageStore = new ValidationMessageStore(editContext);
     }
 
     private async Task HandleProfilePictureChanged(string newImageUrl)
@@ -241,6 +244,8 @@
 
     private async Task HandleSubmit(EditContext context)
     {
+        messageStore?.Clear();
+
         bool isValid = context.Validate();
 
         var person = Guardian.Person;
@@ -255,10 +260,26 @@
         bool hasPhoneNumber = !string.IsNullOrWhiteSpace(person.PhoneNumber);
         bool hasStateOfOrigin = !string.IsNullOrWhiteSpace(person.StateOfOrigin);
         bool hasLgaOfOrigin = !string.IsNullOrWhiteSpace(person.LgaOfOrigin);
-      
+
+        if (!hasFirstName)
+            messageStore?.Add(() => person.FirstName, "First name is required.");
+        if (!hasLastName)
+            messageStore?.Add(() => person.LastName, "Last name is required.");
+        if (!hasEmailAddress)
+            messageStore?.Add(() => person.Email, "Email is required.");
+        if (!hasPhoneNumber)
+            messageStore?.Add(() => person.PhoneNumber, "Phone number is required.");
+        if (!hasStateOfOrigin)
+            messageStore?.Add(() => person.StateOfOrigin, "State of origin is required.");
+        if (!hasLgaOfOrigin)
+            messageStore?.Add(() => person.LgaOfOrigin, "LGA of origin is required.");
+        if (!hasAddress)
+            messageStore?.Add(() => person.Addresses, "At least one address is required.");
+
+        editContext?.NotifyValidationStateChanged();
+
         if (!isValid || !personValid || !hasAddress || !hasFirstName || !hasLastName || !hasEmailAddress || !hasPhoneNumber || !hasStateOfOrigin || !hasLgaOfOrigin)
         {
-            Console.WriteLine("Form is invalid — blocking submission.");
             return;
         }
 
@@ -267,9 +288,6 @@
 
         await OnSubmit.InvokeAsync(Guardian);
     }
-
-
-
 
 
     private async Task Cancel()
