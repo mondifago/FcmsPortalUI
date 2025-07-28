@@ -3,10 +3,12 @@
 @using FcmsPortal.Services
 @using FcmsPortal
 @using FcmsPortalUI.Components.Pages.Shared
+@using FcmsPortalUI.Services
 @using System.Globalization
 @inject ISchoolDataService SchoolDataService
+@inject ValidationService ValidationService
 
-<EditForm Model="LearningPath" OnValidSubmit="HandleValidSubmit">
+<EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -44,7 +46,7 @@
 
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label for="semester" class="form-label">Semester*</label>
+                    <label for="semester" class="form-label">Semester<span class="text-danger">*</span></label>
                     <InputSelect id="semester" @bind-Value="LearningPath.Semester" @bind-Value:after="NotifySemesterChanged" class="form-select">
                         @foreach (var semester in Enum.GetValues(typeof(Semester)))
                         {
@@ -82,7 +84,7 @@
             </div>
 
             <div class="mb-3">
-                <label for="feePerSemester" class="form-label">Fee Per Semester (₦)*</label>
+                <label for="feePerSemester" class="form-label">Fee Per Semester (₦)<span class="text-danger">*</span></label>
                 <InputNumber id="feePerSemester" @bind-Value="LearningPath.FeePerSemester" @bind-Value:after="OnFeePerSemesterChanged" class="form-control" />
                 <small class="form-text text-muted">
                     Fee: @LearningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))
@@ -340,6 +342,8 @@
     private HashSet<int> selectedStudentIds = new HashSet<int>();
     private ScheduleEntry? scheduleToEdit = null;
     private ScheduleEntry? scheduleToDelete = null;
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
     private int academicYearStartYear = DateTime.Now.Year;
     private bool showCreateScheduleModal = false;
     private bool showEditScheduleModal = false;
@@ -360,6 +364,9 @@
 
         academicYearStartYear = LearningPath.AcademicYearStart.Year != 1 ?
             LearningPath.AcademicYearStart.Year : DateTime.Now.Year;
+
+        editContext = new EditContext(LearningPath);
+        messageStore = new ValidationMessageStore(editContext);
     }
 
     private void LoadAvailableStudents()
@@ -541,8 +548,13 @@
         scheduleToDelete = null;
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleSubmit(EditContext context)
     {
+        if (!ValidationService.ValidateLearningPath(context, LearningPath, messageStore!, SchoolDataService))
+        {
+            return;
+        }
+
         LearningPath.Students = availableStudents
             .Where(s => selectedStudentIds.Contains(s.Id))
             .ToList();
@@ -553,6 +565,6 @@
             LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : 1
         );
 
-        OnSubmit.InvokeAsync(LearningPath);
+        await OnSubmit.InvokeAsync(LearningPath);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FcmsPortal.Enums;
 using FcmsPortal.Models;
+using FcmsPortal.Services;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace FcmsPortalUI.Services
@@ -105,9 +106,6 @@ namespace FcmsPortalUI.Services
             Require(nameof(person.PhoneNumber), person.PhoneNumber, "Phone number is required.");
             Require(nameof(person.StateOfOrigin), person.StateOfOrigin, "State of origin is required.");
             Require(nameof(person.LgaOfOrigin), person.LgaOfOrigin, "LGA of origin is required.");
-            Require(nameof(person.DateOfBirth), person.DateOfBirth.ToString(), "Date of birth is required.");
-
-
 
             if (person.Sex == Gender.None)
             {
@@ -123,6 +121,51 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
+            return isValid;
+        }
+
+        public bool ValidateLearningPath(EditContext context, LearningPath learningPath, ValidationMessageStore messageStore, ISchoolDataService schoolDataService)
+        {
+            messageStore.Clear();
+            bool isValid = context.Validate();
+
+            var existingPaths = schoolDataService.GetAllLearningPaths();
+            bool isDuplicate = existingPaths.Any(lp =>
+                lp.Id != learningPath.Id &&
+                lp.EducationLevel == learningPath.EducationLevel &&
+                lp.ClassLevel == learningPath.ClassLevel &&
+                lp.Semester == learningPath.Semester &&
+                lp.AcademicYear == learningPath.AcademicYear);
+
+            if (isDuplicate)
+            {
+                var field = new FieldIdentifier(learningPath, nameof(learningPath.EducationLevel));
+                messageStore.Add(field, "A learning path with this combination already exists.");
+                isValid = false;
+            }
+
+            if (learningPath.EducationLevel == default)
+            {
+                var field = new FieldIdentifier(learningPath, nameof(learningPath.EducationLevel));
+                messageStore.Add(field, "Education level is required.");
+                isValid = false;
+            }
+
+            if (learningPath.ClassLevel == default)
+            {
+                var field = new FieldIdentifier(learningPath, nameof(learningPath.ClassLevel));
+                messageStore.Add(field, "Class level is required.");
+                isValid = false;
+            }
+
+            if (learningPath.FeePerSemester <= 0)
+            {
+                var field = new FieldIdentifier(learningPath, nameof(learningPath.FeePerSemester));
+                messageStore.Add(field, "Fee per semester must be greater than zero.");
+                isValid = false;
+            }
+
+            context.NotifyValidationStateChanged();
             return isValid;
         }
     }
