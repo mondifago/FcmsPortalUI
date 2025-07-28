@@ -45,11 +45,12 @@
                     <label for="gender" class="form-label">Gender<span class="text-danger">*</span></label>
                     <InputSelect id="gender" class="form-select" @bind-Value="Guardian.Person.Sex">
                         <option value="">-- Select Gender --</option>
-                        @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                        @foreach (var gender in Enum.GetValues(typeof(Gender)).Cast<Gender>().Where(g => g != Gender.None))
                         {
                             <option value="@gender">@gender</option>
                         }
                     </InputSelect>
+                    <ValidationMessage For="@(() => Guardian.Person.Sex)" />
                 </div>
                 <div class="col-md-4 mb-3">
                     <label for="stateOfOrigin" class="form-label">State of Origin<span class="text-danger">*</span></label>
@@ -82,11 +83,12 @@
                     <label for="relationship" class="form-label">Relationship to Student<span class="text-danger">*</span></label>
                     <InputSelect id="relationship" class="form-select" @bind-Value="Guardian.RelationshipToStudent">
                         <option value="">-- Select Relationship --</option>
-                        @foreach (var relationship in Enum.GetValues(typeof(Relationship)))
+                        @foreach (var relationship in Enum.GetValues(typeof(Relationship)).Cast<Relationship>().Where(r => r != Relationship.None))
                         {
                             <option value="@relationship">@relationship</option>
                         }
                     </InputSelect>
+                    <ValidationMessage For="@(() => Guardian.RelationshipToStudent)" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="occupation" class="form-label">Occupation<span class="text-danger">*</span></label>

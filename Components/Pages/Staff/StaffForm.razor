@@ -5,9 +5,10 @@
 @using FcmsPortalUI.Services
 @using FcmsPortal.Services
 @inject NavigationManager NavigationManager
+@inject ValidationService ValidationService
 @inject ISchoolDataService SchoolDataService
 
-<EditForm Model="@Staff" OnValidSubmit="HandleValidSubmit">
+<EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -42,14 +43,15 @@
 
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="gender" class="form-label">Gender</label>
+                    <label for="gender" class="form-label">Gender<span class="text-danger">*</span></label>
                     <InputSelect id="gender" class="form-select" @bind-Value="Staff.Person.Sex">
                         <option value="">-- Select Gender --</option>
-                        @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                        @foreach (var gender in Enum.GetValues(typeof(Gender)).Cast<Gender>().Where(g => g != Gender.None))
                         {
                             <option value="@gender">@gender</option>
                         }
                     </InputSelect>
+                    <ValidationMessage For="@(() => Staff.Person.Sex)" />
                 </div>
                 <div class="col-md-4 mb-3">
                     <label for="dateOfBirth" class="form-label">Date of Birth<span class="text-danger">*</span></label>
@@ -101,11 +103,12 @@
                     <label for="jobRole" class="form-label">Job Role<span class="text-danger">*</span></label>
                     <InputSelect id="jobRole" class="form-select" @bind-Value="Staff.JobRole">
                         <option value="">-- Select Job Role --</option>
-                        @foreach (var role in Enum.GetValues(typeof(JobRole)))
+                        @foreach (var role in Enum.GetValues(typeof(JobRole)).Cast<JobRole>().Where(r => r != JobRole.None))
                         {
                             <option value="@role">@role</option>
                         }
                     </InputSelect>
+                    <ValidationMessage For="@(() => Staff.JobRole)" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="dateOfEmployment" class="form-label">Date of Employment<span class="text-danger">*</span></label>
@@ -132,7 +135,7 @@
                     </InputSelect>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="areaOfSpecialization" class="form-label">Area of Specialization<span class="text-danger">*</span></label>
+                    <label for="areaOfSpecialization" class="form-label">Area of Specialization</label>
                     <InputSelect id="areaOfSpecialization" class="form-select" @bind-Value="Staff.AreaOfSpecialization">
                         <option value="">-- Select Area of Specialization --</option>
                         @foreach (var course in availableCourses)
@@ -255,6 +258,8 @@
     [Parameter, EditorRequired]
     public EventCallback OnCancel { get; set; }
 
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
     private string profilePictureUrl = "";
     private string oldProfilePictureUrl = "";
     private DateTime employmentDate = DateTime.Today;
@@ -278,6 +283,8 @@
         oldProfilePictureUrl = profilePictureUrl;
 
         availableCourses = CourseDefaults.GetCourseNames(Staff.Person.EducationLevel);
+        editContext = new EditContext(Staff);
+        messageStore = new ValidationMessageStore(editContext);
     }
 
     private void HandleEducationLevelChange()
@@ -312,8 +319,12 @@
         StateHasChanged();
     }
 
-    private async Task HandleValidSubmit()
+    private async Task HandleSubmit(EditContext context)
     {
+        if (!ValidationService.ValidateStaff(context, Staff, messageStore!))
+        {
+            return;
+        }
         Staff.Person.ProfilePictureUrl = profilePictureUrl;
         await OnSubmit.InvokeAsync(Staff);
     }

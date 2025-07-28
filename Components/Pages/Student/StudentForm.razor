@@ -47,7 +47,7 @@
                     <label for="gender" class="form-label">Gender</label>
                     <InputSelect id="gender" class="form-select" @bind-Value="Student.Person.Sex">
                         <option value="">-- Select Gender --</option>
-                        @foreach (var gender in Enum.GetValues(typeof(Gender)))
+                        @foreach (var gender in Enum.GetValues(typeof(Gender)).Cast<Gender>().Where(g => g != Gender.None))
                         {
                             <option value="@gender">@gender</option>
                         }

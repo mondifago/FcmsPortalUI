@@ -18,14 +18,15 @@
 
 @code {
     private Guardian newGuardian = new Guardian
+    {
+        Person = new Person
         {
-            Person = new Person
-            {
-                Addresses = new List<Address>(),
-                DateOfEnrollment = DateTime.Now,
-                IsActive = true
-            }
-        };
+            Addresses = new List<Address>(),
+            DateOfEnrollment = DateTime.Now,
+            IsActive = true
+        },
+        RelationshipToStudent = default
+    };
 
     private void CreateGuardian(Guardian guardian)
     {
