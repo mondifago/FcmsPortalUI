@@ -19,7 +19,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="course" class="form-label">Course<span class="text-danger">*</span></label>
-                            <InputSelect id="course" @bind-Value="selectedCourse" class="form-select">
+                            <InputSelect id="course" @bind-Value="classSession.Course" class="form-select">
                                 <option value="">-- Select Course --</option>
                                 @foreach (var course in availableCourses)
                                 {
@@ -33,7 +33,7 @@
                                 <option value="0">-- Select Teacher --</option>
                                 @foreach (var teacher in availableTeachers)
                                 {
-                                    <option value="@teacher.Id">@teacher.Person.FirstName @teacher.Person.LastName</option>
+                                    <option value="@teacher.Id">@Util.GetFullName(teacher.Person)</option>
                                 }
                             </InputSelect>
                         </div>
@@ -92,7 +92,6 @@
 
     private School school = new();
     private ClassSession classSession = new ClassSession();
-    private string selectedCourse = "";
     private int selectedTeacherId = 0;
     private List<string> availableCourses = new List<string>();
     private List<Staff> availableTeachers = new List<Staff>();
@@ -117,7 +116,7 @@
                 Teacher = ExistingClassSession.Teacher
             };
 
-            selectedCourse = ExistingClassSession.Course;
+            classSession.Course = ExistingClassSession.Course;
             selectedTeacherId = ExistingClassSession.Teacher?.Id ?? 0;
             StateHasChanged();
         }
@@ -136,8 +135,6 @@
 
     private async Task HandleSubmit()
     {
-        classSession.Course = selectedCourse;
-
         if (selectedTeacherId > 0)
         {
             var teacher = availableTeachers.FirstOrDefault(t => t.Id == selectedTeacherId);
