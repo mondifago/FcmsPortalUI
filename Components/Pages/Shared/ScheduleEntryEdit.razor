@@ -278,6 +278,11 @@
 
     private void LoadScheduleEntry()
     {
+        if (LearningPathId.HasValue)
+        {
+            learningPath = SchoolDataService.GetLearningPathById(LearningPathId.Value);
+        }
+
         scheduleEntry = new ScheduleEntry();
 
         if (ExistingScheduleEntry != null)
@@ -287,7 +292,6 @@
 
         if (ExistingScheduleEntry == null && LearningPathId.HasValue && ScheduleId.HasValue)
         {
-            learningPath = SchoolDataService.GetLearningPathById(LearningPathId.Value);
             var foundEntry = learningPath?.Schedule?.FirstOrDefault(s => s.Id == ScheduleId.Value);
             if (foundEntry != null)
             {
@@ -327,6 +331,7 @@
             }
         }
     }
+
 
     private void OnScheduleTypeChanged()
     {

@@ -26,10 +26,6 @@
                                     <option value="@course">@course</option>
                                 }
                             </InputSelect>
-                            @if (string.IsNullOrEmpty(selectedCourse))
-                            {
-                                <div class="text-danger">Course is required</div>
-                            }
                         </div>
                         <div class="col-md-6">
                             <label for="teacher" class="form-label">Teacher<span class="text-danger">*</span></label>
@@ -104,26 +100,26 @@
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
-        LoadData();
     }
 
     protected override void OnParametersSet()
     {
         if (IsVisible && ExistingClassSession != null)
         {
+            LoadData();
             classSession = new ClassSession
-                {
-                    Id = ExistingClassSession.Id,
-                    Course = ExistingClassSession.Course,
-                    Topic = ExistingClassSession.Topic,
-                    Description = ExistingClassSession.Description,
-                    LessonPlan = ExistingClassSession.LessonPlan,
-                    Teacher = ExistingClassSession.Teacher
-                };
+            {
+                Id = ExistingClassSession.Id,
+                Course = ExistingClassSession.Course,
+                Topic = ExistingClassSession.Topic,
+                Description = ExistingClassSession.Description,
+                LessonPlan = ExistingClassSession.LessonPlan,
+                Teacher = ExistingClassSession.Teacher
+            };
 
             selectedCourse = ExistingClassSession.Course;
             selectedTeacherId = ExistingClassSession.Teacher?.Id ?? 0;
-            LoadData();
+            StateHasChanged();
         }
     }
 
@@ -154,7 +150,7 @@
         {
             classSession.Teacher = null;
         }
-        
+
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }
