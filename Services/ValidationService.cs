@@ -168,5 +168,48 @@ namespace FcmsPortalUI.Services
             context.NotifyValidationStateChanged();
             return isValid;
         }
+
+        public bool ValidateScheduleEntry(EditContext context, ScheduleEntry scheduleEntry, ScheduleType scheduleType, ValidationMessageStore messageStore)
+        {
+            messageStore.Clear();
+            bool isValid = context.Validate();
+
+            if (string.IsNullOrWhiteSpace(scheduleEntry.Title))
+            {
+                var field = new FieldIdentifier(scheduleEntry, nameof(scheduleEntry.Title));
+                messageStore.Add(field, "Title is required.");
+                isValid = false;
+            }
+
+            if (string.IsNullOrWhiteSpace(scheduleEntry.Venue))
+            {
+                var field = new FieldIdentifier(scheduleEntry, nameof(scheduleEntry.Venue));
+                isValid = false;
+            }
+
+            if (scheduleType == ScheduleType.Event && string.IsNullOrWhiteSpace(scheduleEntry.Event))
+            {
+                var field = new FieldIdentifier(scheduleEntry, nameof(scheduleEntry.Event));
+                messageStore.Add(field, "Event details are required.");
+                isValid = false;
+            }
+
+            if (scheduleType == ScheduleType.Meeting && string.IsNullOrWhiteSpace(scheduleEntry.Meeting))
+            {
+                var field = new FieldIdentifier(scheduleEntry, nameof(scheduleEntry.Meeting));
+                messageStore.Add(field, "Meeting details are required.");
+                isValid = false;
+            }
+
+            if (scheduleType == ScheduleType.ClassSession && scheduleEntry.ClassSession == null)
+            {
+                var field = new FieldIdentifier(scheduleEntry, nameof(scheduleEntry.ClassSession));
+                messageStore.Add(field, "A class session must be added for class schedules.");
+                isValid = false;
+            }
+
+            context.NotifyValidationStateChanged();
+            return isValid;
+        }
     }
 }

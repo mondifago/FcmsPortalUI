@@ -4,8 +4,10 @@
 @using FcmsPortal
 @using FcmsPortalUI.Components.Pages.Classes
 @using FcmsPortalUI.Components.Pages.Shared
+@using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@inject ValidationService ValidationService
 @rendermode InteractiveServer
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -26,7 +28,7 @@
                 }
                 else
                 {
-                    <EditForm Model="@scheduleEntry" OnValidSubmit="HandleSubmit">
+                    <EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
@@ -67,6 +69,7 @@
                                 <div class="col-md-12">
                                     <label for="eventDetails" class="form-label">Event Details<span class="text-danger">*</span></label>
                                     <InputTextArea id="eventDetails" @bind-Value="scheduleEntry.Event" class="form-control" rows="3" />
+                                    <ValidationMessage For="@(() => scheduleEntry.Event)" />
                                 </div>
                             </div>
                         }
@@ -77,6 +80,7 @@
                                 <div class="col-md-12">
                                     <label for="meetingDetails" class="form-label">Meeting Details<span class="text-danger">*</span></label>
                                     <InputTextArea id="meetingDetails" @bind-Value="scheduleEntry.Meeting" class="form-control" rows="3" />
+                                    <ValidationMessage For="@(() => scheduleEntry.Meeting)" />
                                 </div>
                             </div>
                         }
@@ -134,6 +138,7 @@
                                     <button type="button" class="btn btn-info" @onclick="ShowClassSessionModal">
                                         <i class="fa fa-plus-circle"></i> Add Class Session
                                     </button>
+                                    <ValidationMessage For="@(() => scheduleEntry.ClassSession)" />
                                 }
                                 else
                                 {
@@ -236,6 +241,8 @@
     public bool RestrictToClassOnly { get; set; } = false;
 
     private LearningPath? learningPath;
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
     private ScheduleEntry scheduleEntry = new ScheduleEntry();
     private string startTimeString = "09:00";
     private DateTime scheduleDate = DateTime.Today;
@@ -249,8 +256,25 @@
         if (IsVisible)
         {
             LoadScheduleEntry();
+            editContext = new EditContext(scheduleEntry);
+            messageStore = new ValidationMessageStore(editContext);
         }
     }
+
+    protected override void OnInitialized()
+    {
+        scheduleEntry = new ScheduleEntry
+        {
+            Title = "",
+            Venue = "",
+            DateTime = DateTime.Today.AddHours(9),
+            Duration = TimeSpan.FromMinutes(60)
+        };
+
+        editContext = new EditContext(scheduleEntry);
+        messageStore = new ValidationMessageStore(editContext);
+    }
+
 
     private void LoadScheduleEntry()
     {
@@ -355,8 +379,13 @@
         StateHasChanged();
     }
 
-    private void HandleSubmit()
+    private void HandleSubmit(EditContext context)
     {
+        if (!ValidationService.ValidateScheduleEntry(context, scheduleEntry, scheduleType, messageStore!))
+        {
+            return;
+        }
+
         if (TimeOnly.TryParse(startTimeString, out var timeOnly))
         {
             var dateTime = scheduleDate.Add(timeOnly.ToTimeSpan());
