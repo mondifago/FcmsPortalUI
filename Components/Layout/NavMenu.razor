@@ -1,5 +1,7 @@
-﻿<div class="nav-scrollable @(collapseNavMenu ? "collapsed" : "")">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+<div class="nav-scrollable @(collapseNavMenu ? "collapsed" : "")">
     <nav class="nav flex-column">
+       
         <div class="nav-item">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <i class="fa fa-home me-2"></i>Home
