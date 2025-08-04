@@ -1,6 +1,8 @@
 using FcmsPortal.Services;
 using FcmsPortalUI.Components;
+using FcmsPortalUI.Data;
 using FcmsPortalUI.Services;
+using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +10,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<ExceptionHandlerService>();
+
+builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("FcmsPortalUIContext"),
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("FcmsPortalUIContext")),
+        mySqlOptions => mySqlOptions
+            .EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null)
+    ));
+
+
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
