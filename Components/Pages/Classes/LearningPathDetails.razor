@@ -623,19 +623,8 @@
 
     private List<StudentGradeSummary> GetRankedStudents()
     {
-        var rankedList = new List<StudentGradeSummary>();
-
-        foreach (var student in learningPath.Students)
-        {
-            double semesterGrade = LogicMethods.CalculateSemesterOverallGrade(student, learningPath);
-            rankedList.Add(new StudentGradeSummary
-            {
-                Student = student,
-                SemesterOverallGrade = semesterGrade
-            });
-        }
-
-        return rankedList.OrderByDescending(sg => sg.SemesterOverallGrade).ToList();
+        var gradeReport = LogicMethods.GenerateLearningPathGradeReport(learningPath);
+        return gradeReport.RankedStudents;
     }
 
     private void ShowMainGradePage()
