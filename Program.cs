@@ -11,10 +11,9 @@ builder.Services.AddSingleton<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<ExceptionHandlerService>();
 
+var connectionString = builder.Configuration.GetConnectionString("FcmsPortalUIContext");
 builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("FcmsPortalUIContext"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("FcmsPortalUIContext")),
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
         mySqlOptions => mySqlOptions
             .EnableRetryOnFailure(
                 maxRetryCount: 5,
