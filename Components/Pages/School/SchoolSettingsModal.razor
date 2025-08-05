@@ -1,0 +1,191 @@
+﻿@using FcmsPortal.Services
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Services
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cog me-2"></i>School Settings
+                </h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (school != null)
+                {
+                    <EditForm Model="school" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Basic Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">School Name</label>
+                                            <InputText id="name" @bind-Value="school.Name" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <InputText id="email" @bind-Value="school.Email" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">Phone Number</label>
+                                            <InputText id="phone" @bind-Value="school.PhoneNumber" class="form-control" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="website" class="form-label">Website URL</label>
+                                            <InputText id="website" @bind-Value="school.WebsiteUrl" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 d-flex justify-content-center align-items-center">
+                                        <div class="school-logo-card">
+                                            <label class="form-label">School Logo</label>
+                                            <div class="school-logo-container">
+                                                <InputFile OnChange="HandleFileUpload" accept="image/*" class="hidden-file-input" id="fileInput" />
+                                                <label for="fileInput" class="logo-label">
+                                                    <img src="@logoUrl" alt="School Logo" class="school-logo @(string.IsNullOrEmpty(logoUrl) ? "hidden" : "")" />
+                                                    <i class="fa fa-school placeholder-icon @(string.IsNullOrEmpty(logoUrl) ? "" : "hidden")"></i>
+                                                </label>
+                                            </div>
+                                            <span class="text-muted text-center">Click to upload logo</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Address</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="street" class="form-label">Street</label>
+                                        <InputText id="street" @bind-Value="school.Address.Street" class="form-control" />
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="city" class="form-label">City</label>
+                                        <InputText id="city" @bind-Value="school.Address.City" class="form-control" />
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="state" class="form-label">State</label>
+                                        <InputText id="state" @bind-Value="school.Address.State" class="form-control" />
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="postal" class="form-label">Postal Code</label>
+                                        <InputText id="postal" @bind-Value="school.Address.PostalCode" class="form-control" />
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="country" class="form-label">Country</label>
+                                        <InputText id="country" @bind-Value="school.Address.Country" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </EditForm>
+                }
+                else
+                {
+                    <div class="text-center p-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading school information...</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+
+    private FcmsPortal.Models.School? school;
+    private string logoUrl = "";
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && school == null)
+        {
+            LoadSchoolData();
+        }
+    }
+
+    private void LoadSchoolData()
+    {
+        school = SchoolDataService.GetSchool();
+        logoUrl = school?.LogoUrl ?? "";
+    }
+
+    private async Task Close()
+    {
+        school = null; // Reset for next time
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (school != null)
+        {
+            school.LogoUrl = logoUrl;
+            SchoolDataService.UpdateSchool(school);
+            await OnSave.InvokeAsync();
+            await Close();
+        }
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+                // Convert to base64 for display
+                using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024); // 5MB limit
+                var buffer = new byte[file.Size];
+                await stream.ReadAsync(buffer);
+                var base64 = Convert.ToBase64String(buffer);
+                logoUrl = $"data:{file.ContentType};base64,{base64}";
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading file: {ex.Message}");
+            }
+        }
+    }
+}

@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using FcmsPortalUI.Components.Pages.School
+@inherits LayoutComponentBase
 
 <div class="layout-container">
     <div class="top-row">
@@ -12,6 +13,9 @@
             <input type="text" class="search-box" placeholder="Search...">
             <a href="/messages" class="icon-link"><i class="fas fa-envelope"></i></a>
             <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
+            <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
+                <i class="fas fa-cog"></i>
+            </button>
             <a href="/profile" class="icon-link"><i class="fas fa-user-circle"></i></a>
         </div>
     </div>
@@ -31,13 +35,38 @@
     <span class="dismiss">🗙</span>
 </div>
 
+<!-- School Settings Modal -->
+<SchoolSettingsModal IsVisible="showSchoolSettings" 
+                     OnClose="CloseSchoolSettings" 
+                     OnSave="HandleSchoolSettingsSaved" />
+
 @code {
     private NavMenu? navMenu;
     private bool collapseNavMenu = true;
+    private bool showSchoolSettings = false;
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
         navMenu?.Toggle(collapseNavMenu);
+    }
+
+    private void ShowSchoolSettings()
+    {
+        showSchoolSettings = true;
+        StateHasChanged();
+    }
+
+    private void CloseSchoolSettings()
+    {
+        showSchoolSettings = false;
+        StateHasChanged();
+    }
+
+    private void HandleSchoolSettingsSaved()
+    {
+        // show success message or refresh data
+        showSchoolSettings = false;
+        StateHasChanged();
     }
 }
