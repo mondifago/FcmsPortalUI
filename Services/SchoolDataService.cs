@@ -3,13 +3,13 @@ using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using FcmsPortalUI.Data;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace FcmsPortal.Services
 {
     public class SchoolDataService : ISchoolDataService
     {
-        private readonly School _school;
         private readonly FcmsPortalUIContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly Dictionary<string, List<(int referenceId, FileAttachment attachment)>> _attachmentReferences = new();
@@ -21,26 +21,16 @@ namespace FcmsPortal.Services
         private static readonly object _idLock = new object();
         private static readonly Dictionary<string, int> _entityCounters = new Dictionary<string, int>();
 
-        private static School _staticSchool = null!;
-        private static List<Address> _staticAddresses = new();
-        private static Dictionary<string, int> _nextIds = new();
 
-        public SchoolDataService(IWebHostEnvironment environment)
-        {
-            _school = Program.CreateSchool();
-            _environment = environment;
-            InitializeIdCounters();
-        }
 
-        public SchoolDataService(FcmsPortalUIContext context)
+
+        public SchoolDataService(FcmsPortalUIContext context, IWebHostEnvironment environment)
         {
             _context = context;
-
-            if (_staticSchool == null)
-            {
-                InitializeStaticData();
-            }
+            _environment = environment;
+            // Remove all static/sample data initialization
         }
+
 
         private int GetNextId(string entityType, Func<int> getCurrentMaxId)
         {
@@ -68,7 +58,18 @@ namespace FcmsPortal.Services
         }
 
         #region School
-        public School GetSchool() => _school;
+        public async Task<School?> GetSchoolAsync()
+        {
+            return await _context.Schools
+                .Include(s => s.Address)
+                .Include(s => s.SchoolCalendar)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> HasSchoolAsync()
+        {
+            return await _context.Schools.AnyAsync();
+        }
 
         public async Task<School> AddSchoolAsync(School school)
         {
@@ -78,39 +79,20 @@ namespace FcmsPortal.Services
             school.Guardians = new List<Guardian>();
             school.LearningPaths = new List<LearningPath>();
             school.SchoolCalendar = new List<CalendarModel>
-    {
-        new CalendarModel
-        {
-            Name = $"{DateTime.Now.Year} School Calendar",
-            ScheduleEntries = new List<ScheduleEntry>()
-        }
-    };
+            {
+                new CalendarModel
+                {
+                    Name = $"{DateTime.Now.Year} School Calendar",
+                    ScheduleEntries = new List<ScheduleEntry>()
+                }
+            };
 
             _context.Schools.Add(school);
             await _context.SaveChangesAsync();
             return school;
         }
 
-        public School AddSchool(School school)
-        {
-            // Same logic but synchronous
-            school.Students = new List<Student>();
-            school.Staff = new List<Staff>();
-            school.Guardians = new List<Guardian>();
-            school.LearningPaths = new List<LearningPath>();
-            school.SchoolCalendar = new List<CalendarModel>
-    {
-        new CalendarModel
-        {
-            Name = $"{DateTime.Now.Year} School Calendar",
-            ScheduleEntries = new List<ScheduleEntry>()
-        }
-    };
 
-            _context.Schools.Add(school);
-            _context.SaveChanges();
-            return school;
-        }
 
         public void UpdateSchool(School updatedSchool)
         {
