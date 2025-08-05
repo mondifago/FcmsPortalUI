@@ -1,4 +1,5 @@
 ﻿@using FcmsPortalUI.Components.Pages.School
+
 @inherits LayoutComponentBase
 
 <div class="layout-container">
@@ -65,7 +66,7 @@
 
     private void HandleSchoolSettingsSaved()
     {
-        // show success message or refresh data
+        FcmsPortalUI.Components.Pages.School.Home.TriggerSchoolDataRefresh();
         showSchoolSettings = false;
         StateHasChanged();
     }

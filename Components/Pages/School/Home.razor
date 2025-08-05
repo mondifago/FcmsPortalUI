@@ -7,6 +7,7 @@
 @using FcmsPortal
 @using FcmsPortalUI.Services
 @rendermode InteractiveServer
+@implements IDisposable
 
 <div class="school-logo-container">
     <div class="school-logo-display">
@@ -73,52 +74,26 @@
     </div>
 
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card mb-4">
                 <div class="card-header">
                     <h4>Students</h4>
                 </div>
                 <div class="card-body">
-                    <p>Total Students: @school.Students.Count</p>
-                    <a href="/students" class="btn btn-outline-primary">View All Students</a>
+                    <p>Total Students: @(school.Students?.Count ?? 0)</p>
+                    <a href="/students" class="btn btn-outline-primary">View Students</a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card mb-4">
                 <div class="card-header">
                     <h4>Staff</h4>
                 </div>
                 <div class="card-body">
-                    <p>Total Staff: @school.Staff.Count</p>
-                    <a href="/staff" class="btn btn-outline-primary">View All Staff</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Guardians</h4>
-                </div>
-                <div class="card-body">
-                    <p>Total Guardians: @school.Guardians.Count</p>
-                    <a href="/guardians" class="btn btn-outline-primary">View All Guardians</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Calendars</h4>
-                </div>
-                <div class="card-body">
-                    <p>Total Calendars: @school.SchoolCalendar.Count</p>
-                    <a href="/calendars" class="btn btn-outline-primary">View School Calendar</a>
+                    <p>Total Staff: @(school.Staff?.Count ?? 0)</p>
+                    <a href="/staff" class="btn btn-outline-primary">View Staff</a>
                 </div>
             </div>
         </div>
@@ -129,7 +104,7 @@
                     <h4>Learning Paths</h4>
                 </div>
                 <div class="card-body">
-                    <p>Total Learning Path: @(school.LearningPaths?.Count ?? 0)</p>
+                    <p>Total Learning Paths: @(school.LearningPaths?.Count ?? 0)</p>
                     <a href="/classes" class="btn btn-outline-primary">View Learning Path</a>
                 </div>
             </div>
@@ -170,12 +145,34 @@ else
     private List<EducationLevel>? educationLevels;
     private IList<ClassLevel>? classlevels;
 
+    public static event Action? OnSchoolDataChanged;
 
     protected override void OnInitialized()
+    {
+        LoadSchoolData();
+        OnSchoolDataChanged += RefreshSchoolData;
+    }
+
+    private void LoadSchoolData()
     {
         school = SchoolDataService.GetSchool();
         educationLevels = FcmsPortal.LogicMethods.GetExistingEducationLevels(school);
         classlevels = FcmsPortal.LogicMethods.GetExistingClassLevels(school);
     }
-   
+
+    private void RefreshSchoolData()
+    {
+        LoadSchoolData();
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        OnSchoolDataChanged -= RefreshSchoolData;
+    }
+
+    public static void TriggerSchoolDataRefresh()
+    {
+        OnSchoolDataChanged?.Invoke();
+    }
 }
