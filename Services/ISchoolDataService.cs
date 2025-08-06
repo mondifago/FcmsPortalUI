@@ -8,8 +8,8 @@ namespace FcmsPortal.Services
         #region School
         Task<School> AddSchoolAsync(School school);
         Task<bool> HasSchoolAsync();
-        Task<School?> GetSchoolAsync();
-        void UpdateSchool(School updatedSchool);
+        Task UpdateSchoolAsync(School updatedSchool);
+        School? GetSchool();
         #endregion
 
         #region Addresses

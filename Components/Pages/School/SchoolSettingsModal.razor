@@ -162,7 +162,7 @@
         if (school != null)
         {
             school.LogoUrl = logoUrl;
-            SchoolDataService.UpdateSchool(school);
+            await SchoolDataService.UpdateSchoolAsync(school);
             await OnSave.InvokeAsync();
             await Close();
         }

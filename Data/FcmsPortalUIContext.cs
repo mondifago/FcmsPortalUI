@@ -10,7 +10,7 @@ namespace FcmsPortalUI.Data
         // Core Entities
         public DbSet<School> Schools { get; set; }
         public DbSet<Student> Students { get; set; }
-        public DbSet<Staff> StaffMembers { get; set; }
+        public DbSet<Staff> Staff { get; set; }
         public DbSet<Guardian> Guardians { get; set; }
         public DbSet<Address> Addresses { get; set; }
 

@@ -28,7 +28,6 @@ namespace FcmsPortal.Services
         {
             _context = context;
             _environment = environment;
-            // Remove all static/sample data initialization
         }
 
 
@@ -48,7 +47,6 @@ namespace FcmsPortal.Services
 
         private void InitializeIdCounters()
         {
-            // Pre-populate the ID counters to avoid the initial max ID calculation
             _entityCounters["Address"] = _addresses.Any() ? _addresses.Max(a => a.Id) : 0;
             GetNextId("Homework", () => GetMaxHomeworkId());
             GetNextId("HomeworkSubmission", () => GetMaxHomeworkSubmissionId());
@@ -58,12 +56,20 @@ namespace FcmsPortal.Services
         }
 
         #region School
-        public async Task<School?> GetSchoolAsync()
+
+        public School? GetSchool()
         {
-            return await _context.Schools
+            return _context.Schools
                 .Include(s => s.Address)
+                .Include(s => s.Staff)
+                    .ThenInclude(st => st.Person)
+                .Include(s => s.Students)
+                    .ThenInclude(st => st.Person)
+                .Include(s => s.Guardians)
+                    .ThenInclude(g => g.Person)
+                .Include(s => s.LearningPaths)
                 .Include(s => s.SchoolCalendar)
-                .FirstOrDefaultAsync();
+                .FirstOrDefault();
         }
 
         public async Task<bool> HasSchoolAsync()
@@ -73,7 +79,6 @@ namespace FcmsPortal.Services
 
         public async Task<School> AddSchoolAsync(School school)
         {
-            // Initialize all collections
             school.Students = new List<Student>();
             school.Staff = new List<Staff>();
             school.Guardians = new List<Guardian>();
@@ -92,25 +97,30 @@ namespace FcmsPortal.Services
             return school;
         }
 
-
-
-        public void UpdateSchool(School updatedSchool)
+        public async Task UpdateSchoolAsync(School updatedSchool)
         {
-            // Update the properties of the existing school
-            _school.Name = updatedSchool.Name;
-            _school.LogoUrl = updatedSchool.LogoUrl;
-            _school.Email = updatedSchool.Email;
-            _school.PhoneNumber = updatedSchool.PhoneNumber;
-            _school.WebsiteUrl = updatedSchool.WebsiteUrl;
+            var existingSchool = await _context.Schools
+                .Include(s => s.Address)
+                .FirstOrDefaultAsync();
 
-            // Update address
-            if (_school.Address != null && updatedSchool.Address != null)
+            if (existingSchool != null)
             {
-                _school.Address.Street = updatedSchool.Address.Street;
-                _school.Address.City = updatedSchool.Address.City;
-                _school.Address.State = updatedSchool.Address.State;
-                _school.Address.PostalCode = updatedSchool.Address.PostalCode;
-                _school.Address.Country = updatedSchool.Address.Country;
+                existingSchool.Name = updatedSchool.Name;
+                existingSchool.LogoUrl = updatedSchool.LogoUrl;
+                existingSchool.Email = updatedSchool.Email;
+                existingSchool.PhoneNumber = updatedSchool.PhoneNumber;
+                existingSchool.WebsiteUrl = updatedSchool.WebsiteUrl;
+
+                if (existingSchool.Address != null && updatedSchool.Address != null)
+                {
+                    existingSchool.Address.Street = updatedSchool.Address.Street;
+                    existingSchool.Address.City = updatedSchool.Address.City;
+                    existingSchool.Address.State = updatedSchool.Address.State;
+                    existingSchool.Address.PostalCode = updatedSchool.Address.PostalCode;
+                    existingSchool.Address.Country = updatedSchool.Address.Country;
+                }
+
+                await _context.SaveChangesAsync();
             }
         }
         #endregion
@@ -133,24 +143,36 @@ namespace FcmsPortal.Services
         #endregion
 
         #region Staff
-        public IEnumerable<Staff> GetStaff() => _school.Staff;
+        public IEnumerable<Staff> GetStaff()
+        {
+            var school = _context.Schools
+                .Include(s => s.Staff)
+                    .ThenInclude(st => st.Person)
+                .FirstOrDefault();
+
+            return school?.Staff ?? new List<Staff>();
+        }
 
         public Staff? GetStaffById(int id)
         {
-            return _school.Staff.FirstOrDefault(s => s.Id == id);
+            var school = _context.Schools
+                .Include(s => s.Staff)
+                    .ThenInclude(st => st.Person)
+                .FirstOrDefault();
+
+            return school?.Staff.FirstOrDefault(s => s.Id == id);
         }
 
         public Staff AddStaff(Staff staff)
         {
             if (staff.Id <= 0)
             {
-                staff.Id = _school.Staff.Any() ? _school.Staff.Max(s => s.Id) + 1 : 1;
+                var maxId = _context.Staff.Any() ? _context.Staff.Max(s => s.Id) : 0;
+                staff.Id = maxId + 1;
             }
 
-            var staffList = _school.Staff.ToList();
-            staffList.Add(staff);
-            _school.Staff = staffList;
-
+            _context.Staff.Add(staff);
+            _context.SaveChanges();
             return staff;
         }
 

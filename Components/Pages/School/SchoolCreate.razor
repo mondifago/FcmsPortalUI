@@ -121,18 +121,14 @@ else
             PhoneNumber = "",
             WebsiteUrl = "",
             LogoUrl = "",
-            Students = new List<Student>(),
-            Staff = new List<Staff>(),
-            Guardians = new List<Guardian>(),
-            SchoolCalendar = new List<CalendarModel>(),
-            Address = SchoolDataService.AddAddress(new Address
+            Address = new Address
             {
                 Street = "",
                 City = "",
                 State = "",
                 Country = "",
                 AddressType = AddressType.Office
-            })
+            }
         };
     }
 
@@ -168,17 +164,26 @@ else
         }
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
-        // Add code here to save the new school to your service
-        // Example: SchoolDataService.CreateSchool(school);
-
-        // Navigate back to the school page
-        NavigationManager.NavigateTo("/school");
+        try
+        {
+            if (school != null)
+            {
+                school.LogoUrl = logoUrl;
+                var createdSchool = await SchoolDataService.AddSchoolAsync(school);
+                NavigationManager.NavigateTo("/");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle error 
+            Console.WriteLine($"Error creating school: {ex.Message}");
+        }
     }
 
     private void Cancel()
     {
-        NavigationManager.NavigateTo("/school");
+        NavigationManager.NavigateTo("/");
     }
 }
