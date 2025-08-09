@@ -260,12 +260,12 @@ namespace FcmsPortal.Services
 
         public Guardian AddGuardian(Guardian guardian)
         {
-            if (guardian.Id <= 0)
-            {
-                var maxId = _context.Guardians.Any() ? _context.Guardians.Max(g => g.Id) : 0;
-                guardian.Id = maxId + 1;
-            }
+            var school = _context.School.FirstOrDefault();
+            if (school == null)
+                throw new InvalidOperationException("No school found. Cannot add guardian without a school.");
 
+            guardian.SchoolId = school.Id;
+            guardian.School = school;
             _context.Guardians.Add(guardian);
             _context.SaveChanges();
             return guardian;
