@@ -1396,34 +1396,47 @@ namespace FcmsPortal.Services
         #region Grading
         public void SaveCourseGradingConfiguration(CourseGradingConfiguration configuration)
         {
-            var learningPath = _school.LearningPaths.FirstOrDefault(lp => lp.Id == configuration.LearningPathId);
+            // Adapt to DbContext: Get learning path with grading configurations
+            var learningPath = _context.LearningPaths
+                .Include(lp => lp.CourseGradingConfigurations)
+                .FirstOrDefault(lp => lp.Id == configuration.LearningPathId);
+
             if (learningPath == null) return;
 
+            // KEEP ORIGINAL BEHAVIOR: Find existing configuration for course
             var existingConfig = learningPath.CourseGradingConfigurations
                 .FirstOrDefault(c => c.Course == configuration.Course);
 
             if (existingConfig != null)
             {
+                // KEEP ORIGINAL BEHAVIOR: Update existing configuration
                 existingConfig.HomeworkWeightPercentage = configuration.HomeworkWeightPercentage;
                 existingConfig.QuizWeightPercentage = configuration.QuizWeightPercentage;
                 existingConfig.FinalExamWeightPercentage = configuration.FinalExamWeightPercentage;
             }
             else
             {
-                configuration.Id = GetNextCourseGradingConfigurationId();
+                // EF Core will auto-generate ID when saved
                 learningPath.CourseGradingConfigurations.Add(configuration);
             }
 
+            _context.SaveChanges();
+
+            // KEEP ORIGINAL BEHAVIOR: Update course grade configurations
             UpdateCourseGradeConfigurations(learningPath.Id, configuration.Course, configuration);
         }
 
         private void UpdateCourseGradeConfigurations(int learningPathId, string course, CourseGradingConfiguration config)
         {
-            var affectedCourseGrades = _school.Students
+            // Adapt to DbContext: Get students with course grades
+            var affectedCourseGrades = _context.Students
+                .Include(s => s.CourseGrades)
+                    .ThenInclude(cg => cg.TestGrades)
                 .SelectMany(s => s.CourseGrades)
                 .Where(cg => cg.LearningPathId == learningPathId && cg.Course == course)
                 .ToList();
 
+            // KEEP ORIGINAL BEHAVIOR: Update each course grade configuration
             foreach (var courseGrade in affectedCourseGrades)
             {
                 courseGrade.GradingConfiguration = config;
@@ -1433,90 +1446,64 @@ namespace FcmsPortal.Services
                     LogicMethods.RecalculateCourseGrade(courseGrade);
                 }
             }
+
+            _context.SaveChanges();
         }
+
 
         public CourseGradingConfiguration? GetCourseGradingConfiguration(int learningPathId, string courseName)
         {
-            var learningPath = _school.LearningPaths.FirstOrDefault(lp => lp.Id == learningPathId);
-            if (learningPath == null) return null;
+            // Adapt to DbContext: Get learning path with grading configurations
+            var learningPath = _context.LearningPaths
+                .Include(lp => lp.CourseGradingConfigurations)
+                .FirstOrDefault(lp => lp.Id == learningPathId);
 
-            return learningPath.CourseGradingConfigurations
+            // KEEP ORIGINAL BEHAVIOR: Find configuration for specific course
+            return learningPath?.CourseGradingConfigurations
                 .FirstOrDefault(c => c.Course == courseName);
         }
 
         public List<CourseGradingConfiguration> GetAllCourseGradingConfigurations(int learningPathId)
         {
-            var learningPath = _school.LearningPaths.FirstOrDefault(lp => lp.Id == learningPathId);
-            if (learningPath == null) return new List<CourseGradingConfiguration>();
+            // Adapt to DbContext: Get learning path with grading configurations
+            var learningPath = _context.LearningPaths
+                .Include(lp => lp.CourseGradingConfigurations)
+                .FirstOrDefault(lp => lp.Id == learningPathId);
 
-            return learningPath.CourseGradingConfigurations.ToList();
+            // KEEP ORIGINAL BEHAVIOR: Return all configurations or empty list
+            return learningPath?.CourseGradingConfigurations ?? new List<CourseGradingConfiguration>();
         }
 
-        public int GetNextCourseGradingConfigurationId()
-        {
-            return GetNextId("CourseGradingConfiguration", () =>
-            {
-                var allConfigurations = _school.LearningPaths
-                    .SelectMany(lp => lp.CourseGradingConfigurations);
-                return allConfigurations.Any() ? allConfigurations.Max(c => c.Id) : 0;
-            });
-        }
 
         public List<string> GetCoursesWithoutGradingConfiguration(int learningPathId)
         {
-            var learningPath = _school.LearningPaths.FirstOrDefault(lp => lp.Id == learningPathId);
+            // Adapt to DbContext: Get learning path with grading configurations
+            var learningPath = _context.LearningPaths
+                .Include(lp => lp.CourseGradingConfigurations)
+                .FirstOrDefault(lp => lp.Id == learningPathId);
+
             if (learningPath == null) return new List<string>();
 
+            // KEEP ORIGINAL BEHAVIOR: Get all courses and subtract configured ones
             var allCourses = CourseDefaults.GetCourseNames(learningPath.EducationLevel);
             var configuredCourses = learningPath.CourseGradingConfigurations.Select(c => c.Course).ToList();
 
             return allCourses.Except(configuredCourses).ToList();
         }
 
-        private int GetMaxTestGradeId()
-        {
-            int maxId = 0;
-            foreach (var student in _school.Students)
-            {
-                foreach (var courseGrade in student.CourseGrades)
-                {
-                    foreach (var testGrade in courseGrade.TestGrades)
-                    {
-                        if (testGrade.Id > maxId)
-                            maxId = testGrade.Id;
-                    }
-                }
-            }
-            return maxId;
-        }
-
-        private int GetMaxCourseGradeId()
-        {
-            int maxId = 0;
-            foreach (var student in _school.Students)
-            {
-                foreach (var courseGrade in student.CourseGrades)
-                {
-                    if (courseGrade.Id > maxId)
-                        maxId = courseGrade.Id;
-                }
-            }
-            return maxId;
-        }
-
         public List<GradesReport> GetGradesReports(string academicYear, string semester)
         {
-            return LogicMethods.GetGradesReports(_school, academicYear, semester);
-        }
+            // Adapt to DbContext: Get school with all related data
+            var school = _context.School
+                .Include(s => s.Students)
+                    .ThenInclude(st => st.CourseGrades)
+                        .ThenInclude(cg => cg.TestGrades)
+                .Include(s => s.LearningPaths)
+                    .ThenInclude(lp => lp.CourseGradingConfigurations)
+                .FirstOrDefault();
 
-        public int GetNextTestGradeId()
-        {
-            return GetNextId("TestGrade", () => GetMaxTestGradeId());
-        }
-
-        public int GetNextCourseGradeId()
-        {
-            return GetNextId("CourseGrade", () => GetMaxCourseGradeId());
+            // KEEP ORIGINAL BEHAVIOR: Use LogicMethods to generate reports
+            return LogicMethods.GetGradesReports(school, academicYear, semester);
         }
         #endregion
 
