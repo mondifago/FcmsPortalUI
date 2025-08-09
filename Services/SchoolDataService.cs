@@ -360,82 +360,100 @@ namespace FcmsPortal.Services
         #region Learning Paths
         public LearningPath AddLearningPath(LearningPath learningPath)
         {
-            if (learningPath.Id <= 0)
-            {
-                learningPath.Id = _school.LearningPaths.Any() ? _school.LearningPaths.Max(lp => lp.Id) + 1 : 1;
-            }
-            var learningPaths = _school.LearningPaths.ToList();
-            learningPaths.Add(learningPath);
-            _school.LearningPaths = learningPaths;
+            var school = _context.School.FirstOrDefault();
+            if (school == null)
+                throw new InvalidOperationException("No school found. Cannot add learning path without a school.");
+
+            learningPath.SchoolId = school.Id;
+            learningPath.School = school;
+            _context.LearningPaths.Add(learningPath);
+            _context.SaveChanges();
             return learningPath;
         }
 
         public LearningPath? GetLearningPathById(int id)
         {
-            return _school.LearningPaths.FirstOrDefault(lp => lp.Id == id);
+            return _context.LearningPaths
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.StudyMaterials)
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.DiscussionThreads)
+                .Include(lp => lp.StudentsWithAccess)
+                    .ThenInclude(s => s.Person)
+                .FirstOrDefault(lp => lp.Id == id);
         }
 
         public IEnumerable<LearningPath> GetAllLearningPaths()
         {
-            return _school.LearningPaths.Where(lp => lp != null && !lp.IsTemplate);
+            return _context.LearningPaths
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                .Where(lp => !lp.IsTemplate)
+                .ToList();
         }
 
         public LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId)
         {
-            foreach (var learningPath in _school.LearningPaths)
-            {
-                if (learningPath.Schedule != null && learningPath.Schedule.Any(s => s.Id == scheduleEntryId))
-                {
-                    return learningPath;
-                }
-            }
-            return null;
+            return _context.LearningPaths
+                .Include(lp => lp.Schedule)
+                .FirstOrDefault(lp => lp.Schedule.Any(s => s.Id == scheduleEntryId));
         }
 
         public LearningPath? GetLearningPathByClassSessionId(int classSessionId)
         {
-            foreach (var learningPath in _school.LearningPaths)
-            {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession?.Id == classSessionId)
-                    {
-                        return learningPath;
-                    }
-                }
-            }
-            return null;
+            return _context.LearningPaths
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                .FirstOrDefault(lp => lp.Schedule.Any(s => s.ClassSession != null && s.ClassSession.Id == classSessionId));
         }
 
         public bool DeleteLearningPath(int id)
         {
-            var learningPath = _school.LearningPaths.FirstOrDefault(lp => lp.Id == id);
+            var learningPath = _context.LearningPaths.Find(id);
             if (learningPath == null)
             {
                 return false;
             }
-            var learningPaths = _school.LearningPaths.ToList();
-            learningPaths.Remove(learningPath);
-            _school.LearningPaths = learningPaths;
+
+            _context.LearningPaths.Remove(learningPath);
+            _context.SaveChanges();
             return true;
         }
 
         public void UpdateLearningPath(LearningPath learningPath)
         {
-            var existingLearningPath = _school.LearningPaths.FirstOrDefault(lp => lp.Id == learningPath.Id);
+            var existingLearningPath = _context.LearningPaths
+                   .Include(lp => lp.Students)
+                   .Include(lp => lp.StudentsWithAccess)
+                   .Include(lp => lp.Schedule)
+                   .FirstOrDefault(lp => lp.Id == learningPath.Id);
+
             if (existingLearningPath != null)
             {
                 existingLearningPath.SemesterStartDate = learningPath.SemesterStartDate;
                 existingLearningPath.SemesterEndDate = learningPath.SemesterEndDate;
                 existingLearningPath.ExamsStartDate = learningPath.ExamsStartDate;
+                existingLearningPath.FeePerSemester = learningPath.FeePerSemester;
+                existingLearningPath.ApprovalStatus = learningPath.ApprovalStatus;
                 existingLearningPath.EducationLevel = learningPath.EducationLevel;
                 existingLearningPath.ClassLevel = learningPath.ClassLevel;
                 existingLearningPath.Semester = learningPath.Semester;
-                existingLearningPath.FeePerSemester = learningPath.FeePerSemester;
                 existingLearningPath.AcademicYearStart = learningPath.AcademicYearStart;
-                existingLearningPath.ApprovalStatus = learningPath.ApprovalStatus;
+                existingLearningPath.IsTemplate = learningPath.IsTemplate;
+                existingLearningPath.TemplateKey = learningPath.TemplateKey;
                 existingLearningPath.Students = learningPath.Students;
                 existingLearningPath.StudentsWithAccess = learningPath.StudentsWithAccess;
+                existingLearningPath.Schedule = learningPath.Schedule;
+
+                _context.SaveChanges();
             }
         }
 
