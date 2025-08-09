@@ -59,7 +59,7 @@ namespace FcmsPortal.Services
 
         public School? GetSchool()
         {
-            return _context.Schools
+            return _context.School
                 .Include(s => s.Address)
                 .Include(s => s.Staff)
                     .ThenInclude(st => st.Person)
@@ -72,34 +72,30 @@ namespace FcmsPortal.Services
                 .FirstOrDefault();
         }
 
-        public async Task<bool> HasSchoolAsync()
+        public bool HasSchool()
         {
-            return await _context.Schools.AnyAsync();
+            return _context.School.Any();
         }
 
-        public async Task<School> AddSchoolAsync(School school)
+        public School AddSchool(School school)
         {
-            school.Students = new List<Student>();
-            school.Staff = new List<Staff>();
-            school.Guardians = new List<Guardian>();
-            school.LearningPaths = new List<LearningPath>();
-            school.SchoolCalendar = new List<CalendarModel>
+            if (!school.SchoolCalendar.Any())
             {
-                new CalendarModel
+                school.SchoolCalendar.Add(new CalendarModel
                 {
                     Name = $"{DateTime.Now.Year} School Calendar",
                     ScheduleEntries = new List<ScheduleEntry>()
-                }
-            };
+                });
+            }
 
-            _context.Schools.Add(school);
-            await _context.SaveChangesAsync();
+            _context.School.Add(school);
+            _context.SaveChangesAsync();
             return school;
         }
 
         public async Task UpdateSchoolAsync(School updatedSchool)
         {
-            var existingSchool = await _context.Schools
+            var existingSchool = await _context.School
                 .Include(s => s.Address)
                 .FirstOrDefaultAsync();
 
@@ -130,55 +126,54 @@ namespace FcmsPortal.Services
         {
             if (address.Id <= 0)
             {
-                address.Id = GetNextAddressId();
+                var maxId = _context.Addresses.Any() ? _context.Addresses.Max(a => a.Id) : 0;
+                address.Id = maxId + 1;
             }
-            _addresses.Add(address);
+
+            _context.Addresses.Add(address);
+            _context.SaveChanges();
             return address;
         }
 
         public int GetNextAddressId()
         {
-            return GetNextId("Address", () => _addresses.Any() ? _addresses.Max(a => a.Id) : 0);
+            var maxId = _context.Addresses.Any() ? _context.Addresses.Max(a => a.Id) : 0;
+            return maxId + 1;
         }
         #endregion
 
         #region Staff
         public IEnumerable<Staff> GetStaff()
         {
-            var school = _context.Schools
-                .Include(s => s.Staff)
-                    .ThenInclude(st => st.Person)
-                .FirstOrDefault();
-
-            return school?.Staff ?? new List<Staff>();
+            return _context.Staff
+                .Include(st => st.Person)
+                .ToList();
         }
 
         public Staff? GetStaffById(int id)
         {
-            var school = _context.Schools
-                .Include(s => s.Staff)
-                    .ThenInclude(st => st.Person)
-                .FirstOrDefault();
-
-            return school?.Staff.FirstOrDefault(s => s.Id == id);
+            return _context.Staff
+                .Include(st => st.Person)
+                .FirstOrDefault(st => st.Id == id);
         }
 
         public Staff AddStaff(Staff staff)
         {
-            if (staff.Id <= 0)
-            {
-                var maxId = _context.Staff.Any() ? _context.Staff.Max(s => s.Id) : 0;
-                staff.Id = maxId + 1;
-            }
+            var school = _context.School.FirstOrDefault();
+            if (school == null)
+                throw new InvalidOperationException("No school found. Cannot add staff without a school.");
 
+            staff.SchoolId = school.Id;
+            staff.School = school;
             _context.Staff.Add(staff);
             _context.SaveChanges();
             return staff;
         }
 
+
         public void UpdateStaff(Staff staff)
         {
-            var existingStaff = _school.Staff.FirstOrDefault(s => s.Id == staff.Id);
+            var existingStaff = _context.Staff.Include(s => s.Person).FirstOrDefault(s => s.Id == staff.Id);
             if (existingStaff != null)
             {
                 existingStaff.JobRole = staff.JobRole;
@@ -200,41 +195,60 @@ namespace FcmsPortal.Services
                 existingStaff.Person.EmergencyContact = staff.Person.EmergencyContact;
                 existingStaff.Person.EducationLevel = staff.Person.EducationLevel;
                 existingStaff.Person.IsActive = staff.Person.IsActive;
+
+                _context.SaveChanges();
             }
         }
 
         public bool DeleteStaff(int staffId)
         {
-            var staff = _school.Staff.FirstOrDefault(s => s.Id == staffId);
+            var staff = _context.Staff.Find(staffId);
             if (staff == null)
             {
                 return false;
             }
 
-            var staffList = _school.Staff.ToList();
-            staffList.Remove(staff);
-            _school.Staff = staffList;
-
+            _context.Staff.Remove(staff);
+            _context.SaveChanges();
             return true;
         }
         #endregion
 
         #region Guardians
-        public IEnumerable<Guardian> GetGuardians() => _school.Guardians;
+        public IEnumerable<Guardian> GetGuardians()
+        {
+            return _context.Guardians
+                .Include(g => g.Person)
+                    .ThenInclude(p => p.Addresses)
+                .Include(g => g.Wards)
+                    .ThenInclude(w => w.Person)
+                .ToList();
+        }
 
         public Guardian? GetGuardianById(int id)
         {
-            return _school.Guardians.FirstOrDefault(g => g.Id == id);
+            return _context.Guardians
+                .Include(g => g.Person)
+                    .ThenInclude(p => p.Addresses)
+                .Include(g => g.Wards)
+                    .ThenInclude(w => w.Person)
+                .FirstOrDefault(g => g.Id == id);
         }
 
         public Guardian? GetGuardianByStudentId(int studentId)
         {
-            return _school.Guardians.FirstOrDefault(g => g.Wards.Any(w => w.Id == studentId));
+            return _context.Guardians
+                .Include(g => g.Person)
+                .Include(g => g.Wards)
+                .FirstOrDefault(g => g.Wards.Any(w => w.Id == studentId));
         }
 
         public void UpdateGuardian(Guardian guardian)
         {
-            var existingGuardian = _school.Guardians.FirstOrDefault(g => g.Id == guardian.Id);
+            var existingGuardian = _context.Guardians
+                .Include(g => g.Person)
+                .FirstOrDefault(g => g.Id == guardian.Id);
+
             if (existingGuardian != null)
             {
                 existingGuardian.Person.FirstName = guardian.Person.FirstName;
@@ -246,10 +260,13 @@ namespace FcmsPortal.Services
                 existingGuardian.Person.Email = guardian.Person.Email;
                 existingGuardian.Person.PhoneNumber = guardian.Person.PhoneNumber;
                 existingGuardian.Person.DateOfEnrollment = guardian.Person.DateOfEnrollment;
+                existingGuardian.Person.DateOfBirth = guardian.Person.DateOfBirth;
                 existingGuardian.Occupation = guardian.Occupation;
                 existingGuardian.RelationshipToStudent = guardian.RelationshipToStudent;
                 existingGuardian.Person.ProfilePictureUrl = guardian.Person.ProfilePictureUrl;
                 existingGuardian.Person.IsActive = guardian.Person.IsActive;
+
+                _context.SaveChanges();
             }
         }
 
@@ -257,43 +274,54 @@ namespace FcmsPortal.Services
         {
             if (guardian.Id <= 0)
             {
-                guardian.Id = _school.Guardians.Any() ? _school.Guardians.Max(g => g.Id) + 1 : 1;
+                var maxId = _context.Guardians.Any() ? _context.Guardians.Max(g => g.Id) : 0;
+                guardian.Id = maxId + 1;
             }
 
-            var guardians = _school.Guardians.ToList();
-            guardians.Add(guardian);
-            _school.Guardians = guardians;
-
+            _context.Guardians.Add(guardian);
+            _context.SaveChanges();
             return guardian;
         }
 
         public bool DeleteGuardian(int guardianId)
         {
-            var guardian = _school.Guardians.FirstOrDefault(g => g.Id == guardianId);
+            var guardian = _context.Guardians.Find(guardianId);
             if (guardian == null)
             {
                 return false;
             }
 
-            var guardianList = _school.Guardians.ToList();
-            guardianList.Remove(guardian);
-            _school.Guardians = guardianList;
-
+            _context.Guardians.Remove(guardian);
+            _context.SaveChanges();
             return true;
         }
         #endregion
 
         #region Students
-        public IEnumerable<Student> GetStudents() => _school.Students;
+        public IEnumerable<Student> GetStudents()
+        {
+            return _context.Students
+                .Include(s => s.Person)
+                    .ThenInclude(p => p.Addresses)
+                .Include(s => s.CourseGrades)
+                .ToList();
+        }
 
         public Student? GetStudentById(int id)
         {
-            return _school.Students.FirstOrDefault(s => s.Id == id);
+            return _context.Students
+                .Include(s => s.Person)
+                    .ThenInclude(p => p.Addresses)
+                .Include(s => s.CourseGrades)
+                .FirstOrDefault(s => s.Id == id);
         }
 
         public void UpdateStudent(Student student)
         {
-            var existingStudent = _school.Students.FirstOrDefault(s => s.Id == student.Id);
+            var existingStudent = _context.Students
+                .Include(s => s.Person)
+                .FirstOrDefault(s => s.Id == student.Id);
+
             if (existingStudent != null)
             {
                 existingStudent.Person.FirstName = student.Person.FirstName;
@@ -314,6 +342,8 @@ namespace FcmsPortal.Services
                 existingStudent.PositionAmongSiblings = student.PositionAmongSiblings;
                 existingStudent.LastSchoolAttended = student.LastSchoolAttended;
                 existingStudent.GuardianId = student.GuardianId;
+
+                _context.SaveChanges();
             }
         }
 
@@ -321,26 +351,26 @@ namespace FcmsPortal.Services
         {
             if (student.Id <= 0)
             {
-                student.Id = _school.Students.Any() ? _school.Students.Max(s => s.Id) + 1 : 1;
+                var maxId = _context.Students.Any() ? _context.Students.Max(s => s.Id) : 0;
+                student.Id = maxId + 1;
             }
-            var students = _school.Students.ToList();
-            students.Add(student);
-            _school.Students = students;
+
+            _context.Students.Add(student);
+            _context.SaveChanges();
             return student;
         }
 
+
         public bool DeleteStudent(int studentId)
         {
-            var student = _school.Students.FirstOrDefault(s => s.Id == studentId);
+            var student = _context.Students.Find(studentId);
             if (student == null)
             {
                 return false;
             }
 
-            var studentList = _school.Students.ToList();
-            studentList.Remove(student);
-            _school.Students = studentList;
-
+            _context.Students.Remove(student);
+            _context.SaveChanges();
             return true;
         }
         #endregion

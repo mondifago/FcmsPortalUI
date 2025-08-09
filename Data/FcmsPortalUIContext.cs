@@ -7,8 +7,7 @@ namespace FcmsPortalUI.Data
     {
         public FcmsPortalUIContext(DbContextOptions<FcmsPortalUIContext> options) : base(options) { }
 
-        // Core Entities
-        public DbSet<School> Schools { get; set; }
+        public DbSet<School> School { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Guardian> Guardians { get; set; }
@@ -63,5 +62,6 @@ namespace FcmsPortalUI.Data
 
             modelBuilder.Entity<School>().OwnsOne(s => s.Address);
         }
+
     }
 }

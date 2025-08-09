@@ -6,8 +6,8 @@ namespace FcmsPortal.Services
     public interface ISchoolDataService
     {
         #region School
-        Task<School> AddSchoolAsync(School school);
-        Task<bool> HasSchoolAsync();
+        School AddSchool(School school);
+        bool HasSchool();
         Task UpdateSchoolAsync(School updatedSchool);
         School? GetSchool();
         #endregion
