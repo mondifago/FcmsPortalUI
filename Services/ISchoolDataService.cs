@@ -14,7 +14,6 @@ namespace FcmsPortal.Services
 
         #region Addresses
         Address AddAddress(Address address);
-        int GetNextAddressId();
         #endregion
 
         #region Staff

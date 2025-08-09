@@ -124,21 +124,9 @@ namespace FcmsPortal.Services
         #region Addresses
         public Address AddAddress(Address address)
         {
-            if (address.Id <= 0)
-            {
-                var maxId = _context.Addresses.Any() ? _context.Addresses.Max(a => a.Id) : 0;
-                address.Id = maxId + 1;
-            }
-
             _context.Addresses.Add(address);
             _context.SaveChanges();
             return address;
-        }
-
-        public int GetNextAddressId()
-        {
-            var maxId = _context.Addresses.Any() ? _context.Addresses.Max(a => a.Id) : 0;
-            return maxId + 1;
         }
         #endregion
 
