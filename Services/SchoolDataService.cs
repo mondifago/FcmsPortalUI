@@ -337,12 +337,6 @@ namespace FcmsPortal.Services
 
         public Student AddStudent(Student student)
         {
-            if (student.Id <= 0)
-            {
-                var maxId = _context.Students.Any() ? _context.Students.Max(s => s.Id) : 0;
-                student.Id = maxId + 1;
-            }
-
             _context.Students.Add(student);
             _context.SaveChanges();
             return student;
