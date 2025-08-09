@@ -116,9 +116,6 @@ namespace FcmsPortal.Services
         List<CourseGradingConfiguration> GetAllCourseGradingConfigurations(int learningPathId);
         List<string> GetCoursesWithoutGradingConfiguration(int learningPathId);
         List<GradesReport> GetGradesReports(string academicYear, string semester);
-        int GetNextTestGradeId();
-        int GetNextCourseGradeId();
-        int GetNextCourseGradingConfigurationId();
         #endregion
 
         #region Curriculum

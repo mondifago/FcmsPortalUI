@@ -21,35 +21,10 @@ namespace FcmsPortal.Services
         private static readonly object _idLock = new object();
         private static readonly Dictionary<string, int> _entityCounters = new Dictionary<string, int>();
 
-
-
-
         public SchoolDataService(FcmsPortalUIContext context, IWebHostEnvironment environment)
         {
             _context = context;
             _environment = environment;
-        }
-
-
-        private int GetNextId(string entityType, Func<int> getCurrentMaxId)
-        {
-            lock (_idLock)
-            {
-                if (!_entityCounters.ContainsKey(entityType))
-                {
-                    _entityCounters[entityType] = getCurrentMaxId();
-                }
-
-                _entityCounters[entityType]++;
-                return _entityCounters[entityType];
-            }
-        }
-
-        private void InitializeIdCounters()
-        {
-            _entityCounters["Address"] = _addresses.Any() ? _addresses.Max(a => a.Id) : 0;
-            GetNextId("TestGrade", () => GetMaxTestGradeId());
-            GetNextId("CourseGrade", () => GetMaxCourseGradeId());
         }
 
         #region School
@@ -1396,39 +1371,33 @@ namespace FcmsPortal.Services
         #region Grading
         public void SaveCourseGradingConfiguration(CourseGradingConfiguration configuration)
         {
-            // Adapt to DbContext: Get learning path with grading configurations
             var learningPath = _context.LearningPaths
                 .Include(lp => lp.CourseGradingConfigurations)
                 .FirstOrDefault(lp => lp.Id == configuration.LearningPathId);
 
             if (learningPath == null) return;
 
-            // KEEP ORIGINAL BEHAVIOR: Find existing configuration for course
             var existingConfig = learningPath.CourseGradingConfigurations
                 .FirstOrDefault(c => c.Course == configuration.Course);
 
             if (existingConfig != null)
             {
-                // KEEP ORIGINAL BEHAVIOR: Update existing configuration
                 existingConfig.HomeworkWeightPercentage = configuration.HomeworkWeightPercentage;
                 existingConfig.QuizWeightPercentage = configuration.QuizWeightPercentage;
                 existingConfig.FinalExamWeightPercentage = configuration.FinalExamWeightPercentage;
             }
             else
             {
-                // EF Core will auto-generate ID when saved
                 learningPath.CourseGradingConfigurations.Add(configuration);
             }
 
             _context.SaveChanges();
 
-            // KEEP ORIGINAL BEHAVIOR: Update course grade configurations
             UpdateCourseGradeConfigurations(learningPath.Id, configuration.Course, configuration);
         }
 
         private void UpdateCourseGradeConfigurations(int learningPathId, string course, CourseGradingConfiguration config)
         {
-            // Adapt to DbContext: Get students with course grades
             var affectedCourseGrades = _context.Students
                 .Include(s => s.CourseGrades)
                     .ThenInclude(cg => cg.TestGrades)
@@ -1436,7 +1405,6 @@ namespace FcmsPortal.Services
                 .Where(cg => cg.LearningPathId == learningPathId && cg.Course == course)
                 .ToList();
 
-            // KEEP ORIGINAL BEHAVIOR: Update each course grade configuration
             foreach (var courseGrade in affectedCourseGrades)
             {
                 courseGrade.GradingConfiguration = config;
@@ -1453,38 +1421,32 @@ namespace FcmsPortal.Services
 
         public CourseGradingConfiguration? GetCourseGradingConfiguration(int learningPathId, string courseName)
         {
-            // Adapt to DbContext: Get learning path with grading configurations
             var learningPath = _context.LearningPaths
                 .Include(lp => lp.CourseGradingConfigurations)
                 .FirstOrDefault(lp => lp.Id == learningPathId);
 
-            // KEEP ORIGINAL BEHAVIOR: Find configuration for specific course
             return learningPath?.CourseGradingConfigurations
                 .FirstOrDefault(c => c.Course == courseName);
         }
 
         public List<CourseGradingConfiguration> GetAllCourseGradingConfigurations(int learningPathId)
         {
-            // Adapt to DbContext: Get learning path with grading configurations
             var learningPath = _context.LearningPaths
                 .Include(lp => lp.CourseGradingConfigurations)
                 .FirstOrDefault(lp => lp.Id == learningPathId);
 
-            // KEEP ORIGINAL BEHAVIOR: Return all configurations or empty list
             return learningPath?.CourseGradingConfigurations ?? new List<CourseGradingConfiguration>();
         }
 
 
         public List<string> GetCoursesWithoutGradingConfiguration(int learningPathId)
         {
-            // Adapt to DbContext: Get learning path with grading configurations
             var learningPath = _context.LearningPaths
                 .Include(lp => lp.CourseGradingConfigurations)
                 .FirstOrDefault(lp => lp.Id == learningPathId);
 
             if (learningPath == null) return new List<string>();
 
-            // KEEP ORIGINAL BEHAVIOR: Get all courses and subtract configured ones
             var allCourses = CourseDefaults.GetCourseNames(learningPath.EducationLevel);
             var configuredCourses = learningPath.CourseGradingConfigurations.Select(c => c.Course).ToList();
 
@@ -1493,7 +1455,6 @@ namespace FcmsPortal.Services
 
         public List<GradesReport> GetGradesReports(string academicYear, string semester)
         {
-            // Adapt to DbContext: Get school with all related data
             var school = _context.School
                 .Include(s => s.Students)
                     .ThenInclude(st => st.CourseGrades)
@@ -1502,7 +1463,6 @@ namespace FcmsPortal.Services
                     .ThenInclude(lp => lp.CourseGradingConfigurations)
                 .FirstOrDefault();
 
-            // KEEP ORIGINAL BEHAVIOR: Use LogicMethods to generate reports
             return LogicMethods.GetGradesReports(school, academicYear, semester);
         }
         #endregion
@@ -1581,18 +1541,42 @@ namespace FcmsPortal.Services
         {
             if (student == null) return;
 
-            foreach (var learningPath in _school.LearningPaths)
+            var school = _context.School
+                .Include(s => s.Students)
+                .Include(s => s.LearningPaths)
+                    .ThenInclude(lp => lp.Students)
+                .Include(s => s.LearningPaths)
+                    .ThenInclude(lp => lp.StudentsWithAccess)
+                .FirstOrDefault();
+
+            if (school == null) return;
+
+            foreach (var learningPath in school.LearningPaths)
             {
-                learningPath.Students.RemoveAll(s => s.Id == student.Id);
-                learningPath.StudentsWithAccess.RemoveAll(s => s.Id == student.Id);
+                var studentInLearningPath = learningPath.Students.FirstOrDefault(s => s.Id == student.Id);
+                if (studentInLearningPath != null)
+                {
+                    learningPath.Students.Remove(studentInLearningPath);
+                }
+
+                var studentWithAccess = learningPath.StudentsWithAccess.FirstOrDefault(s => s.Id == student.Id);
+                if (studentWithAccess != null)
+                {
+                    learningPath.StudentsWithAccess.Remove(studentWithAccess);
+                }
             }
 
-            _school.Students.RemoveAll(s => s.Id == student.Id);
+            var schoolStudent = school.Students.FirstOrDefault(s => s.Id == student.Id);
+            if (schoolStudent != null)
+            {
+                school.Students.Remove(schoolStudent);
+            }
 
             student.Person.IsArchived = true;
             student.ArchivedDate = DateTime.Now;
             _archivedStudents.Add(student);
-
+            _context.Students.Update(student);
+            _context.SaveChanges();
             // TODO: 
             // 1. Create an Archive database table
             // 2. Move student data to archive table
@@ -1602,7 +1586,13 @@ namespace FcmsPortal.Services
 
         public List<Student> GetArchivedStudents()
         {
-            return _archivedStudents.ToList();
+            // Adapt to DbContext: Query for archived students from database
+            return _context.Students
+                .Include(s => s.Person)
+                .Include(s => s.CourseGrades)
+                .Where(s => s.Person.IsArchived == true)
+                .OrderByDescending(s => s.ArchivedDate)
+                .ToList();
         }
         #endregion  
     }
