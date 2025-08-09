@@ -173,17 +173,13 @@
             {
                 var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
 
-                var testGradeId = SchoolDataService.GetNextTestGradeId();
+                //var testGradeId = SchoolDataService.GetNextTestGradeId();
 
                 var existingCourseGrade = student.CourseGrades.FirstOrDefault(cg =>
                     cg.Course == Course && cg.LearningPathId == LearningPath.Id);
 
                 int? courseGradeId = null;
-                if (existingCourseGrade == null)
-                {
-                    courseGradeId = SchoolDataService.GetNextCourseGradeId();
-                }
-
+               
                 LogicMethods.AddTestGrade(
                     student,
                     Course,
@@ -192,7 +188,7 @@
                     testGrade.Teacher,
                     testGrade.TeacherRemark,
                     LearningPath,
-                    testGradeId,
+                    0,
                     courseGradeId
                 );
             }
