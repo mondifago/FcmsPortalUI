@@ -86,7 +86,6 @@ namespace FcmsPortal.Services
         HomeworkSubmission? GetHomeworkSubmissionById(int id);
         HomeworkSubmission? AddHomeworkSubmission(HomeworkSubmission submission);
         void UpdateHomeworkSubmission(HomeworkSubmission submission);
-        int GetNextHomeworkId();
         #endregion
 
         #region Discussions

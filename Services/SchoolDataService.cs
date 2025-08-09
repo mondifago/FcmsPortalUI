@@ -953,7 +953,16 @@ namespace FcmsPortal.Services
         #region Homework
         public Homework? GetHomeworkById(int id)
         {
-            foreach (var learningPath in _school.LearningPaths)
+            var learningPaths = _context.LearningPaths
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.HomeworkDetails)
+                            .ThenInclude(h => h.Submissions)
+                                .ThenInclude(sub => sub.Student)
+                                    .ThenInclude(st => st.Person)
+                .ToList();
+
+            foreach (var learningPath in learningPaths)
             {
                 foreach (var schedule in learningPath.Schedule)
                 {
@@ -995,7 +1004,13 @@ namespace FcmsPortal.Services
             if (homework == null)
                 return;
 
-            foreach (var learningPath in _school.LearningPaths)
+            var learningPaths = _context.LearningPaths
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.HomeworkDetails)
+                .ToList();
+
+            foreach (var learningPath in learningPaths)
             {
                 foreach (var schedule in learningPath.Schedule)
                 {
@@ -1007,6 +1022,8 @@ namespace FcmsPortal.Services
                         schedule.ClassSession.HomeworkDetails.DueDate = homework.DueDate;
                         schedule.ClassSession.HomeworkDetails.Question = homework.Question;
                         schedule.ClassSession.HomeworkDetails.Submissions = homework.Submissions;
+
+                        _context.SaveChanges();
                         return;
                     }
                 }
@@ -1015,7 +1032,13 @@ namespace FcmsPortal.Services
 
         public bool DeleteHomework(int id)
         {
-            foreach (var learningPath in _school.LearningPaths)
+            var learningPaths = _context.LearningPaths
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.HomeworkDetails)
+                .ToList();
+
+            foreach (var learningPath in learningPaths)
             {
                 foreach (var schedule in learningPath.Schedule)
                 {
@@ -1023,6 +1046,7 @@ namespace FcmsPortal.Services
                         schedule.ClassSession.HomeworkDetails.Id == id)
                     {
                         schedule.ClassSession.HomeworkDetails = null;
+                        _context.SaveChanges();
                         return true;
                     }
                 }
@@ -1032,7 +1056,16 @@ namespace FcmsPortal.Services
 
         public HomeworkSubmission? GetHomeworkSubmissionById(int id)
         {
-            foreach (var learningPath in _school.LearningPaths)
+            var learningPaths = _context.LearningPaths
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.HomeworkDetails)
+                            .ThenInclude(h => h.Submissions)
+                                .ThenInclude(sub => sub.Student)
+                                    .ThenInclude(st => st.Person)
+                .ToList();
+
+            foreach (var learningPath in learningPaths)
             {
                 foreach (var schedule in learningPath.Schedule)
                 {
@@ -1059,81 +1092,19 @@ namespace FcmsPortal.Services
             if (homework.Submissions == null)
                 homework.Submissions = new List<HomeworkSubmission>();
 
-            if (submission.Id <= 0)
-            {
-                submission.Id = GetNextId("HomeworkSubmission", () => GetMaxHomeworkSubmissionId());
-            }
-
             submission.Homework = homework;
             submission.SubmissionDate = DateTime.Now;
             homework.Submissions.Add(submission);
 
+            _context.SaveChanges();
             return submission;
-        }
-
-        private int GetMaxHomeworkSubmissionId()
-        {
-            int maxId = 0;
-            foreach (var learningPath in _school.LearningPaths)
-            {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession?.HomeworkDetails?.Submissions != null)
-                    {
-                        var localMaxId = schedule.ClassSession.HomeworkDetails.Submissions
-                            .Select(s => s.Id)
-                            .DefaultIfEmpty(0)
-                            .Max();
-
-                        if (localMaxId > maxId)
-                            maxId = localMaxId;
-                    }
-                }
-            }
-            return maxId;
-        }
-
-        public int GetNextHomeworkId()
-        {
-            return GetNextId("Homework", () =>
-            {
-                int maxId = 0;
-                foreach (var learningPath in _school.LearningPaths)
-                {
-                    foreach (var schedule in learningPath.Schedule)
-                    {
-                        if (schedule.ClassSession?.HomeworkDetails != null)
-                        {
-                            if (schedule.ClassSession.HomeworkDetails.Id > maxId)
-                                maxId = schedule.ClassSession.HomeworkDetails.Id;
-                        }
-                    }
-                }
-                return maxId;
-            });
-        }
-
-        private int GetMaxHomeworkId()
-        {
-            int maxId = 0;
-            foreach (var learningPath in _school.LearningPaths)
-            {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession?.HomeworkDetails != null)
-                    {
-                        if (schedule.ClassSession.HomeworkDetails.Id > maxId)
-                            maxId = schedule.ClassSession.HomeworkDetails.Id;
-                    }
-                }
-            }
-            return maxId;
         }
 
         public void UpdateHomeworkSubmission(HomeworkSubmission submission)
         {
             if (submission == null)
                 return;
+
             var existingSubmission = GetHomeworkSubmissionById(submission.Id);
             if (existingSubmission != null)
             {
@@ -1141,6 +1112,8 @@ namespace FcmsPortal.Services
                 existingSubmission.IsGraded = submission.IsGraded;
                 existingSubmission.FeedbackComment = submission.FeedbackComment;
                 existingSubmission.HomeworkGrade = submission.HomeworkGrade;
+
+                _context.SaveChanges();
             }
         }
         #endregion

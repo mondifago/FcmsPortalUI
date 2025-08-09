@@ -704,11 +704,6 @@
 
     private void HandleHomeworkSaved(Homework homework)
     {
-        if (homework.Id <= 0)
-        {
-            homework.Id = SchoolDataService.GetNextHomeworkId();
-        }
-
         classSession.HomeworkDetails = homework;
         SchoolDataService.UpdateClassSession(classSession);
         showHomeworkModal = false;
