@@ -71,7 +71,6 @@ namespace FcmsPortal.Services
         void RemoveScheduleFromSchoolCalendar(ScheduleEntry scheduleEntry);
         bool UpdateGeneralCalendarScheduleEntry(ScheduleEntry scheduleEntry);
         bool DeleteGeneralCalendarScheduleEntry(int scheduleEntryId);
-        int GetNextScheduleId();
         #endregion
 
         #region Class Sessions

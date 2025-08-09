@@ -647,7 +647,6 @@ namespace FcmsPortal.Services
             if (learningPath == null)
                 return null;
 
-            scheduleEntry.Id = GetNextScheduleId();
             learningPath.Schedule.Add(scheduleEntry);
             UpdateLearningPath(learningPath);
             AddGeneralScheduleEntry(scheduleEntry);
@@ -657,11 +656,16 @@ namespace FcmsPortal.Services
 
         public IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules()
         {
+            var school = _context.School
+                .Include(s => s.SchoolCalendar)
+                    .ThenInclude(c => c.ScheduleEntries)
+                .FirstOrDefault();
+
             var allSchedules = new List<ScheduleEntry>();
 
-            if (_school.SchoolCalendar != null)
+            if (school?.SchoolCalendar != null)
             {
-                foreach (var calendar in _school.SchoolCalendar)
+                foreach (var calendar in school.SchoolCalendar)
                 {
                     if (calendar.ScheduleEntries != null)
                     {
@@ -708,29 +712,17 @@ namespace FcmsPortal.Services
             return true;
         }
 
-        public int GetNextScheduleId()
-        {
-            int maxId = 0;
-
-            if (_school.SchoolCalendar != null)
-            {
-                foreach (var calendar in _school.SchoolCalendar)
-                {
-                    if (calendar.ScheduleEntries != null && calendar.ScheduleEntries.Any())
-                    {
-                        var calendarMaxId = calendar.ScheduleEntries.Max(s => s.Id);
-                        if (calendarMaxId > maxId)
-                            maxId = calendarMaxId;
-                    }
-                }
-            }
-
-            return maxId + 1;
-        }
-
         public ScheduleEntry? AddGeneralScheduleEntry(ScheduleEntry scheduleEntry)
         {
-            var mainCalendar = _school.SchoolCalendar.FirstOrDefault();
+            var school = _context.School
+                .Include(s => s.SchoolCalendar)
+                    .ThenInclude(c => c.ScheduleEntries)
+                .FirstOrDefault();
+
+            if (school == null)
+                return null;
+
+            var mainCalendar = school.SchoolCalendar.FirstOrDefault();
             if (mainCalendar == null)
             {
                 mainCalendar = new CalendarModel
@@ -739,7 +731,7 @@ namespace FcmsPortal.Services
                     Name = "Main School Calendar",
                     ScheduleEntries = new List<ScheduleEntry>()
                 };
-                _school.SchoolCalendar.Add(mainCalendar);
+                school.SchoolCalendar.Add(mainCalendar);
             }
 
             if (mainCalendar.ScheduleEntries == null)
@@ -754,6 +746,7 @@ namespace FcmsPortal.Services
                 {
                     mainCalendar.ScheduleEntries.Add(scheduleEntry);
                 }
+                _context.SaveChanges();
                 return scheduleEntry;
             }
 
@@ -762,25 +755,30 @@ namespace FcmsPortal.Services
                 var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
                 foreach (var entry in recurringEntries)
                 {
-                    entry.Id = GetNextScheduleId();
                     mainCalendar.ScheduleEntries.Add(entry);
                 }
+                _context.SaveChanges();
                 return recurringEntries.FirstOrDefault();
             }
             else
             {
-                scheduleEntry.Id = GetNextScheduleId();
                 mainCalendar.ScheduleEntries.Add(scheduleEntry);
+                _context.SaveChanges();
                 return scheduleEntry;
             }
         }
 
         public void UpdateScheduleInSchoolCalendar(ScheduleEntry scheduleEntry)
         {
-            if (_school.SchoolCalendar == null)
+            var school = _context.School
+                .Include(s => s.SchoolCalendar)
+                    .ThenInclude(c => c.ScheduleEntries)
+                .FirstOrDefault();
+
+            if (school?.SchoolCalendar == null)
                 return;
 
-            foreach (var calendar in _school.SchoolCalendar)
+            foreach (var calendar in school.SchoolCalendar)
             {
                 if (calendar.ScheduleEntries != null)
                 {
@@ -788,18 +786,25 @@ namespace FcmsPortal.Services
                     if (existingIndex >= 0)
                     {
                         calendar.ScheduleEntries[existingIndex] = scheduleEntry;
+                        _context.SaveChanges();
                         break;
                     }
                 }
             }
         }
 
+
         public void RemoveScheduleFromSchoolCalendar(ScheduleEntry scheduleEntry)
         {
-            if (_school.SchoolCalendar == null)
+            var school = _context.School
+                .Include(s => s.SchoolCalendar)
+                    .ThenInclude(c => c.ScheduleEntries)
+                .FirstOrDefault();
+
+            if (school?.SchoolCalendar == null)
                 return;
 
-            foreach (var calendar in _school.SchoolCalendar)
+            foreach (var calendar in school.SchoolCalendar)
             {
                 if (calendar.ScheduleEntries != null)
                 {
@@ -807,6 +812,7 @@ namespace FcmsPortal.Services
                     if (scheduleToRemove != null)
                     {
                         calendar.ScheduleEntries.Remove(scheduleToRemove);
+                        _context.SaveChanges();
                         break;
                     }
                 }
@@ -815,10 +821,15 @@ namespace FcmsPortal.Services
 
         public bool UpdateGeneralCalendarScheduleEntry(ScheduleEntry scheduleEntry)
         {
-            if (_school.SchoolCalendar == null)
+            var school = _context.School
+                .Include(s => s.SchoolCalendar)
+                    .ThenInclude(c => c.ScheduleEntries)
+                .FirstOrDefault();
+
+            if (school?.SchoolCalendar == null)
                 return false;
 
-            foreach (var calendar in _school.SchoolCalendar)
+            foreach (var calendar in school.SchoolCalendar)
             {
                 if (calendar.ScheduleEntries != null)
                 {
@@ -826,6 +837,7 @@ namespace FcmsPortal.Services
                     if (existingIndex >= 0)
                     {
                         calendar.ScheduleEntries[existingIndex] = scheduleEntry;
+                        _context.SaveChanges();
                         return true;
                     }
                 }
@@ -835,10 +847,15 @@ namespace FcmsPortal.Services
 
         public bool DeleteGeneralCalendarScheduleEntry(int scheduleEntryId)
         {
-            if (_school.SchoolCalendar == null)
+            var school = _context.School
+                .Include(s => s.SchoolCalendar)
+                    .ThenInclude(c => c.ScheduleEntries)
+                .FirstOrDefault();
+
+            if (school?.SchoolCalendar == null)
                 return false;
 
-            foreach (var calendar in _school.SchoolCalendar)
+            foreach (var calendar in school.SchoolCalendar)
             {
                 if (calendar.ScheduleEntries != null)
                 {
@@ -846,6 +863,7 @@ namespace FcmsPortal.Services
                     if (scheduleToRemove != null)
                     {
                         calendar.ScheduleEntries.Remove(scheduleToRemove);
+                        _context.SaveChanges();
                         return true;
                     }
                 }
