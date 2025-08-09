@@ -28,7 +28,6 @@
 
     protected override void OnInitialized()
     {
-        // Check if a guardian ID was passed in the query string
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
 

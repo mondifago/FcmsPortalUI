@@ -337,6 +337,14 @@ namespace FcmsPortal.Services
 
         public Student AddStudent(Student student)
         {
+            if (student.Person.SchoolFees == null)
+            {
+                student.Person.SchoolFees = new SchoolFees
+                {
+                    TotalAmount = 0,
+                    Payments = new List<Payment>(),
+                };
+            }
             _context.Students.Add(student);
             _context.SaveChanges();
             return student;
@@ -510,13 +518,24 @@ namespace FcmsPortal.Services
         {
             if (learningPath == null) return;
 
+            var school = _context.School.FirstOrDefault();
+            if (school == null)
+                throw new InvalidOperationException("No school found. Cannot create template without a school.");
+
             string templateKey = GenerateTemplateKey(learningPath.EducationLevel, learningPath.ClassLevel, learningPath.Semester);
 
-            _school.LearningPaths.RemoveAll(lp => lp.IsTemplate && lp.TemplateKey == templateKey);
+            var existingTemplate = _context.LearningPaths
+                .FirstOrDefault(lp => lp.IsTemplate && lp.TemplateKey == templateKey);
+
+            if (existingTemplate != null)
+            {
+                _context.LearningPaths.Remove(existingTemplate);
+            }
 
             var template = new LearningPath
             {
-                Id = GetNextId("LearningPath", () => _school.LearningPaths.Count > 0 ? _school.LearningPaths.Max(lp => lp.Id) : 0),
+                SchoolId = school.Id,
+                School = school,
                 EducationLevel = learningPath.EducationLevel,
                 ClassLevel = learningPath.ClassLevel,
                 Semester = learningPath.Semester,
@@ -531,14 +550,12 @@ namespace FcmsPortal.Services
 
                 Schedule = learningPath.Schedule.Select(s => new ScheduleEntry
                 {
-                    Id = GetNextScheduleId(),
                     Title = s.Title,
                     DateTime = s.DateTime,
                     Duration = s.Duration,
                     Venue = s.Venue,
                     ClassSession = s.ClassSession != null ? new ClassSession
                     {
-                        Id = GetNextClassSessionId(),
                         Course = s.ClassSession.Course,
                         Topic = s.ClassSession.Topic,
                         Description = s.ClassSession.Description,
@@ -549,12 +566,12 @@ namespace FcmsPortal.Services
                     } : null
                 }).ToList(),
 
-                // Empty collections for template
                 Students = new List<Student>(),
                 StudentsWithAccess = new List<Student>()
             };
 
-            _school.LearningPaths.Add(template);
+            _context.LearningPaths.Add(template);
+            _context.SaveChanges();
         }
 
         public string GenerateTemplateKey(EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
@@ -565,7 +582,10 @@ namespace FcmsPortal.Services
         public LearningPath? GetTemplate(EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
         {
             string templateKey = GenerateTemplateKey(educationLevel, classLevel, semester);
-            return _school.LearningPaths.FirstOrDefault(lp => lp.IsTemplate && lp.TemplateKey == templateKey);
+            return _context.LearningPaths
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                .FirstOrDefault(lp => lp.IsTemplate && lp.TemplateKey == templateKey);
         }
 
         public bool HasTemplate(EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
