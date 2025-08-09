@@ -76,7 +76,6 @@ namespace FcmsPortal.Services
         #region Class Sessions
         bool UpdateClassSession(ClassSession classSession);
         ClassSession? GetClassSessionById(int classSessionId);
-        int GetNextClassSessionId();
         #endregion
 
         #region Homework

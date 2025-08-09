@@ -875,7 +875,25 @@ namespace FcmsPortal.Services
         #region Class Sessions
         public ClassSession? GetClassSessionById(int classSessionId)
         {
-            foreach (var learningPath in _school.LearningPaths)
+            var learningPaths = _context.LearningPaths
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.StudyMaterials)
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.DiscussionThreads)
+                            .ThenInclude(dt => dt.Replies)
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.HomeworkDetails)
+                            .ThenInclude(h => h.Submissions)
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.Teacher)
+                            .ThenInclude(t => t.Person)
+                .ToList();
+
+            foreach (var learningPath in learningPaths)
             {
                 foreach (var schedule in learningPath.Schedule)
                 {
@@ -888,38 +906,18 @@ namespace FcmsPortal.Services
             return null;
         }
 
-        public int GetNextClassSessionId()
-        {
-            int nextId = 1;
-            List<ClassSession> allSessions = new();
-
-            foreach (var lp in _school.LearningPaths)
-            {
-                foreach (var entry in lp.Schedule)
-                {
-                    if (entry.ClassSession != null)
-                    {
-                        allSessions.Add(entry.ClassSession);
-                    }
-                }
-            }
-
-            if (allSessions.Count > 0)
-            {
-                nextId = allSessions.Max(s => s.Id) + 1;
-            }
-
-            return nextId;
-        }
-
-
         public bool UpdateClassSession(ClassSession classSession)
         {
             try
             {
+                var learningPaths = _context.LearningPaths
+                    .Include(lp => lp.Schedule)
+                        .ThenInclude(s => s.ClassSession)
+                    .ToList();
+
                 var found = false;
 
-                foreach (var learningPath in _school.LearningPaths)
+                foreach (var learningPath in learningPaths)
                 {
                     foreach (var schedule in learningPath.Schedule)
                     {
@@ -935,6 +933,11 @@ namespace FcmsPortal.Services
                     {
                         break;
                     }
+                }
+
+                if (found)
+                {
+                    _context.SaveChanges();
                 }
 
                 return found;

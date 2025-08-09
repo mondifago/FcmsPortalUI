@@ -127,7 +127,6 @@
                 classSession.Teacher = teacher;
             }
         }
-        classSession.Id = SchoolDataService.GetNextClassSessionId();
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }
