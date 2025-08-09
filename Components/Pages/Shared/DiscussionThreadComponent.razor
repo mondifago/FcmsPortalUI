@@ -163,8 +163,7 @@
     {
         if (!string.IsNullOrWhiteSpace(newReply.Comment) && CurrentUser != null)
         {
-            int replyId = SchoolDataService.GetNextPostId();
-            LogicMethods.AddReply(thread, replyId, CurrentUser, newReply.Comment);
+            LogicMethods.AddReply(thread, 0, CurrentUser, newReply.Comment);
 
             newReply = new();
             replyingToThreadId = 0;
@@ -180,15 +179,7 @@
     {
         if (!string.IsNullOrWhiteSpace(newFirstPost.Comment) && CurrentUser != null)
         {
-            int threadId = SchoolDataService.GetNextThreadId(ClassSessionId);
-            int postId = SchoolDataService.GetNextPostId();
-
-            var newThread = LogicMethods.StartDiscussion(
-                threadId,
-                postId,
-                CurrentUser,
-                newFirstPost.Comment
-            );
+            var newThread = LogicMethods.StartDiscussion(0, 0, CurrentUser, newFirstPost.Comment);
 
             newFirstPost = new();
 

@@ -89,8 +89,6 @@ namespace FcmsPortal.Services
         #endregion
 
         #region Discussions
-        int GetNextThreadId(int classSessionId);
-        int GetNextPostId();
         Task AddDiscussionThread(DiscussionThread thread, int classSessionId);
         Task UpdateDiscussionThread(DiscussionThread thread, int classSessionId);
         #endregion

@@ -48,11 +48,8 @@ namespace FcmsPortal.Services
         private void InitializeIdCounters()
         {
             _entityCounters["Address"] = _addresses.Any() ? _addresses.Max(a => a.Id) : 0;
-            GetNextId("Homework", () => GetMaxHomeworkId());
-            GetNextId("HomeworkSubmission", () => GetMaxHomeworkSubmissionId());
             GetNextId("TestGrade", () => GetMaxTestGradeId());
             GetNextId("CourseGrade", () => GetMaxCourseGradeId());
-            // Add other entity types as needed
         }
 
         #region School
@@ -1119,44 +1116,6 @@ namespace FcmsPortal.Services
         #endregion
 
         #region Discussions
-        public int GetNextThreadId(int classSessionId)
-        {
-            var classSession = GetClassSessionById(classSessionId);
-            if (classSession == null || classSession.DiscussionThreads == null || !classSession.DiscussionThreads.Any())
-                return 1;
-
-            return classSession.DiscussionThreads.Max(t => t.Id) + 1;
-        }
-
-        public int GetNextPostId()
-        {
-            int maxId = 0;
-
-            foreach (var learningPath in _school.LearningPaths)
-            {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession?.DiscussionThreads != null)
-                    {
-                        foreach (var thread in schedule.ClassSession.DiscussionThreads)
-                        {
-                            maxId = Math.Max(maxId, thread.FirstPost.Id);
-
-                            if (thread.Replies != null)
-                            {
-                                foreach (var reply in thread.Replies)
-                                {
-                                    maxId = Math.Max(maxId, reply.Id);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return maxId + 1;
-        }
-
         public async Task AddDiscussionThread(DiscussionThread thread, int classSessionId)
         {
             var classSession = GetClassSessionById(classSessionId);
@@ -1167,6 +1126,7 @@ namespace FcmsPortal.Services
                 classSession.DiscussionThreads = new List<DiscussionThread>();
 
             classSession.DiscussionThreads.Add(thread);
+            _context.SaveChanges();
             await Task.CompletedTask;
         }
 
@@ -1185,7 +1145,7 @@ namespace FcmsPortal.Services
             {
                 throw new ArgumentException("Discussion thread not found.");
             }
-
+            _context.SaveChanges();
             await Task.CompletedTask;
         }
         #endregion
