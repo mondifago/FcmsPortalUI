@@ -1157,22 +1157,19 @@ namespace FcmsPortal.Services
 
             var attachment = new FileAttachment
             {
-                Id = GetNextAttachmentId(),
                 FileName = file.Name,
                 FilePath = publicUrl,
                 FileSize = file.Size,
                 UploadDate = DateTime.Now
             };
 
+            _context.FileAttachments.Add(attachment);
+            await _context.SaveChangesAsync();
+
             return attachment;
         }
 
-        private int GetNextAttachmentId()
-        {
-            return _nextAttachmentId++;
-        }
-
-        public Task DeleteFileAsync(FileAttachment attachment)
+        public async Task DeleteFileAsync(FileAttachment attachment)
         {
             if (attachment == null)
                 throw new ArgumentNullException(nameof(attachment));
@@ -1183,40 +1180,51 @@ namespace FcmsPortal.Services
                 File.Delete(filePath);
             }
 
-            foreach (var categoryDict in _attachmentReferences)
+            var existingAttachment = await _context.FileAttachments.FindAsync(attachment.Id);
+            if (existingAttachment != null)
             {
-                categoryDict.Value.RemoveAll(x => x.attachment.Id == attachment.Id);
+                _context.FileAttachments.Remove(existingAttachment);
+                await _context.SaveChangesAsync();
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task<List<FileAttachment>> GetAttachmentsAsync(string category, int referenceId)
+        public async Task<List<FileAttachment>> GetAttachmentsAsync(string category, int referenceId)
         {
-            if (_attachmentReferences.TryGetValue(category, out var references))
+            if (category == "StudyMaterials")
             {
-                var attachments = references
-                    .Where(x => x.referenceId == referenceId)
-                    .Select(x => x.attachment)
-                    .ToList();
-                return Task.FromResult(attachments);
-            }
+                var classSession = await _context.ClassSessions
+                    .Include(cs => cs.StudyMaterials)
+                    .FirstOrDefaultAsync(cs => cs.Id == referenceId);
 
-            return Task.FromResult(new List<FileAttachment>());
+                return classSession?.StudyMaterials ?? new List<FileAttachment>();
+            }
+            return new List<FileAttachment>();
         }
 
-        public Task SaveAttachmentReferenceAsync(FileAttachment attachment, string category, int referenceId)
+        public async Task SaveAttachmentReferenceAsync(FileAttachment attachment, string category, int referenceId)
         {
             if (attachment == null)
                 throw new ArgumentNullException(nameof(attachment));
 
-            if (!_attachmentReferences.ContainsKey(category))
-            {
-                _attachmentReferences[category] = new List<(int, FileAttachment)>();
-            }
 
-            _attachmentReferences[category].Add((referenceId, attachment));
-            return Task.CompletedTask;
+            if (category == "StudyMaterials")
+            {
+                var classSession = await _context.ClassSessions
+                    .Include(cs => cs.StudyMaterials)
+                    .FirstOrDefaultAsync(cs => cs.Id == referenceId);
+
+                if (classSession != null)
+                {
+                    if (classSession.StudyMaterials == null)
+                        classSession.StudyMaterials = new List<FileAttachment>();
+
+                    if (!classSession.StudyMaterials.Any(sm => sm.Id == attachment.Id))
+                    {
+                        classSession.StudyMaterials.Add(attachment);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
         }
         #endregion
 
