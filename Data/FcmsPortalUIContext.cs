@@ -23,22 +23,58 @@ namespace FcmsPortalUI.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Guardian>().OwnsOne(g => g.Person, person =>
-            {
-                person.OwnsMany(p => p.Addresses);
-            });
-
-            modelBuilder.Entity<Student>().OwnsOne(s => s.Person, person =>
-            {
-                person.OwnsMany(p => p.Addresses);
-            });
-
-            modelBuilder.Entity<Staff>().OwnsOne(s => s.Person, person =>
-            {
-                person.OwnsMany(p => p.Addresses);
-            });
-
             modelBuilder.Entity<School>().OwnsOne(s => s.Address);
+
+            modelBuilder.Entity<Guardian>()
+                .OwnsOne(g => g.Person, person =>
+                {
+                    person.Ignore(p => p.Addresses);
+                });
+
+            modelBuilder.Entity<Student>()
+                .OwnsOne(s => s.Person, person =>
+                {
+                    person.Ignore(p => p.Addresses);
+                });
+
+            modelBuilder.Entity<Staff>()
+                .OwnsOne(s => s.Person, person =>
+                {
+                    person.Ignore(p => p.Addresses);
+                });
+
+            modelBuilder.Entity<LearningPath>()
+                  .HasMany(lp => lp.Students)
+                  .WithOne()
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<DailyAttendanceLogEntry>()
+                .HasMany(d => d.PresentStudents)
+                .WithMany()
+                .UsingEntity(j => j.ToTable("DailyAttendancePresentStudents"));
+
+            modelBuilder.Entity<DailyAttendanceLogEntry>()
+                .HasMany(d => d.AbsentStudents)
+                .WithMany()
+                .UsingEntity(j => j.ToTable("DailyAttendanceAbsentStudents"));
+
+            modelBuilder.Entity<DiscussionThread>()
+                .HasOne(dt => dt.FirstPost)
+                .WithOne()
+                .HasForeignKey<DiscussionPost>(dp => dp.DiscussionThreadId)
+                .IsRequired(false);
+
+            modelBuilder.Entity<DiscussionThread>()
+                .HasMany(dt => dt.Replies)
+                .WithOne()
+                .HasForeignKey(dp => dp.DiscussionThreadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DiscussionPost>()
+                 .OwnsOne(dp => dp.Author, person =>
+                 {
+                     person.Ignore(p => p.Addresses);
+                 });
         }
 
     }
