@@ -106,7 +106,6 @@ namespace FcmsPortal.Services
         void DeletePayment(int id);
         Payment PrepareNewPayment(Student student);
         SchoolFees? GetSchoolFees(int id);
-        int GetNextSchoolFeesId();
         Student? GetStudentBySchoolFeesId(int schoolFeesId);
         #endregion
 
