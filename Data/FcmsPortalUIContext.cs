@@ -12,34 +12,12 @@ namespace FcmsPortalUI.Data
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Guardian> Guardians { get; set; }
         public DbSet<Address> Addresses { get; set; }
-
-        // Learning & Academic
         public DbSet<LearningPath> LearningPaths { get; set; }
         public DbSet<ClassSession> ClassSessions { get; set; }
-        public DbSet<ScheduleEntry> ScheduleEntries { get; set; }
-        public DbSet<CalendarModel> Calendars { get; set; }
-        public DbSet<Homework> Homeworks { get; set; }
-        public DbSet<HomeworkSubmission> HomeworkSubmissions { get; set; }
-        public DbSet<DiscussionThread> DiscussionThreads { get; set; }
-        public DbSet<DiscussionPost> DiscussionPosts { get; set; }
         public DbSet<FileAttachment> FileAttachments { get; set; }
-
-
-        // Assessment & Grading
-        public DbSet<TestGrade> TestGrades { get; set; }
-        public DbSet<CourseGrade> CourseGrades { get; set; }
-        public DbSet<CourseGradingConfiguration> CourseGradingConfigurations { get; set; }
-
-
-        // Attendance
-        public DbSet<DailyAttendanceLogEntry> DailyAttendanceLogEntries { get; set; }
-
-        // Financial
         public DbSet<Payment> Payments { get; set; }
         public DbSet<SchoolFees> SchoolFees { get; set; }
 
-        // Reporting
-        public DbSet<LearningPathGradeReport> LearningPathGradeReports { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
