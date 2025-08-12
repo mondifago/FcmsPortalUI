@@ -146,35 +146,19 @@
                 </div>
             </div>
 
-            <h5 class="mb-3">Qualifications</h5>
-            @for (int i = 0; i < Staff.Qualifications.Count; i++)
-            {
-                var index = i;
-                <div class="mb-2 d-flex">
-                    <InputText class="form-control me-2" @bind-Value="Staff.Qualifications[index]" />
-                    <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveQualification(index)">
-                        <i class="fa fa-trash"></i>
-                    </button>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label for="qualifications" class="form-label">Qualifications</label>
+                    <InputText id="qualifications" class="form-control" @bind-Value="Staff.Qualifications" />
                 </div>
-            }
-            <button type="button" class="btn btn-outline-primary mb-3" @onclick="AddQualification">
-                <i class="fa fa-plus"></i> Add Qualification
-            </button>
+            </div>
 
-            <h5 class="mb-3 mt-4">Work Experience</h5>
-            @for (int i = 0; i < Staff.WorkExperience.Count; i++)
-            {
-                var index = i;
-                <div class="mb-2 d-flex">
-                    <InputText class="form-control me-2" @bind-Value="Staff.WorkExperience[index]" />
-                    <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveWorkExperience(index)">
-                        <i class="fa fa-trash"></i>
-                    </button>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label for="workExperience" class="form-label">Work Experience</label>
+                    <InputTextArea id="workExperience" class="form-control" @bind-Value="Staff.WorkExperience" rows="3" />
                 </div>
-            }
-            <button type="button" class="btn btn-outline-primary mb-3" @onclick="AddWorkExperience">
-                <i class="fa fa-plus"></i> Add Work Experience
-            </button>
+            </div>
 
             <h5 class="mb-3 mt-4">Address Information<span class="text-danger">*</span></h5>
             @if (showAddressForm)
@@ -245,8 +229,6 @@
         {
             IsActive = true
         },
-        Qualifications = new List<string>(),
-        WorkExperience = new List<string>()
     };
 
     [Parameter]
@@ -269,12 +251,6 @@
 
     protected override void OnInitialized()
     {
-        if (Staff.Qualifications == null)
-            Staff.Qualifications = new List<string>();
-
-        if (Staff.WorkExperience == null)
-            Staff.WorkExperience = new List<string>();
-
         if (Staff.Person.Addresses == null)
             Staff.Person.Addresses = new List<Address>();
 
@@ -332,32 +308,6 @@
     private async Task Cancel()
     {
         await OnCancel.InvokeAsync();
-    }
-
-    private void AddQualification()
-    {
-        Staff.Qualifications.Add(string.Empty);
-    }
-
-    private void RemoveQualification(int index)
-    {
-        if (index >= 0 && index < Staff.Qualifications.Count)
-        {
-            Staff.Qualifications.RemoveAt(index);
-        }
-    }
-
-    private void AddWorkExperience()
-    {
-        Staff.WorkExperience.Add(string.Empty);
-    }
-
-    private void RemoveWorkExperience(int index)
-    {
-        if (index >= 0 && index < Staff.WorkExperience.Count)
-        {
-            Staff.WorkExperience.RemoveAt(index);
-        }
     }
 
     private void ShowAddressForm()

@@ -134,14 +134,9 @@
                                 <h5 class="mb-0">Qualifications</h5>
                             </div>
                             <div class="card-body">
-                                @if (staff.Qualifications != null && staff.Qualifications.Any())
+                                @if (!string.IsNullOrEmpty(staff.Qualifications))
                                 {
-                                    <ul class="list-group list-group-flush">
-                                        @foreach (var qualification in staff.Qualifications)
-                                        {
-                                            <li class="list-group-item px-0">@qualification</li>
-                                        }
-                                    </ul>
+                                    <p>@staff.Qualifications</p>
                                 }
                                 else
                                 {
@@ -157,14 +152,9 @@
                                 <h5 class="mb-0">Work Experience</h5>
                             </div>
                             <div class="card-body">
-                                @if (staff.WorkExperience != null && staff.WorkExperience.Any())
+                                @if (!string.IsNullOrEmpty(staff.WorkExperience))
                                 {
-                                    <ul class="list-group list-group-flush">
-                                        @foreach (var experience in staff.WorkExperience)
-                                        {
-                                            <li class="list-group-item px-0">@experience</li>
-                                        }
-                                    </ul>
+                                    <p style="white-space: pre-line;">@staff.WorkExperience</p>
                                 }
                                 else
                                 {
