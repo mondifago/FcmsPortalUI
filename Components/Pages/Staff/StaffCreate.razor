@@ -15,9 +15,13 @@
 
 @code {
     private Staff newStaff = new()
+    {
+        Person = new Person
         {
-            Person = new Person { IsActive = true },
-        };
+            IsActive = true,
+            Address = new Address() 
+        },
+    };
 
     private void CreateStaff(Staff staff)
     {

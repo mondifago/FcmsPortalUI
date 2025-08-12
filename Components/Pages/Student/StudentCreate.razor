@@ -22,7 +22,8 @@
         Person = new Person
         {
             DateOfEnrollment = DateTime.Now,
-            IsActive = true
+            IsActive = true,
+            Address = new Address()
         }
     };
 
@@ -41,19 +42,17 @@
                 newStudent.Person.StateOfOrigin = selectedGuardian.Person.StateOfOrigin;
                 newStudent.Person.LgaOfOrigin = selectedGuardian.Person.LgaOfOrigin;
                 newStudent.Person.EmergencyContact = selectedGuardian.Person.PhoneNumber;
-                foreach (var guardianAddress in selectedGuardian.Person.Addresses)
+
+                if (selectedGuardian.Person.Address != null)
                 {
-                    var newAddress = new Address
+                    newStudent.Person.Address = new Address
                     {
-                        Street = guardianAddress.Street,
-                        City = guardianAddress.City,
-                        State = guardianAddress.State,
-                        PostalCode = guardianAddress.PostalCode,
-                        Country = guardianAddress.Country,
-                        AddressType = guardianAddress.AddressType
+                        Street = selectedGuardian.Person.Address.Street,
+                        City = selectedGuardian.Person.Address.City,
+                        State = selectedGuardian.Person.Address.State,
+                        PostalCode = selectedGuardian.Person.Address.PostalCode,
+                        Country = selectedGuardian.Person.Address.Country
                     };
-                    var savedAddress = SchoolDataService.AddAddress(newAddress);
-                    newStudent.Person.Addresses.Add(savedAddress);
                 }
             }
         }

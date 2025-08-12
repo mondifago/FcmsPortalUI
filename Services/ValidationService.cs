@@ -114,11 +114,43 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
-            if (person.Addresses == null || person.Addresses.Count == 0)
+            // Updated address validation for single address model
+            if (person.Address == null)
             {
-                var field = new FieldIdentifier(person, nameof(person.Addresses));
-                messageStore.Add(field, "At least one address is required.");
+                var field = new FieldIdentifier(person, nameof(person.Address));
+                messageStore.Add(field, "Address is required.");
                 isValid = false;
+            }
+            else
+            {
+                // Validate required address fields
+                if (string.IsNullOrWhiteSpace(person.Address.Street))
+                {
+                    var field = new FieldIdentifier(person.Address, nameof(person.Address.Street));
+                    messageStore.Add(field, "Street is required.");
+                    isValid = false;
+                }
+
+                if (string.IsNullOrWhiteSpace(person.Address.City))
+                {
+                    var field = new FieldIdentifier(person.Address, nameof(person.Address.City));
+                    messageStore.Add(field, "City is required.");
+                    isValid = false;
+                }
+
+                if (string.IsNullOrWhiteSpace(person.Address.State))
+                {
+                    var field = new FieldIdentifier(person.Address, nameof(person.Address.State));
+                    messageStore.Add(field, "State is required.");
+                    isValid = false;
+                }
+
+                if (string.IsNullOrWhiteSpace(person.Address.Country))
+                {
+                    var field = new FieldIdentifier(person.Address, nameof(person.Address.Country));
+                    messageStore.Add(field, "Country is required.");
+                    isValid = false;
+                }
             }
 
             return isValid;

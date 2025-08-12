@@ -67,17 +67,17 @@
                             <p><strong>Phone Number:</strong> @guardian.Person.PhoneNumber</p>
                         </div>
                         <div class="col-md-6">
-                            @if (guardian.Person.Addresses.Any())
+                            <!-- Replace the guardian address section -->
+                            @if (guardian.Person.Address != null)
                             {
-                                var guardianAddress = guardian.Person.Addresses.First();
                                 <p>
                                     <strong>Guardian Address:</strong><br />
-                                    @guardianAddress.Street, @guardianAddress.City<br />
-                                    @guardianAddress.State, @guardianAddress.Country
-                                    @if (!string.IsNullOrEmpty(guardianAddress.PostalCode))
+                                    @guardian.Person.Address.Street, @guardian.Person.Address.City<br />
+                                    @guardian.Person.Address.State, @guardian.Person.Address.Country
+                                    @if (!string.IsNullOrEmpty(guardian.Person.Address.PostalCode))
                                     {
                                         <br />
-                                        @guardianAddress.PostalCode
+                                        @guardian.Person.Address.PostalCode
                                     }
                                 </p>
                             }

@@ -122,7 +122,44 @@
                     </div>
                 </div>
 
-                <AddressDetails Person="guardian.Person" />
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Address Information</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (guardian.Person.Address != null)
+                        {
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="text-muted">Street</h6>
+                                    <p>@(string.IsNullOrEmpty(guardian.Person.Address.Street) ? "Not Specified" : guardian.Person.Address.Street)</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="text-muted">City</h6>
+                                    <p>@(string.IsNullOrEmpty(guardian.Person.Address.City) ? "Not Specified" : guardian.Person.Address.City)</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">State</h6>
+                                    <p>@(string.IsNullOrEmpty(guardian.Person.Address.State) ? "Not Specified" : guardian.Person.Address.State)</p>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">Postal Code</h6>
+                                    <p>@(string.IsNullOrEmpty(guardian.Person.Address.PostalCode) ? "Not Specified" : guardian.Person.Address.PostalCode)</p>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">Country</h6>
+                                    <p>@(string.IsNullOrEmpty(guardian.Person.Address.Country) ? "Not Specified" : guardian.Person.Address.Country)</p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p>No address information available.</p>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     }

@@ -12,13 +12,6 @@ namespace FcmsPortal.Services
         School? GetSchool();
         #endregion
 
-        #region Addresses
-        Address AddAddress(Address address);
-        Address? GetAddressById(int addressId);
-        void UpdateAddress(Address address);
-        bool DeleteAddress(int addressId);
-        #endregion
-
         #region Staff
         Staff AddStaff(Staff staff);
         IEnumerable<Staff> GetStaff();

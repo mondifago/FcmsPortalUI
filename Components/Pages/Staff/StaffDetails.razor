@@ -165,7 +165,44 @@
                     </div>
                 </div>
 
-               <AddressDetails Person="staff.Person" />
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Address Information</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (staff.Person.Address != null)
+                        {
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="text-muted">Street</h6>
+                                    <p>@(string.IsNullOrEmpty(staff.Person.Address.Street) ? "Not Specified" : staff.Person.Address.Street)</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="text-muted">City</h6>
+                                    <p>@(string.IsNullOrEmpty(staff.Person.Address.City) ? "Not Specified" : staff.Person.Address.City)</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">State</h6>
+                                    <p>@(string.IsNullOrEmpty(staff.Person.Address.State) ? "Not Specified" : staff.Person.Address.State)</p>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">Postal Code</h6>
+                                    <p>@(string.IsNullOrEmpty(staff.Person.Address.PostalCode) ? "Not Specified" : staff.Person.Address.PostalCode)</p>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">Country</h6>
+                                    <p>@(string.IsNullOrEmpty(staff.Person.Address.Country) ? "Not Specified" : staff.Person.Address.Country)</p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p>No address information available.</p>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     }

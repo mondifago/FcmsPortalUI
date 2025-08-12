@@ -92,46 +92,6 @@ namespace FcmsPortal.Services
         }
         #endregion
 
-        #region Addresses
-        public Address AddAddress(Address address)
-        {
-            _context.Addresses.Add(address);
-            _context.SaveChanges();
-            return address;
-        }
-
-        public Address? GetAddressById(int addressId)
-        {
-            return _context.Addresses.Find(addressId);
-        }
-
-        public void UpdateAddress(Address address)
-        {
-            var existingAddress = _context.Addresses.Find(address.Id);
-            if (existingAddress != null)
-            {
-                existingAddress.Street = address.Street;
-                existingAddress.City = address.City;
-                existingAddress.State = address.State;
-                existingAddress.PostalCode = address.PostalCode;
-                existingAddress.Country = address.Country;
-                _context.SaveChanges();
-            }
-        }
-
-        public bool DeleteAddress(int addressId)
-        {
-            var address = _context.Addresses.Find(addressId);
-            if (address != null)
-            {
-                _context.Addresses.Remove(address);
-                _context.SaveChanges();
-                return true;
-            }
-            return false;
-        }
-        #endregion
-
         #region Staff
         public IEnumerable<Staff> GetStaff()
         {
@@ -185,6 +145,7 @@ namespace FcmsPortal.Services
                 existingStaff.Person.EmergencyContact = staff.Person.EmergencyContact;
                 existingStaff.Person.EducationLevel = staff.Person.EducationLevel;
                 existingStaff.Person.IsActive = staff.Person.IsActive;
+                existingStaff.Person.Address = staff.Person.Address;
 
                 _context.SaveChanges();
             }
@@ -209,7 +170,7 @@ namespace FcmsPortal.Services
         {
             return _context.Guardians
                 .Include(g => g.Person)
-                    .ThenInclude(p => p.Addresses)
+                    .ThenInclude(p => p.Address)
                 .Include(g => g.Wards)
                     .ThenInclude(w => w.Person)
                 .ToList();
@@ -219,7 +180,7 @@ namespace FcmsPortal.Services
         {
             return _context.Guardians
                 .Include(g => g.Person)
-                    .ThenInclude(p => p.Addresses)
+                    .ThenInclude(p => p.Address)
                 .Include(g => g.Wards)
                     .ThenInclude(w => w.Person)
                 .FirstOrDefault(g => g.Id == id);
@@ -255,6 +216,7 @@ namespace FcmsPortal.Services
                 existingGuardian.RelationshipToStudent = guardian.RelationshipToStudent;
                 existingGuardian.Person.ProfilePictureUrl = guardian.Person.ProfilePictureUrl;
                 existingGuardian.Person.IsActive = guardian.Person.IsActive;
+                existingGuardian.Person.Address = guardian.Person.Address;
 
                 _context.SaveChanges();
             }
@@ -292,7 +254,7 @@ namespace FcmsPortal.Services
         {
             return _context.Students
                 .Include(s => s.Person)
-                    .ThenInclude(p => p.Addresses)
+                    .ThenInclude(p => p.Address)
                 .Include(s => s.CourseGrades)
                 .ToList();
         }
@@ -301,7 +263,7 @@ namespace FcmsPortal.Services
         {
             return _context.Students
                 .Include(s => s.Person)
-                    .ThenInclude(p => p.Addresses)
+                    .ThenInclude(p => p.Address)
                 .Include(s => s.CourseGrades)
                 .FirstOrDefault(s => s.Id == id);
         }
@@ -329,6 +291,7 @@ namespace FcmsPortal.Services
                 existingStudent.Person.Email = student.Person.Email;
                 existingStudent.Person.PhoneNumber = student.Person.PhoneNumber;
                 existingStudent.Person.IsActive = student.Person.IsActive;
+                existingStudent.Person.Address = student.Person.Address;
                 existingStudent.PositionAmongSiblings = student.PositionAmongSiblings;
                 existingStudent.LastSchoolAttended = student.LastSchoolAttended;
                 existingStudent.GuardianId = student.GuardianId;

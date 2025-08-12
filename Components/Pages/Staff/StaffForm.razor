@@ -161,57 +161,37 @@
             </div>
 
             <h5 class="mb-3 mt-4">Address Information<span class="text-danger">*</span></h5>
-            @if (showAddressForm)
-            {
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Add New Address</h5>
-                        <AddressForm Address="@currentAddress"
-                                     OnValidSubmit="SaveAddress"
-                                     OnCancel="CancelAddressEdit"
-                                     ButtonText="Save Address" />
-                    </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="street" class="form-label">Street<span class="text-danger">*</span></label>
+                    <InputText id="street" class="form-control" @bind-Value="Staff.Person.Address.Street" />
+                    <ValidationMessage For="@(() => Staff.Person.Address.Street)" />
                 </div>
-            }
-            else
-            {
-                <button type="button" class="btn btn-outline-primary mb-3" @onclick="ShowAddressForm">
-                    <i class="fa fa-plus"></i> Add Address
-                </button>
-            }
+                <div class="col-md-6 mb-3">
+                    <label for="city" class="form-label">City<span class="text-danger">*</span></label>
+                    <InputText id="city" class="form-control" @bind-Value="Staff.Person.Address.City" />
+                    <ValidationMessage For="@(() => Staff.Person.Address.City)" />
+                </div>
+            </div>
 
-            @if (Staff.Person.Addresses.Any())
-            {
-                <div class="table-responsive mb-3">
-                    <table class="table table-sm table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Street</th>
-                                <th>City</th>
-                                <th>State</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var address in Staff.Person.Addresses)
-                            {
-                                <tr>
-                                    <td>@address.AddressType</td>
-                                    <td>@address.Street</td>
-                                    <td>@address.City</td>
-                                    <td>@address.State</td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveAddress(address)">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="state" class="form-label">State<span class="text-danger">*</span></label>
+                    <InputText id="state" class="form-control" @bind-Value="Staff.Person.Address.State" />
+                    <ValidationMessage For="@(() => Staff.Person.Address.State)" />
                 </div>
-            }
+                <div class="col-md-4 mb-3">
+                    <label for="postalCode" class="form-label">Postal Code</label>
+                    <InputText id="postalCode" class="form-control" @bind-Value="Staff.Person.Address.PostalCode"
+                               placeholder="This could also be postal address, e.g., P.O. Box 250" />
+                    <ValidationMessage For="@(() => Staff.Person.Address.PostalCode)" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="country" class="form-label">Country<span class="text-danger">*</span></label>
+                    <InputText id="country" class="form-control" @bind-Value="Staff.Person.Address.Country" />
+                    <ValidationMessage For="@(() => Staff.Person.Address.Country)" />
+                </div>
+            </div>
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
@@ -245,12 +225,13 @@
     private string profilePictureUrl = "";
     private string oldProfilePictureUrl = "";
     private DateTime employmentDate = DateTime.Today;
-    private bool showAddressForm = false;
-    private Address currentAddress = new();
     private List<string> availableCourses { get; set; } = new();
 
     protected override void OnInitialized()
     {
+        if (Staff.Person.Address == null)
+            Staff.Person.Address = new Address();
+
         Staff.Person.DateOfBirth = DateTime.Today;
         profilePictureUrl = Staff.Person.ProfilePictureUrl ?? "";
         oldProfilePictureUrl = profilePictureUrl;
@@ -305,30 +286,5 @@
     private async Task Cancel()
     {
         await OnCancel.InvokeAsync();
-    }
-
-    private void ShowAddressForm()
-    {
-        currentAddress = new Address();
-        showAddressForm = true;
-    }
-
-    private void SaveAddress(Address address)
-    {
-        var savedAddress = SchoolDataService.AddAddress(address);
-        Staff.Person.Addresses.Add(savedAddress);
-        showAddressForm = false;
-        currentAddress = new Address();
-    }
-
-    private void CancelAddressEdit()
-    {
-        showAddressForm = false;
-        currentAddress = new Address();
-    }
-
-    private void RemoveAddress(Address address)
-    {
-        Staff.Person.Addresses.Remove(address);
-    }
+    } 
 }
