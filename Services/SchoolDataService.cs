@@ -28,7 +28,6 @@ namespace FcmsPortal.Services
         }
 
         #region School
-
         public School? GetSchool()
         {
             return _context.School
@@ -99,6 +98,37 @@ namespace FcmsPortal.Services
             _context.Addresses.Add(address);
             _context.SaveChanges();
             return address;
+        }
+
+        public Address? GetAddressById(int addressId)
+        {
+            return _context.Addresses.Find(addressId);
+        }
+
+        public void UpdateAddress(Address address)
+        {
+            var existingAddress = _context.Addresses.Find(address.Id);
+            if (existingAddress != null)
+            {
+                existingAddress.Street = address.Street;
+                existingAddress.City = address.City;
+                existingAddress.State = address.State;
+                existingAddress.PostalCode = address.PostalCode;
+                existingAddress.Country = address.Country;
+                _context.SaveChanges();
+            }
+        }
+
+        public bool DeleteAddress(int addressId)
+        {
+            var address = _context.Addresses.Find(addressId);
+            if (address != null)
+            {
+                _context.Addresses.Remove(address);
+                _context.SaveChanges();
+                return true;
+            }
+            return false;
         }
         #endregion
 

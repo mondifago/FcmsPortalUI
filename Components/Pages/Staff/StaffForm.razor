@@ -251,9 +251,6 @@
 
     protected override void OnInitialized()
     {
-        if (Staff.Person.Addresses == null)
-            Staff.Person.Addresses = new List<Address>();
-
         Staff.Person.DateOfBirth = DateTime.Today;
         profilePictureUrl = Staff.Person.ProfilePictureUrl ?? "";
         oldProfilePictureUrl = profilePictureUrl;

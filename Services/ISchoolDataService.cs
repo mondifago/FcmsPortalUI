@@ -14,6 +14,9 @@ namespace FcmsPortal.Services
 
         #region Addresses
         Address AddAddress(Address address);
+        Address? GetAddressById(int addressId);
+        void UpdateAddress(Address address);
+        bool DeleteAddress(int addressId);
         #endregion
 
         #region Staff
