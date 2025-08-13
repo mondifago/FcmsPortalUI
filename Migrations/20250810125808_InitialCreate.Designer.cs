@@ -684,7 +684,7 @@ namespace FcmsPortalUI.Migrations
                     b.Property<DateTime?>("ArchivedDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("CurrentLearningPathId")
+                    b.Property<int>("LearningPathId")
                         .HasColumnType("int");
 
                     b.Property<int>("GuardianId")
@@ -706,7 +706,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentLearningPathId");
+                    b.HasIndex("LearningPathId");
 
                     b.HasIndex("GuardianId");
 
@@ -1339,9 +1339,9 @@ namespace FcmsPortalUI.Migrations
 
             modelBuilder.Entity("FcmsPortal.Models.Student", b =>
                 {
-                    b.HasOne("FcmsPortal.Models.LearningPath", "CurrentLearningPath")
+                    b.HasOne("FcmsPortal.Models.LearningPath", "LearningPath")
                         .WithMany("StudentsWithAccess")
-                        .HasForeignKey("CurrentLearningPathId")
+                        .HasForeignKey("LearningPathId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1461,7 +1461,7 @@ namespace FcmsPortalUI.Migrations
                             b1.Navigation("SchoolFees");
                         });
 
-                    b.Navigation("CurrentLearningPath");
+                    b.Navigation("LearningPath");
 
                     b.Navigation("Guardian");
 

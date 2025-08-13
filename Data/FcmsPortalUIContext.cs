@@ -18,5 +18,91 @@ namespace FcmsPortalUI.Data
         public DbSet<FileAttachment> FileAttachments { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<SchoolFees> SchoolFees { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<DiscussionThread>()
+                .HasOne(t => t.FirstPost)
+                .WithOne()
+                .HasForeignKey<DiscussionPost>(p => p.DiscussionThreadId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<DiscussionThread>()
+                .HasMany(t => t.Replies)
+                .WithOne()
+                .HasForeignKey(p => p.DiscussionThreadId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            /*modelBuilder.Entity<LearningPath>()
+                 .HasMany(lp => lp.Students)
+                 .WithOne(s => s.LearningPath)
+                 .HasForeignKey(s => s.LearningPathId);
+
+            modelBuilder.Entity<LearningPath>()
+                .Ignore(lp => lp.StudentsWithAccess);*/
+
+            modelBuilder.Entity<DailyAttendanceLogEntry>()
+                   .HasOne(d => d.LearningPath)
+                   .WithMany(lp => lp.AttendanceLog)
+                   .HasForeignKey(d => d.LearningPathId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DailyAttendanceLogEntry>()
+                .HasOne(d => d.Teacher)
+                .WithMany()
+                .HasForeignKey(d => d.TeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure many-to-many relationship for PresentStudents
+            modelBuilder.Entity<DailyAttendanceLogEntry>()
+                .HasMany(d => d.PresentStudents)
+                .WithMany()
+                .UsingEntity<Dictionary<string, object>>(
+                    "DailyAttendancePresentStudents",
+                    l => l.HasOne<Student>().WithMany().HasForeignKey("PresentStudentsId"),
+                    r => r.HasOne<DailyAttendanceLogEntry>().WithMany().HasForeignKey("DailyAttendanceLogEntryId"),
+                    j =>
+                    {
+                        j.HasKey("PresentStudentsId", "DailyAttendanceLogEntryId");
+                        j.ToTable("DailyAttendancePresentStudents");
+                    });
+
+            // Configure many-to-many relationship for AbsentStudents  
+            modelBuilder.Entity<DailyAttendanceLogEntry>()
+                .HasMany(d => d.AbsentStudents)
+                .WithMany()
+                .UsingEntity<Dictionary<string, object>>(
+                    "DailyAttendanceAbsentStudents",
+                    l => l.HasOne<Student>().WithMany().HasForeignKey("AbsentStudentsId"),
+                    r => r.HasOne<DailyAttendanceLogEntry>().WithMany().HasForeignKey("DailyAttendanceLogEntry1Id"),
+                    j =>
+                    {
+                        j.HasKey("AbsentStudentsId", "DailyAttendanceLogEntry1Id");
+                        j.ToTable("DailyAttendanceAbsentStudents");
+                    });
+
+            // Configure Student and LearningPath relationship
+            modelBuilder.Entity<Student>()
+                .HasOne(s => s.LearningPath)
+                .WithMany(lp => lp.Students)
+                .HasForeignKey(s => s.LearningPathId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure many-to-many for LearningPath StudentsWithAccess
+            modelBuilder.Entity<LearningPath>()
+                .HasMany(lp => lp.StudentsWithAccess)
+                .WithMany()
+                .UsingEntity<Dictionary<string, object>>(
+                    "LearningPathStudentsWithAccess",
+                    l => l.HasOne<Student>().WithMany().HasForeignKey("StudentsWithAccessId"),
+                    r => r.HasOne<LearningPath>().WithMany().HasForeignKey("LearningPathId"),
+                    j =>
+                    {
+                        j.HasKey("StudentsWithAccessId", "LearningPathId");
+                        j.ToTable("LearningPathStudentsWithAccess");
+                    });
+        }
     }
 }

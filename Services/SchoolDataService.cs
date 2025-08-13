@@ -467,10 +467,10 @@ namespace FcmsPortal.Services
                     student.Person.SchoolFees.TotalAmount = existingLearningPath.FeePerSemester;
                 }
 
-                if (student.CurrentLearningPathId == 0)
+                if (student.LearningPathId == 0)
                 {
-                    student.CurrentLearningPathId = existingLearningPath.Id;
-                    student.CurrentLearningPath = existingLearningPath;
+                    student.LearningPathId = existingLearningPath.Id;
+                    student.LearningPath = existingLearningPath;
                 }
 
                 if (student.Person.SchoolFees.TotalPaid >= existingLearningPath.FeePerSemester * FcmsConstants.PAYMENT_THRESHOLD_FACTOR &&
@@ -526,10 +526,10 @@ namespace FcmsPortal.Services
                         student.Person.SchoolFees.TotalAmount = existingLearningPath.FeePerSemester;
                     }
 
-                    if (student.CurrentLearningPathId == 0)
+                    if (student.LearningPathId == 0)
                     {
-                        student.CurrentLearningPathId = existingLearningPath.Id;
-                        student.CurrentLearningPath = existingLearningPath;
+                        student.LearningPathId = existingLearningPath.Id;
+                        student.LearningPath = existingLearningPath;
                     }
 
                     if (student.Person.SchoolFees.TotalPaid >= existingLearningPath.FeePerSemester * FcmsConstants.PAYMENT_THRESHOLD_FACTOR &&
@@ -1305,9 +1305,9 @@ namespace FcmsPortal.Services
                 _context.SaveChanges();
 
                 var student = GetStudentBySchoolFeesId(payment.SchoolFeesId);
-                if (student != null && student.CurrentLearningPath != null)
+                if (student != null && student.LearningPath != null)
                 {
-                    LogicMethods.UpdatePaymentStatus(student, student.CurrentLearningPath);
+                    LogicMethods.UpdatePaymentStatus(student, student.LearningPath);
                 }
             }
             return payment;
@@ -1329,9 +1329,9 @@ namespace FcmsPortal.Services
                 _context.SaveChanges();
 
                 var student = GetStudentBySchoolFeesId(payment.SchoolFeesId);
-                if (student != null && student.CurrentLearningPath != null)
+                if (student != null && student.LearningPath != null)
                 {
-                    LogicMethods.UpdatePaymentStatus(student, student.CurrentLearningPath);
+                    LogicMethods.UpdatePaymentStatus(student, student.LearningPath);
                 }
             }
         }
@@ -1346,9 +1346,9 @@ namespace FcmsPortal.Services
                 _context.SaveChanges();
 
                 var student = GetStudentBySchoolFeesId(schoolFeesId);
-                if (student != null && student.CurrentLearningPath != null)
+                if (student != null && student.LearningPath != null)
                 {
-                    LogicMethods.UpdatePaymentStatus(student, student.CurrentLearningPath);
+                    LogicMethods.UpdatePaymentStatus(student, student.LearningPath);
                 }
             }
         }
@@ -1362,11 +1362,11 @@ namespace FcmsPortal.Services
                 payment.SchoolFeesId = student.Person.SchoolFees.Id;
             }
 
-            if (student.CurrentLearningPath != null)
+            if (student.LearningPath != null)
             {
-                payment.AcademicYearStart = student.CurrentLearningPath.AcademicYearStart;
-                payment.Semester = student.CurrentLearningPath.Semester;
-                payment.LearningPathId = student.CurrentLearningPath.Id;
+                payment.AcademicYearStart = student.LearningPath.AcademicYearStart;
+                payment.Semester = student.LearningPath.Semester;
+                payment.LearningPathId = student.LearningPath.Id;
             }
 
             return payment;
@@ -1395,7 +1395,7 @@ namespace FcmsPortal.Services
                 .Include(s => s.Person)
                     .ThenInclude(p => p.SchoolFees)
                         .ThenInclude(sf => sf.Payments)
-                .Include(s => s.CurrentLearningPath)
+                .Include(s => s.LearningPath)
                 .FirstOrDefault(s => s.Person.SchoolFees != null && s.Person.SchoolFees.Id == schoolFeesId);
         }
         #endregion

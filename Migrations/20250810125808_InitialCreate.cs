@@ -979,7 +979,7 @@ namespace FcmsPortalUI.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Students_CurrentLearningPathId",
                 table: "Students",
-                column: "CurrentLearningPathId");
+                column: "LearningPathId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Students_GuardianId",

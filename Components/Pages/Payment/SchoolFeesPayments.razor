@@ -30,11 +30,11 @@ else
                         <p>Education Level: @student.Person.EducationLevel</p>
                     </div>
 
-                    @if (student.CurrentLearningPath != null)
+                    @if (student.LearningPath != null)
                     {
                         <div class="mb-3">
-                            <p><strong>Academic Year:</strong> @student.CurrentLearningPath.AcademicYear</p>
-                            <p><strong>Semester:</strong> @student.CurrentLearningPath.Semester</p>
+                            <p><strong>Academic Year:</strong> @student.LearningPath.AcademicYear</p>
+                            <p><strong>Semester:</strong> @student.LearningPath.Semester</p>
                         </div>
                     }
 

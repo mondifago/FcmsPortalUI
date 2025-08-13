@@ -354,7 +354,7 @@
         if (student == null)
             return false;
         
-        if (student.CurrentLearningPathId > 0 && student.CurrentLearningPath != null)
+        if (student.LearningPathId > 0 && student.LearningPath != null)
             return true;
         
         var allLearningPaths = SchoolDataService.GetAllLearningPaths();
