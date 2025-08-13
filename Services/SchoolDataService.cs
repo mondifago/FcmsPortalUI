@@ -60,7 +60,7 @@ namespace FcmsPortal.Services
             }
 
             _context.School.Add(school);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
             return school;
         }
 

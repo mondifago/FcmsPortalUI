@@ -1,119 +1,170 @@
 ﻿@page "/school/create"
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
+@inject IJSRuntime JSRuntime
 @using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
 
-<h3>Create New School</h3>
-
-@if (school != null)
-{
-    <EditForm Model="school" OnValidSubmit="HandleValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Basic Information</h4>
-            </div>
-            <div class="card-body">
-                <div class="row">
-
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">School Name</label>
-                            <InputText id="name" @bind-Value="school.Name" class="form-control" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <InputText id="email" @bind-Value="school.Email" class="form-control" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <InputText id="phone" @bind-Value="school.PhoneNumber" class="form-control" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="website" class="form-label">Website URL</label>
-                            <InputText id="website" @bind-Value="school.WebsiteUrl" class="form-control" />
-                        </div>
-                    </div>
-
-                    <div class="col-md-6 d-flex justify-content-center align-items-center">
-                        <div class="school-logo-card">
-                            <label class="form-label">School Logo</label>
-                            <div class="school-logo-container">
-                                <InputFile OnChange="HandleFileUpload" accept="image/*" class="hidden-file-input" id="fileInput" />
-                                <label for="fileInput" class="logo-label">
-                                    <img src="@logoUrl" alt="School Logo" class="school-logo @(string.IsNullOrEmpty(logoUrl) ? "hidden" : "")" />
-                                    <i class="fa fa-school placeholder-icon @(string.IsNullOrEmpty(logoUrl) ? "" : "hidden")"></i>
-                                </label>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fa fa-school me-2"></i>
+                        Welcome to FCMS Portal
+                    </h3>
+                    <p class="mb-0 mt-2">Let's set up your school to get started</p>
+                </div>
+                <div class="card-body">
+                    @if (isCreating)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Creating school...</span>
                             </div>
-                            <span class="text-muted text-center">Click to upload logo</span>
+                            <div class="mt-3">
+                                <h5>Setting up your school...</h5>
+                                <p class="text-muted">This will only take a moment</p>
+                            </div>
                         </div>
-                    </div>
+                    }
+                    else if (school != null)
+                    {
+                        <EditForm Model="school" OnValidSubmit="HandleValidSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h4>Basic Information</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="name" class="form-label">School Name <span class="text-danger">*</span></label>
+                                                <InputText id="name" @bind-Value="school.Name" class="form-control" placeholder="Enter your school name" />
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">Email</label>
+                                                <InputText id="email" @bind-Value="school.Email" class="form-control" placeholder="school@example.com" />
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="phone" class="form-label">Phone Number</label>
+                                                <InputText id="phone" @bind-Value="school.PhoneNumber" class="form-control" placeholder="+1 (555) 123-4567" />
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="website" class="form-label">Website URL</label>
+                                                <InputText id="website" @bind-Value="school.WebsiteUrl" class="form-control" placeholder="https://www.yourschool.com" />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 d-flex justify-content-center align-items-center">
+                                            <div class="school-logo-card">
+                                                <label class="form-label">School Logo</label>
+                                                <div class="school-logo-container">
+                                                    <InputFile OnChange="HandleFileUpload" accept="image/*" class="hidden-file-input" id="fileInput" />
+                                                    <label for="fileInput" class="logo-label">
+                                                        <img src="@logoUrl" alt="School Logo" class="school-logo @(string.IsNullOrEmpty(logoUrl) ? "hidden" : "")" />
+                                                        <i class="fa fa-school placeholder-icon @(string.IsNullOrEmpty(logoUrl) ? "" : "hidden")"></i>
+                                                    </label>
+                                                </div>
+                                                <span class="text-muted text-center">Click to upload logo</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h4>Address</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="street" class="form-label">Street</label>
+                                            <InputText id="street" @bind-Value="school.Address.Street" class="form-control" placeholder="123 Main Street" />
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label for="city" class="form-label">City</label>
+                                            <InputText id="city" @bind-Value="school.Address.City" class="form-control" placeholder="City name" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="state" class="form-label">State</label>
+                                            <InputText id="state" @bind-Value="school.Address.State" class="form-control" placeholder="State/Province" />
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <label for="postal" class="form-label">Postal Code</label>
+                                            <InputText id="postal" @bind-Value="school.Address.PostalCode" class="form-control" placeholder="12345" />
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <label for="country" class="form-label">Country</label>
+                                            <InputText id="country" @bind-Value="school.Address.Country" class="form-control" placeholder="Country name" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isCreating">
+                                    @if (isCreating)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                        <span>Creating School...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa fa-check me-2"></i>
+                                        <span>Create School & Continue</span>
+                                    }
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+                    else
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">Initializing school setup...</p>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
-
-        <div class="card mb-4">
-            <div class="card-header">
-                <h4>Address</h4>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="street" class="form-label">Street</label>
-                        <InputText id="street" @bind-Value="school.Address.Street" class="form-control" />
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="city" class="form-label">City</label>
-                        <InputText id="city" @bind-Value="school.Address.City" class="form-control" />
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="state" class="form-label">State</label>
-                        <InputText id="state" @bind-Value="school.Address.State" class="form-control" />
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label for="postal" class="form-label">Postal Code</label>
-                        <InputText id="postal" @bind-Value="school.Address.PostalCode" class="form-control" />
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label for="country" class="form-label">Country</label>
-                        <InputText id="country" @bind-Value="school.Address.Country" class="form-control" />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-3">
-            <button type="submit" class="btn btn-primary">Create School</button>
-            <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">Cancel</button>
-        </div>
-    </EditForm>
-}
-else
-{
-    <p>Initializing new school...</p>
-}
+    </div>
+</div>
 
 @code {
     private FcmsPortal.Models.School? school;
     private string logoUrl = "";
+    private bool isCreating = false;
 
     protected override void OnInitialized()
     {
+        // If a school already exists, redirect to home
+        if (SchoolDataService.HasSchool())
+        {
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
+
         school = new FcmsPortal.Models.School
         {
             Name = "",
@@ -126,7 +177,7 @@ else
                 Street = "",
                 City = "",
                 State = "",
-                Country = ""
+                Country = "",
             }
         };
     }
@@ -149,7 +200,6 @@ else
                 if (school != null)
                 {
                     school.LogoUrl = attachment.FilePath;
-                    
                 }
                 logoUrl = Util.GetLogoDisplayUrl(attachment.FilePath);
 
@@ -163,26 +213,46 @@ else
         }
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         try
         {
             if (school != null)
             {
+                isCreating = true;
+                StateHasChanged();
+
+                // Small delay for user experience
+                await Task.Delay(500);
+
                 school.LogoUrl = logoUrl;
                 var createdSchool = SchoolDataService.AddSchool(school);
-                NavigationManager.NavigateTo("/");
+
+                // Success! School created
+                await ShowSuccessAndNavigate();
             }
         }
         catch (Exception ex)
         {
-            // Handle error 
+            isCreating = false;
+            StateHasChanged();
+            // Handle error
             Console.WriteLine($"Error creating school: {ex.Message}");
         }
     }
 
+    private async Task ShowSuccessAndNavigate()
+    {
+        // Show success state briefly
+        await Task.Delay(1000);
+
+        // Trigger a full page reload to reinitialize the MainLayout
+        NavigationManager.NavigateTo("/", true);
+    }
+
     private void Cancel()
     {
-        NavigationManager.NavigateTo("/");
+        // Since this is the initial setup, there's nowhere to go back to
+        // We could disable this button or just keep it for consistency
     }
 }

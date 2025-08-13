@@ -1,33 +1,72 @@
 ﻿@using FcmsPortalUI.Components.Pages.School
-
+@using FcmsPortal.Services
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
 @inherits LayoutComponentBase
 
 <div class="layout-container">
-    <div class="top-row">
-        <div class="logo-container">
-            <a href="/" class="home-link">FCMS</a>
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="mt-3">
+                    <h5>Initializing FCMS Portal...</h5>
+                </div>
+            </div>
         </div>
-        <button class="navbar-toggler" @onclick="ToggleNavMenu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="top-icons">
-            <input type="text" class="search-box" placeholder="Search...">
-            <a href="/messages" class="icon-link"><i class="fas fa-envelope"></i></a>
-            <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
-            <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
-                <i class="fas fa-cog"></i>
+    }
+    else if (hasSchool)
+    {
+        <div class="top-row">
+            <div class="logo-container">
+                <a href="/" class="home-link">FCMS</a>
+            </div>
+            <button class="navbar-toggler" @onclick="ToggleNavMenu">
+                <i class="fas fa-bars"></i>
             </button>
-            <a href="/profile" class="icon-link"><i class="fas fa-user-circle"></i></a>
+            <div class="top-icons">
+                <input type="text" class="search-box" placeholder="Search...">
+                <a href="/messages" class="icon-link"><i class="fas fa-envelope"></i></a>
+                <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
+                <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <a href="/profile" class="icon-link"><i class="fas fa-user-circle"></i></a>
+            </div>
         </div>
-    </div>
-    <div class="page">
-        <NavMenu @ref="navMenu" />
-        <main>
-            <article class="content px-4">
-                @Body
-            </article>
-        </main>
-    </div>
+        <div class="page">
+            <NavMenu @ref="navMenu" HasSchool="@hasSchool" />
+            <main>
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
+        </div>
+
+        <!-- School Settings Modal -->
+        <SchoolSettingsModal IsVisible="showSchoolSettings"
+                             OnClose="CloseSchoolSettings"
+                             OnSave="HandleSchoolSettingsSaved" />
+    }
+    else
+    {
+        <!-- Minimal layout for school creation -->
+        <div class="top-row">
+            <div class="logo-container">
+                <a href="/" class="home-link">FCMS</a>
+            </div>
+        </div>
+        <div class="page">
+            <main style="margin-left: 0;">
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
+        </div>
+    }
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -36,15 +75,41 @@
     <span class="dismiss">🗙</span>
 </div>
 
-<!-- School Settings Modal -->
-<SchoolSettingsModal IsVisible="showSchoolSettings" 
-                     OnClose="CloseSchoolSettings" 
-                     OnSave="HandleSchoolSettingsSaved" />
-
 @code {
     private NavMenu? navMenu;
     private bool collapseNavMenu = true;
     private bool showSchoolSettings = false;
+    private bool hasSchool = false;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Small delay to show loading (optional)
+        await Task.Delay(100);
+
+        // Check if school exists
+        hasSchool = SchoolDataService.HasSchool();
+        isLoading = false;
+
+        // If no school exists and we're not already on the school create page, navigate there
+        if (!hasSchool)
+        {
+            var currentUri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+            if (!currentUri.StartsWith("school/create"))
+            {
+                NavigationManager.NavigateTo("/school/create", true);
+                return;
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    public void OnSchoolCreated()
+    {
+        hasSchool = true;
+        StateHasChanged();
+    }
 
     private void ToggleNavMenu()
     {

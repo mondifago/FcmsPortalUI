@@ -1,61 +1,132 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
-<div class="nav-scrollable @(collapseNavMenu ? "collapsed" : "")">
-    <nav class="nav flex-column">
-       
-        <div class="nav-item">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <i class="fa fa-home me-2"></i>Home
-            </NavLink>
+
+@if (HasSchool)
+{
+    <div class="nav-scrollable @(collapseNavMenu ? "collapsed" : "")">
+        <nav class="nav flex-column">
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <i class="fa fa-home me-2"></i>Home
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="staff">
+                    <i class="fa fa-user-tie me-2"></i>Staff
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="guardians">
+                    <i class="fa fa-users me-2"></i>Guardians
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="students">
+                    <i class="fa fa-user-graduate me-2"></i>Students
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="classes">
+                    <i class="fa fa-chalkboard-teacher me-2"></i>Classes
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="calendar">
+                    <i class="fa fa-calendar-alt me-2"></i>Calendar
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="payments">
+                    <i class="fa fa-money-bill-wave me-2"></i>Payments
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="curriculum">
+                    <i class="fa fa-book me-2"></i>Curriculum
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="reports">
+                    <i class="fa fa-chart-bar me-2"></i>Reports
+                </NavLink>
+            </div>
+            <div class="nav-item">
+                <NavLink class="nav-link" href="archive">
+                    <i class="fa fa-archive me-2"></i>Archive
+                </NavLink>
+            </div>
+        </nav>
+    </div>
+}
+else
+{
+    <!-- Show a subtle message or completely hidden - this section only shows when no school exists -->
+    <div class="nav-scrollable" style="opacity: 0.3; pointer-events: none;">
+        <nav class="nav flex-column">
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-home me-2"></i>Home
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-user-tie me-2"></i>Staff
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-users me-2"></i>Guardians
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-user-graduate me-2"></i>Students
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-chalkboard-teacher me-2"></i>Classes
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-calendar-alt me-2"></i>Calendar
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-money-bill-wave me-2"></i>Payments
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-book me-2"></i>Curriculum
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-chart-bar me-2"></i>Reports
+                </div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-link disabled">
+                    <i class="fa fa-archive me-2"></i>Archive
+                </div>
+            </div>
+        </nav>
+        <div class="text-center mt-4 px-3">
+            <small class="text-muted">
+                <i class="fa fa-info-circle me-1"></i>
+                Complete school setup to access these features
+            </small>
         </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="staff">
-                <i class="fa fa-user-tie me-2"></i>Staff
-            </NavLink>
-        </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="guardians">
-                <i class="fa fa-users me-2"></i>Guardians
-            </NavLink>
-        </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="students">
-                <i class="fa fa-user-graduate me-2"></i>Students
-            </NavLink>
-        </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="classes">
-                <i class="fa fa-chalkboard-teacher me-2"></i>Classes
-            </NavLink>
-        </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="calendar">
-                <i class="fa fa-calendar-alt me-2"></i>Calendar
-            </NavLink>
-        </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="payments">
-                <i class="fa fa-money-bill-wave me-2"></i>Payments
-            </NavLink>
-        </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="curriculum">
-                <i class="fa fa-book me-2"></i>Curriculum
-            </NavLink>
-        </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="reports">
-                <i class="fa fa-chart-bar me-2"></i>Reports
-            </NavLink>
-        </div>
-        <div class="nav-item">
-            <NavLink class="nav-link" href="archive">
-                <i class="fa fa-archive me-2"></i>Archive
-            </NavLink>
-        </div>
-    </nav>
-</div>
+    </div>
+}
 
 @code {
+    [Parameter]
+    public bool HasSchool { get; set; } = true;
+
     private bool collapseNavMenu = true;
 
     public void Toggle(bool collapse)
