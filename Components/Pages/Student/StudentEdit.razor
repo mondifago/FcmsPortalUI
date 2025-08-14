@@ -47,12 +47,6 @@
         {
             var previousGuardian = SchoolDataService.GetGuardianByStudentId(updatedStudent.Id);
             var newGuardian = SchoolDataService.GetGuardianById(updatedStudent.GuardianId);
-
-            if (previousGuardian != null && newGuardian != null && previousGuardian.Id != newGuardian.Id)
-            {
-                FcmsPortal.LogicMethods.RemoveStudentFromGuardianWards(previousGuardian, updatedStudent);
-                FcmsPortal.LogicMethods.AddStudentToGuardianWards(newGuardian, updatedStudent);
-            }
         }
 
         NavigationManager.NavigateTo("/students");

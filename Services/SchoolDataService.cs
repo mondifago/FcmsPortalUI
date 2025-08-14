@@ -12,14 +12,8 @@ namespace FcmsPortal.Services
     {
         private readonly FcmsPortalUIContext _context;
         private readonly IWebHostEnvironment _environment;
-        private readonly Dictionary<string, List<(int referenceId, FileAttachment attachment)>> _attachmentReferences = new();
-        private int _nextAttachmentId = 1;
-        private List<Payment> _payments = new List<Payment>();
-        private List<SchoolFees> _schoolFees = new List<SchoolFees>();
         private List<Student> _archivedStudents = new List<Student>();
-        private List<Address> _addresses = new List<Address>();
-        private static readonly object _idLock = new object();
-        private static readonly Dictionary<string, int> _entityCounters = new Dictionary<string, int>();
+
 
         public SchoolDataService(FcmsPortalUIContext context, IWebHostEnvironment environment)
         {
@@ -302,14 +296,15 @@ namespace FcmsPortal.Services
 
         public Student AddStudent(Student student)
         {
-            if (student.Person.SchoolFees == null)
+            if (student.SchoolId == null)
             {
-                student.Person.SchoolFees = new SchoolFees
+                var school = _context.School.FirstOrDefault();
+                if (school != null)
                 {
-                    TotalAmount = 0,
-                    Payments = new List<Payment>(),
-                };
+                    student.SchoolId = school.Id;
+                }
             }
+
             _context.Students.Add(student);
             _context.SaveChanges();
             return student;
