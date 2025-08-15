@@ -147,13 +147,23 @@ namespace FcmsPortal.Services
 
         public bool DeleteStaff(int staffId)
         {
-            var staff = _context.Staff.Find(staffId);
+            var staff = _context.Staff
+                .Include(s => s.Person)
+                .FirstOrDefault(s => s.Id == staffId);
+
             if (staff == null)
             {
                 return false;
             }
 
+            var person = staff.Person;
+
             _context.Staff.Remove(staff);
+            if (person != null)
+            {
+                _context.Persons.Remove(person);
+            }
+
             _context.SaveChanges();
             return true;
         }
@@ -231,13 +241,23 @@ namespace FcmsPortal.Services
 
         public bool DeleteGuardian(int guardianId)
         {
-            var guardian = _context.Guardians.Find(guardianId);
+            var guardian = _context.Guardians
+                .Include(g => g.Person)
+                .FirstOrDefault(g => g.Id == guardianId);
+
             if (guardian == null)
             {
                 return false;
             }
 
+            var person = guardian.Person;
+
             _context.Guardians.Remove(guardian);
+            if (person != null)
+            {
+                _context.Persons.Remove(person);
+            }
+
             _context.SaveChanges();
             return true;
         }

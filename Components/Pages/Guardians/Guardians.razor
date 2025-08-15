@@ -106,14 +106,14 @@
         showDeleteConfirmation = false;
     }
 
-    private void ConfirmDelete()
+    private async Task ConfirmDelete()
     {
         var guardian = SchoolDataService.GetGuardianById(guardianIdToDelete);
 
         if (guardian != null && !string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl) && !guardian.Person.ProfilePictureUrl.StartsWith("data:"))
         {
             var attachment = new FileAttachment { FilePath = guardian.Person.ProfilePictureUrl };
-            SchoolDataService.DeleteFileAsync(attachment);
+            await SchoolDataService.DeleteFileAsync(attachment);
         }
 
         var result = SchoolDataService.DeleteGuardian(guardianIdToDelete);
