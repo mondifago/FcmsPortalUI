@@ -23,26 +23,6 @@ namespace FcmsPortalUI.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<DiscussionThread>()
-                .HasOne(t => t.FirstPost)
-                .WithOne()
-                .HasForeignKey<DiscussionPost>(p => p.DiscussionThreadId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<DiscussionThread>()
-                .HasMany(t => t.Replies)
-                .WithOne()
-                .HasForeignKey(p => p.DiscussionThreadId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            /*modelBuilder.Entity<LearningPath>()
-                 .HasMany(lp => lp.Students)
-                 .WithOne(s => s.LearningPath)
-                 .HasForeignKey(s => s.LearningPathId);
-
-            modelBuilder.Entity<LearningPath>()
-                .Ignore(lp => lp.StudentsWithAccess);*/
-
             modelBuilder.Entity<DailyAttendanceLogEntry>()
                    .HasOne(d => d.LearningPath)
                    .WithMany(lp => lp.AttendanceLog)
@@ -82,6 +62,12 @@ namespace FcmsPortalUI.Data
                         j.HasKey("AbsentStudentsId", "DailyAttendanceLogEntry1Id");
                         j.ToTable("DailyAttendanceAbsentStudents");
                     });
+
+            modelBuilder.Entity<Student>()
+                 .HasOne(s => s.Person)
+                 .WithOne()
+                 .HasForeignKey<Student>(s => s.PersonId)
+                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure Student and LearningPath relationship
             modelBuilder.Entity<Student>()

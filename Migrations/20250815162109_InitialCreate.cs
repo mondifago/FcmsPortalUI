@@ -313,14 +313,14 @@ namespace FcmsPortalUI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     PersonId = table.Column<int>(type: "int", nullable: false),
+                    SchoolId = table.Column<int>(type: "int", nullable: true),
                     PositionAmongSiblings = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     LastSchoolAttended = table.Column<string>(type: "varchar(30)", maxLength: 30, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     GuardianId = table.Column<int>(type: "int", nullable: false),
-                    LearningPathId = table.Column<int>(type: "int", nullable: false),
-                    ArchivedDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    SchoolId = table.Column<int>(type: "int", nullable: true)
+                    LearningPathId = table.Column<int>(type: "int", nullable: true),
+                    ArchivedDate = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -723,7 +723,6 @@ namespace FcmsPortalUI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     FirstPostId = table.Column<int>(type: "int", nullable: false),
-                    FirstPostId1 = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     LastUpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     ClassSessionId = table.Column<int>(type: "int", nullable: true)
@@ -737,8 +736,8 @@ namespace FcmsPortalUI.Migrations
                         principalTable: "ClassSessions",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_DiscussionThread_DiscussionPost_FirstPostId1",
-                        column: x => x.FirstPostId1,
+                        name: "FK_DiscussionThread_DiscussionPost_FirstPostId",
+                        column: x => x.FirstPostId,
                         principalTable: "DiscussionPost",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -811,9 +810,9 @@ namespace FcmsPortalUI.Migrations
                 column: "ClassSessionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DiscussionThread_FirstPostId1",
+                name: "IX_DiscussionThread_FirstPostId",
                 table: "DiscussionThread",
-                column: "FirstPostId1");
+                column: "FirstPostId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_FileAttachments_ClassSessionId",
@@ -920,7 +919,8 @@ namespace FcmsPortalUI.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Students_PersonId",
                 table: "Students",
-                column: "PersonId");
+                column: "PersonId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Students_SchoolId",
@@ -943,7 +943,7 @@ namespace FcmsPortalUI.Migrations
                 column: "DiscussionThreadId",
                 principalTable: "DiscussionThread",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />

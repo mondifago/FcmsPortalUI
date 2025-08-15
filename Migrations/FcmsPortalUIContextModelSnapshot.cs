@@ -299,9 +299,6 @@ namespace FcmsPortalUI.Migrations
                     b.Property<int>("FirstPostId")
                         .HasColumnType("int");
 
-                    b.Property<int>("FirstPostId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("LastUpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -309,7 +306,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ClassSessionId");
 
-                    b.HasIndex("FirstPostId1");
+                    b.HasIndex("FirstPostId");
 
                     b.ToTable("DiscussionThread");
                 });
@@ -839,7 +836,8 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("LearningPathId");
 
-                    b.HasIndex("PersonId");
+                    b.HasIndex("PersonId")
+                        .IsUnique();
 
                     b.HasIndex("SchoolId");
 
@@ -1006,7 +1004,7 @@ namespace FcmsPortalUI.Migrations
                     b.HasOne("FcmsPortal.Models.DiscussionThread", null)
                         .WithMany("Replies")
                         .HasForeignKey("DiscussionThreadId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("FcmsPortal.Models.Person", "Author")
@@ -1026,7 +1024,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasOne("FcmsPortal.Models.DiscussionPost", "FirstPost")
                         .WithMany()
-                        .HasForeignKey("FirstPostId1")
+                        .HasForeignKey("FirstPostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1200,8 +1198,8 @@ namespace FcmsPortalUI.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("FcmsPortal.Models.Person", "Person")
-                        .WithMany()
-                        .HasForeignKey("PersonId")
+                        .WithOne()
+                        .HasForeignKey("FcmsPortal.Models.Student", "PersonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

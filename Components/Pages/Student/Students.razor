@@ -133,7 +133,7 @@
         showDeleteConfirmation = false;
     }
 
-    private void ConfirmDelete()
+    private async Task ConfirmDelete()
     {
         var student = SchoolDataService.GetStudentById(studentIdToDelete);
         if (student != null)
@@ -141,7 +141,7 @@
             if (!string.IsNullOrEmpty(student.Person.ProfilePictureUrl) && !student.Person.ProfilePictureUrl.StartsWith("data:"))
             {
                 var attachment = new FileAttachment { FilePath = student.Person.ProfilePictureUrl };
-                SchoolDataService.DeleteFileAsync(attachment);
+                await SchoolDataService.DeleteFileAsync(attachment);
             }
 
             var guardian = SchoolDataService.GetGuardianByStudentId(student.Id);

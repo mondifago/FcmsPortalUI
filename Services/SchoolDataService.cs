@@ -310,16 +310,25 @@ namespace FcmsPortal.Services
             return student;
         }
 
-
         public bool DeleteStudent(int studentId)
         {
-            var student = _context.Students.Find(studentId);
+            var student = _context.Students
+                .Include(s => s.Person)
+                .FirstOrDefault(s => s.Id == studentId);
+
             if (student == null)
             {
                 return false;
             }
 
+            var person = student.Person;
+
             _context.Students.Remove(student);
+            if (person != null)
+            {
+                _context.Persons.Remove(person);
+            }
+
             _context.SaveChanges();
             return true;
         }
