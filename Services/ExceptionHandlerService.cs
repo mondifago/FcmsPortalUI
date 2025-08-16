@@ -22,6 +22,7 @@
             // Convert technical exceptions to user-friendly messages
             return ex switch
             {
+                BusinessRuleException => ex.Message,
                 ArgumentException => "Invalid input. Please check your data and try again.",
                 InvalidOperationException => "This operation cannot be performed right now.",
                 // Add more exception types as needed

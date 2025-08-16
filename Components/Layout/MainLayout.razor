@@ -46,14 +46,12 @@
             </main>
         </div>
 
-        <!-- School Settings Modal -->
         <SchoolSettingsModal IsVisible="showSchoolSettings"
                              OnClose="CloseSchoolSettings"
                              OnSave="HandleSchoolSettingsSaved" />
     }
     else
     {
-        <!-- Minimal layout for school creation -->
         <div class="top-row">
             <div class="logo-container">
                 <a href="/" class="home-link">FCMS</a>
@@ -82,16 +80,11 @@
     private bool hasSchool = false;
     private bool isLoading = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        // Small delay to show loading (optional)
-        await Task.Delay(100);
-
-        // Check if school exists
         hasSchool = SchoolDataService.HasSchool();
         isLoading = false;
 
-        // If no school exists and we're not already on the school create page, navigate there
         if (!hasSchool)
         {
             var currentUri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
@@ -101,7 +94,6 @@
                 return;
             }
         }
-
         StateHasChanged();
     }
 
