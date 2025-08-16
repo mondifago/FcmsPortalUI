@@ -261,6 +261,27 @@ namespace FcmsPortal.Services
             _context.SaveChanges();
             return true;
         }
+
+        public string? ValidateGuardianDeletion(int guardianId)
+        {
+            var guardian = _context.Guardians
+                .Include(g => g.Person)
+                .Include(g => g.Wards)
+                .FirstOrDefault(g => g.Id == guardianId);
+
+            if (guardian == null)
+            {
+                return "Guardian not found.";
+            }
+
+            if (guardian.Wards != null && guardian.Wards.Any())
+            {
+                var wardNames = string.Join(", ", guardian.Wards.Select(w => $"{w.Person.FirstName} {w.Person.LastName}"));
+                return $"Cannot delete guardian {guardian.Person.FirstName} {guardian.Person.LastName}. They still have the following wards: {wardNames}. Please reassign or remove these wards first.";
+            }
+
+            return null;
+        }
         #endregion
 
         #region Students

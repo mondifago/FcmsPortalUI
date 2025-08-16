@@ -158,7 +158,6 @@
 
     protected override void OnInitialized()
     {
-        // If a school already exists, redirect to home
         if (SchoolDataService.HasSchool())
         {
             NavigationManager.NavigateTo("/", true);
@@ -213,7 +212,7 @@
         }
     }
 
-    private async Task HandleValidSubmit()
+    private void HandleValidSubmit()
     {
         try
         {
@@ -221,15 +220,10 @@
             {
                 isCreating = true;
                 StateHasChanged();
-
-                // Small delay for user experience
-                await Task.Delay(500);
-
                 school.LogoUrl = logoUrl;
                 var createdSchool = SchoolDataService.AddSchool(school);
 
-                // Success! School created
-                await ShowSuccessAndNavigate();
+                ShowSuccessAndNavigate();
             }
         }
         catch (Exception ex)
@@ -241,12 +235,8 @@
         }
     }
 
-    private async Task ShowSuccessAndNavigate()
+    private void ShowSuccessAndNavigate()
     {
-        // Show success state briefly
-        await Task.Delay(1000);
-
-        // Trigger a full page reload to reinitialize the MainLayout
         NavigationManager.NavigateTo("/", true);
     }
 

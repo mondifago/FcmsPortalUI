@@ -35,6 +35,7 @@ namespace FcmsPortal.Services
         Student? GetStudentById(int id);
         void UpdateStudent(Student student);
         bool DeleteStudent(int studentId);
+        string? ValidateGuardianDeletion(int guardianId);
         #endregion
 
         #region Learning Paths

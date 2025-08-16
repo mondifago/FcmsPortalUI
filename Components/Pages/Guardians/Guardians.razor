@@ -1,10 +1,13 @@
 ﻿@page "/guardians"
 @inject ISchoolDataService SchoolDataService
 @using FcmsPortal.Services
+@using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Components.Pages.Shared
+@inject ExceptionHandlerService ExceptionHandler
 @rendermode InteractiveServer
+
 
 <PageTitle>Guardians</PageTitle>
 
@@ -77,6 +80,10 @@
             </table>
         </div>
     }
+    <ErrorDisplayModal IsVisible="showErrorModal"
+                       Title="Cannot Delete Guardian"
+                       Message="@errorMessage"
+                       OnClose="CloseErrorModal" />
 
     <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
                         Title="Confirm Delete"
@@ -89,6 +96,8 @@
     private IEnumerable<Guardian>? guardians;
     private int guardianIdToDelete;
     private bool showDeleteConfirmation = false;
+    private bool showErrorModal = false;
+    private string errorMessage = "";
 
     protected override void OnInitialized()
     {
@@ -97,8 +106,20 @@
 
     private void DeleteGuardian(int id)
     {
-        guardianIdToDelete = id;
-        showDeleteConfirmation = true;
+        var validationError = SchoolDataService.ValidateGuardianDeletion(id);
+
+        if (!string.IsNullOrEmpty(validationError))
+        {
+            errorMessage = validationError;
+            showErrorModal = true;
+            StateHasChanged();
+        }
+        else
+        {
+            guardianIdToDelete = id;
+            showDeleteConfirmation = true;
+            StateHasChanged();
+        }
     }
 
     private void CancelDelete()
@@ -108,20 +129,37 @@
 
     private async Task ConfirmDelete()
     {
-        var guardian = SchoolDataService.GetGuardianById(guardianIdToDelete);
-
-        if (guardian != null && !string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl) && !guardian.Person.ProfilePictureUrl.StartsWith("data:"))
+        try
         {
-            var attachment = new FileAttachment { FilePath = guardian.Person.ProfilePictureUrl };
-            await SchoolDataService.DeleteFileAsync(attachment);
+            var guardian = SchoolDataService.GetGuardianById(guardianIdToDelete);
+
+            if (guardian != null && !string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl) && !guardian.Person.ProfilePictureUrl.StartsWith("data:"))
+            {
+                var attachment = new FileAttachment { FilePath = guardian.Person.ProfilePictureUrl };
+                await SchoolDataService.DeleteFileAsync(attachment);
+            }
+
+            var result = SchoolDataService.DeleteGuardian(guardianIdToDelete);
+            if (result)
+            {
+                guardians = SchoolDataService.GetGuardians();
+                showDeleteConfirmation = false;
+                StateHasChanged();
+            }
         }
-
-        var result = SchoolDataService.DeleteGuardian(guardianIdToDelete);
-        if (result)
+        catch (Exception ex)
         {
-            guardians = SchoolDataService.GetGuardians();
+            errorMessage = "An unexpected error occurred while deleting the guardian. Please try again.";
+            showErrorModal = true;
             showDeleteConfirmation = false;
             StateHasChanged();
         }
+    }
+
+    private void CloseErrorModal()
+    {
+        showErrorModal = false;
+        errorMessage = "";
+        StateHasChanged();
     }
 }
