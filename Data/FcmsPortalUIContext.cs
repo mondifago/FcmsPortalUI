@@ -12,7 +12,6 @@ namespace FcmsPortalUI.Data
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Guardian> Guardians { get; set; }
         public DbSet<Person> Persons { get; set; }
-        public DbSet<Address> Addresses { get; set; }
         public DbSet<LearningPath> LearningPaths { get; set; }
         public DbSet<ClassSession> ClassSessions { get; set; }
         public DbSet<FileAttachment> FileAttachments { get; set; }
@@ -22,6 +21,12 @@ namespace FcmsPortalUI.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<School>()
+               .OwnsOne(s => s.Address);
+
+            modelBuilder.Entity<Person>()
+                .OwnsOne(p => p.Address);
 
             modelBuilder.Entity<DailyAttendanceLogEntry>()
                    .HasOne(d => d.LearningPath)

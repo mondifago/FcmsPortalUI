@@ -61,7 +61,6 @@ namespace FcmsPortal.Services
         public async Task UpdateSchoolAsync(School updatedSchool)
         {
             var existingSchool = await _context.School
-                .Include(s => s.Address)
                 .FirstOrDefaultAsync();
 
             if (existingSchool != null)
@@ -71,16 +70,7 @@ namespace FcmsPortal.Services
                 existingSchool.Email = updatedSchool.Email;
                 existingSchool.PhoneNumber = updatedSchool.PhoneNumber;
                 existingSchool.WebsiteUrl = updatedSchool.WebsiteUrl;
-
-                if (existingSchool.Address != null && updatedSchool.Address != null)
-                {
-                    existingSchool.Address.Street = updatedSchool.Address.Street;
-                    existingSchool.Address.City = updatedSchool.Address.City;
-                    existingSchool.Address.State = updatedSchool.Address.State;
-                    existingSchool.Address.PostalCode = updatedSchool.Address.PostalCode;
-                    existingSchool.Address.Country = updatedSchool.Address.Country;
-                }
-
+                existingSchool.Address = updatedSchool.Address;
                 await _context.SaveChangesAsync();
             }
         }
@@ -174,7 +164,6 @@ namespace FcmsPortal.Services
         {
             return _context.Guardians
                 .Include(g => g.Person)
-                    .ThenInclude(p => p.Address)
                 .Include(g => g.Wards)
                     .ThenInclude(w => w.Person)
                 .ToList();
@@ -184,7 +173,6 @@ namespace FcmsPortal.Services
         {
             return _context.Guardians
                 .Include(g => g.Person)
-                    .ThenInclude(p => p.Address)
                 .Include(g => g.Wards)
                     .ThenInclude(w => w.Person)
                 .FirstOrDefault(g => g.Id == id);
@@ -289,7 +277,6 @@ namespace FcmsPortal.Services
         {
             return _context.Students
                 .Include(s => s.Person)
-                    .ThenInclude(p => p.Address)
                 .Include(s => s.CourseGrades)
                 .ToList();
         }
@@ -298,7 +285,6 @@ namespace FcmsPortal.Services
         {
             return _context.Students
                 .Include(s => s.Person)
-                    .ThenInclude(p => p.Address)
                 .Include(s => s.CourseGrades)
                 .FirstOrDefault(s => s.Id == id);
         }

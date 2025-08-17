@@ -52,39 +52,6 @@ namespace FcmsPortalUI.Migrations
                     b.ToTable("DailyAttendancePresentStudents", (string)null);
                 });
 
-            modelBuilder.Entity("FcmsPortal.Models.Address", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("PostalCode")
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Addresses");
-                });
-
             modelBuilder.Entity("FcmsPortal.Models.CalendarModel", b =>
                 {
                     b.Property<int>("Id")
@@ -550,9 +517,6 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AddressId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ClassLevel")
                         .HasColumnType("int");
 
@@ -615,8 +579,6 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AddressId");
 
                     b.ToTable("Persons");
                 });
@@ -700,9 +662,6 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AddressId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -724,8 +683,6 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AddressId");
 
                     b.ToTable("School");
                 });
@@ -1117,13 +1074,41 @@ namespace FcmsPortalUI.Migrations
 
             modelBuilder.Entity("FcmsPortal.Models.Person", b =>
                 {
-                    b.HasOne("FcmsPortal.Models.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.OwnsOne("FcmsPortal.Models.Address", "Address", b1 =>
+                        {
+                            b1.Property<int>("PersonId")
+                                .HasColumnType("int");
 
-                    b.Navigation("Address");
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("PostalCode")
+                                .HasMaxLength(30)
+                                .HasColumnType("varchar(30)");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.HasKey("PersonId");
+
+                            b1.ToTable("Persons");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PersonId");
+                        });
+
+                    b.Navigation("Address")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ScheduleEntry", b =>
@@ -1145,13 +1130,41 @@ namespace FcmsPortalUI.Migrations
 
             modelBuilder.Entity("FcmsPortal.Models.School", b =>
                 {
-                    b.HasOne("FcmsPortal.Models.Address", "Address")
-                        .WithMany()
-                        .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.OwnsOne("FcmsPortal.Models.Address", "Address", b1 =>
+                        {
+                            b1.Property<int>("SchoolId")
+                                .HasColumnType("int");
 
-                    b.Navigation("Address");
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("PostalCode")
+                                .HasMaxLength(30)
+                                .HasColumnType("varchar(30)");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("longtext");
+
+                            b1.HasKey("SchoolId");
+
+                            b1.ToTable("School");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SchoolId");
+                        });
+
+                    b.Navigation("Address")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.SchoolFees", b =>
