@@ -24,17 +24,28 @@ namespace FcmsPortal.Services
         #region School
         public School? GetSchool()
         {
-            return _context.School
-                .Include(s => s.Address)
-                .Include(s => s.Staff)
-                    .ThenInclude(st => st.Person)
-                .Include(s => s.Students)
-                    .ThenInclude(st => st.Person)
-                .Include(s => s.Guardians)
-                    .ThenInclude(g => g.Person)
-                .Include(s => s.LearningPaths)
-                .Include(s => s.SchoolCalendar)
-                .FirstOrDefault();
+            var school = _context.School
+             .Include(s => s.LearningPaths)
+                 .ThenInclude(lp => lp.Students)
+                     .ThenInclude(st => st.Person)
+                         .ThenInclude(p => p.SchoolFees)
+                             .ThenInclude(sf => sf.Payments)
+             .Include(s => s.LearningPaths)
+                 .ThenInclude(lp => lp.StudentsWithAccess)
+                     .ThenInclude(st => st.Person)
+                         .ThenInclude(p => p.SchoolFees)
+                             .ThenInclude(sf => sf.Payments)
+             .Include(s => s.Students)
+                 .ThenInclude(st => st.Person)
+                     .ThenInclude(p => p.SchoolFees)
+                         .ThenInclude(sf => sf.Payments)
+             .Include(s => s.Staff)
+                 .ThenInclude(st => st.Person)
+             .Include(s => s.Guardians)
+                 .ThenInclude(g => g.Person)
+             .FirstOrDefault();
+
+            return school;
         }
 
         public bool HasSchool()
@@ -273,26 +284,38 @@ namespace FcmsPortal.Services
         #endregion
 
         #region Students
-        public IEnumerable<Student> GetStudents()
-        {
-            return _context.Students
-                .Include(s => s.Person)
-                .Include(s => s.CourseGrades)
-                .ToList();
-        }
-
         public Student? GetStudentById(int id)
         {
             return _context.Students
                 .Include(s => s.Person)
+                    .ThenInclude(p => p.SchoolFees)
+                        .ThenInclude(sf => sf.Payments)
                 .Include(s => s.CourseGrades)
+                .Include(s => s.LearningPath)
+                .Include(s => s.Guardian)
+                    .ThenInclude(g => g.Person)
                 .FirstOrDefault(s => s.Id == id);
+        }
+
+        public IEnumerable<Student> GetStudents()
+        {
+            return _context.Students
+                .Include(s => s.Person)
+                    .ThenInclude(p => p.SchoolFees)
+                        .ThenInclude(sf => sf.Payments)
+                .Include(s => s.CourseGrades)
+                .Include(s => s.LearningPath)
+                .Include(s => s.Guardian)
+                    .ThenInclude(g => g.Person)
+                .ToList();
         }
 
         public void UpdateStudent(Student student)
         {
             var existingStudent = _context.Students
                 .Include(s => s.Person)
+                    .ThenInclude(p => p.SchoolFees)
+                        .ThenInclude(sf => sf.Payments)
                 .FirstOrDefault(s => s.Id == student.Id);
 
             if (existingStudent != null)
@@ -380,6 +403,8 @@ namespace FcmsPortal.Services
             return _context.LearningPaths
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.Person)
+                        .ThenInclude(p => p.SchoolFees)
+                            .ThenInclude(sf => sf.Payments)
                 .Include(lp => lp.Schedule)
                     .ThenInclude(s => s.ClassSession)
                         .ThenInclude(cs => cs.StudyMaterials)
@@ -396,6 +421,8 @@ namespace FcmsPortal.Services
             return _context.LearningPaths
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.Person)
+                        .ThenInclude(p => p.SchoolFees)
+                            .ThenInclude(sf => sf.Payments)
                 .Include(lp => lp.Schedule)
                     .ThenInclude(s => s.ClassSession)
                 .Where(lp => !lp.IsTemplate)
