@@ -118,8 +118,9 @@
 
             <div class="row">
                 <div class="col-md-12 mb-3">
-                    <label for="jobDescription" class="form-label">Job Description</label>
+                    <label for="jobDescription" class="form-label">Job Description<span class="text-danger">*</span></label>
                     <InputTextArea id="jobDescription" class="form-control" @bind-Value="Staff.JobDescription" rows="3" />
+                    <ValidationMessage For="@(() => Staff.JobDescription)" />
                 </div>
             </div>
 
@@ -232,7 +233,12 @@
         if (Staff.Person.Address == null)
             Staff.Person.Address = new Address();
 
-        Staff.Person.DateOfBirth = DateTime.Today;
+        if (Staff.Person.DateOfBirth == default)
+            Staff.Person.DateOfBirth = DateTime.Today;
+
+        if (Staff.Person.DateOfEnrollment == default)
+            Staff.Person.DateOfEnrollment = DateTime.Today;
+
         profilePictureUrl = Staff.Person.ProfilePictureUrl ?? "";
         oldProfilePictureUrl = profilePictureUrl;
 
