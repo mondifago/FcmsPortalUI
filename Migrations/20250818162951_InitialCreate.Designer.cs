@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20250817004638_InitialCreate")]
+    [Migration("20250818162951_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -99,7 +99,7 @@ namespace FcmsPortalUI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int?>("TeacherId")
+                    b.Property<int>("TeacherId")
                         .HasColumnType("int");
 
                     b.Property<string>("TeacherRemarks")
@@ -898,8 +898,10 @@ namespace FcmsPortalUI.Migrations
             modelBuilder.Entity("FcmsPortal.Models.ClassSession", b =>
                 {
                     b.HasOne("FcmsPortal.Models.Staff", "Teacher")
-                        .WithMany()
-                        .HasForeignKey("TeacherId");
+                        .WithMany("ClassSessions")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Teacher");
                 });
@@ -1330,6 +1332,11 @@ namespace FcmsPortalUI.Migrations
             modelBuilder.Entity("FcmsPortal.Models.SchoolFees", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("FcmsPortal.Models.Staff", b =>
+                {
+                    b.Navigation("ClassSessions");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Student", b =>

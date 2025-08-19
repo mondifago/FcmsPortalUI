@@ -243,5 +243,31 @@ namespace FcmsPortalUI.Services
             context.NotifyValidationStateChanged();
             return isValid;
         }
+
+        public bool ValidateTeacher(EditContext context, ClassSession classSession, int selectedTeacherId, List<Staff> availableTeachers, ValidationMessageStore messageStore)
+        {
+            // Only validate Teacher selection
+            if (selectedTeacherId <= 0)
+            {
+                var field = new FieldIdentifier(classSession, nameof(classSession.Teacher));
+                messageStore.Add(field, "Teacher is required.");
+                context.NotifyValidationStateChanged();
+                return false;
+            }
+
+            var selectedTeacher = availableTeachers.FirstOrDefault(t => t.Id == selectedTeacherId);
+            if (selectedTeacher == null)
+            {
+                var field = new FieldIdentifier(classSession, nameof(classSession.Teacher));
+                messageStore.Add(field, "Selected teacher is not valid.");
+                context.NotifyValidationStateChanged();
+                return false;
+            }
+
+            // Clear any previous teacher validation errors
+            messageStore.Clear(new FieldIdentifier(classSession, nameof(classSession.Teacher)));
+            context.NotifyValidationStateChanged();
+            return true;
+        }
     }
 }

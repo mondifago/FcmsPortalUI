@@ -1,7 +1,10 @@
-﻿@using FcmsPortal.Services
+﻿﻿@using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal
+@using FcmsPortalUI.Services
+@using Microsoft.AspNetCore.Components.Forms
+@inject ValidationService ValidationService
 @inject ISchoolDataService SchoolDataService
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -12,7 +15,7 @@
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm Model="@classSession" OnValidSubmit="HandleSubmit">
+                <EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
@@ -93,12 +96,16 @@
     private School school = new();
     private ClassSession classSession = new ClassSession();
     private int selectedTeacherId = 0;
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
     private List<string> availableCourses = new List<string>();
     private List<Staff> availableTeachers = new List<Staff>();
 
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
+        editContext = new EditContext(classSession);
+        messageStore = new ValidationMessageStore(editContext);
     }
 
     protected override void OnParametersSet()
@@ -135,20 +142,28 @@
 
     private async Task HandleSubmit()
     {
-        if (selectedTeacherId > 0)
+        if (editContext != null && messageStore != null)
         {
-            var teacher = availableTeachers.FirstOrDefault(t => t.Id == selectedTeacherId);
-            if (teacher != null)
+            bool isTeacherValid = ValidationService.ValidateTeacher(editContext, classSession, selectedTeacherId, availableTeachers, messageStore);
+
+            if (isTeacherValid)
             {
-                classSession.Teacher = teacher;
+                if (selectedTeacherId > 0)
+                {
+                    var teacher = availableTeachers.FirstOrDefault(t => t.Id == selectedTeacherId);
+                    if (teacher != null)
+                    {
+                        classSession.Teacher = teacher;
+                    }
+                }
+                else
+                {
+                    classSession.Teacher = null;
+                }
+
+                await OnSave.InvokeAsync(classSession);
+                await OnClose.InvokeAsync();
             }
         }
-        else
-        {
-            classSession.Teacher = null;
-        }
-
-        await OnSave.InvokeAsync(classSession);
-        await OnClose.InvokeAsync();
     }
 }

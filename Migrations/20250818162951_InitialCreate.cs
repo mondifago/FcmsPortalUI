@@ -348,7 +348,7 @@ namespace FcmsPortalUI.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     LessonPlan = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TeacherId = table.Column<int>(type: "int", nullable: true),
+                    TeacherId = table.Column<int>(type: "int", nullable: false),
                     TeacherRemarks = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
@@ -359,7 +359,8 @@ namespace FcmsPortalUI.Migrations
                         name: "FK_ClassSessions_Staff_TeacherId",
                         column: x => x.TeacherId,
                         principalTable: "Staff",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 

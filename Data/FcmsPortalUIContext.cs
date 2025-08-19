@@ -94,6 +94,14 @@ namespace FcmsPortalUI.Data
                         j.HasKey("StudentsWithAccessId", "LearningPathId");
                         j.ToTable("LearningPathStudentsWithAccess");
                     });
+
+            modelBuilder.Entity<ClassSession>()
+                .HasOne(cs => cs.Teacher)
+                .WithMany(t => t.ClassSessions)
+                .HasForeignKey(cs => cs.TeacherId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

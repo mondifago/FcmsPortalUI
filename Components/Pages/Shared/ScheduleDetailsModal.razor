@@ -79,7 +79,7 @@
                                         <strong>Teacher:</strong>
                                         @if (ScheduleEntry.ClassSession.Teacher != null)
                                         {
-                                            <span>@ScheduleEntry.ClassSession.Teacher.Person.FirstName @ScheduleEntry.ClassSession.Teacher.Person.LastName</span>
+                                            <span>@Util.GetFullName(ScheduleEntry.ClassSession.Teacher.Person)</span>
                                         }
                                         else
                                         {
