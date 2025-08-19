@@ -97,6 +97,9 @@
     {
         school = SchoolDataService.GetSchool();
         LoadData();
+
+        editContext = new EditContext(classSession);
+        messageStore = new ValidationMessageStore(editContext);
     }
 
     protected override void OnParametersSet()

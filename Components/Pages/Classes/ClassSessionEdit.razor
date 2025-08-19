@@ -104,8 +104,6 @@
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
-        editContext = new EditContext(classSession);
-        messageStore = new ValidationMessageStore(editContext);
     }
 
     protected override void OnParametersSet()
@@ -123,8 +121,11 @@
                 Teacher = ExistingClassSession.Teacher
             };
 
-            classSession.Course = ExistingClassSession.Course;
             selectedTeacherId = ExistingClassSession.Teacher?.Id ?? 0;
+
+            editContext = new EditContext(classSession);
+            messageStore = new ValidationMessageStore(editContext);
+
             StateHasChanged();
         }
     }
