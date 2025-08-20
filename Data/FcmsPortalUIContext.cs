@@ -95,7 +95,12 @@ namespace FcmsPortalUI.Data
                         j.ToTable("LearningPathStudentsWithAccess");
                     });
 
-
+            modelBuilder.Entity<ClassSession>()
+                .HasOne(cs => cs.Teacher)
+                .WithMany(t => t.ClassSessions)
+                .HasForeignKey(cs => cs.TeacherId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

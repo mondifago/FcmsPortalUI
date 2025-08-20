@@ -29,7 +29,7 @@
                         </div>
                         <div class="col-md-6">
                             <label for="teacher" class="form-label">Teacher<span class="text-danger">*</span></label>
-                            <InputSelect id="teacher" @bind-Value="selectedTeacherId" class="form-select">
+                            <InputSelect id="teacher" @bind-Value="classSession.TeacherId" class="form-select">
                                 <option value="0">-- Select Teacher --</option>
                                 @foreach (var teacher in availableTeachers)
                                 {
@@ -84,8 +84,6 @@
 
     private School school = new();
     private ClassSession classSession = new ClassSession();
-
-    private int selectedTeacherId = 0;
     private List<string> availableCourses = new List<string>();
     private List<Staff> availableTeachers = new List<Staff>();
 
@@ -101,7 +99,6 @@
         {
             classSession = new ClassSession();
             classSession.Course = "";
-            selectedTeacherId = 0;
             LoadData();
         }
     }
@@ -119,7 +116,6 @@
 
     private async Task HandleSubmit()
     {
-
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }
