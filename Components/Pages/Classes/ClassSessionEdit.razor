@@ -8,7 +8,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Create Class Session</h5>
+                <h5 class="modal-title">Edit Class Session</h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
@@ -107,9 +107,9 @@
                 Topic = ExistingClassSession.Topic ?? "",
                 Description = ExistingClassSession.Description ?? "",
                 Teacher = ExistingClassSession.Teacher,
-               
+                TeacherId = ExistingClassSession.TeacherId
             };
-            classSession.TeacherId = ExistingClassSession.Teacher?.Id ?? 0;
+
         }
         else
         {
