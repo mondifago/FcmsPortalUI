@@ -360,7 +360,7 @@ namespace FcmsPortalUI.Migrations
                         column: x => x.TeacherId,
                         principalTable: "Staff",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 

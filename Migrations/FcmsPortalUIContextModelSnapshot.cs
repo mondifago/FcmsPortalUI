@@ -895,9 +895,9 @@ namespace FcmsPortalUI.Migrations
             modelBuilder.Entity("FcmsPortal.Models.ClassSession", b =>
                 {
                     b.HasOne("FcmsPortal.Models.Staff", "Teacher")
-                        .WithMany("ClassSessions")
+                        .WithMany()
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Teacher");
@@ -1329,11 +1329,6 @@ namespace FcmsPortalUI.Migrations
             modelBuilder.Entity("FcmsPortal.Models.SchoolFees", b =>
                 {
                     b.Navigation("Payments");
-                });
-
-            modelBuilder.Entity("FcmsPortal.Models.Staff", b =>
-                {
-                    b.Navigation("ClassSessions");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Student", b =>

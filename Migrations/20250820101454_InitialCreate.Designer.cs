@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20250818162951_InitialCreate")]
+    [Migration("20250820101454_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -898,9 +898,9 @@ namespace FcmsPortalUI.Migrations
             modelBuilder.Entity("FcmsPortal.Models.ClassSession", b =>
                 {
                     b.HasOne("FcmsPortal.Models.Staff", "Teacher")
-                        .WithMany("ClassSessions")
+                        .WithMany()
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Teacher");
@@ -1332,11 +1332,6 @@ namespace FcmsPortalUI.Migrations
             modelBuilder.Entity("FcmsPortal.Models.SchoolFees", b =>
                 {
                     b.Navigation("Payments");
-                });
-
-            modelBuilder.Entity("FcmsPortal.Models.Staff", b =>
-                {
-                    b.Navigation("ClassSessions");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Student", b =>

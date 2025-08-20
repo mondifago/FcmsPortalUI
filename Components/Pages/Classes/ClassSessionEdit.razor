@@ -2,20 +2,17 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal
-@using FcmsPortalUI.Services
-@using Microsoft.AspNetCore.Components.Forms
-@inject ValidationService ValidationService
 @inject ISchoolDataService SchoolDataService
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-warning text-white">
-                <h5 class="modal-title">Edit Class Session</h5>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Create Class Session</h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
+                <EditForm Model="@classSession" OnValidSubmit="HandleSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
@@ -54,14 +51,9 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="lessonNote" class="form-label">Lesson Notes</label>
-                        <InputTextArea id="lessonNote" @bind-Value="classSession.LessonPlan" class="form-control" rows="3" />
-                    </div>
-
                     <div class="d-flex justify-content-end mt-4">
                         <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Class Session</button>
+                        <button type="submit" class="btn btn-primary">Create Class Session</button>
                     </div>
                 </EditForm>
             </div>
@@ -82,10 +74,10 @@
     public EducationLevel EducationLevel { get; set; }
 
     [Parameter]
-    public ClassSession ExistingClassSession { get; set; } = new();
+    public ScheduleEntry ScheduleEntry { get; set; } = new ScheduleEntry();
 
     [Parameter]
-    public ScheduleEntry ScheduleEntry { get; set; } = new();
+    public ClassSession? ExistingClassSession { get; set; }
 
     [Parameter]
     public EventCallback<ClassSession> OnSave { get; set; }
@@ -95,39 +87,39 @@
 
     private School school = new();
     private ClassSession classSession = new ClassSession();
+
     private int selectedTeacherId = 0;
-    private EditContext? editContext;
-    private ValidationMessageStore? messageStore;
     private List<string> availableCourses = new List<string>();
     private List<Staff> availableTeachers = new List<Staff>();
 
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
+        LoadData();
     }
 
     protected override void OnParametersSet()
     {
-        if (IsVisible && ExistingClassSession != null)
+        if (ExistingClassSession != null)
         {
-            LoadData();
             classSession = new ClassSession
             {
                 Id = ExistingClassSession.Id,
-                Course = ExistingClassSession.Course,
-                Topic = ExistingClassSession.Topic,
-                Description = ExistingClassSession.Description,
-                LessonPlan = ExistingClassSession.LessonPlan,
-                Teacher = ExistingClassSession.Teacher
+                Course = ExistingClassSession.Course ?? "",
+                Topic = ExistingClassSession.Topic ?? "",
+                Description = ExistingClassSession.Description ?? "",
+                Teacher = ExistingClassSession.Teacher,
+               
             };
-
             selectedTeacherId = ExistingClassSession.Teacher?.Id ?? 0;
-
-            editContext = new EditContext(classSession);
-            messageStore = new ValidationMessageStore(editContext);
-
-            StateHasChanged();
         }
+        else
+        {
+            classSession = new ClassSession();
+            classSession.Course = "";
+            selectedTeacherId = 0;
+        }
+        LoadData();
     }
 
     private void LoadData()
@@ -143,28 +135,7 @@
 
     private async Task HandleSubmit()
     {
-        if (editContext != null && messageStore != null)
-        {
-            bool isTeacherValid = ValidationService.ValidateTeacher(editContext, classSession, selectedTeacherId, availableTeachers, messageStore);
-
-            if (isTeacherValid)
-            {
-                if (selectedTeacherId > 0)
-                {
-                    var teacher = availableTeachers.FirstOrDefault(t => t.Id == selectedTeacherId);
-                    if (teacher != null)
-                    {
-                        classSession.Teacher = teacher;
-                    }
-                }
-                else
-                {
-                    classSession.Teacher = null;
-                }
-
-                await OnSave.InvokeAsync(classSession);
-                await OnClose.InvokeAsync();
-            }
-        }
+        await OnSave.InvokeAsync(classSession);
+        await OnClose.InvokeAsync();
     }
 }
