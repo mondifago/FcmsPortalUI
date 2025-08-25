@@ -350,22 +350,35 @@
         showClassSessionModal = false;
     }
 
-    private void HandleClassSessionCreated(ClassSession classSession)
+    private void HandleClassSessionCreated(ClassSession edited)
     {
-        scheduleEntry.ClassSession = classSession;
+        if (scheduleEntry.ClassSession == null)
+        {
+            // New class session (no existing tracked one)
+            scheduleEntry.ClassSession = new ClassSession
+            {
+                Course = edited.Course,
+                Topic = edited.Topic,
+                Description = edited.Description,
+                TeacherId = edited.TeacherId
+            };
+        }
+        else
+        {
+            // Update the already-tracked instance IN PLACE
+            var target = scheduleEntry.ClassSession;
+            target.Course = edited.Course;
+            target.Topic = edited.Topic;
+            target.Description = edited.Description;
+            target.TeacherId = edited.TeacherId;
+       
+        }
 
-        if (string.IsNullOrEmpty(scheduleEntry.Title) || scheduleEntry.Title == "New Schedule")
-        {
-            scheduleEntry.Title = $"{classSession.Course} - {classSession.Topic}";
-        }
-        else if (scheduleEntry.ClassSession != null &&
-                 (scheduleEntry.Title.Contains(scheduleEntry.ClassSession.Course) ||
-                  scheduleEntry.Title.Contains(scheduleEntry.ClassSession.Topic)))
-        {
-            scheduleEntry.Title = $"{classSession.Course} - {classSession.Topic}";
-        }
+       
+
         StateHasChanged();
     }
+
 
     private void ShowDeleteConfirmation()
     {

@@ -53,7 +53,7 @@
 
                     <div class="d-flex justify-content-end mt-4">
                         <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Class Session</button>
+                        <button type="submit" class="btn btn-primary">Update Class Session</button>
                     </div>
                 </EditForm>
             </div>
@@ -74,7 +74,7 @@
     public EducationLevel EducationLevel { get; set; }
 
     [Parameter]
-    public ScheduleEntry ScheduleEntry { get; set; } = new ScheduleEntry();
+    public ScheduleEntry? ScheduleEntry { get; set; }
 
     [Parameter]
     public ClassSession? ExistingClassSession { get; set; }
@@ -106,7 +106,6 @@
                 Course = ExistingClassSession.Course ?? "",
                 Topic = ExistingClassSession.Topic ?? "",
                 Description = ExistingClassSession.Description ?? "",
-                Teacher = ExistingClassSession.Teacher,
                 TeacherId = ExistingClassSession.TeacherId
             };
 
@@ -133,6 +132,7 @@
 
     private async Task HandleSubmit()
     {
+
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }

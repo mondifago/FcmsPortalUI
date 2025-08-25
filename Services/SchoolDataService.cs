@@ -496,8 +496,6 @@ namespace FcmsPortal.Services
                 existingLearningPath.AcademicYearStart = learningPath.AcademicYearStart;
                 existingLearningPath.IsTemplate = learningPath.IsTemplate;
                 existingLearningPath.TemplateKey = learningPath.TemplateKey;
-                existingLearningPath.Students = learningPath.Students;
-                existingLearningPath.StudentsWithAccess = learningPath.StudentsWithAccess;
                 existingLearningPath.Schedule = learningPath.Schedule;
 
                 _context.SaveChanges();
@@ -797,10 +795,10 @@ namespace FcmsPortal.Services
             if (existingEntry == null)
                 return false;
 
-            learningPath.Schedule.Remove(existingEntry);
-            learningPath.Schedule.Add(scheduleEntry);
+            _context.Entry(existingEntry).CurrentValues.SetValues(scheduleEntry);
+
             UpdateLearningPath(learningPath);
-            UpdateScheduleInSchoolCalendar(scheduleEntry);
+            UpdateScheduleInSchoolCalendar(existingEntry);
 
             return true;
         }
@@ -1016,48 +1014,24 @@ namespace FcmsPortal.Services
             return null;
         }
 
-        public bool UpdateClassSession(ClassSession classSession)
+        public bool UpdateClassSession(ClassSession updated)
         {
-            try
-            {
-                var learningPaths = _context.LearningPaths
-                    .Include(lp => lp.Schedule)
-                        .ThenInclude(s => s.ClassSession)
-                    .ToList();
+            var existing = _context.ClassSessions.Local.FirstOrDefault(c => c.Id == updated.Id)
+                           ?? _context.ClassSessions.FirstOrDefault(c => c.Id == updated.Id);
 
-                var found = false;
+            if (existing == null) return false;
 
-                foreach (var learningPath in learningPaths)
-                {
-                    foreach (var schedule in learningPath.Schedule)
-                    {
-                        if (schedule.ClassSession?.Id == classSession.Id)
-                        {
-                            schedule.ClassSession = classSession;
-                            found = true;
-                            break;
-                        }
-                    }
+            _context.Entry(existing).CurrentValues.SetValues(updated);
 
-                    if (found)
-                    {
-                        break;
-                    }
-                }
+            existing.Teacher = null;
 
-                if (found)
-                {
-                    _context.SaveChanges();
-                }
+            _context.SaveChanges();
 
-                return found;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating class session: {ex.Message}");
-                return false;
-            }
+            return true;
         }
+
+
+
         #endregion
 
         #region Homework
