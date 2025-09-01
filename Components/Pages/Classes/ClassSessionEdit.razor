@@ -2,7 +2,9 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal
+@using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
+@inject ValidationService ValidationService
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -12,7 +14,7 @@
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm Model="@classSession" OnValidSubmit="HandleSubmit">
+                <EditForm EditContext="@editContext" OnValidSubmit="HandleSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
@@ -89,6 +91,8 @@
     private ClassSession classSession = new ClassSession();
     private List<string> availableCourses = new List<string>();
     private List<Staff> availableTeachers = new List<Staff>();
+    private EditContext editContext;
+    private ValidationMessageStore messageStore;
 
     protected override void OnInitialized()
     {
@@ -115,6 +119,8 @@
             classSession.Course = "";
             classSession.TeacherId = 0;
         }
+        editContext = new EditContext(classSession);
+        messageStore = new ValidationMessageStore(editContext);
         LoadData();
     }
 
@@ -131,6 +137,19 @@
 
     private async Task HandleSubmit()
     {
+        if (classSession.TeacherId > 0)
+        {
+            classSession.Teacher = availableTeachers.FirstOrDefault(t => t.Id == classSession.TeacherId);
+        }
+
+        if (!ValidationService.ValidateClassSession(editContext!, classSession, messageStore!))
+        {
+            editContext = new EditContext(classSession);
+            messageStore = new ValidationMessageStore(editContext);
+            StateHasChanged();
+            return;
+        }
+
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }

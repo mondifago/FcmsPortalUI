@@ -15,6 +15,7 @@
             </div>
             <div class="modal-body">
                 <EditForm EditContext="@editContext" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
                     <ValidationSummary />
 
                     <div class="row mb-3">
