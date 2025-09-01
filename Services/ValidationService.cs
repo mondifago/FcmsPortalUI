@@ -243,5 +243,35 @@ namespace FcmsPortalUI.Services
             context.NotifyValidationStateChanged();
             return isValid;
         }
+
+        public bool ValidateClassSession(EditContext context, ClassSession classSession, ValidationMessageStore messageStore)
+        {
+            bool isValid = true;
+            messageStore.Clear();
+
+            var courseField = new FieldIdentifier(classSession, nameof(classSession.Course));
+            if (string.IsNullOrWhiteSpace(classSession.Course))
+            {
+                messageStore.Add(courseField, "Course is required.");
+                isValid = false;
+            }
+
+            var topicField = new FieldIdentifier(classSession, nameof(classSession.Topic));
+            if (string.IsNullOrWhiteSpace(classSession.Topic))
+            {
+                messageStore.Add(topicField, "Topic is required.");
+                isValid = false;
+            }
+
+            var teacherField = new FieldIdentifier(classSession, nameof(classSession.TeacherId));
+            if (classSession.TeacherId <= 0)
+            {
+                messageStore.Add(teacherField, "Teacher is required.");
+                isValid = false;
+            }
+
+            context.NotifyValidationStateChanged();
+            return isValid;
+        }
     }
 }

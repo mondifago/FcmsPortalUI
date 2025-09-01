@@ -108,7 +108,6 @@
                 Description = ExistingClassSession.Description ?? "",
                 TeacherId = ExistingClassSession.TeacherId
             };
-
         }
         else
         {
@@ -132,7 +131,6 @@
 
     private async Task HandleSubmit()
     {
-
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }

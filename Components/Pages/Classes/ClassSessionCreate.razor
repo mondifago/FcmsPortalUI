@@ -1,8 +1,10 @@
-﻿﻿@using FcmsPortal.Services
+﻿@using FcmsPortal.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal
+@using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
+@inject ValidationService ValidationService
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -12,8 +14,7 @@
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm Model="@classSession" OnValidSubmit="HandleSubmit">
-                    <DataAnnotationsValidator />
+                <EditForm EditContext="@editContext" OnValidSubmit="HandleSubmit">
                     <ValidationSummary />
 
                     <div class="row mb-3">
@@ -26,7 +27,9 @@
                                     <option value="@course">@course</option>
                                 }
                             </InputSelect>
+                            <ValidationMessage For="@(() => classSession.Course)" />
                         </div>
+
                         <div class="col-md-6">
                             <label for="teacher" class="form-label">Teacher<span class="text-danger">*</span></label>
                             <InputSelect id="teacher" @bind-Value="classSession.TeacherId" class="form-select">
@@ -36,6 +39,7 @@
                                     <option value="@teacher.Id">@Util.GetFullName(teacher.Person)</option>
                                 }
                             </InputSelect>
+                            <ValidationMessage For="@(() => classSession.TeacherId)" />
                         </div>
                     </div>
 
@@ -67,29 +71,25 @@
 }
 
 @code {
-    [Parameter]
-    public bool IsVisible { get; set; }
-
-    [Parameter]
-    public EducationLevel EducationLevel { get; set; }
-
-    [Parameter]
-    public ScheduleEntry ScheduleEntry { get; set; } = new ScheduleEntry();
-
-    [Parameter]
-    public EventCallback<ClassSession> OnSave { get; set; }
-
-    [Parameter]
-    public EventCallback OnClose { get; set; }
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EducationLevel EducationLevel { get; set; }
+    [Parameter] public ScheduleEntry ScheduleEntry { get; set; } = new();
+    [Parameter] public EventCallback<ClassSession> OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
 
     private School school = new();
-    private ClassSession classSession = new ClassSession();
-    private List<string> availableCourses = new List<string>();
-    private List<Staff> availableTeachers = new List<Staff>();
+    private ClassSession classSession = new();
+    private List<string> availableCourses = new();
+    private List<Staff> availableTeachers = new();
+    private EditContext editContext;
+    private ValidationMessageStore messageStore;
 
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
+        classSession = new ClassSession();
+        editContext = new EditContext(classSession);
+        messageStore = new ValidationMessageStore(editContext);
         LoadData();
     }
 
@@ -97,9 +97,15 @@
     {
         if (IsVisible)
         {
-            classSession = new ClassSession();
-            classSession.Course = "";
-            classSession.TeacherId = 0;
+            classSession = new ClassSession
+            {
+                Course = string.Empty,
+                TeacherId = 0
+            };
+
+            editContext = new EditContext(classSession);
+            messageStore = new ValidationMessageStore(editContext);
+
             LoadData();
         }
     }
@@ -117,6 +123,18 @@
 
     private async Task HandleSubmit()
     {
+        
+
+        if (classSession.TeacherId > 0)
+        {
+            classSession.Teacher = availableTeachers.FirstOrDefault(t => t.Id == classSession.TeacherId);
+        }
+
+        if (!ValidationService.ValidateClassSession(editContext!, classSession, messageStore!))
+        {
+            return;
+        }
+
         await OnSave.InvokeAsync(classSession);
         await OnClose.InvokeAsync();
     }
