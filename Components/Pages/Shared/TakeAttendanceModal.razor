@@ -174,27 +174,27 @@
     }
 
     private async Task SubmitAttendance()
-{
-    if (LearningPath == null || TeacherId <= 0)
     {
-        errorMessage = "Missing required information to submit attendance.";
-        return;
+        if (LearningPath == null || TeacherId <= 0)
+        {
+            errorMessage = "Missing required information to submit attendance.";
+            return;
+        }
+
+        isSubmitting = true;
+    
+        var attendanceLog = SchoolDataService.SaveAttendance(
+            LearningPath.Id, 
+            selectedStudentIds.ToList(), 
+            TeacherId, 
+            AttendanceDate
+        );
+
+        await OnAttendanceSubmitted.InvokeAsync(attendanceLog);
+        await Close();
+    
+        isSubmitting = false;
     }
-
-    isSubmitting = true;
-    
-    var attendanceLog = SchoolDataService.SaveAttendance(
-        LearningPath.Id, 
-        selectedStudentIds.ToList(), 
-        TeacherId, 
-        AttendanceDate
-    );
-
-    await OnAttendanceSubmitted.InvokeAsync(attendanceLog);
-    await Close();
-    
-    isSubmitting = false;
-}
 
     private async Task Close()
     {

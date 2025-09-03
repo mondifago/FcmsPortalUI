@@ -374,7 +374,7 @@
                          Students="@(learningPath?.Students ?? new List<Student>())"
                          LearningPath="learningPath"
                          AttendanceDate="DateTime.Today"
-                         TeacherId="101"
+                         TeacherId="@GetCurrentTeacher().Id"
                          OnAttendanceSubmitted="OnAttendanceSubmitted"
                          OnClose="CloseAttendanceModal" />
 }
@@ -417,6 +417,14 @@
     protected override void OnInitialized()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
+    }
+
+    private Staff GetCurrentTeacher()
+    {
+        if (learningPath == null) return new Staff();
+
+        var school = SchoolDataService.GetSchool();
+        return LogicMethods.GetFirstTeacherByEducationLevel(school, learningPath.EducationLevel);
     }
 
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
