@@ -14,7 +14,7 @@
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm EditContext="@editContext" OnValidSubmit="HandleSubmit">
+                <EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
@@ -102,7 +102,6 @@
 
     protected override void OnParametersSet()
     {
-        // Do NOT create a new instance, just use the reference
         if (ExistingClassSession != null)
         {
             classSession = ExistingClassSession;
@@ -136,9 +135,6 @@
 
         if (!ValidationService.ValidateClassSession(editContext!, classSession, messageStore!))
         {
-            editContext = new EditContext(classSession);
-            messageStore = new ValidationMessageStore(editContext);
-            StateHasChanged();
             return;
         }
 

@@ -14,7 +14,7 @@
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm EditContext="@editContext" OnValidSubmit="HandleSubmit">
+                <EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
@@ -98,15 +98,9 @@
     {
         if (IsVisible)
         {
-            classSession = new ClassSession
-            {
-                Course = string.Empty,
-                TeacherId = 0
-            };
-
+            classSession = new ClassSession { Course = string.Empty, TeacherId = 0 };
             editContext = new EditContext(classSession);
             messageStore = new ValidationMessageStore(editContext);
-
             LoadData();
         }
     }
@@ -131,9 +125,6 @@
 
         if (!ValidationService.ValidateClassSession(editContext!, classSession, messageStore!))
         {
-            editContext = new EditContext(classSession);
-            messageStore = new ValidationMessageStore(editContext);
-            StateHasChanged();
             return;
         }
 
