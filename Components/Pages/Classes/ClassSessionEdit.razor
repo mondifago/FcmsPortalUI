@@ -88,7 +88,7 @@
     public EventCallback OnClose { get; set; }
 
     private School school = new();
-    private ClassSession classSession = new ClassSession();
+    private ClassSession classSession;
     private List<string> availableCourses = new List<string>();
     private List<Staff> availableTeachers = new List<Staff>();
     private EditContext editContext;
@@ -102,22 +102,14 @@
 
     protected override void OnParametersSet()
     {
+        // Do NOT create a new instance, just use the reference
         if (ExistingClassSession != null)
         {
-            classSession = new ClassSession
-            {
-                Id = ExistingClassSession.Id,
-                Course = ExistingClassSession.Course ?? "",
-                Topic = ExistingClassSession.Topic ?? "",
-                Description = ExistingClassSession.Description ?? "",
-                TeacherId = ExistingClassSession.TeacherId
-            };
+            classSession = ExistingClassSession;
         }
         else
         {
             classSession = new ClassSession();
-            classSession.Course = "";
-            classSession.TeacherId = 0;
         }
         editContext = new EditContext(classSession);
         messageStore = new ValidationMessageStore(editContext);

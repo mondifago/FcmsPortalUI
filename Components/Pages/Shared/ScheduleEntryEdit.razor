@@ -206,7 +206,7 @@
                   EducationLevel="learningPath?.EducationLevel ?? EducationLevel.None"
                   ExistingClassSession="scheduleEntry?.ClassSession"
                   ScheduleEntry="scheduleEntry"
-                  OnSave="HandleClassSessionCreated"
+             
                   OnClose="CloseClassSessionModal" />
 
 <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
@@ -350,31 +350,7 @@
         showClassSessionModal = false;
     }
 
-    private void HandleClassSessionCreated(ClassSession edited)
-    {
-        if (scheduleEntry.ClassSession == null)
-        {
-            // New class session (no existing tracked one)
-            scheduleEntry.ClassSession = new ClassSession
-            {
-                Course = edited.Course,
-                Topic = edited.Topic,
-                Description = edited.Description,
-                TeacherId = edited.TeacherId
-            };
-        }
-        else
-        {
-            // Update the already-tracked instance IN PLACE
-            var target = scheduleEntry.ClassSession;
-            target.Course = edited.Course;
-            target.Topic = edited.Topic;
-            target.Description = edited.Description;
-            target.TeacherId = edited.TeacherId;
-       
-        }
-        StateHasChanged();
-    }
+    
 
 
     private void ShowDeleteConfirmation()
