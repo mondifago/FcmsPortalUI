@@ -419,14 +419,6 @@ namespace FcmsPortal.Services
             return _context.LearningPaths
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.Person)
-                        .ThenInclude(p => p.SchoolFees)
-                            .ThenInclude(sf => sf.Payments)
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.StudyMaterials)
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.DiscussionThreads)
                 .Include(lp => lp.StudentsWithAccess)
                     .ThenInclude(s => s.Person)
                 .FirstOrDefault(lp => lp.Id == id);
@@ -454,13 +446,15 @@ namespace FcmsPortal.Services
 
         public LearningPath? GetLearningPathByClassSessionId(int classSessionId)
         {
-            return _context.LearningPaths
-                .Include(lp => lp.Students)
-                    .ThenInclude(s => s.Person)
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                .FirstOrDefault(lp => lp.Schedule.Any(s => s.ClassSession != null && s.ClassSession.Id == classSessionId));
+            var scheduleEntry = _context.ScheduleEntries
+                .Include(se => se.LearningPath)
+                    .ThenInclude(lp => lp.Students)
+                        .ThenInclude(s => s.Person)
+                .FirstOrDefault(se => se.ClassSessionId == classSessionId);
+
+            return scheduleEntry?.LearningPath;
         }
+
 
         public bool DeleteLearningPath(int id)
         {
@@ -755,66 +749,64 @@ namespace FcmsPortal.Services
             if (learningPath == null)
                 return null;
 
-            learningPath.Schedule.Add(scheduleEntry);
-            UpdateLearningPath(learningPath);
-            AddGeneralScheduleEntry(scheduleEntry);
+            scheduleEntry.LearningPathId = learningPathId;
 
+            _context.ScheduleEntries.Add(scheduleEntry);
+            _context.SaveChanges();
+
+            AddGeneralScheduleEntry(scheduleEntry);
             return scheduleEntry;
         }
 
         public IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules()
         {
-            var school = _context.School
-                .Include(s => s.SchoolCalendar)
-                    .ThenInclude(c => c.ScheduleEntries)
-                .FirstOrDefault();
-
-            var allSchedules = new List<ScheduleEntry>();
-
-            if (school?.SchoolCalendar != null)
-            {
-                foreach (var calendar in school.SchoolCalendar)
-                {
-                    if (calendar.ScheduleEntries != null)
-                    {
-                        allSchedules.AddRange(calendar.ScheduleEntries);
-                    }
-                }
-            }
-
-            return allSchedules;
+            return _context.ScheduleEntries
+                .Include(se => se.ClassSession)
+                    .ThenInclude(cs => cs.Teacher)
+                        .ThenInclude(t => t.Person)
+                .OrderBy(se => se.DateTime)
+                .ToList();
         }
+
 
         public bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)
         {
-            var learningPath = GetLearningPathById(learningPathId);
-            if (learningPath == null)
+            var existing = _context.ScheduleEntries
+                .FirstOrDefault(se => se.Id == scheduleEntry.Id && se.LearningPathId == learningPathId);
+
+            if (existing == null)
                 return false;
 
-            var existingEntry = learningPath.Schedule.FirstOrDefault(s => s.Id == scheduleEntry.Id);
-            if (existingEntry == null)
-                return false;
+            existing.DateTime = scheduleEntry.DateTime;
+            existing.Duration = scheduleEntry.Duration;
+            existing.Venue = scheduleEntry.Venue;
+            existing.Title = scheduleEntry.Title;
+            existing.Event = scheduleEntry.Event;
+            existing.Meeting = scheduleEntry.Meeting;
+            existing.IsRecurring = scheduleEntry.IsRecurring;
+            existing.RecurrencePattern = scheduleEntry.RecurrencePattern;
+            existing.RecurrenceInterval = scheduleEntry.RecurrenceInterval;
+            existing.EndDate = scheduleEntry.EndDate;
+            existing.DaysOfWeek = scheduleEntry.DaysOfWeek;
+            existing.ClassSessionId = scheduleEntry.ClassSessionId;
 
-            _context.Entry(existingEntry).CurrentValues.SetValues(scheduleEntry);
-
-            UpdateLearningPath(learningPath);
-            UpdateScheduleInSchoolCalendar(existingEntry);
+            _context.SaveChanges();
+            UpdateScheduleInSchoolCalendar(existing);
 
             return true;
         }
 
         public bool DeleteScheduleEntry(int learningPathId, int scheduleEntryId)
         {
-            var learningPath = GetLearningPathById(learningPathId);
-            if (learningPath == null)
-                return false;
+            var entry = _context.ScheduleEntries
+                .Include(se => se.ClassSession)
+                .FirstOrDefault(se => se.Id == scheduleEntryId && se.LearningPathId == learningPathId);
 
-            var entry = learningPath.Schedule.FirstOrDefault(s => s.Id == scheduleEntryId);
             if (entry == null)
                 return false;
 
-            learningPath.Schedule.Remove(entry);
-            UpdateLearningPath(learningPath);
+            _context.ScheduleEntries.Remove(entry);
+            _context.SaveChanges();
             RemoveScheduleFromSchoolCalendar(entry);
 
             return true;
@@ -983,35 +975,17 @@ namespace FcmsPortal.Services
         #region Class Sessions
         public ClassSession? GetClassSessionById(int classSessionId)
         {
-            var learningPaths = _context.LearningPaths
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.StudyMaterials)
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.DiscussionThreads)
-                            .ThenInclude(dt => dt.Replies)
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.HomeworkDetails)
-                            .ThenInclude(h => h.Submissions)
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.Teacher)
-                            .ThenInclude(t => t.Person)
-                .ToList();
-
-            foreach (var learningPath in learningPaths)
-            {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession != null && schedule.ClassSession.Id == classSessionId)
-                    {
-                        return schedule.ClassSession;
-                    }
-                }
-            }
-            return null;
+            return _context.ClassSessions
+                .Include(cs => cs.Teacher)
+                    .ThenInclude(t => t.Person)
+                .Include(cs => cs.StudyMaterials)
+                .Include(cs => cs.DiscussionThreads)
+                    .ThenInclude(dt => dt.Replies)
+                .Include(cs => cs.HomeworkDetails)
+                    .ThenInclude(h => h.Submissions)
+                        .ThenInclude(s => s.Student)
+                            .ThenInclude(st => st.Person)
+                .FirstOrDefault(cs => cs.Id == classSessionId);
         }
 
         public bool UpdateClassSession(ClassSession updated)
@@ -1022,8 +996,6 @@ namespace FcmsPortal.Services
             if (existing == null) return false;
 
             _context.Entry(existing).CurrentValues.SetValues(updated);
-
-            existing.Teacher = null;
 
             _context.SaveChanges();
 
