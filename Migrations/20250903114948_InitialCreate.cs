@@ -365,7 +365,7 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "DailyAttendanceLogEntry",
+                name: "DailyAttendanceLogEntries",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -376,15 +376,15 @@ namespace FcmsPortalUI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DailyAttendanceLogEntry", x => x.Id);
+                    table.PrimaryKey("PK_DailyAttendanceLogEntries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DailyAttendanceLogEntry_LearningPaths_LearningPathId",
+                        name: "FK_DailyAttendanceLogEntries_LearningPaths_LearningPathId",
                         column: x => x.LearningPathId,
                         principalTable: "LearningPaths",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DailyAttendanceLogEntry_Staff_TeacherId",
+                        name: "FK_DailyAttendanceLogEntries_Staff_TeacherId",
                         column: x => x.TeacherId,
                         principalTable: "Staff",
                         principalColumn: "Id",
@@ -508,7 +508,7 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ScheduleEntry",
+                name: "ScheduleEntries",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -518,6 +518,7 @@ namespace FcmsPortalUI.Migrations
                     Venue = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ClassSessionId = table.Column<int>(type: "int", nullable: true),
+                    LearningPathId = table.Column<int>(type: "int", nullable: true),
                     Title = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Event = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
@@ -531,24 +532,23 @@ namespace FcmsPortalUI.Migrations
                     DayOfMonth = table.Column<int>(type: "int", nullable: true),
                     RecurrenceInterval = table.Column<int>(type: "int", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    CalendarModelId = table.Column<int>(type: "int", nullable: true),
-                    LearningPathId = table.Column<int>(type: "int", nullable: true)
+                    CalendarModelId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ScheduleEntry", x => x.Id);
+                    table.PrimaryKey("PK_ScheduleEntries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ScheduleEntry_CalendarModel_CalendarModelId",
+                        name: "FK_ScheduleEntries_CalendarModel_CalendarModelId",
                         column: x => x.CalendarModelId,
                         principalTable: "CalendarModel",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_ScheduleEntry_ClassSessions_ClassSessionId",
+                        name: "FK_ScheduleEntries_ClassSessions_ClassSessionId",
                         column: x => x.ClassSessionId,
                         principalTable: "ClassSessions",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_ScheduleEntry_LearningPaths_LearningPathId",
+                        name: "FK_ScheduleEntries_LearningPaths_LearningPathId",
                         column: x => x.LearningPathId,
                         principalTable: "LearningPaths",
                         principalColumn: "Id");
@@ -566,9 +566,9 @@ namespace FcmsPortalUI.Migrations
                 {
                     table.PrimaryKey("PK_DailyAttendanceAbsentStudents", x => new { x.AbsentStudentsId, x.DailyAttendanceLogEntry1Id });
                     table.ForeignKey(
-                        name: "FK_DailyAttendanceAbsentStudents_DailyAttendanceLogEntry_DailyA~",
+                        name: "FK_DailyAttendanceAbsentStudents_DailyAttendanceLogEntries_Dail~",
                         column: x => x.DailyAttendanceLogEntry1Id,
-                        principalTable: "DailyAttendanceLogEntry",
+                        principalTable: "DailyAttendanceLogEntries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -584,16 +584,16 @@ namespace FcmsPortalUI.Migrations
                 name: "DailyAttendancePresentStudents",
                 columns: table => new
                 {
-                    PresentStudentsId = table.Column<int>(type: "int", nullable: false),
-                    DailyAttendanceLogEntryId = table.Column<int>(type: "int", nullable: false)
+                    DailyAttendanceLogEntryId = table.Column<int>(type: "int", nullable: false),
+                    PresentStudentsId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DailyAttendancePresentStudents", x => new { x.PresentStudentsId, x.DailyAttendanceLogEntryId });
+                    table.PrimaryKey("PK_DailyAttendancePresentStudents", x => new { x.DailyAttendanceLogEntryId, x.PresentStudentsId });
                     table.ForeignKey(
-                        name: "FK_DailyAttendancePresentStudents_DailyAttendanceLogEntry_Daily~",
+                        name: "FK_DailyAttendancePresentStudents_DailyAttendanceLogEntries_Dai~",
                         column: x => x.DailyAttendanceLogEntryId,
-                        principalTable: "DailyAttendanceLogEntry",
+                        principalTable: "DailyAttendanceLogEntries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -764,19 +764,19 @@ namespace FcmsPortalUI.Migrations
                 column: "DailyAttendanceLogEntry1Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DailyAttendanceLogEntry_LearningPathId",
-                table: "DailyAttendanceLogEntry",
+                name: "IX_DailyAttendanceLogEntries_LearningPathId",
+                table: "DailyAttendanceLogEntries",
                 column: "LearningPathId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DailyAttendanceLogEntry_TeacherId",
-                table: "DailyAttendanceLogEntry",
+                name: "IX_DailyAttendanceLogEntries_TeacherId",
+                table: "DailyAttendanceLogEntries",
                 column: "TeacherId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DailyAttendancePresentStudents_DailyAttendanceLogEntryId",
+                name: "IX_DailyAttendancePresentStudents_PresentStudentsId",
                 table: "DailyAttendancePresentStudents",
-                column: "DailyAttendanceLogEntryId");
+                column: "PresentStudentsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DiscussionPost_DiscussionThreadId",
@@ -850,18 +850,18 @@ namespace FcmsPortalUI.Migrations
                 column: "SchoolFeesId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ScheduleEntry_CalendarModelId",
-                table: "ScheduleEntry",
+                name: "IX_ScheduleEntries_CalendarModelId",
+                table: "ScheduleEntries",
                 column: "CalendarModelId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ScheduleEntry_ClassSessionId",
-                table: "ScheduleEntry",
+                name: "IX_ScheduleEntries_ClassSessionId",
+                table: "ScheduleEntries",
                 column: "ClassSessionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ScheduleEntry_LearningPathId",
-                table: "ScheduleEntry",
+                name: "IX_ScheduleEntries_LearningPathId",
+                table: "ScheduleEntries",
                 column: "LearningPathId");
 
             migrationBuilder.CreateIndex(
@@ -954,10 +954,10 @@ namespace FcmsPortalUI.Migrations
                 name: "Payments");
 
             migrationBuilder.DropTable(
-                name: "ScheduleEntry");
+                name: "ScheduleEntries");
 
             migrationBuilder.DropTable(
-                name: "DailyAttendanceLogEntry");
+                name: "DailyAttendanceLogEntries");
 
             migrationBuilder.DropTable(
                 name: "Homework");

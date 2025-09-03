@@ -22,7 +22,22 @@ namespace FcmsPortalUI.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("DailyAttendanceAbsentStudents", b =>
+            modelBuilder.Entity("DailyAttendanceLogEntryStudent", b =>
+                {
+                    b.Property<int>("DailyAttendanceLogEntryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PresentStudentsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DailyAttendanceLogEntryId", "PresentStudentsId");
+
+                    b.HasIndex("PresentStudentsId");
+
+                    b.ToTable("DailyAttendancePresentStudents", (string)null);
+                });
+
+            modelBuilder.Entity("DailyAttendanceLogEntryStudent1", b =>
                 {
                     b.Property<int>("AbsentStudentsId")
                         .HasColumnType("int");
@@ -35,21 +50,6 @@ namespace FcmsPortalUI.Migrations
                     b.HasIndex("DailyAttendanceLogEntry1Id");
 
                     b.ToTable("DailyAttendanceAbsentStudents", (string)null);
-                });
-
-            modelBuilder.Entity("DailyAttendancePresentStudents", b =>
-                {
-                    b.Property<int>("PresentStudentsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DailyAttendanceLogEntryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("PresentStudentsId", "DailyAttendanceLogEntryId");
-
-                    b.HasIndex("DailyAttendanceLogEntryId");
-
-                    b.ToTable("DailyAttendancePresentStudents", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.CalendarModel", b =>
@@ -212,7 +212,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("TeacherId");
 
-                    b.ToTable("DailyAttendanceLogEntry");
+                    b.ToTable("DailyAttendanceLogEntries");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.DiscussionPost", b =>
@@ -853,22 +853,7 @@ namespace FcmsPortalUI.Migrations
                     b.ToTable("LearningPathStudentsWithAccess", (string)null);
                 });
 
-            modelBuilder.Entity("DailyAttendanceAbsentStudents", b =>
-                {
-                    b.HasOne("FcmsPortal.Models.Student", null)
-                        .WithMany()
-                        .HasForeignKey("AbsentStudentsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FcmsPortal.Models.DailyAttendanceLogEntry", null)
-                        .WithMany()
-                        .HasForeignKey("DailyAttendanceLogEntry1Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("DailyAttendancePresentStudents", b =>
+            modelBuilder.Entity("DailyAttendanceLogEntryStudent", b =>
                 {
                     b.HasOne("FcmsPortal.Models.DailyAttendanceLogEntry", null)
                         .WithMany()
@@ -879,6 +864,21 @@ namespace FcmsPortalUI.Migrations
                     b.HasOne("FcmsPortal.Models.Student", null)
                         .WithMany()
                         .HasForeignKey("PresentStudentsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DailyAttendanceLogEntryStudent1", b =>
+                {
+                    b.HasOne("FcmsPortal.Models.Student", null)
+                        .WithMany()
+                        .HasForeignKey("AbsentStudentsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FcmsPortal.Models.DailyAttendanceLogEntry", null)
+                        .WithMany()
+                        .HasForeignKey("DailyAttendanceLogEntry1Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

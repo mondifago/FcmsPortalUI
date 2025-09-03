@@ -18,6 +18,7 @@ namespace FcmsPortalUI.Data
         public DbSet<FileAttachment> FileAttachments { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<SchoolFees> SchoolFees { get; set; }
+        public DbSet<DailyAttendanceLogEntry> DailyAttendanceLogEntries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,10 +31,10 @@ namespace FcmsPortalUI.Data
                 .OwnsOne(p => p.Address);
 
             modelBuilder.Entity<DailyAttendanceLogEntry>()
-                   .HasOne(d => d.LearningPath)
-                   .WithMany(lp => lp.AttendanceLog)
-                   .HasForeignKey(d => d.LearningPathId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                    .HasOne(d => d.LearningPath)
+                    .WithMany(lp => lp.AttendanceLog)
+                    .HasForeignKey(d => d.LearningPathId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DailyAttendanceLogEntry>()
                 .HasOne(d => d.Teacher)
@@ -45,29 +46,13 @@ namespace FcmsPortalUI.Data
             modelBuilder.Entity<DailyAttendanceLogEntry>()
                 .HasMany(d => d.PresentStudents)
                 .WithMany()
-                .UsingEntity<Dictionary<string, object>>(
-                    "DailyAttendancePresentStudents",
-                    l => l.HasOne<Student>().WithMany().HasForeignKey("PresentStudentsId"),
-                    r => r.HasOne<DailyAttendanceLogEntry>().WithMany().HasForeignKey("DailyAttendanceLogEntryId"),
-                    j =>
-                    {
-                        j.HasKey("PresentStudentsId", "DailyAttendanceLogEntryId");
-                        j.ToTable("DailyAttendancePresentStudents");
-                    });
+                .UsingEntity(j => j.ToTable("DailyAttendancePresentStudents"));
 
             // Configure many-to-many relationship for AbsentStudents  
             modelBuilder.Entity<DailyAttendanceLogEntry>()
                 .HasMany(d => d.AbsentStudents)
                 .WithMany()
-                .UsingEntity<Dictionary<string, object>>(
-                    "DailyAttendanceAbsentStudents",
-                    l => l.HasOne<Student>().WithMany().HasForeignKey("AbsentStudentsId"),
-                    r => r.HasOne<DailyAttendanceLogEntry>().WithMany().HasForeignKey("DailyAttendanceLogEntry1Id"),
-                    j =>
-                    {
-                        j.HasKey("AbsentStudentsId", "DailyAttendanceLogEntry1Id");
-                        j.ToTable("DailyAttendanceAbsentStudents");
-                    });
+                .UsingEntity(j => j.ToTable("DailyAttendanceAbsentStudents"));
 
             modelBuilder.Entity<Student>()
                  .HasOne(s => s.Person)
