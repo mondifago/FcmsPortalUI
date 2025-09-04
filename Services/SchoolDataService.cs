@@ -1582,13 +1582,11 @@ namespace FcmsPortal.Services
 
             var targetDate = attendanceDate ?? DateTime.Now;
 
-            // Check if attendance already exists for this date
             var existingAttendance = learningPath.AttendanceLog?
                 .FirstOrDefault(log => log.TimeStamp.Date == targetDate.Date);
 
             if (existingAttendance != null)
             {
-                // Update existing attendance
                 existingAttendance.PresentStudents = presentStudents;
                 existingAttendance.AbsentStudents = absentStudents;
                 existingAttendance.TimeStamp = targetDate;
@@ -1596,7 +1594,6 @@ namespace FcmsPortal.Services
                 return existingAttendance;
             }
 
-            // Create new attendance entry
             var attendanceEntry = new DailyAttendanceLogEntry
             {
                 LearningPathId = learningPath.Id,
@@ -1608,10 +1605,8 @@ namespace FcmsPortal.Services
                 TimeStamp = targetDate
             };
 
-            // Add to Entity Framework context
             _context.DailyAttendanceLogEntries.Add(attendanceEntry);
 
-            // Also add to the learning path's collection for consistency
             if (learningPath.AttendanceLog == null)
                 learningPath.AttendanceLog = new List<DailyAttendanceLogEntry>();
 
@@ -1666,8 +1661,6 @@ namespace FcmsPortal.Services
 
             return (double)(log.PresentStudents?.Count ?? 0) / totalStudents * FcmsConstants.PERCENTAGE_MULTIPLIER;
         }
-
-
         #endregion
 
         #region Archives

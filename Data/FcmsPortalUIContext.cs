@@ -88,6 +88,31 @@ namespace FcmsPortalUI.Data
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // ClassSession → DiscussionThreads (1 : many)
+            modelBuilder.Entity<DiscussionThread>()
+                .HasOne(d => d.ClassSession)
+                .WithMany(c => c.DiscussionThreads)
+                .HasForeignKey(d => d.ClassSessionId);
+
+            // DiscussionThread → FirstPost (1 : 1)
+            modelBuilder.Entity<DiscussionThread>()
+                .HasOne(d => d.FirstPost)
+                .WithOne()
+                .HasForeignKey<DiscussionThread>(d => d.FirstPostId)
+                .OnDelete(DeleteBehavior.Restrict); // prevent cascade issues
+
+            // DiscussionThread → Replies (1 : many)
+            modelBuilder.Entity<DiscussionPost>()
+                .HasOne(p => p.DiscussionThread)
+                .WithMany(d => d.Replies)
+                .HasForeignKey(p => p.DiscussionThreadId);
+
+            // DiscussionPost → Person (many posts per person)
+            modelBuilder.Entity<DiscussionPost>()
+                .HasOne(p => p.Author)
+                .WithMany()
+                .HasForeignKey(p => p.PersonId);
+
         }
     }
 }
