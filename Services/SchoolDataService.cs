@@ -1641,6 +1641,33 @@ namespace FcmsPortal.Services
                     log.TimeStamp >= start &&
                     log.TimeStamp < end);
         }
+
+        public int GetNumberOfAttendanceDaysRecorded(int learningPathId)
+        {
+            return _context.DailyAttendanceLogEntries
+                .Count(log => log.LearningPathId == learningPathId);
+        }
+
+        public double GetDailyAttendanceAverage(int learningPathId, DateTime date)
+        {
+            var log = _context.DailyAttendanceLogEntries
+                .Include(l => l.PresentStudents)
+                .Include(l => l.AbsentStudents)
+                .FirstOrDefault(l => l.LearningPathId == learningPathId
+                                  && l.TimeStamp.Date == date.Date);
+
+            if (log == null)
+                return 0;
+
+            var totalStudents = (log.PresentStudents?.Count ?? 0) + (log.AbsentStudents?.Count ?? 0);
+
+            if (totalStudents == 0)
+                return 0;
+
+            return (double)(log.PresentStudents?.Count ?? 0) / totalStudents * FcmsConstants.PERCENTAGE_MULTIPLIER;
+        }
+
+
         #endregion
 
         #region Archives

@@ -123,6 +123,8 @@ namespace FcmsPortal.Services
         DailyAttendanceLogEntry SaveAttendance(int learningPathId, List<int> presentStudentIds, int teacherId, DateTime? attendanceDate = null);
         bool HasAttendanceBeenTaken(int learningPathId, DateTime date);
         DailyAttendanceLogEntry? GetAttendanceForDate(int learningPathId, DateTime date);
+        int GetNumberOfAttendanceDaysRecorded(int learningPathId);
+        double GetDailyAttendanceAverage(int learningPathId, DateTime date);
         #endregion
 
         #region Archives

@@ -71,19 +71,14 @@
                         <tbody>
                             @foreach (var learningPath in filteredLearningPaths)
                             {
-                                double avgRate = 0;
-                                if (learningPath.AttendanceLog.Any() && learningPath.Students.Any())
-                                {
-                                    var totalPossible = learningPath.Students.Count * learningPath.AttendanceLog.Count;
-                                    var totalPresent = learningPath.AttendanceLog.Sum(log => log.PresentStudents?.Count ?? 0);
-                                    avgRate = totalPossible > 0 ? (double)totalPresent / totalPossible * 100 : 0;
-                                }
+                                int daysRecorded = SchoolDataService.GetNumberOfAttendanceDaysRecorded(learningPath.Id);
+                                double dailyAverage = SchoolDataService.GetDailyAttendanceAverage(learningPath.Id, selectedDate);
 
                                 <tr>
                                     <td>@Util.GetLearningPathName(learningPath)</td>
                                     <td>@learningPath.Students.Count</td>
-                                    <td>@learningPath.AttendanceLog.Count</td>
-                                    <td>@avgRate.ToString("F1")%</td>
+                                    <td>@daysRecorded</td>
+                                    <td>@dailyAverage.ToString("F1")%</td>
                                     <td>
                                         @if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, selectedDate))
                                         {
@@ -100,6 +95,7 @@
                                 </tr>
                             }
                         </tbody>
+
                     </table>
                 </div>
             }
