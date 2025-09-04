@@ -985,12 +985,16 @@ namespace FcmsPortal.Services
                 .Include(cs => cs.Teacher)
                     .ThenInclude(t => t.Person)
                 .Include(cs => cs.StudyMaterials)
-                .Include(cs => cs.DiscussionThreads)
-                    .ThenInclude(dt => dt.Replies)
                 .Include(cs => cs.HomeworkDetails)
                     .ThenInclude(h => h.Submissions)
                         .ThenInclude(s => s.Student)
                             .ThenInclude(st => st.Person)
+                .Include(cs => cs.DiscussionThreads)
+                    .ThenInclude(dt => dt.FirstPost)
+                        .ThenInclude(fp => fp.Author)
+                .Include(cs => cs.DiscussionThreads)
+                    .ThenInclude(dt => dt.Replies)
+                        .ThenInclude(r => r.Author)
                 .FirstOrDefault(cs => cs.Id == classSessionId);
         }
 
@@ -1186,12 +1190,47 @@ namespace FcmsPortal.Services
             if (classSession == null)
                 throw new ArgumentException("Class session not found.");
 
+            // Step 1: Create and save thread without FirstPostId to break circular reference
+            var threadToSave = new DiscussionThread
+            {
+                ClassSessionId = classSessionId,
+                CreatedAt = thread.CreatedAt,
+                LastUpdatedAt = thread.LastUpdatedAt
+                // Don't set FirstPostId yet - causes circular reference
+            };
+
+            _context.DiscussionThreads.Add(threadToSave);
+            await _context.SaveChangesAsync();
+
+            // Step 2: Create the FirstPost with the thread ID
+            var firstPost = new DiscussionPost
+            {
+                DiscussionThreadId = threadToSave.Id,
+                PersonId = thread.FirstPost.PersonId,
+                Comment = thread.FirstPost.Comment,
+                CreatedAt = thread.FirstPost.CreatedAt
+            };
+
+            _context.DiscussionPosts.Add(firstPost);
+            await _context.SaveChangesAsync();
+
+            // Step 3: Update thread with FirstPostId
+            threadToSave.FirstPostId = firstPost.Id;
+            await _context.SaveChangesAsync();
+
+            // Step 4: Load the complete thread for return
+            var completeThread = _context.DiscussionThreads
+                .Include(t => t.FirstPost)
+                    .ThenInclude(p => p.Author)
+                .Include(t => t.Replies)
+                    .ThenInclude(r => r.Author)
+                .First(t => t.Id == threadToSave.Id);
+
+            // Add to class session's collection
             if (classSession.DiscussionThreads == null)
                 classSession.DiscussionThreads = new List<DiscussionThread>();
 
-            classSession.DiscussionThreads.Add(thread);
-            _context.SaveChanges();
-            await Task.CompletedTask;
+            classSession.DiscussionThreads.Add(completeThread);
         }
 
         public async Task UpdateDiscussionThread(DiscussionThread thread, int classSessionId)

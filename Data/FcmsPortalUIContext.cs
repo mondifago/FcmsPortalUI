@@ -15,6 +15,8 @@ namespace FcmsPortalUI.Data
         public DbSet<LearningPath> LearningPaths { get; set; }
         public DbSet<ScheduleEntry> ScheduleEntries { get; set; }
         public DbSet<ClassSession> ClassSessions { get; set; }
+        public DbSet<DiscussionThread> DiscussionThreads { get; set; }
+        public DbSet<DiscussionPost> DiscussionPosts { get; set; }
         public DbSet<FileAttachment> FileAttachments { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<SchoolFees> SchoolFees { get; set; }
