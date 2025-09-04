@@ -1630,11 +1630,16 @@ namespace FcmsPortal.Services
 
         public DailyAttendanceLogEntry? GetAttendanceForDate(int learningPathId, DateTime date)
         {
+            var start = date.Date;
+            var end = start.AddDays(1);
             return _context.DailyAttendanceLogEntries
                 .Include(al => al.Teacher)
                 .Include(al => al.PresentStudents)
                 .Include(al => al.AbsentStudents)
-                .FirstOrDefault(log => log.LearningPathId == learningPathId && log.TimeStamp.Date == date.Date);
+                .FirstOrDefault(log =>
+                    log.LearningPathId == learningPathId &&
+                    log.TimeStamp >= start &&
+                    log.TimeStamp < end);
         }
         #endregion
 

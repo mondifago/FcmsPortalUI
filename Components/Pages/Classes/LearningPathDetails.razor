@@ -373,7 +373,7 @@
     <TakeAttendanceModal IsVisible="showAttendanceModal"
                          Students="@(learningPath?.Students ?? new List<Student>())"
                          LearningPath="learningPath"
-                         AttendanceDate="DateTime.Today"
+                         AttendanceDate="DateTime.Now"
                          TeacherId="@GetCurrentTeacher().Id"
                          OnAttendanceSubmitted="OnAttendanceSubmitted"
                          OnClose="CloseAttendanceModal" />
@@ -382,7 +382,7 @@
 @if (showDailyAttendanceModal && todaysAttendance != null)
 {
     <DailyAttendanceViewModal IsVisible="showDailyAttendanceModal"
-                              SelectedDate="DateTime.Today"
+                              SelectedDate="DateTime.Now"
                               AttendanceData="dailyAttendanceData"
                               OnClose="CloseDailyAttendanceModal" />
 }
@@ -585,7 +585,7 @@
     {
         if (learningPath != null)
         {
-            dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(learningPath, DateTime.Today);
+            dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(learningPath, DateTime.Now);
             todaysAttendance = dailyAttendanceData;
             showDailyAttendanceModal = true;
         }

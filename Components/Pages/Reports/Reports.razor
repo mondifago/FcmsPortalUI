@@ -442,7 +442,7 @@
         if (selectedLearningPath != null)
         {
             var learningPaths = new List<LearningPath> { selectedLearningPath };
-            dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(selectedLearningPath, selectedDate) ?? new DailyAttendanceLogEntry();
+            dailyAttendanceData = SchoolDataService.GetAttendanceForDate(selectedLearningPath.Id, selectedDate) ?? new DailyAttendanceLogEntry();
             showDailyAttendanceModal = true;
         }
     }
