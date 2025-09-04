@@ -1184,73 +1184,74 @@ namespace FcmsPortal.Services
         #endregion
 
         #region Discussions
-        public async Task AddDiscussionThread(DiscussionThread thread, int classSessionId)
+        public async Task<DiscussionThread> AddDiscussionThreadAsync(int classSessionId, FirstPost firstPost)
         {
-            var classSession = GetClassSessionById(classSessionId);
-            if (classSession == null)
-                throw new ArgumentException("Class session not found.");
+            if (firstPost == null)
+                throw new ArgumentNullException(nameof(firstPost));
 
-            // Step 1: Create and save thread without FirstPostId to break circular reference
-            var threadToSave = new DiscussionThread
+            var thread = new DiscussionThread
             {
                 ClassSessionId = classSessionId,
-                CreatedAt = thread.CreatedAt,
-                LastUpdatedAt = thread.LastUpdatedAt
-                // Don't set FirstPostId yet - causes circular reference
+                CreatedAt = DateTime.UtcNow,
+                LastUpdatedAt = DateTime.UtcNow
             };
 
-            _context.DiscussionThreads.Add(threadToSave);
+            firstPost.DiscussionThread = thread;
+            firstPost.CreatedAt = DateTime.UtcNow;
+
+            thread.FirstPost = firstPost;
+
+            _context.DiscussionThreads.Add(thread);
             await _context.SaveChangesAsync();
 
-            // Step 2: Create the FirstPost with the thread ID
-            var firstPost = new DiscussionPost
+            return thread;
+        }
+
+
+        public async Task<Reply> AddReplyAsync(int threadId, int authorId, string comment)
+        {
+            if (string.IsNullOrWhiteSpace(comment))
+                throw new ArgumentException("Comment cannot be empty.", nameof(comment));
+
+            var thread = await _context.DiscussionThreads
+                .Include(t => t.Replies)
+                .FirstOrDefaultAsync(t => t.Id == threadId)
+                ?? throw new InvalidOperationException("Thread not found.");
+
+            var author = await _context.Persons.FindAsync(authorId)
+                ?? throw new InvalidOperationException("Author not found.");
+
+            var reply = new Reply
             {
-                DiscussionThreadId = threadToSave.Id,
-                PersonId = thread.FirstPost.PersonId,
-                Comment = thread.FirstPost.Comment,
-                CreatedAt = thread.FirstPost.CreatedAt
+                DiscussionThreadId = threadId,
+                DiscussionThread = thread,
+                PersonId = authorId,
+                Author = author,
+                Comment = comment,
+                CreatedAt = DateTime.UtcNow
             };
 
-            _context.DiscussionPosts.Add(firstPost);
+            thread.Replies.Add(reply);
+            thread.LastUpdatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
 
-            // Step 3: Update thread with FirstPostId
-            threadToSave.FirstPostId = firstPost.Id;
-            await _context.SaveChangesAsync();
+            return reply;
+        }
 
-            // Step 4: Load the complete thread for return
-            var completeThread = _context.DiscussionThreads
+        public async Task<List<DiscussionThread>> GetThreadsForClassSessionAsync(int classSessionId)
+        {
+            return await _context.DiscussionThreads
+                .Where(t => t.ClassSessionId == classSessionId)
                 .Include(t => t.FirstPost)
-                    .ThenInclude(p => p.Author)
+                    .ThenInclude(fp => fp.Author)
                 .Include(t => t.Replies)
                     .ThenInclude(r => r.Author)
-                .First(t => t.Id == threadToSave.Id);
-
-            // Add to class session's collection
-            if (classSession.DiscussionThreads == null)
-                classSession.DiscussionThreads = new List<DiscussionThread>();
-
-            classSession.DiscussionThreads.Add(completeThread);
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
         }
 
-        public async Task UpdateDiscussionThread(DiscussionThread thread, int classSessionId)
-        {
-            var classSession = GetClassSessionById(classSessionId);
-            if (classSession == null || classSession.DiscussionThreads == null)
-                throw new ArgumentException("Class session or discussion threads not found.");
 
-            var existingIndex = classSession.DiscussionThreads.FindIndex(t => t.Id == thread.Id);
-            if (existingIndex >= 0)
-            {
-                classSession.DiscussionThreads[existingIndex] = thread;
-            }
-            else
-            {
-                throw new ArgumentException("Discussion thread not found.");
-            }
-            _context.SaveChanges();
-            await Task.CompletedTask;
-        }
         #endregion
 
         #region File Attachments

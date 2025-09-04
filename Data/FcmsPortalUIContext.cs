@@ -16,7 +16,8 @@ namespace FcmsPortalUI.Data
         public DbSet<ScheduleEntry> ScheduleEntries { get; set; }
         public DbSet<ClassSession> ClassSessions { get; set; }
         public DbSet<DiscussionThread> DiscussionThreads { get; set; }
-        public DbSet<DiscussionPost> DiscussionPosts { get; set; }
+        public DbSet<FirstPost> FirstPosts { get; set; }
+        public DbSet<Reply> Replies { get; set; }
         public DbSet<FileAttachment> FileAttachments { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<SchoolFees> SchoolFees { get; set; }
@@ -89,32 +90,6 @@ namespace FcmsPortalUI.Data
                 .HasForeignKey(cs => cs.TeacherId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // ClassSession → DiscussionThreads (1 : many)
-            modelBuilder.Entity<DiscussionThread>()
-                .HasOne(d => d.ClassSession)
-                .WithMany(c => c.DiscussionThreads)
-                .HasForeignKey(d => d.ClassSessionId);
-
-            // DiscussionThread → FirstPost (1 : 1)
-            modelBuilder.Entity<DiscussionThread>()
-                .HasOne(d => d.FirstPost)
-                .WithOne()
-                .HasForeignKey<DiscussionThread>(d => d.FirstPostId)
-                .OnDelete(DeleteBehavior.Restrict); // prevent cascade issues
-
-            // DiscussionThread → Replies (1 : many)
-            modelBuilder.Entity<DiscussionPost>()
-                .HasOne(p => p.DiscussionThread)
-                .WithMany(d => d.Replies)
-                .HasForeignKey(p => p.DiscussionThreadId);
-
-            // DiscussionPost → Person (many posts per person)
-            modelBuilder.Entity<DiscussionPost>()
-                .HasOne(p => p.Author)
-                .WithMany()
-                .HasForeignKey(p => p.PersonId);
-
         }
     }
 }

@@ -23,7 +23,7 @@
             @if (AllowReplies)
             {
                 <div class="mb-4 border rounded p-3 bg-light">
-                    <EditForm Model="newFirstPost" OnValidSubmit="HandleAddFirstPost">
+                    <EditForm Model="newFirstPost" OnValidSubmit="@HandleAddFirstPost">
                         <div class="mb-3">
                             <InputTextArea class="form-control" @bind-Value="newFirstPost.Comment" rows="3" placeholder="Start a new discussion..." />
                         </div>
@@ -53,10 +53,6 @@
                                         <div>
                                             <strong>@Util.GetFullName(thread.FirstPost.Author)</strong>
                                             <small class="text-muted ms-2">(@thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
-                                            @if (thread.FirstPost.EditedAt.HasValue)
-                                            {
-                                                <small class="text-muted"> (Edited: @thread.FirstPost.EditedAt.Value.ToString("MMM dd, yyyy HH:mm"))</small>
-                                            }
                                         </div>
                                     </div>
                                     <p class="mt-2 mb-1">@thread.FirstPost.Comment</p>
@@ -111,10 +107,6 @@
                                                 <div>
                                                     <strong>@Util.GetFullName(reply.Author)</strong>
                                                     <small class="text-muted ms-2">(@reply.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
-                                                    @if (reply.EditedAt.HasValue)
-                                                    {
-                                                        <small class="text-muted"> (Edited: @reply.EditedAt.Value.ToString("MMM dd, yyyy HH:mm"))</small>
-                                                    }
                                                 </div>
                                             </div>
                                             <p class="mb-0 mt-1">@reply.Comment</p>
@@ -146,47 +138,46 @@
 </div>
 
 @code {
-    [Parameter] public DiscussionThread? Thread { get; set; }
     [Parameter] public List<DiscussionThread>? AllThreads { get; set; }
     [Parameter] public bool AllowReplies { get; set; } = true;
     [Parameter] public Person? CurrentUser { get; set; }
-    [Parameter] public EventCallback<DiscussionThread> OnThreadUpdated { get; set; }
-    [Parameter] public EventCallback<DiscussionThread> OnNewThreadCreated { get; set; }
     [Parameter] public int ClassSessionId { get; set; }
 
-    private DiscussionPost newReply = new();
-    private DiscussionPost newFirstPost = new();
+    private FirstPost newFirstPost = new();
+    private Reply newReply = new();
+    private string newFirstPostComment = string.Empty; 
     private int replyingToThreadId = 0;
     private HashSet<int> expandedThreads = new HashSet<int>();
 
-    private async Task HandleAddReply(DiscussionThread thread)
-    {
-        if (!string.IsNullOrWhiteSpace(newReply.Comment) && CurrentUser != null)
-        {
-            LogicMethods.AddReply(thread, 0, CurrentUser, newReply.Comment);
-
-            newReply = new();
-            replyingToThreadId = 0;
-
-            await SchoolDataService.UpdateDiscussionThread(thread, ClassSessionId);
-            await OnThreadUpdated.InvokeAsync(thread);
-
-            expandedThreads.Add(thread.Id);
-        }
-    }
-
     private async Task HandleAddFirstPost()
     {
-        if (!string.IsNullOrWhiteSpace(newFirstPost.Comment) && CurrentUser != null)
+        if (CurrentUser == null) return;
+
+        var firstPost = new FirstPost
         {
-            var newThread = LogicMethods.StartDiscussion(0, 0, CurrentUser, newFirstPost.Comment);
+            PersonId = CurrentUser.Id,
+            Comment = newFirstPost.Comment
+        };
 
-            newFirstPost = new();
-
-            await SchoolDataService.AddDiscussionThread(newThread, ClassSessionId);
-            await OnNewThreadCreated.InvokeAsync(newThread);
-        }
+        var savedThread = await SchoolDataService.AddDiscussionThreadAsync(ClassSessionId, firstPost);
+        AllThreads.Add(savedThread);
+        newFirstPost = new FirstPost();
     }
+
+
+
+    private async Task HandleAddReply(DiscussionThread thread)
+    {
+        if (CurrentUser == null || string.IsNullOrWhiteSpace(newReply.Comment))
+            return;
+
+        var savedReply = await SchoolDataService.AddReplyAsync(thread.Id, CurrentUser.Id, newReply.Comment);
+
+        thread.Replies.Add(savedReply); 
+        newReply = new Reply(); 
+        replyingToThreadId = 0;
+    }
+
 
     private void ToggleReplyForm(int threadId)
     {

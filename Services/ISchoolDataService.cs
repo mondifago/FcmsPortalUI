@@ -86,8 +86,9 @@ namespace FcmsPortal.Services
         #endregion
 
         #region Discussions
-        Task AddDiscussionThread(DiscussionThread thread, int classSessionId);
-        Task UpdateDiscussionThread(DiscussionThread thread, int classSessionId);
+        Task<DiscussionThread> AddDiscussionThreadAsync(int classSessionId, FirstPost firstPost);
+        Task<Reply> AddReplyAsync(int threadId, int authorId, string comment);
+        Task<List<DiscussionThread>> GetThreadsForClassSessionAsync(int classSessionId);
         #endregion
 
         #region File Attachments
