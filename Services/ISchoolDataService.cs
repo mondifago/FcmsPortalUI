@@ -122,6 +122,7 @@ namespace FcmsPortal.Services
         #region Attendance
         DailyAttendanceLogEntry SaveAttendance(int learningPathId, List<int> presentStudentIds, int teacherId, DateTime? attendanceDate = null);
         bool HasAttendanceBeenTaken(int learningPathId, DateTime date);
+        DailyAttendanceLogEntry? GetAttendanceForDate(int learningPathId, DateTime date);
         #endregion
 
         #region Archives

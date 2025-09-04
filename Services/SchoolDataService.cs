@@ -421,6 +421,12 @@ namespace FcmsPortal.Services
                     .ThenInclude(s => s.Person)
                 .Include(lp => lp.StudentsWithAccess)
                     .ThenInclude(s => s.Person)
+                .Include(lp => lp.AttendanceLog)
+                    .ThenInclude(al => al.Teacher)
+                .Include(lp => lp.AttendanceLog)
+                    .ThenInclude(al => al.PresentStudents)
+                .Include(lp => lp.AttendanceLog)
+                    .ThenInclude(al => al.AbsentStudents)
                 .FirstOrDefault(lp => lp.Id == id);
         }
 
@@ -1571,7 +1577,45 @@ namespace FcmsPortal.Services
                 .Where(s => presentStudentIds.Contains(s.Id))
                 .ToList();
 
-            var attendanceEntry = LogicMethods.TakeAttendanceForLearningPath(learningPath, presentStudents, teacher, attendanceDate);
+            var allStudents = learningPath.Students ?? new List<Student>();
+            var absentStudents = allStudents.Where(s => !presentStudentIds.Contains(s.Id)).ToList();
+
+            var targetDate = attendanceDate ?? DateTime.Now;
+
+            // Check if attendance already exists for this date
+            var existingAttendance = learningPath.AttendanceLog?
+                .FirstOrDefault(log => log.TimeStamp.Date == targetDate.Date);
+
+            if (existingAttendance != null)
+            {
+                // Update existing attendance
+                existingAttendance.PresentStudents = presentStudents;
+                existingAttendance.AbsentStudents = absentStudents;
+                existingAttendance.TimeStamp = targetDate;
+                _context.SaveChanges();
+                return existingAttendance;
+            }
+
+            // Create new attendance entry
+            var attendanceEntry = new DailyAttendanceLogEntry
+            {
+                LearningPathId = learningPath.Id,
+                LearningPath = learningPath,
+                TeacherId = teacher.Id,
+                Teacher = teacher,
+                PresentStudents = presentStudents,
+                AbsentStudents = absentStudents,
+                TimeStamp = targetDate
+            };
+
+            // Add to Entity Framework context
+            _context.DailyAttendanceLogEntries.Add(attendanceEntry);
+
+            // Also add to the learning path's collection for consistency
+            if (learningPath.AttendanceLog == null)
+                learningPath.AttendanceLog = new List<DailyAttendanceLogEntry>();
+
+            learningPath.AttendanceLog.Add(attendanceEntry);
 
             _context.SaveChanges();
 
@@ -1580,12 +1624,17 @@ namespace FcmsPortal.Services
 
         public bool HasAttendanceBeenTaken(int learningPathId, DateTime date)
         {
-            var learningPath = GetLearningPathById(learningPathId);
-            if (learningPath?.AttendanceLog == null)
-                return false;
+            return _context.DailyAttendanceLogEntries
+                .Any(log => log.LearningPathId == learningPathId && log.TimeStamp.Date == date.Date);
+        }
 
-            return learningPath.AttendanceLog
-                .Any(log => log.TimeStamp.Date == date.Date);
+        public DailyAttendanceLogEntry? GetAttendanceForDate(int learningPathId, DateTime date)
+        {
+            return _context.DailyAttendanceLogEntries
+                .Include(al => al.Teacher)
+                .Include(al => al.PresentStudents)
+                .Include(al => al.AbsentStudents)
+                .FirstOrDefault(log => log.LearningPathId == learningPathId && log.TimeStamp.Date == date.Date);
         }
         #endregion
 
