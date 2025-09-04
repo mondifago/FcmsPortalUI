@@ -160,7 +160,7 @@
         };
 
         var savedThread = await SchoolDataService.AddDiscussionThreadAsync(ClassSessionId, firstPost);
-        AllThreads.Add(savedThread);
+        AllThreads = await SchoolDataService.GetThreadsForClassSessionAsync(ClassSessionId);
         newFirstPost = new FirstPost();
     }
 
@@ -171,10 +171,10 @@
         if (CurrentUser == null || string.IsNullOrWhiteSpace(newReply.Comment))
             return;
 
-        var savedReply = await SchoolDataService.AddReplyAsync(thread.Id, CurrentUser.Id, newReply.Comment);
+        await SchoolDataService.AddReplyAsync(thread.Id, CurrentUser.Id, newReply.Comment);
 
-        thread.Replies.Add(savedReply); 
-        newReply = new Reply(); 
+        AllThreads = await SchoolDataService.GetThreadsForClassSessionAsync(ClassSessionId);
+        newReply = new Reply();
         replyingToThreadId = 0;
     }
 
