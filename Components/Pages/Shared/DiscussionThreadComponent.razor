@@ -90,10 +90,10 @@
                             <!-- Replies Section -->
                             <div class="replies-container ms-5">
                                 @{
-                                    var replies = thread.Replies.OrderBy(r => r.CreatedAt).ToList();
+                                    var replies = thread.Replies.OrderByDescending(r => r.CreatedAt).ToList();
                                     var displayReplies = expandedThreads.Contains(thread.Id)
                                     ? replies
-                                    : replies.Skip(Math.Max(0, replies.Count - 2)).Take(2).ToList();
+                                    : replies.Take(2).ToList();
                                 }
 
                                 @foreach (var reply in displayReplies)

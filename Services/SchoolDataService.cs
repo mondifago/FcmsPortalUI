@@ -1192,12 +1192,12 @@ namespace FcmsPortal.Services
             var thread = new DiscussionThread
             {
                 ClassSessionId = classSessionId,
-                CreatedAt = DateTime.UtcNow,
-                LastUpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                LastUpdatedAt = DateTime.Now
             };
 
             firstPost.DiscussionThread = thread;
-            firstPost.CreatedAt = DateTime.UtcNow;
+            firstPost.CreatedAt = DateTime.Now;
 
             thread.FirstPost = firstPost;
 
@@ -1206,7 +1206,6 @@ namespace FcmsPortal.Services
 
             return thread;
         }
-
 
         public async Task<Reply> AddReplyAsync(int threadId, int authorId, string comment)
         {
@@ -1228,11 +1227,11 @@ namespace FcmsPortal.Services
                 PersonId = authorId,
                 Author = author,
                 Comment = comment,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             thread.Replies.Add(reply);
-            thread.LastUpdatedAt = DateTime.UtcNow;
+            thread.LastUpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
@@ -1250,8 +1249,6 @@ namespace FcmsPortal.Services
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }
-
-
         #endregion
 
         #region File Attachments
