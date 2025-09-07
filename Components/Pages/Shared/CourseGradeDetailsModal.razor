@@ -233,6 +233,7 @@
                     if (index < existingGrades.Count)
                     {
                         existingGrades[index].Score = change.Value;
+                        SchoolDataService.SaveTestGrade(existingGrades[index]);
                     }
                     else
                     {
@@ -247,9 +248,11 @@
                             CourseGrade = courseGrade
                         };
                         courseGrade.TestGrades.Add(newGrade);
+                        SchoolDataService.SaveTestGrade(newGrade);
                     }
 
                     LogicMethods.RecalculateCourseGrade(courseGrade);
+                    SchoolDataService.SaveCourseGradeWithTestGrades(courseGrade);
                 }
             }
         }

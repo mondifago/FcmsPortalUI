@@ -113,6 +113,9 @@ namespace FcmsPortal.Services
         List<CourseGradingConfiguration> GetAllCourseGradingConfigurations(int learningPathId);
         List<string> GetCoursesWithoutGradingConfiguration(int learningPathId);
         List<GradesReport> GetGradesReports(string academicYear, string semester);
+        void SaveTestGrade(TestGrade testGrade);
+        void SaveCourseGradeWithTestGrades(CourseGrade courseGrade);
+        void SaveStudentGradesForCourse(Student student, string course, int learningPathId);
         #endregion
 
         #region Curriculum
@@ -133,6 +136,4 @@ namespace FcmsPortal.Services
         List<Student> GetArchivedStudents();
         #endregion
     }
-
-
 }

@@ -1559,6 +1559,67 @@ namespace FcmsPortal.Services
 
             return LogicMethods.GetGradesReports(school, academicYear, semester);
         }
+
+        public void SaveTestGrade(TestGrade testGrade)
+        {
+            if (testGrade == null) return;
+
+            if (testGrade.Id == 0)
+            {
+                _context.TestGrades.Add(testGrade);
+            }
+            else
+            {
+                _context.TestGrades.Update(testGrade);
+            }
+            _context.SaveChanges();
+        }
+
+        public void SaveCourseGradeWithTestGrades(CourseGrade courseGrade)
+        {
+            if (courseGrade == null) return;
+
+            // Check if CourseGrade exists
+            var existingCourseGrade = _context.CourseGrades
+                .Include(cg => cg.TestGrades)
+                .FirstOrDefault(cg => cg.Id == courseGrade.Id);
+
+            if (existingCourseGrade == null && courseGrade.Id == 0)
+            {
+                // New CourseGrade - add it with TestGrades
+                _context.CourseGrades.Add(courseGrade);
+            }
+            else if (existingCourseGrade != null)
+            {
+                // Update existing CourseGrade
+                existingCourseGrade.TotalGrade = courseGrade.TotalGrade;
+                existingCourseGrade.FinalGradeCode = courseGrade.FinalGradeCode;
+                existingCourseGrade.IsFinalized = courseGrade.IsFinalized;
+
+                // Add new TestGrades
+                foreach (var testGrade in courseGrade.TestGrades)
+                {
+                    if (testGrade.Id == 0) // New TestGrade
+                    {
+                        testGrade.CourseGradeId = existingCourseGrade.Id;
+                        existingCourseGrade.TestGrades.Add(testGrade);
+                    }
+                }
+            }
+
+            _context.SaveChanges();
+        }
+
+        public void SaveStudentGradesForCourse(Student student, string course, int learningPathId)
+        {
+            var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
+                cg.Course == course && cg.LearningPathId == learningPathId);
+
+            if (courseGrade != null)
+            {
+                SaveCourseGradeWithTestGrades(courseGrade);
+            }
+        }
         #endregion
 
         #region Curriculum

@@ -21,6 +21,8 @@ namespace FcmsPortalUI.Data
         public DbSet<FileAttachment> FileAttachments { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<SchoolFees> SchoolFees { get; set; }
+        public DbSet<CourseGrade> CourseGrades { get; set; }
+        public DbSet<TestGrade> TestGrades { get; set; }
         public DbSet<DailyAttendanceLogEntry> DailyAttendanceLogEntries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -173,13 +173,6 @@
             {
                 var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
 
-                //var testGradeId = SchoolDataService.GetNextTestGradeId();
-
-                var existingCourseGrade = student.CourseGrades.FirstOrDefault(cg =>
-                    cg.Course == Course && cg.LearningPathId == LearningPath.Id);
-
-                int? courseGradeId = null;
-               
                 LogicMethods.AddTestGrade(
                     student,
                     Course,
@@ -189,14 +182,18 @@
                     testGrade.TeacherRemark,
                     LearningPath,
                     0,
-                    courseGradeId
+                    null
                 );
+
+                // NEW: Save the TestGrades to database
+                SchoolDataService.SaveStudentGradesForCourse(student, Course, LearningPath.Id);
             }
         }
 
         await OnSave.InvokeAsync();
         Close();
     }
+
 
     private void Close()
     {
