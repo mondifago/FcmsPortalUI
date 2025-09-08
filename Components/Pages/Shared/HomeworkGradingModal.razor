@@ -179,31 +179,20 @@
         if (!string.IsNullOrEmpty(course))
         {
             var learningPath = Submission.Homework?.ClassSession?.Id != null
-         ? SchoolDataService.GetLearningPathByClassSessionId(Submission.Homework.ClassSession.Id)
-         : null;
+                ? SchoolDataService.GetLearningPathByClassSessionId(Submission.Homework.ClassSession.Id)
+                : null;
 
             if (learningPath != null)
             {
-                //var courseGradeTestGradeId = SchoolDataService.GetNextTestGradeId();
-
-                var existingCourseGrade = Submission.Student.CourseGrades.FirstOrDefault(cg =>
-                    cg.Course == course && cg.LearningPathId == learningPath.Id);
-
-                int? courseGradeId = null;
-               
-                LogicMethods.AddTestGrade(
-                    Submission.Student,
-                    course,
-                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),
-                    GradeType.Homework,
-                    CurrentTeacher,
-                    testGrade.TeacherRemark,
-                    learningPath,
-                    0, 
-                    courseGradeId
+                SchoolDataService.AddTestGrade(
+                    Submission.Student.Id,                                            
+                    course,                                                          
+                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),      
+                    GradeType.Homework,                                              
+                    CurrentTeacher.Id,                                               
+                    testGrade.TeacherRemark,                                         
+                    learningPath.Id                                                 
                 );
-
-                SchoolDataService.SaveStudentGradesForCourse(Submission.Student, course, learningPath.Id);
             }
         }
 

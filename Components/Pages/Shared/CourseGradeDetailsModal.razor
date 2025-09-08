@@ -216,7 +216,7 @@
         foreach (var change in pendingGradeChanges)
         {
             var parts = change.Key.Split('_');
-            if (parts.Length == 4 && 
+            if (parts.Length == 4 &&
             int.Parse(parts[0]) == student.Id &&
             Enum.TryParse<GradeType>(parts[1], out var gradeType) &&
             DateTime.TryParse(parts[2], out var date) &&
@@ -233,31 +233,22 @@
                     if (index < existingGrades.Count)
                     {
                         existingGrades[index].Score = change.Value;
-                        SchoolDataService.SaveTestGrade(existingGrades[index]);
                     }
                     else
                     {
-                        var newGrade = new TestGrade
-                        {
-                            Score = change.Value,
-                            GradeType = gradeType,
-                            Teacher = currentTeacher,
-                            Date = date,
-                            TeacherRemark = "",
-                            CourseGradeId = courseGrade.Id,
-                            CourseGrade = courseGrade
-                        };
-                        courseGrade.TestGrades.Add(newGrade);
-                        SchoolDataService.SaveTestGrade(newGrade);
+                        SchoolDataService.AddTestGrade(
+                            student.Id,                   
+                            Course,                        
+                            change.Value,                  
+                            gradeType,                     
+                            currentTeacher.Id,             
+                            "",                           
+                            LearningPath.Id                
+                        );
                     }
-
-                    LogicMethods.RecalculateCourseGrade(courseGrade);
-                    SchoolDataService.SaveCourseGradeWithTestGrades(courseGrade);
                 }
             }
         }
-
-        SchoolDataService.UpdateLearningPath(LearningPath);
 
         editingStudentId = 0;
         pendingGradeChanges.Clear();

@@ -114,8 +114,9 @@ namespace FcmsPortal.Services
         List<string> GetCoursesWithoutGradingConfiguration(int learningPathId);
         List<GradesReport> GetGradesReports(string academicYear, string semester);
         void SaveTestGrade(TestGrade testGrade);
-        void SaveCourseGradeWithTestGrades(CourseGrade courseGrade);
-        void SaveStudentGradesForCourse(Student student, string course, int learningPathId);
+        void AddTestGrade(int studentId, string course, double score, GradeType gradeType,
+                  int teacherId, string teacherRemark, int learningPathId);
+        int GetGradeCountByType(int learningPathId, string course, GradeType gradeType);
         #endregion
 
         #region Curriculum

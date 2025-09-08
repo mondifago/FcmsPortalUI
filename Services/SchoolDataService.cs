@@ -417,17 +417,25 @@ namespace FcmsPortal.Services
         public LearningPath? GetLearningPathById(int id)
         {
             return _context.LearningPaths
-                .Include(lp => lp.Students)
-                    .ThenInclude(s => s.Person)
-                .Include(lp => lp.StudentsWithAccess)
-                    .ThenInclude(s => s.Person)
-                .Include(lp => lp.AttendanceLog)
-                    .ThenInclude(al => al.Teacher)
-                .Include(lp => lp.AttendanceLog)
-                    .ThenInclude(al => al.PresentStudents)
-                .Include(lp => lp.AttendanceLog)
-                    .ThenInclude(al => al.AbsentStudents)
-                .FirstOrDefault(lp => lp.Id == id);
+            .Include(lp => lp.Students)
+                .ThenInclude(s => s.Person)
+            .Include(lp => lp.Students)
+                .ThenInclude(s => s.CourseGrades)
+                    .ThenInclude(cg => cg.TestGrades)
+                        .ThenInclude(tg => tg.Teacher)
+            .Include(lp => lp.Students)
+                .ThenInclude(s => s.CourseGrades)
+                    .ThenInclude(cg => cg.GradingConfiguration)
+            .Include(lp => lp.CourseGradingConfigurations)
+            .Include(lp => lp.StudentsWithAccess)
+                .ThenInclude(s => s.Person)
+            .Include(lp => lp.AttendanceLog)
+                .ThenInclude(al => al.Teacher)
+            .Include(lp => lp.AttendanceLog)
+                .ThenInclude(al => al.PresentStudents)
+            .Include(lp => lp.AttendanceLog)
+                .ThenInclude(al => al.AbsentStudents)
+            .FirstOrDefault(lp => lp.Id == id);
         }
 
         public IEnumerable<LearningPath> GetAllLearningPaths()
@@ -1575,51 +1583,74 @@ namespace FcmsPortal.Services
             _context.SaveChanges();
         }
 
-        public void SaveCourseGradeWithTestGrades(CourseGrade courseGrade)
+        public void AddTestGrade(int studentId, string course, double score, GradeType gradeType,
+                        int teacherId, string teacherRemark, int learningPathId)
         {
-            if (courseGrade == null) return;
-
-            // Check if CourseGrade exists
-            var existingCourseGrade = _context.CourseGrades
+            // Query database directly for existing CourseGrade
+            var courseGrade = _context.CourseGrades
                 .Include(cg => cg.TestGrades)
-                .FirstOrDefault(cg => cg.Id == courseGrade.Id);
+                .Include(cg => cg.GradingConfiguration)
+                .FirstOrDefault(cg => cg.StudentId == studentId &&
+                                     cg.Course == course &&
+                                     cg.LearningPathId == learningPathId);
 
-            if (existingCourseGrade == null && courseGrade.Id == 0)
+            // If no existing CourseGrade, create one
+            if (courseGrade == null)
             {
-                // New CourseGrade - add it with TestGrades
-                _context.CourseGrades.Add(courseGrade);
-            }
-            else if (existingCourseGrade != null)
-            {
-                // Update existing CourseGrade
-                existingCourseGrade.TotalGrade = courseGrade.TotalGrade;
-                existingCourseGrade.FinalGradeCode = courseGrade.FinalGradeCode;
-                existingCourseGrade.IsFinalized = courseGrade.IsFinalized;
+                // Get the grading configuration
+                var gradingConfig = _context.LearningPaths
+                    .Include(lp => lp.CourseGradingConfigurations)
+                    .FirstOrDefault(lp => lp.Id == learningPathId)?
+                    .CourseGradingConfigurations
+                    .FirstOrDefault(c => c.Course == course);
 
-                // Add new TestGrades
-                foreach (var testGrade in courseGrade.TestGrades)
+                courseGrade = new CourseGrade
                 {
-                    if (testGrade.Id == 0) // New TestGrade
-                    {
-                        testGrade.CourseGradeId = existingCourseGrade.Id;
-                        existingCourseGrade.TestGrades.Add(testGrade);
-                    }
-                }
+                    Course = course,
+                    StudentId = studentId,
+                    LearningPathId = learningPathId,
+                    GradingConfiguration = gradingConfig,
+                    TestGrades = new List<TestGrade>()
+                };
+                _context.CourseGrades.Add(courseGrade);
+                _context.SaveChanges(); // Save to get the CourseGradeId
+            }
+
+            // Create the new TestGrade
+            var testGrade = new TestGrade
+            {
+                Score = score,
+                GradeType = gradeType,
+                TeacherId = teacherId,
+                Date = DateTime.Now,
+                TeacherRemark = teacherRemark,
+                CourseGradeId = courseGrade.Id
+            };
+
+            // Add to both the context and the collection
+            _context.TestGrades.Add(testGrade);
+            //courseGrade.TestGrades.Add(testGrade);
+
+            // Recalculate course grade if configuration exists
+            if (courseGrade.GradingConfiguration != null)
+            {
+                LogicMethods.RecalculateCourseGrade(courseGrade);
+                _context.CourseGrades.Update(courseGrade);
             }
 
             _context.SaveChanges();
         }
 
-        public void SaveStudentGradesForCourse(Student student, string course, int learningPathId)
+        public int GetGradeCountByType(int learningPathId, string course, GradeType gradeType)
         {
-            var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
-                cg.Course == course && cg.LearningPathId == learningPathId);
-
-            if (courseGrade != null)
-            {
-                SaveCourseGradeWithTestGrades(courseGrade);
-            }
+            return _context.TestGrades
+                .Where(tg => tg.CourseGrade.Course == course &&
+                            tg.CourseGrade.LearningPathId == learningPathId &&
+                            tg.GradeType == gradeType)
+                .GroupBy(tg => new { tg.Date.Date, tg.Date.Hour, tg.Date.Minute, tg.Date.Second })
+                .Count();
         }
+
         #endregion
 
         #region Curriculum

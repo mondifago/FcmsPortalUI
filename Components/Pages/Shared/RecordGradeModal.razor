@@ -173,20 +173,15 @@
             {
                 var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
 
-                LogicMethods.AddTestGrade(
-                    student,
-                    Course,
-                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),
-                    selectedGradeType,
-                    testGrade.Teacher,
-                    testGrade.TeacherRemark,
-                    LearningPath,
-                    0,
-                    null
+                SchoolDataService.AddTestGrade(
+                    student.Id,                                                   
+                    Course,                                                        
+                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),   
+                    selectedGradeType,                                            
+                    testGrade.Teacher.Id,                                        
+                    testGrade.TeacherRemark,                                      
+                    LearningPath.Id                                               
                 );
-
-                // NEW: Save the TestGrades to database
-                SchoolDataService.SaveStudentGradesForCourse(student, Course, LearningPath.Id);
             }
         }
 

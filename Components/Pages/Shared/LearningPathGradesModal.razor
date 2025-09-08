@@ -70,7 +70,6 @@
                                     </button>
                                 </div>
                             </div>
-
                             <ValidationSummary />
                         </EditForm>
                     </div>
@@ -117,9 +116,9 @@
                                                 </td>
                                                 <td>
                                                     <small class="text-muted">
-                                                        HW: @LogicMethods.GetHomeworkCount(LearningPath, config.Course) |
-                                                        Quiz: @LogicMethods.GetQuizCount(LearningPath, config.Course) |
-                                                        Exam: @LogicMethods.GetExamCount(LearningPath, config.Course)
+                                                        HW: @GetHomeworkCount(config.Course) |
+                                                        Quiz: @GetQuizCount(config.Course) |
+                                                        Exam: @GetExamCount(config.Course)
                                                     </small>
                                                 </td>
                                                 <td>
@@ -312,6 +311,21 @@
     private List<CourseGradingConfiguration> GetConfiguredCourses()
     {
         return SchoolDataService.GetAllCourseGradingConfigurations(LearningPath.Id);
+    }
+
+    private int GetHomeworkCount(string course)
+    {
+        return SchoolDataService.GetGradeCountByType(LearningPath.Id, course, GradeType.Homework);
+    }
+
+    private int GetQuizCount(string course)
+    {
+        return SchoolDataService.GetGradeCountByType(LearningPath.Id, course, GradeType.Quiz);
+    }
+
+    private int GetExamCount(string course)
+    {
+        return SchoolDataService.GetGradeCountByType(LearningPath.Id, course, GradeType.FinalExam);
     }
 
     private void ShowRecordGradeModal(string course)
