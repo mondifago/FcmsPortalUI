@@ -233,6 +233,8 @@
                     if (index < existingGrades.Count)
                     {
                         existingGrades[index].Score = change.Value;
+                        SchoolDataService.SaveTestGrade(existingGrades[index]);
+                        LogicMethods.RecalculateCourseGrade(courseGrade);
                     }
                     else
                     {

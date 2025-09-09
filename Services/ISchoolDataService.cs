@@ -117,6 +117,13 @@ namespace FcmsPortal.Services
         void AddTestGrade(int studentId, string course, double score, GradeType gradeType,
                   int teacherId, string teacherRemark, int learningPathId);
         int GetGradeCountByType(int learningPathId, string course, GradeType gradeType);
+        Task<TestGrade> AddHomeworkSubmissionGradeAsync(
+                int studentId,
+                string course,
+                double score,
+                int teacherId,
+                string teacherRemark,
+                int learningPathId);
         #endregion
 
         #region Curriculum

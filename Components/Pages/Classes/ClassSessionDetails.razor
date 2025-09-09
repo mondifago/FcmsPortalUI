@@ -495,7 +495,7 @@
     private bool showSubmissionsListModal = false;
     private bool showGradingModal = false;
     private bool showStudentGradeModal = false;
-    private bool isTeacher = true;
+    private bool isTeacher = false;
 
 
     protected override void OnInitialized()
@@ -512,16 +512,14 @@
 
             if (enrolledStudents.Any())
             {
-                //currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 302) // Dan's ID
-                //                 ?? enrolledStudents.First();
-    
-                // Or pick Zak by ID
-                currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 303) // Zak's ID
-                                  ?? enrolledStudents.First();
+                // Pick the first student
+                // currentStudent = enrolledStudents.ElementAtOrDefault(0) ?? new Student();
 
-                 // Or pick Joe by ID
-                // currentStudent = enrolledStudents.FirstOrDefault(s => s.Id == 301) // Zak's ID
-                //                  ?? enrolledStudents.First();
+                // Pick the second student
+                currentStudent = enrolledStudents.ElementAtOrDefault(1) ?? new Student();
+
+                // Pick the third student
+                //currentStudent = enrolledStudents.ElementAtOrDefault(2) ?? new Student();
             }
             else
             {

@@ -101,20 +101,20 @@
 }
 
 @code {
-    [Parameter]
-    public bool IsVisible { get; set; }
+        [Parameter]
+        public bool IsVisible { get; set; }
 
-    [Parameter]
-    public HomeworkSubmission Submission { get; set; } = new HomeworkSubmission();
+        [Parameter]
+        public HomeworkSubmission Submission { get; set; } = new HomeworkSubmission();
 
-    [Parameter]
-    public Staff CurrentTeacher { get; set; } = new Staff();
+        [Parameter]
+        public Staff CurrentTeacher { get; set; } = new Staff();
 
-    [Parameter]
-    public EventCallback<HomeworkSubmission> OnSave { get; set; }
+        [Parameter]
+        public EventCallback<HomeworkSubmission> OnSave { get; set; }
 
-    [Parameter]
-    public EventCallback OnClose { get; set; }
+        [Parameter]
+        public EventCallback OnClose { get; set; }
 
     private TestGrade testGrade = new TestGrade();
     private double maxScore = FcmsConstants.TOTAL_SCORE;
@@ -156,24 +156,11 @@
     private async Task HandleSubmit()
     {
         if (!IsFormValid() || Submission == null || Submission.Student == null ||
-        Submission.Homework?.ClassSession == null)
+            Submission.Homework?.ClassSession == null)
             return;
 
         var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
-
-        var homeworkGrade = new TestGrade
-        {
-            Id = 0, 
-            Score = Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),
-            GradeType = GradeType.Homework,
-            Teacher = CurrentTeacher,
-            Date = DateTime.Now,
-            TeacherRemark = testGrade.TeacherRemark
-        };
-
-        Submission.HomeworkGrade = homeworkGrade;
-        Submission.IsGraded = true;
-        Submission.FeedbackComment = testGrade.TeacherRemark;
+        var finalScoreRounded = Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT);
 
         var course = Submission.Homework?.ClassSession?.Course;
         if (!string.IsNullOrEmpty(course))
@@ -184,21 +171,26 @@
 
             if (learningPath != null)
             {
-                SchoolDataService.AddTestGrade(
-                    Submission.Student.Id,                                            
-                    course,                                                          
-                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),      
-                    GradeType.Homework,                                              
-                    CurrentTeacher.Id,                                               
-                    testGrade.TeacherRemark,                                         
-                    learningPath.Id                                                 
+                var savedGrade = await SchoolDataService.AddHomeworkSubmissionGradeAsync(
+                    Submission.Student.Id,
+                    course,
+                    finalScoreRounded,
+                    CurrentTeacher.Id,
+                    testGrade.TeacherRemark,
+                    learningPath.Id
                 );
+
+                Submission.HomeworkGrade = savedGrade;
+                Submission.IsGraded = true;
+                Submission.FeedbackComment = savedGrade.TeacherRemark;
             }
         }
 
         await OnSave.InvokeAsync(Submission);
         Close();
     }
+
+
 
     private void Close()
     {

@@ -1584,9 +1584,8 @@ namespace FcmsPortal.Services
         }
 
         public void AddTestGrade(int studentId, string course, double score, GradeType gradeType,
-                        int teacherId, string teacherRemark, int learningPathId)
+                 int teacherId, string teacherRemark, int learningPathId)
         {
-            // Query database directly for existing CourseGrade
             var courseGrade = _context.CourseGrades
                 .Include(cg => cg.TestGrades)
                 .Include(cg => cg.GradingConfiguration)
@@ -1594,10 +1593,8 @@ namespace FcmsPortal.Services
                                      cg.Course == course &&
                                      cg.LearningPathId == learningPathId);
 
-            // If no existing CourseGrade, create one
             if (courseGrade == null)
             {
-                // Get the grading configuration
                 var gradingConfig = _context.LearningPaths
                     .Include(lp => lp.CourseGradingConfigurations)
                     .FirstOrDefault(lp => lp.Id == learningPathId)?
@@ -1613,10 +1610,9 @@ namespace FcmsPortal.Services
                     TestGrades = new List<TestGrade>()
                 };
                 _context.CourseGrades.Add(courseGrade);
-                _context.SaveChanges(); // Save to get the CourseGradeId
+                _context.SaveChanges();
             }
 
-            // Create the new TestGrade
             var testGrade = new TestGrade
             {
                 Score = score,
@@ -1627,11 +1623,8 @@ namespace FcmsPortal.Services
                 CourseGradeId = courseGrade.Id
             };
 
-            // Add to both the context and the collection
             _context.TestGrades.Add(testGrade);
-            //courseGrade.TestGrades.Add(testGrade);
 
-            // Recalculate course grade if configuration exists
             if (courseGrade.GradingConfiguration != null)
             {
                 LogicMethods.RecalculateCourseGrade(courseGrade);
@@ -1640,6 +1633,70 @@ namespace FcmsPortal.Services
 
             _context.SaveChanges();
         }
+
+        public async Task<TestGrade> AddHomeworkSubmissionGradeAsync(
+                int studentId,
+                string course,
+                double score,
+                int teacherId,
+                string teacherRemark,
+                int learningPathId)
+        {
+            var courseGrade = await _context.CourseGrades
+                .Include(cg => cg.TestGrades)
+                .Include(cg => cg.GradingConfiguration)
+                .FirstOrDefaultAsync(cg => cg.StudentId == studentId &&
+                                           cg.Course == course &&
+                                           cg.LearningPathId == learningPathId);
+
+            if (courseGrade == null)
+            {
+                var gradingConfig = await _context.LearningPaths
+                    .Include(lp => lp.CourseGradingConfigurations)
+                    .Where(lp => lp.Id == learningPathId)
+                    .SelectMany(lp => lp.CourseGradingConfigurations)
+                    .FirstOrDefaultAsync(c => c.Course == course);
+
+                courseGrade = new CourseGrade
+                {
+                    Course = course,
+                    StudentId = studentId,
+                    LearningPathId = learningPathId,
+                    GradingConfiguration = gradingConfig,
+                    TestGrades = new List<TestGrade>()
+                };
+
+                _context.CourseGrades.Add(courseGrade);
+                await _context.SaveChangesAsync();
+            }
+
+            var testGrade = new TestGrade
+            {
+                Score = score,
+                GradeType = GradeType.Homework,
+                TeacherId = teacherId,
+                Date = DateTime.Now,
+                TeacherRemark = teacherRemark,
+                CourseGradeId = courseGrade.Id
+            };
+
+            _context.TestGrades.Add(testGrade);
+
+            if (courseGrade.GradingConfiguration != null)
+            {
+                LogicMethods.RecalculateCourseGrade(courseGrade);
+                _context.CourseGrades.Update(courseGrade);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return testGrade;
+        }
+
+
+
+
+
 
         public int GetGradeCountByType(int learningPathId, string course, GradeType gradeType)
         {
