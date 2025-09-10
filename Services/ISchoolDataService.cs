@@ -139,6 +139,12 @@ namespace FcmsPortal.Services
         double GetDailyAttendanceAverage(int learningPathId, DateTime date);
         #endregion
 
+        #region Student Report Cards
+        StudentReportCard? GetStudentReportCard(int studentId, int learningPathId);
+        StudentReportCard SaveStudentReportCard(StudentReportCard reportCard);
+        void UpdateStudentReportCardRemarks(int studentId, int learningPathId, string? teacherRemarks = null, string? principalRemarks = null);
+        #endregion
+
         #region Archives
         void ArchiveStudent(Student student);
         List<Student> GetArchivedStudents();

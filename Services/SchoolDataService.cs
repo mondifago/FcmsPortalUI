@@ -1842,6 +1842,78 @@ namespace FcmsPortal.Services
         }
         #endregion
 
+        #region Student Report Cards
+        public StudentReportCard? GetStudentReportCard(int studentId, int learningPathId)
+        {
+            return _context.StudentReportCards
+                .Include(rc => rc.Student)
+                .Include(rc => rc.LearningPath)
+                .Include(rc => rc.GeneratedByTeacher)
+                .Include(rc => rc.FinalizedByPrincipal)
+                .FirstOrDefault(rc => rc.StudentId == studentId && rc.LearningPathId == learningPathId);
+        }
+
+        public StudentReportCard SaveStudentReportCard(StudentReportCard reportCard)
+        {
+            var existingReportCard = GetStudentReportCard(reportCard.StudentId, reportCard.LearningPathId);
+
+            if (existingReportCard != null)
+            {
+                existingReportCard.TeacherRemarks = reportCard.TeacherRemarks;
+                existingReportCard.PrincipalRemarks = reportCard.PrincipalRemarks;
+                existingReportCard.SemesterOverallGrade = reportCard.SemesterOverallGrade;
+                existingReportCard.PromotionGrade = reportCard.PromotionGrade;
+                existingReportCard.StudentRank = reportCard.StudentRank;
+                existingReportCard.PresentDays = reportCard.PresentDays;
+                existingReportCard.TotalDays = reportCard.TotalDays;
+                existingReportCard.AttendanceRate = reportCard.AttendanceRate;
+                existingReportCard.IsPromoted = reportCard.IsPromoted;
+                existingReportCard.PromotionStatus = reportCard.PromotionStatus;
+                existingReportCard.DateFinalized = reportCard.DateFinalized;
+                existingReportCard.IsFinalized = reportCard.IsFinalized;
+                existingReportCard.GeneratedByTeacherId = reportCard.GeneratedByTeacherId;
+                existingReportCard.FinalizedByPrincipalId = reportCard.FinalizedByPrincipalId;
+
+                _context.StudentReportCards.Update(existingReportCard);
+                _context.SaveChanges();
+                return existingReportCard;
+            }
+            else
+            {
+                _context.StudentReportCards.Add(reportCard);
+                _context.SaveChanges();
+                return reportCard;
+            }
+        }
+
+        public void UpdateStudentReportCardRemarks(int studentId, int learningPathId, string? teacherRemarks = null, string? principalRemarks = null)
+        {
+            var reportCard = GetStudentReportCard(studentId, learningPathId);
+
+            if (reportCard == null)
+            {
+                reportCard = new StudentReportCard
+                {
+                    StudentId = studentId,
+                    LearningPathId = learningPathId,
+                    TeacherRemarks = teacherRemarks ?? "",
+                    PrincipalRemarks = principalRemarks ?? ""
+                };
+                _context.StudentReportCards.Add(reportCard);
+            }
+            else
+            {
+                if (teacherRemarks != null)
+                    reportCard.TeacherRemarks = teacherRemarks;
+                if (principalRemarks != null)
+                    reportCard.PrincipalRemarks = principalRemarks;
+                _context.StudentReportCards.Update(reportCard);
+            }
+
+            _context.SaveChanges();
+        }
+        #endregion
+
         #region Archives
         public void ArchiveStudent(Student student)
         {

@@ -166,16 +166,33 @@
     private void GenerateGradeReport(Student student)
     {
         selectedStudentForReport = student;
+
+        var reportCard = SchoolDataService.GetStudentReportCard(student.Id, LearningPath.Id);
+        if (reportCard != null)
+        {
+            teacherRemarks[student.Id] = reportCard.TeacherRemarks;
+            principalRemarks[student.Id] = reportCard.PrincipalRemarks;
+        }
+        else
+        {
+            if (!teacherRemarks.ContainsKey(student.Id))
+                teacherRemarks[student.Id] = "";
+            if (!principalRemarks.ContainsKey(student.Id))
+                principalRemarks[student.Id] = "";
+        }
+
         showReportCardModal = true;
     }
 
     private void UpdateTeacherRemarks(int studentId, string remarks)
     {
+        SchoolDataService.UpdateStudentReportCardRemarks(studentId, LearningPath.Id, teacherRemarks: remarks);
         teacherRemarks[studentId] = remarks;
     }
 
     private void UpdatePrincipalRemarks(int studentId, string remarks)
     {
+        SchoolDataService.UpdateStudentReportCardRemarks(studentId, LearningPath.Id, principalRemarks: remarks);
         principalRemarks[studentId] = remarks;
     }
 
