@@ -13,6 +13,7 @@ namespace FcmsPortalUI.Data
         public DbSet<Guardian> Guardians { get; set; }
         public DbSet<Person> Persons { get; set; }
         public DbSet<LearningPath> LearningPaths { get; set; }
+        public DbSet<StudentReportCard> StudentReportCards { get; set; }
         public DbSet<ScheduleEntry> ScheduleEntries { get; set; }
         public DbSet<ClassSession> ClassSessions { get; set; }
         public DbSet<DiscussionThread> DiscussionThreads { get; set; }
