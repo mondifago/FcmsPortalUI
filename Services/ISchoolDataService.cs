@@ -124,6 +124,7 @@ namespace FcmsPortal.Services
                 int teacherId,
                 string teacherRemark,
                 int learningPathId);
+        void SaveFinalizedGrades(LearningPath learningPath);
         #endregion
 
         #region Curriculum

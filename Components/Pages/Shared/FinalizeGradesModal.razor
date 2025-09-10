@@ -158,8 +158,7 @@
 
     private void FinalizeAllGrades()
     {
-        LogicMethods.FinalizeSemesterGrades(LearningPath);
-        SchoolDataService.UpdateLearningPath(LearningPath);
+        SchoolDataService.SaveFinalizedGrades(LearningPath);
         StateHasChanged();
     }
 

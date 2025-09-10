@@ -662,7 +662,7 @@ namespace FcmsPortal.Services
                 FeePerSemester = learningPath.FeePerSemester,
                 IsTemplate = true,
                 TemplateKey = templateKey,
-                ApprovalStatus = PrincipalApprovalStatus.Approved,
+                ApprovalStatus = PrincipalApprovalStatus.Pending,
 
                 Schedule = learningPath.Schedule.Select(s => new ScheduleEntry
                 {
@@ -1701,6 +1701,19 @@ namespace FcmsPortal.Services
                 .Count();
         }
 
+        public void SaveFinalizedGrades(LearningPath learningPath)
+        {
+            LogicMethods.FinalizeSemesterGrades(learningPath);
+            foreach (var student in learningPath.Students)
+            {
+                foreach (var courseGrade in student.CourseGrades
+                    .Where(cg => cg.LearningPathId == learningPath.Id))
+                {
+                    _context.CourseGrades.Update(courseGrade);
+                }
+            }
+            _context.SaveChanges();
+        }
         #endregion
 
         #region Curriculum
