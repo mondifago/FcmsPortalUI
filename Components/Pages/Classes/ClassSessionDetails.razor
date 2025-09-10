@@ -495,7 +495,7 @@
     private bool showSubmissionsListModal = false;
     private bool showGradingModal = false;
     private bool showStudentGradeModal = false;
-    private bool isTeacher = false;
+    private bool isTeacher = true;
 
 
     protected override void OnInitialized()
@@ -513,10 +513,10 @@
             if (enrolledStudents.Any())
             {
                 // Pick the first student
-                // currentStudent = enrolledStudents.ElementAtOrDefault(0) ?? new Student();
+                currentStudent = enrolledStudents.ElementAtOrDefault(0) ?? new Student();
 
                 // Pick the second student
-                currentStudent = enrolledStudents.ElementAtOrDefault(1) ?? new Student();
+                //currentStudent = enrolledStudents.ElementAtOrDefault(1) ?? new Student();
 
                 // Pick the third student
                 //currentStudent = enrolledStudents.ElementAtOrDefault(2) ?? new Student();

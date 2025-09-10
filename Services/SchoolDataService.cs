@@ -1520,7 +1520,6 @@ namespace FcmsPortal.Services
             _context.SaveChanges();
         }
 
-
         public CourseGradingConfiguration? GetCourseGradingConfiguration(int learningPathId, string courseName)
         {
             var learningPath = _context.LearningPaths
@@ -1539,7 +1538,6 @@ namespace FcmsPortal.Services
 
             return learningPath?.CourseGradingConfigurations ?? new List<CourseGradingConfiguration>();
         }
-
 
         public List<string> GetCoursesWithoutGradingConfiguration(int learningPathId)
         {
@@ -1692,11 +1690,6 @@ namespace FcmsPortal.Services
 
             return testGrade;
         }
-
-
-
-
-
 
         public int GetGradeCountByType(int learningPathId, string course, GradeType gradeType)
         {
