@@ -25,6 +25,7 @@ namespace FcmsPortalUI.Data
         public DbSet<CourseGrade> CourseGrades { get; set; }
         public DbSet<TestGrade> TestGrades { get; set; }
         public DbSet<DailyAttendanceLogEntry> DailyAttendanceLogEntries { get; set; }
+        public DbSet<ArchivedStudentPayment> ArchivedStudentPayments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
