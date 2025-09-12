@@ -1,9 +1,11 @@
 ﻿using FcmsPortal.Constants;
 using FcmsPortal.Enums;
 using FcmsPortal.Models;
+using FcmsPortalUI;
 using FcmsPortalUI.Data;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 
 namespace FcmsPortal.Services
@@ -1983,6 +1985,61 @@ namespace FcmsPortal.Services
                 .Include(s => s.CourseGrades)
                 .Where(s => s.Person.IsArchived == true)
                 .OrderByDescending(s => s.ArchivedDate)
+                .ToList();
+        }
+
+        public List<string> GetArchivedAcademicYears()
+        {
+            return _context.ArchivedStudentPayments
+                .Select(asp => asp.AcademicYear)
+                .Distinct()
+                .OrderByDescending(year => year)
+                .ToList();
+        }
+
+        public void ArchiveStudentPayments(LearningPath learningPath)
+        {
+            foreach (var student in learningPath.Students)
+            {
+                var paymentReport = LogicMethods.GenerateStudentPaymentReportEntry(student);
+
+                var archivedPayment = new ArchivedStudentPayment
+                {
+                    StudentId = student.Id,
+                    StudentName = paymentReport.StudentFullName,
+                    LearningPathId = learningPath.Id,
+                    LearningPathName = Util.GetLearningPathName(learningPath),
+                    EducationLevel = learningPath.EducationLevel,
+                    ClassLevel = learningPath.ClassLevel,
+                    Semester = learningPath.Semester,
+                    AcademicYear = learningPath.AcademicYear,
+                    TotalFees = paymentReport.TotalFees,
+                    TotalPaid = paymentReport.TotalPaid,
+                    OutstandingBalance = paymentReport.OutstandingBalance,
+                    PaymentCompletionRate = paymentReport.StudentPaymentCompletionRate,
+                    TimelyCompletionRate = paymentReport.StudentTimelyCompletionRate,
+                    PaymentDetailsJson = JsonSerializer.Serialize(paymentReport.PaymentDetails),
+                    ArchivedDate = DateTime.Now
+                };
+
+                _context.ArchivedStudentPayments.Add(archivedPayment);
+            }
+
+            _context.SaveChanges();
+        }
+
+        public List<ArchivedStudentPayment> GetArchivedStudentPayments(
+            string academicYear,
+            EducationLevel educationLevel,
+            ClassLevel classLevel,
+            Semester semester)
+        {
+            return _context.ArchivedStudentPayments
+                .Where(asp => asp.AcademicYear == academicYear &&
+                              asp.EducationLevel == educationLevel &&
+                              asp.ClassLevel == classLevel &&
+                              asp.Semester == semester)
+                .OrderBy(asp => asp.StudentName)
                 .ToList();
         }
         #endregion  

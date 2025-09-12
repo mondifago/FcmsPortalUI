@@ -2,8 +2,10 @@
 @using FcmsPortal.Enums
 @using FcmsPortal.Models
 @using FcmsPortal.Services
+@using FcmsPortal
+@using FcmsPortalUI.Services
 @using System.Text.Json
-@inject SchoolDataService SchoolDataService
+@inject ISchoolDataService SchoolDataService
 
 <div class="container-fluid">
     <div class="row">
@@ -118,7 +120,7 @@
                 <!-- Students Table -->
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="mb-0">Student Payment Records - @GetLearningPathDisplayName()</h5>
+                        <h5 class="mb-0">Student Payment Records</h5>
                     </div>
                     <div class="card-body">
                         @if (archivedStudents.Any())
@@ -188,7 +190,7 @@
                             <strong>Semester:</strong> @selectedStudentForDetails.Semester
                         </div>
                         <div class="col-md-4">
-                            <strong>Learning Path:</strong> 
+                            <strong>Learning Path:</strong> @selectedStudentForDetails.LearningPathName
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -270,15 +272,14 @@
     private bool showSummaryAndTable = false;
     private ArchivedStudentPayment? selectedStudentForDetails;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         LoadAvailableAcademicYears();
     }
 
     private void LoadAvailableAcademicYears()
     {
-        // TODO: Implement logic to get available academic years from archived data
-        //availableAcademicYears = SchoolDataService.GetAvailableAcademicYearsFromArchive();
+        availableAcademicYears = SchoolDataService.GetArchivedAcademicYears();
     }
 
     private void OnFiltersChanged()
@@ -291,8 +292,7 @@
     {
         if (selectedEducationLevel != EducationLevel.None)
         {
-            // TODO: Use existing ClassLevelMapping logic
-            //availableClassLevels = SchoolDataService.GetClassLevelsByEducationLevel(selectedEducationLevel);
+            availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
         }
         else
         {
@@ -326,12 +326,11 @@
 
     private void LoadArchivedStudentPayments()
     {
-        // TODO: Implement logic to retrieve archived student payment records
-        //archivedStudents = SchoolDataService.GetArchivedStudentPayments(
-        //    selectedAcademicYear,
-        //    selectedEducationLevel,
-        //    selectedClassLevel,
-        //    selectedSemester);
+        archivedStudents = SchoolDataService.GetArchivedStudentPayments(
+            selectedAcademicYear,
+            selectedEducationLevel,
+            selectedClassLevel,
+            selectedSemester);
     }
 
     private void CalculateSummaryData()
@@ -359,11 +358,6 @@
         totalOutstanding = 0;
         averagePaymentRate = 0;
         averageTimelyRate = 0;
-    }
-
-    private string GetLearningPathDisplayName()
-    {
-        return $"{selectedEducationLevel} - {selectedClassLevel} ({selectedAcademicYear} {selectedSemester})";
     }
 
     private void ShowPaymentDetails(ArchivedStudentPayment student)

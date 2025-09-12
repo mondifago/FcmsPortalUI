@@ -60,7 +60,7 @@
                     </p>
                 </div>
                 <div class="card-footer">
-                    <button class="btn btn-success" href="/archives/payments">
+                    <button class="btn btn-success" @onclick="() => NavigateToPaymentArchive()">
                         View Student Payments
                     </button>
                 </div>
@@ -86,5 +86,10 @@
     private void NavigateToStudentArchive()
     {
         NavigationManager.NavigateTo("/archive/students");
+    }
+
+    private void NavigateToPaymentArchive()
+    {
+        NavigationManager.NavigateTo("/archives/payments");
     }
 }

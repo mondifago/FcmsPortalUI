@@ -149,6 +149,13 @@ namespace FcmsPortal.Services
         #region Archives
         void ArchiveStudent(Student student);
         List<Student> GetArchivedStudents();
+        List<string> GetArchivedAcademicYears();
+        void ArchiveStudentPayments(LearningPath learningPath);
+        List<ArchivedStudentPayment> GetArchivedStudentPayments(
+            string academicYear,
+            EducationLevel educationLevel,
+            ClassLevel classLevel,
+            Semester semester);
         #endregion
     }
 }

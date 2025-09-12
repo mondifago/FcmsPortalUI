@@ -510,6 +510,7 @@
     private void ApproveLearningPath()
     {
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
+        SchoolDataService.ArchiveStudentPayments(learningPath);
         SchoolDataService.UpdateLearningPath(learningPath);
         SchoolDataService.CreateTemplateFromLearningPath(learningPath);
         StateHasChanged();
