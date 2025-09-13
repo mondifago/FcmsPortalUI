@@ -5,7 +5,6 @@ using FcmsPortalUI;
 using FcmsPortalUI.Data;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 
 namespace FcmsPortal.Services
@@ -1979,8 +1978,8 @@ namespace FcmsPortal.Services
 
         public List<Student> GetArchivedStudents()
         {
-            // Adapt to DbContext: Query for archived students from database
             return _context.Students
+                .AsNoTracking()
                 .Include(s => s.Person)
                 .Include(s => s.CourseGrades)
                 .Where(s => s.Person.IsArchived == true)
@@ -1991,6 +1990,7 @@ namespace FcmsPortal.Services
         public List<string> GetArchivedAcademicYears()
         {
             return _context.ArchivedStudentPayments
+                .AsNoTracking()
                 .Select(asp => asp.AcademicYear)
                 .Distinct()
                 .OrderByDescending(year => year)
@@ -2006,7 +2006,7 @@ namespace FcmsPortal.Services
                 var archivedPayment = new ArchivedStudentPayment
                 {
                     StudentId = student.Id,
-                    StudentName = paymentReport.StudentFullName,
+                    StudentName = Util.GetFullName(student.Person),
                     LearningPathId = learningPath.Id,
                     LearningPathName = Util.GetLearningPathName(learningPath),
                     EducationLevel = learningPath.EducationLevel,
@@ -2018,11 +2018,24 @@ namespace FcmsPortal.Services
                     OutstandingBalance = paymentReport.OutstandingBalance,
                     PaymentCompletionRate = paymentReport.StudentPaymentCompletionRate,
                     TimelyCompletionRate = paymentReport.StudentTimelyCompletionRate,
-                    PaymentDetailsJson = JsonSerializer.Serialize(paymentReport.PaymentDetails),
                     ArchivedDate = DateTime.Now
                 };
 
                 _context.ArchivedStudentPayments.Add(archivedPayment);
+
+                foreach (var paymentDetail in paymentReport.PaymentDetails)
+                {
+                    var archivedDetail = new ArchivedPaymentDetail
+                    {
+                        ArchivedStudentPayment = archivedPayment,
+                        Date = paymentDetail.Date,
+                        Amount = paymentDetail.Amount,
+                        PaymentMethod = Enum.TryParse<PaymentMethod>(paymentDetail.PaymentMethod, out var pm) ? pm : PaymentMethod.Cash,
+                        Reference = paymentDetail.Reference.ToString()
+                    };
+
+                    _context.ArchivedPaymentDetails.Add(archivedDetail);
+                }
             }
 
             _context.SaveChanges();
@@ -2035,11 +2048,22 @@ namespace FcmsPortal.Services
             Semester semester)
         {
             return _context.ArchivedStudentPayments
+                .AsNoTracking()
+                .Include(asp => asp.PaymentDetails)
                 .Where(asp => asp.AcademicYear == academicYear &&
                               asp.EducationLevel == educationLevel &&
                               asp.ClassLevel == classLevel &&
                               asp.Semester == semester)
                 .OrderBy(asp => asp.StudentName)
+                .ToList();
+        }
+
+        public List<ArchivedPaymentDetail> GetArchivedPaymentDetails(int archivedStudentPaymentId)
+        {
+            return _context.ArchivedPaymentDetails
+                .AsNoTracking()
+                .Where(apd => apd.ArchivedStudentPaymentId == archivedStudentPaymentId)
+                .OrderByDescending(apd => apd.Date)
                 .ToList();
         }
         #endregion  

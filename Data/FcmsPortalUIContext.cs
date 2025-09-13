@@ -26,6 +26,7 @@ namespace FcmsPortalUI.Data
         public DbSet<TestGrade> TestGrades { get; set; }
         public DbSet<DailyAttendanceLogEntry> DailyAttendanceLogEntries { get; set; }
         public DbSet<ArchivedStudentPayment> ArchivedStudentPayments { get; set; }
+        public DbSet<ArchivedPaymentDetail> ArchivedPaymentDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -94,6 +95,53 @@ namespace FcmsPortalUI.Data
                 .HasForeignKey(cs => cs.TeacherId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ArchivedPaymentDetail>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Amount)
+                    .HasPrecision(10, 2);
+
+                // Foreign Key Relationship
+                entity.HasOne(e => e.ArchivedStudentPayment)
+                    .WithMany(asp => asp.PaymentDetails)
+                    .HasForeignKey(e => e.ArchivedStudentPaymentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => e.ArchivedStudentPaymentId)
+                    .HasDatabaseName("IX_ArchivedPaymentDetail_ArchivedStudentPaymentId");
+            });
+
+
+            modelBuilder.Entity<ArchivedStudentPayment>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.StudentName)
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                entity.Property(e => e.LearningPathName)
+                    .HasMaxLength(300)
+                    .IsRequired();
+
+                entity.Property(e => e.AcademicYear)
+                    .HasMaxLength(20)
+                    .IsRequired();
+
+                // Indexes for efficient querying
+                entity.HasIndex(e => new { e.AcademicYear, e.EducationLevel, e.ClassLevel, e.Semester })
+                    .HasDatabaseName("IX_ArchivedStudentPayment_LearningPathFilter");
+
+                entity.HasIndex(e => e.StudentId)
+                    .HasDatabaseName("IX_ArchivedStudentPayment_OriginalStudentId");
+
+                entity.HasIndex(e => e.ArchivedDate)
+                    .HasDatabaseName("IX_ArchivedStudentPayment_ArchivedDate");
+            });
+
+
         }
     }
 }

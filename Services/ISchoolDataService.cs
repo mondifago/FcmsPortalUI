@@ -156,6 +156,7 @@ namespace FcmsPortal.Services
             EducationLevel educationLevel,
             ClassLevel classLevel,
             Semester semester);
+        List<ArchivedPaymentDetail> GetArchivedPaymentDetails(int archivedStudentPaymentId);
         #endregion
     }
 }

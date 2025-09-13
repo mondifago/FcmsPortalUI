@@ -174,104 +174,134 @@
 <!-- Payment Details Modal -->
 @if (selectedStudentForDetails != null)
 {
-    <div class="modal show" style="display: block; background-color: rgba(0,0,0,0.5);">
+    <div class="modal fade show" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Payment Details - @selectedStudentForDetails.StudentName</h5>
-                    <button type="button" class="btn-close" @onclick="ClosePaymentDetails"></button>
+                <div class="modal-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fa fa-money-bill-wave me-2"></i>
+                        Payment Details - @selectedStudentForDetails.StudentName
+                    </h4>
+                    <button type="button" class="btn-close btn-close-white" @onclick="ClosePaymentDetails"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <strong>Academic Year:</strong> @selectedStudentForDetails.AcademicYear
+                <div class="modal-body p-0">
+                    <div class="bg-light p-3 border-bottom">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Academic Year</small>
+                                <strong>@selectedStudentForDetails.AcademicYear</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Semester</small>
+                                <strong>@selectedStudentForDetails.Semester</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Learning Path</small>
+                                <strong>@selectedStudentForDetails.LearningPathName</strong>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <strong>Semester:</strong> @selectedStudentForDetails.Semester
-                        </div>
-                        <div class="col-md-4">
-                            <strong>Learning Path:</strong> @selectedStudentForDetails.LearningPathName
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Total Fees</small>
+                                <strong class="text-primary">₦@selectedStudentForDetails.TotalFees.ToString("N0")</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Total Paid</small>
+                                <strong class="text-success">₦@selectedStudentForDetails.TotalPaid.ToString("N0")</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Outstanding</small>
+                                <strong class="text-danger">₦@selectedStudentForDetails.OutstandingBalance.ToString("N0")</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Payment Rate</small>
+                                <strong class="text-info">@selectedStudentForDetails.PaymentCompletionRate.ToString("F1")%</strong>
+                            </div>
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-3">
-                            <strong>Total Fees:</strong> ₦@selectedStudentForDetails.TotalFees.ToString("N0")
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Total Paid:</strong> ₦@selectedStudentForDetails.TotalPaid.ToString("N0")
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Outstanding:</strong> ₦@selectedStudentForDetails.OutstandingBalance.ToString("N0")
-                        </div>
-                        <div class="col-md-3">
-                            <strong>Payment Rate:</strong> @selectedStudentForDetails.PaymentCompletionRate.ToString("F1")%
-                        </div>
-                    </div>
-                    <hr />
-                    <h6>Payment Instances</h6>
-                    @if (!string.IsNullOrEmpty(selectedStudentForDetails.PaymentDetailsJson))
+
+                    @if (selectedStudentPaymentDetails.Any())
                     {
-                        <div class="table-responsive">
-                            <table class="table table-sm">
+                        <div class="table-container">
+                            <table class="table table-sm attendance-table mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Amount</th>
-                                        <th>Method</th>
-                                        <th>Reference</th>
+                                        <th class="student-name">Date</th>
+                                        <th class="summary-col">Amount</th>
+                                        <th class="summary-col">Method</th>
+                                        <th class="summary-col">Reference</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var payment in GetPaymentDetails(selectedStudentForDetails.PaymentDetailsJson).OrderByDescending(p => p.Date))
+                                    @foreach (var payment in selectedStudentPaymentDetails.OrderByDescending(p => p.Date))
                                     {
                                         <tr>
-                                            <td>@payment.Date.ToString("dd/MM/yyyy")</td>
-                                            <td>₦@payment.Amount.ToString("N0")</td>
-                                            <td>@payment.PaymentMethod</td>
-                                            <td>@payment.Reference</td>
+                                            <td class="student-name">@payment.Date.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-center">₦@payment.Amount.ToString("N0")</td>
+                                            <td class="text-center">@payment.PaymentMethod</td>
+                                            <td class="text-center">@payment.Reference</td>
                                         </tr>
                                     }
                                 </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th class="student-name">Total</th>
+                                        <th class="summary-data text-center">₦@selectedStudentPaymentDetails.Sum(p => p.Amount).ToString("N0")</th>
+                                        <th class="summary-data text-center">@selectedStudentPaymentDetails.Count() payments</th>
+                                        <th class="summary-data text-center">-</th>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     }
                     else
                     {
-                        <p class="text-muted">No payment records found.</p>
+                        <div class="text-center py-5">
+                            <i class="fa fa-money-bill-wave fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Payment Records</h5>
+                            <p class="text-muted">No payment instances found for this student.</p>
+                        </div>
                     }
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="ClosePaymentDetails">Close</button>
+                <div class="modal-footer bg-light">
+                    <div class="row w-100">
+                        <div class="col-md-8">
+                            <small class="text-muted">
+                                <i class="fa fa-check text-success me-1"></i> Paid
+                                <span class="ms-3">
+                                    <i class="fa fa-clock text-warning me-1"></i> Outstanding: ₦@selectedStudentForDetails.OutstandingBalance.ToString("N0")
+                                </span>
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button type="button" class="btn btn-secondary" @onclick="ClosePaymentDetails">Close</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="modal-backdrop fade show"></div>
 }
 
 @code {
-    // Filter Variables
-    private string selectedAcademicYear = string.Empty;
     private EducationLevel selectedEducationLevel = EducationLevel.None;
     private ClassLevel selectedClassLevel = ClassLevel.None;
     private Semester selectedSemester = Semester.First;
-
-    // Data Variables
+    private ArchivedStudentPayment? selectedStudentForDetails;
     private List<string> availableAcademicYears = new();
     private List<ClassLevel> availableClassLevels = new();
     private List<ArchivedStudentPayment> archivedStudents = new();
-
-    // Summary Variables
+    private List<ArchivedPaymentDetail> selectedStudentPaymentDetails = new();
     private int totalStudents = 0;
     private double totalFees = 0;
     private double totalPaid = 0;
     private double totalOutstanding = 0;
     private double averagePaymentRate = 0;
     private double averageTimelyRate = 0;
-
-    // UI State Variables
     private bool showSummaryAndTable = false;
-    private ArchivedStudentPayment? selectedStudentForDetails;
-
+    private string selectedAcademicYear = string.Empty;
+  
     protected override void OnInitialized()
     {
         LoadAvailableAcademicYears();
@@ -363,25 +393,12 @@
     private void ShowPaymentDetails(ArchivedStudentPayment student)
     {
         selectedStudentForDetails = student;
+        selectedStudentPaymentDetails = SchoolDataService.GetArchivedPaymentDetails(student.Id);
     }
 
     private void ClosePaymentDetails()
     {
         selectedStudentForDetails = null;
-    }
-
-    private List<ArchivedPaymentDetail> GetPaymentDetails(string paymentDetailsJson)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(paymentDetailsJson))
-                return new List<ArchivedPaymentDetail>();
-
-            return JsonSerializer.Deserialize<List<ArchivedPaymentDetail>>(paymentDetailsJson) ?? new List<ArchivedPaymentDetail>();
-        }
-        catch
-        {
-            return new List<ArchivedPaymentDetail>();
-        }
+        selectedStudentPaymentDetails.Clear();
     }
 }
