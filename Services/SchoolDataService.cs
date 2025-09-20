@@ -345,6 +345,7 @@ namespace FcmsPortal.Services
                 existingStudent.Person.EducationLevel = student.Person.EducationLevel;
                 existingStudent.Person.ClassLevel = student.Person.ClassLevel;
                 existingStudent.Person.Sex = student.Person.Sex;
+                existingStudent.Person.SchoolFees = student.Person.SchoolFees;
                 existingStudent.Person.StateOfOrigin = student.Person.StateOfOrigin;
                 existingStudent.Person.LgaOfOrigin = student.Person.LgaOfOrigin;
                 existingStudent.Person.DateOfEnrollment = student.Person.DateOfEnrollment;
@@ -413,6 +414,28 @@ namespace FcmsPortal.Services
             _context.LearningPaths.Add(learningPath);
             _context.SaveChanges();
             return learningPath;
+        }
+
+        public void SetStudentSchoolFees(Student student, double feeAmount)
+        {
+            if (student?.Person == null)
+                throw new ArgumentNullException(nameof(student), "Student and Person cannot be null.");
+
+            if (student.Person.SchoolFees == null)
+            {
+                student.Person.SchoolFees = new SchoolFees
+                {
+                    PersonId = student.Person.Id,
+                    TotalAmount = feeAmount,
+                    Payments = new List<Payment>()
+                };
+                _context.SchoolFees.Add(student.Person.SchoolFees);
+            }
+            else
+            {
+                student.Person.SchoolFees.TotalAmount = feeAmount;
+            }
+            _context.SaveChanges();
         }
 
         public LearningPath? GetLearningPathById(int id)
@@ -533,21 +556,8 @@ namespace FcmsPortal.Services
             {
                 existingLearningPath.Students.Add(student);
 
-                if (student.Person.SchoolFees == null)
-                {
-                    student.Person.SchoolFees = new SchoolFees
-                    {
-                        TotalAmount = existingLearningPath.FeePerSemester,
-                        Payments = new List<Payment>()
-                    };
-
-                    _context.SchoolFees.Add(student.Person.SchoolFees);
-                }
-                else
-                {
-                    student.Person.SchoolFees.TotalAmount = existingLearningPath.FeePerSemester;
-                }
-
+                SetStudentSchoolFees(student, existingLearningPath.FeePerSemester);
+                student.Person.IsActive = true;
                 if (student.LearningPathId == 0)
                 {
                     student.LearningPathId = existingLearningPath.Id;
@@ -592,21 +602,8 @@ namespace FcmsPortal.Services
                 {
                     existingLearningPath.Students.Add(student);
 
-                    if (student.Person.SchoolFees == null)
-                    {
-                        student.Person.SchoolFees = new SchoolFees
-                        {
-                            TotalAmount = existingLearningPath.FeePerSemester,
-                            Payments = new List<Payment>()
-                        };
-
-                        _context.SchoolFees.Add(student.Person.SchoolFees);
-                    }
-                    else
-                    {
-                        student.Person.SchoolFees.TotalAmount = existingLearningPath.FeePerSemester;
-                    }
-
+                    SetStudentSchoolFees(student, existingLearningPath.FeePerSemester);
+                    student.Person.IsActive = true;
                     if (student.LearningPathId == 0)
                     {
                         student.LearningPathId = existingLearningPath.Id;
@@ -628,6 +625,8 @@ namespace FcmsPortal.Services
                 _context.SaveChanges();
             }
         }
+
+
         #endregion
 
         #region Learning Path Templates

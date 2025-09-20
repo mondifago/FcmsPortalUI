@@ -163,7 +163,10 @@
     private void HandleValidSubmit(LearningPath submittedLearningPath)
     {
         SchoolDataService.AddLearningPath(submittedLearningPath);
-        LogicMethods.SetStudentFeesForLearningPath(submittedLearningPath);
+        foreach (var student in submittedLearningPath.Students)
+        {
+            SchoolDataService.SetStudentSchoolFees(student, submittedLearningPath.FeePerSemester);
+        }
         NavigateToList();
     }
 

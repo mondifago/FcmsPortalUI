@@ -31,10 +31,15 @@ else
     public int Id { get; set; }
 
     private LearningPath? learningPath;
+    private List<Student> originalStudents = new List<Student>();
 
     protected override void OnInitialized()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id);
+
+        originalStudents = learningPath.Students != null
+         ? learningPath.Students.Select(s => s).ToList()
+         : new List<Student>();
 
         if (learningPath == null)
         {
@@ -66,19 +71,28 @@ else
 
     private void HandleValidSubmit(LearningPath submittedLearningPath)
     {
-        var previousStudents = new List<Student>(learningPath?.Students ?? new List<Student>());
-        foreach (var student in previousStudents)
+        var removedStudents = originalStudents
+      .Where(s => !submittedLearningPath.Students.Any(ns => ns.Id == s.Id))
+      .ToList();
+
+        foreach (var student in removedStudents)
         {
-            if (!submittedLearningPath.Students.Contains(student))
-            {
-                if (student.Person.SchoolFees != null)
-                {
-                    student.Person.SchoolFees.TotalAmount = 0;
-                }
-            }
+            SchoolDataService.SetStudentSchoolFees(student, 0);
+            student.Person.IsActive = false;
+            SchoolDataService.UpdateStudent(student);
         }
 
-        LogicMethods.SetStudentFeesForLearningPath(submittedLearningPath);
+        var newlyAddedStudents = submittedLearningPath.Students
+            .Where(s => !(learningPath?.Students ?? new List<Student>()).Any(os => os.Id == s.Id))
+            .ToList();
+
+        foreach (var student in newlyAddedStudents)
+        {
+            SchoolDataService.SetStudentSchoolFees(student, submittedLearningPath.FeePerSemester);
+            student.Person.IsActive = true;
+            SchoolDataService.UpdateStudent(student);
+        }
+
         SchoolDataService.UpdateLearningPath(submittedLearningPath);
         NavigateToList();
     }
