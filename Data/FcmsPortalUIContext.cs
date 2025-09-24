@@ -27,6 +27,7 @@ namespace FcmsPortalUI.Data
         public DbSet<DailyAttendanceLogEntry> DailyAttendanceLogEntries { get; set; }
         public DbSet<ArchivedStudentPayment> ArchivedStudentPayments { get; set; }
         public DbSet<ArchivedPaymentDetail> ArchivedPaymentDetails { get; set; }
+        public DbSet<AttendanceArchive> AttendanceArchives { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
