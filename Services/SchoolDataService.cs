@@ -2014,7 +2014,7 @@ namespace FcmsPortal.Services
                 .ToList();
         }
 
-        public List<string> GetArchivedAcademicYears()
+        public List<string> GetArchivedPaymentsAcademicYears()
         {
             return _context.ArchivedStudentPayments
                 .AsNoTracking()
@@ -2091,6 +2091,81 @@ namespace FcmsPortal.Services
                 .AsNoTracking()
                 .Where(apd => apd.ArchivedStudentPaymentId == archivedStudentPaymentId)
                 .OrderByDescending(apd => apd.Date)
+                .ToList();
+        }
+
+        public void ArchiveStudentAttendance(LearningPath learningPath)
+        {
+            var attendanceLogs = GetDailyAttendanceForLearningPath(learningPath.Id);
+
+            foreach (var student in learningPath.Students)
+            {
+                foreach (var log in attendanceLogs)
+                {
+                    var attendanceArchive = new AttendanceArchive
+                    {
+                        StudentId = student.Id,
+                        StudentName = Util.GetFullName(student.Person),
+                        LearningPathId = learningPath.Id,
+                        LearningPathName = Util.GetLearningPathName(learningPath),
+                        Date = log.TimeStamp,
+                        IsPresent = log.PresentStudents.Contains(student),
+                        AcademicYearStart = learningPath.AcademicYearStart,
+                        Semester = learningPath.Semester,
+                        EducationLevel = learningPath.EducationLevel,
+                        ClassLevel = learningPath.ClassLevel,
+                        ArchivedDate = DateTime.Now
+                    };
+
+                    _context.AttendanceArchives.Add(attendanceArchive);
+                }
+            }
+            _context.SaveChanges();
+        }
+
+        public List<AttendanceArchive> GetArchivedStudentAttendance(
+            string academicYear,
+            EducationLevel educationLevel,
+            ClassLevel classLevel,
+            Semester semester)
+        {
+            return _context.AttendanceArchives
+                .AsNoTracking()
+                .Where(aa => aa.AcademicYearStart.Year.ToString() == academicYear &&
+                             aa.EducationLevel == educationLevel &&
+                             aa.ClassLevel == classLevel &&
+                             aa.Semester == semester)
+                .OrderBy(aa => aa.StudentName)
+                .ToList();
+        }
+
+        public List<AttendanceArchive> GetArchivedStudentAttendanceDetails(int studentId, int learningPathId)
+        {
+            return _context.AttendanceArchives
+                .AsNoTracking()
+                .Where(aa => aa.StudentId == studentId && aa.LearningPathId == learningPathId)
+                .OrderBy(aa => aa.Date)
+                .ToList();
+        }
+
+        public List<string> GetArchivedAttendanceAcademicYears()
+        {
+            return _context.AttendanceArchives
+                .AsNoTracking()
+                .Select(aa => aa.AcademicYearStart.Year.ToString())
+                .Distinct()
+                .OrderByDescending(year => year)
+                .ToList();
+        }
+
+        public List<DailyAttendanceLogEntry> GetDailyAttendanceForLearningPath(int learningPathId)
+        {
+            return _context.DailyAttendanceLogEntries
+                .AsNoTracking()
+                .Include(log => log.PresentStudents)
+                .Include(log => log.AbsentStudents)
+                .Where(log => log.LearningPathId == learningPathId)
+                .OrderBy(log => log.TimeStamp)
                 .ToList();
         }
         #endregion  

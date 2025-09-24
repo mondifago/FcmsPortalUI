@@ -151,7 +151,7 @@ namespace FcmsPortal.Services
         #region Archives
         void ArchiveStudent(Student student);
         List<Student> GetArchivedStudents();
-        List<string> GetArchivedAcademicYears();
+        List<string> GetArchivedPaymentsAcademicYears();
         void ArchiveStudentPayments(LearningPath learningPath);
         List<ArchivedStudentPayment> GetArchivedStudentPayments(
             string academicYear,
@@ -159,6 +159,15 @@ namespace FcmsPortal.Services
             ClassLevel classLevel,
             Semester semester);
         List<ArchivedPaymentDetail> GetArchivedPaymentDetails(int archivedStudentPaymentId);
+        void ArchiveStudentAttendance(LearningPath learningPath);
+        List<AttendanceArchive> GetArchivedStudentAttendance(
+           string academicYear,
+           EducationLevel educationLevel,
+           ClassLevel classLevel,
+           Semester semester);
+        List<AttendanceArchive> GetArchivedStudentAttendanceDetails(int studentId, int learningPathId);
+        List<string> GetArchivedAttendanceAcademicYears();
+        List<DailyAttendanceLogEntry> GetDailyAttendanceForLearningPath(int learningPathId);
         #endregion
     }
 }
