@@ -438,6 +438,34 @@ namespace FcmsPortal.Services
             _context.SaveChanges();
         }
 
+        public void RemoveStudentFromLearningPath(LearningPath learningPath, Student student)
+        {
+            if (learningPath == null)
+                throw new ArgumentNullException(nameof(learningPath));
+            if (student == null)
+                throw new ArgumentNullException(nameof(student));
+
+            var existingLearningPath = _context.LearningPaths
+                .Include(lp => lp.Students)
+                .Include(lp => lp.StudentsWithAccess)
+                .FirstOrDefault(lp => lp.Id == learningPath.Id);
+
+            if (existingLearningPath == null)
+                throw new ArgumentException("Learning path not found in database.");
+
+            if (!existingLearningPath.Students.Contains(student))
+                return;
+
+            existingLearningPath.Students.Remove(student);
+            existingLearningPath.StudentsWithAccess.Remove(student);
+
+            SetStudentSchoolFees(student, 0);
+            student.Person.IsActive = false;
+            UpdateStudent(student);
+
+            _context.SaveChanges();
+        }
+
         public LearningPath? GetLearningPathById(int id)
         {
             return _context.LearningPaths

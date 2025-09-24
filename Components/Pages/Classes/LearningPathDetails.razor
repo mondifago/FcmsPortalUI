@@ -511,6 +511,12 @@
     {
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
         SchoolDataService.ArchiveStudentPayments(learningPath);
+
+        foreach (var student in learningPath.Students.ToList())
+        {
+            SchoolDataService.RemoveStudentFromLearningPath(learningPath, student);
+        }
+
         SchoolDataService.UpdateLearningPath(learningPath);
         SchoolDataService.CreateTemplateFromLearningPath(learningPath);
         StateHasChanged();

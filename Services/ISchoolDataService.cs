@@ -41,6 +41,7 @@ namespace FcmsPortal.Services
         #region Learning Paths
         LearningPath AddLearningPath(LearningPath learningPath);
         void SetStudentSchoolFees(Student student, double feeAmount);
+        void RemoveStudentFromLearningPath(LearningPath learningPath, Student student);
         IEnumerable<LearningPath> GetAllLearningPaths();
         LearningPath? GetLearningPathById(int id);
         LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId);
