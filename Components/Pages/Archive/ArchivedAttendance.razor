@@ -1,0 +1,410 @@
+﻿@page "/archive/attendance"
+@inject ISchoolDataService SchoolDataService
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+@using FcmsPortal
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h3>Attendance Archive</h3>
+            <a href="/archive" class="btn btn-secondary">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Filter by Learning Path</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Academic Year</label>
+                    <select @bind="selectedAcademicYear" @bind:after="OnFiltersChanged" class="form-select">
+                        <option value="">Select Academic Year</option>
+                        @foreach (var year in availableAcademicYears)
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Education Level</label>
+                    <select @bind="selectedEducationLevel" @bind:after="OnFiltersChanged" class="form-select">
+                        <option value="@EducationLevel.None">Select Education Level</option>
+                        @foreach (var level in Enum.GetValues<EducationLevel>().Where(e => e != EducationLevel.None))
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Class Level</label>
+                    <select @bind="selectedClassLevel" @bind:after="OnFiltersChanged" class="form-select" disabled="@(selectedEducationLevel == EducationLevel.None)">
+                        <option value="">Select Class Level</option>
+                        @foreach (var level in availableClassLevels)
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Semester</label>
+                    <select @bind="selectedSemester" @bind:after="OnFiltersChanged" class="form-select">
+                        <option value="">Select Semester</option>
+                        @foreach (var semester in Enum.GetValues<Semester>())
+                        {
+                            <option value="@semester">@semester</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (showSummaryAndTable)
+    {
+        <!-- Summary Headers -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Total Students</h5>
+                        <h2 class="text-primary">@totalStudents</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Semester Start</h5>
+                        <h6 class="text-success">@semesterStartDate.ToString("MMM d, yyyy")</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Semester End</h5>
+                        <h6 class="text-warning">@semesterEndDate.ToString("MMM d, yyyy")</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Attendance Days</h5>
+                        <h2 class="text-info">@totalAttendanceDays</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Student Attendance Summary</h5>
+            </div>
+            <div class="card-body">
+                @if (studentAttendanceSummary.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Days Present</th>
+                                    <th>Days Absent</th>
+                                    <th>Attendance %</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var student in studentAttendanceSummary)
+                                {
+                                    <tr>
+                                        <td>@student.StudentName</td>
+                                        <td><span class="badge bg-success">@student.DaysPresent</span></td>
+                                        <td><span class="badge bg-danger">@student.DaysAbsent</span></td>
+                                        <td>
+                                            <span class="badge @GetAttendanceRateBadgeClass(student.AttendancePercentage)">
+                                                @student.AttendancePercentage.ToString("F1")%
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-info" @onclick="() => ShowStudentDetails(student)">
+                                                <i class="fa fa-eye"></i> Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No attendance records found for the selected criteria.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Student Details Modal -->
+    @if (showStudentDetailsModal && selectedStudentForDetails != null)
+    {
+        <div class="modal show" style="display: block;">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Attendance Details - @selectedStudentForDetails.StudentName</h5>
+                        <button type="button" class="btn-close" @onclick="CloseStudentDetailsModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6"><strong>Learning Path:</strong> @selectedStudentForDetails.LearningPathName</div>
+                            <div class="col-md-6"><strong>Academic Year:</strong> @selectedStudentForDetails.AcademicYear</div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white text-center">
+                                    <div class="card-body">
+                                        <h6>Days Present</h6>
+                                        <h4>@selectedStudentForDetails.DaysPresent</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-danger text-white text-center">
+                                    <div class="card-body">
+                                        <h6>Days Absent</h6>
+                                        <h4>@selectedStudentForDetails.DaysAbsent</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white text-center">
+                                    <div class="card-body">
+                                        <h6>Total Days</h6>
+                                        <h4>@(selectedStudentForDetails.DaysPresent + selectedStudentForDetails.DaysAbsent)</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white text-center">
+                                    <div class="card-body">
+                                        <h6>Attendance Rate</h6>
+                                        <h4>@selectedStudentForDetails.AttendancePercentage.ToString("F1")%</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6>Daily Attendance Record</h6>
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm table-striped">
+                                <thead class="sticky-top">
+                                    <tr><th>Date</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var attendance in selectedStudentAttendanceDetails.OrderBy(a => a.Date))
+                                    {
+                                        <tr>
+                                            <td>@attendance.Date.ToString("MMM d, yyyy")</td>
+                                            <td>
+                                                @if (attendance.IsPresent)
+                                                {
+                                                    <span class="badge bg-success">Present</span>
+                                                }
+                                                else
+                                                {
+
+                                                    <span class="badge bg-danger">Absent</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseStudentDetailsModal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+</div>
+
+@code {
+    private EducationLevel selectedEducationLevel = EducationLevel.None;
+    private ClassLevel selectedClassLevel = ClassLevel.None;
+    private Semester selectedSemester = Semester.First;
+    private string selectedAcademicYear = string.Empty;
+    private bool showStudentDetailsModal = false;
+    private StudentAttendanceSummary? selectedStudentForDetails;
+    private List<string> availableAcademicYears = new();
+    private List<ClassLevel> availableClassLevels = new();
+    private List<StudentAttendanceSummary> studentAttendanceSummary = new();
+    private List<AttendanceArchive> selectedStudentAttendanceDetails = new();
+    private int totalStudents = 0;
+    private DateTime semesterStartDate = DateTime.MinValue;
+    private DateTime semesterEndDate = DateTime.MinValue;
+    private int totalAttendanceDays = 0;
+    private bool showSummaryAndTable = false;
+
+    private List<AttendanceArchive> cachedAttendanceRecords = new();
+
+    protected override void OnInitialized()
+    {
+        LoadAvailableAcademicYears();
+    }
+
+    private void LoadAvailableAcademicYears()
+    {
+        availableAcademicYears = SchoolDataService.GetArchivedAttendanceAcademicYears();
+    }
+
+    private void OnFiltersChanged()
+    {
+        if (selectedEducationLevel == EducationLevel.None)
+        {
+            selectedClassLevel = ClassLevel.None;
+        }
+        UpdateAvailableClassLevels();
+        LoadAttendanceData();
+    }
+
+    private void UpdateAvailableClassLevels()
+    {
+        if (selectedEducationLevel != EducationLevel.None)
+        {
+            availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
+        }
+        else
+        {
+            availableClassLevels.Clear();
+            selectedClassLevel = ClassLevel.None;
+        }
+    }
+
+    private void LoadAttendanceData()
+    {
+        if (IsValidLearningPathSelected())
+        {
+            cachedAttendanceRecords = SchoolDataService.GetArchivedStudentAttendance(
+                selectedAcademicYear,
+                selectedEducationLevel,
+                selectedClassLevel,
+                selectedSemester);
+
+            LoadArchivedStudentAttendance();
+            CalculateAttendanceSummary();
+            LoadSemesterDates();
+            showSummaryAndTable = true;
+        }
+        else
+        {
+            showSummaryAndTable = false;
+            studentAttendanceSummary.Clear();
+            ClearSummaryData();
+        }
+    }
+
+    private bool IsValidLearningPathSelected()
+    {
+        return !string.IsNullOrEmpty(selectedAcademicYear) &&
+               selectedEducationLevel != EducationLevel.None &&
+               selectedClassLevel != ClassLevel.None;
+    }
+
+    private void LoadArchivedStudentAttendance()
+    {
+        studentAttendanceSummary = cachedAttendanceRecords
+            .GroupBy(aa => new { aa.StudentId, aa.StudentName, aa.LearningPathName, aa.AcademicYear, aa.LearningPathId })
+            .Select(g => new StudentAttendanceSummary
+            {
+                StudentId = g.Key.StudentId,
+                StudentName = g.Key.StudentName,
+                LearningPathName = g.Key.LearningPathName,
+                AcademicYear = g.Key.AcademicYear,
+                LearningPathId = g.Key.LearningPathId,
+                DaysPresent = g.Count(a => a.IsPresent),
+                DaysAbsent = g.Count(a => !a.IsPresent),
+                AttendancePercentage = g.Any() ? (double)g.Count(a => a.IsPresent) / g.Count() * 100 : 0
+            })
+            .OrderBy(s => s.StudentName)
+            .ToList();
+    }
+
+    private void CalculateAttendanceSummary()
+    {
+        totalStudents = studentAttendanceSummary.Count;
+
+        if (studentAttendanceSummary.Any())
+        {
+            totalAttendanceDays = studentAttendanceSummary.Max(s => s.DaysPresent + s.DaysAbsent);
+        }
+    }
+
+    private void LoadSemesterDates()
+    {
+        if (cachedAttendanceRecords?.Any() == true)
+        {
+            semesterStartDate = cachedAttendanceRecords.Min(aa => aa.Date);
+            semesterEndDate = cachedAttendanceRecords.Max(aa => aa.Date);
+        }
+    }
+
+    private void ClearSummaryData()
+    {
+        totalStudents = 0;
+        semesterStartDate = DateTime.MinValue;
+        semesterEndDate = DateTime.MinValue;
+        totalAttendanceDays = 0;
+    }
+
+    private void ShowStudentDetails(StudentAttendanceSummary student)
+    {
+        selectedStudentForDetails = student;
+        selectedStudentAttendanceDetails = SchoolDataService.GetArchivedStudentAttendanceDetails(
+            student.StudentId,
+            student.LearningPathId);
+        showStudentDetailsModal = true;
+    }
+
+    private void CloseStudentDetailsModal()
+    {
+        showStudentDetailsModal = false;
+        selectedStudentForDetails = null;
+        selectedStudentAttendanceDetails.Clear();
+    }
+
+    private string GetAttendanceRateBadgeClass(double percentage)
+    {
+        if (percentage >= 95) return "bg-success";
+        if (percentage >= 85) return "bg-warning";
+        return "bg-danger";
+    }
+
+    public class StudentAttendanceSummary
+    {
+        public int StudentId { get; set; }
+        public string StudentName { get; set; } = string.Empty;
+        public string LearningPathName { get; set; } = string.Empty;
+        public string AcademicYear { get; set; } = string.Empty;
+        public int LearningPathId { get; set; }
+        public int DaysPresent { get; set; }
+        public int DaysAbsent { get; set; }
+        public double AttendancePercentage { get; set; }
+    }
+}

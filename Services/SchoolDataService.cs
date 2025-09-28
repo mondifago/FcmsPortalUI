@@ -2109,8 +2109,8 @@ namespace FcmsPortal.Services
                         LearningPathId = learningPath.Id,
                         LearningPathName = Util.GetLearningPathName(learningPath),
                         Date = log.TimeStamp,
-                        IsPresent = log.PresentStudents.Contains(student),
-                        AcademicYearStart = learningPath.AcademicYearStart,
+                        IsPresent = log.PresentStudents.Any(s => s.Id == student.Id),
+                        AcademicYear = learningPath.AcademicYear,
                         Semester = learningPath.Semester,
                         EducationLevel = learningPath.EducationLevel,
                         ClassLevel = learningPath.ClassLevel,
@@ -2120,6 +2120,7 @@ namespace FcmsPortal.Services
                     _context.AttendanceArchives.Add(attendanceArchive);
                 }
             }
+
             _context.SaveChanges();
         }
 
@@ -2131,10 +2132,11 @@ namespace FcmsPortal.Services
         {
             return _context.AttendanceArchives
                 .AsNoTracking()
-                .Where(aa => aa.AcademicYearStart.Year.ToString() == academicYear &&
-                             aa.EducationLevel == educationLevel &&
-                             aa.ClassLevel == classLevel &&
-                             aa.Semester == semester)
+                .Where(aa =>
+                    aa.AcademicYear == academicYear &&
+                    aa.EducationLevel == educationLevel &&
+                    aa.ClassLevel == classLevel &&
+                    aa.Semester == semester)
                 .OrderBy(aa => aa.StudentName)
                 .ToList();
         }
@@ -2152,7 +2154,7 @@ namespace FcmsPortal.Services
         {
             return _context.AttendanceArchives
                 .AsNoTracking()
-                .Select(aa => aa.AcademicYearStart.Year.ToString())
+                .Select(aa => aa.AcademicYear)
                 .Distinct()
                 .OrderByDescending(year => year)
                 .ToList();
@@ -2168,6 +2170,7 @@ namespace FcmsPortal.Services
                 .OrderBy(log => log.TimeStamp)
                 .ToList();
         }
+
         #endregion  
     }
 }
