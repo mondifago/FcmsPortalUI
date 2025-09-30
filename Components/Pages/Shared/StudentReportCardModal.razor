@@ -13,6 +13,10 @@
             <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="fa fa-file-alt"></i> Student Report Card
+                    @if (IsFinalized)
+                    {
+                        <span class="badge bg-danger ms-2">Finalized</span>
+                    }
                 </h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
@@ -175,7 +179,7 @@
                         <div class="card mb-4">
                             <div class="card-body">
                                 <h6>Class Teacher's Remarks:</h6>
-                                @if (reportCardIsFinalized)
+                                @if (IsFinalized)
                                 {
                                     <p class="ps-3">@TeacherRemarks</p>
                                 }
@@ -191,7 +195,7 @@
                                 }
 
                                 <h6>Principal's Remarks:</h6>
-                                @if (reportCardIsFinalized)
+                                @if (IsFinalized)
                                 {
                                     <p class="ps-3">@PrincipalRemarks</p>
                                 }
@@ -267,13 +271,12 @@
     [Parameter] public EventCallback<string> TeacherRemarksChanged { get; set; }
     [Parameter] public EventCallback<string> PrincipalRemarksChanged { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool IsFinalized { get; set; }
 
     private School? school;
     private Guardian? guardian;
     private bool isTeacher = false; 
     private bool isPrincipal = true; 
-    private bool reportCardIsFinalized =>
-    SchoolDataService.GetStudentReportCard(Student?.Id ?? 0, LearningPath?.Id ?? 0)?.IsFinalized == true;
 
     protected override void OnInitialized()
     {
@@ -311,9 +314,8 @@
                 reportCard.PresentDays = attendanceDetails.PresentDays;
                 reportCard.TotalDays = attendanceDetails.TotalDays;
 
-                //SchoolDataService.SaveStudentReportCard(reportCard);
+                var saved = SchoolDataService.SaveStudentReportCard(reportCard);
             }
-
             guardian = SchoolDataService.GetGuardianByStudentId(Student.Id);
         }
     }

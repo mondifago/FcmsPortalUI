@@ -1903,13 +1903,13 @@ namespace FcmsPortal.Services
                 .ToList();
         }
 
-        public async Task<StudentReportCard> SaveStudentReportCardAsync(StudentReportCard reportCard)
+        public StudentReportCard SaveStudentReportCard(StudentReportCard reportCard)
         {
             var existingReportCard = GetStudentReportCard(reportCard.StudentId, reportCard.LearningPathId);
 
-            var student = await _context.Students
+            var student = _context.Students
                 .Include(s => s.ReportCards)
-                .FirstOrDefaultAsync(s => s.Id == reportCard.StudentId);
+                .FirstOrDefault(s => s.Id == reportCard.StudentId);
 
             if (existingReportCard != null)
             {
@@ -1929,21 +1929,25 @@ namespace FcmsPortal.Services
                 existingReportCard.FinalizedByPrincipalId = reportCard.FinalizedByPrincipalId;
 
                 _context.StudentReportCards.Update(existingReportCard);
+
                 if (student != null && !student.ReportCards.Any(rc => rc.Id == existingReportCard.Id))
                 {
                     student.ReportCards.Add(existingReportCard);
                 }
-                await _context.SaveChangesAsync();
+
+                _context.SaveChanges();
                 return existingReportCard;
             }
             else
             {
                 _context.StudentReportCards.Add(reportCard);
+
                 if (student != null)
                 {
                     student.ReportCards.Add(reportCard);
                 }
-                await _context.SaveChangesAsync();
+
+                _context.SaveChanges();
                 return reportCard;
             }
         }

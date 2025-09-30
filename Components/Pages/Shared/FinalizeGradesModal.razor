@@ -117,10 +117,12 @@
                 <button type="button" class="btn btn-secondary" @onclick="Close">
                     <i class="fa fa-times"></i> Close
                 </button>
-
-                <button type="button" class="btn btn-primary" @onclick="() => showFinalizeConfirm = true">
-                    <i class="fa fa-check-circle"></i> Finalize All Grades
-                </button>
+                @if (!isGradesFinalized)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="() => showFinalizeConfirm = true">
+                        <i class="fa fa-check-circle"></i> Finalize All Grades
+                    </button>
+                }
             </div>
         </div>
     </div>
@@ -163,7 +165,8 @@
                         PrincipalRemarks="@(principalRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
                         TeacherRemarksChanged="@((remarks) => UpdateTeacherRemarks(selectedStudentForReport?.Id ?? 0, remarks))"
                         PrincipalRemarksChanged="@((remarks) => UpdatePrincipalRemarks(selectedStudentForReport?.Id ?? 0, remarks))"
-                        OnClose="() => showReportCardModal = false" />
+                        OnClose="() => showReportCardModal = false"
+                        IsFinalized="isGradesFinalized" />
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
@@ -193,16 +196,16 @@
         showFinalizeConfirm = false;
     }
 
-    private async Task FinalizeAllGrades()
+    private void FinalizeAllGrades()
     {
         showFinalizeConfirm = false;
+        //SchoolDataService.SaveFinalizedGrades(LearningPath);
         var reportCards = SchoolDataService.GetStudentReportCardsForLearningPath(LearningPath.Id);
-
         foreach (var reportCard in reportCards)
         {
             reportCard.IsFinalized = true;
             reportCard.DateFinalized = DateTime.Now;
-            await SchoolDataService.SaveStudentReportCardAsync(reportCard);
+            SchoolDataService.SaveStudentReportCard(reportCard);
         }
 
         isGradesFinalized = true;
