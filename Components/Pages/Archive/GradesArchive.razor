@@ -1,0 +1,217 @@
+@page "/archive/grades"
+@using FcmsPortal.Enums
+@using FcmsPortal.Models
+@using FcmsPortal.Services
+@using FcmsPortal
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h3 class="text-info"><i class="fa fa-chart-line me-2"></i>Grades Archive</h3>
+            <a href="/archive" class="btn btn-secondary">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Filter by Learning Path</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Academic Year</label>
+                    <select @bind="selectedAcademicYear" @bind:after="OnFiltersChanged" class="form-select">
+                        <option value="">Select Academic Year</option>
+                        @foreach (var year in availableAcademicYears)
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Education Level</label>
+                    <select @bind="selectedEducationLevel" @bind:after="OnFiltersChanged" class="form-select">
+                        <option value="@EducationLevel.None">Select Education Level</option>
+                        @foreach (var level in Enum.GetValues<EducationLevel>().Where(e => e != EducationLevel.None))
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Class Level</label>
+                    <select @bind="selectedClassLevel" @bind:after="OnFiltersChanged" class="form-select" disabled="@(selectedEducationLevel == EducationLevel.None)">
+                        <option value="">Select Class Level</option>
+                        @foreach (var level in availableClassLevels)
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Semester</label>
+                    <select @bind="selectedSemester" @bind:after="OnFiltersChanged" class="form-select">
+                        <option value="">Select Semester</option>
+                        @foreach (var semester in Enum.GetValues<Semester>())
+                        {
+                            <option value="@semester">@semester</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    @if (filteredStudents.Any())
+    {
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Student Grades Records</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name of Students</th>
+                                <th>Overall Grade</th>
+                                <th>Ranking</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var student in filteredStudents)
+                            {
+                                var reportCard = student.ReportCards.FirstOrDefault(rc => rc.LearningPath != null && rc.LearningPath.EducationLevel == selectedEducationLevel && rc.LearningPath.ClassLevel == selectedClassLevel && rc.LearningPath.Semester == selectedSemester && rc.LearningPath.AcademicYearStart.ToString() == selectedAcademicYear);
+                                <tr>
+                                    <td>@student.Person.FirstName @student.Person.LastName</td>
+                                    <td>@(reportCard?.SemesterOverallGrade.ToString("F1") ?? "-")</td>
+                                    <td>@(reportCard?.StudentRank > 0 ? reportCard.StudentRank.ToString() : "-")</td>
+                                    <td>
+                                        @if (reportCard != null)
+                                        {
+                                            <button class="btn btn-sm btn-outline-info" @onclick="() => ShowReportCardDetails(student, reportCard)">Detail</button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No Report Card</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else if (isFiltered)
+    {
+        <div class="text-center py-4">
+            <p class="text-muted">No grade records found for the selected learning path.</p>
+        </div>
+    }
+
+    <!-- StudentReportCardModal Reuse -->
+    <StudentReportCardModal IsVisible="showReportCardModal"
+                           Student="selectedStudent"
+                           LearningPath="selectedReportCard?.LearningPath"
+                           TeacherRemarks="selectedReportCard?.TeacherRemarks ?? string.Empty"
+                           PrincipalRemarks="selectedReportCard?.PrincipalRemarks ?? string.Empty"
+                           OnClose="CloseReportCardDetails" />
+</div>
+
+@code {
+    private EducationLevel selectedEducationLevel = EducationLevel.None;
+    private ClassLevel selectedClassLevel = ClassLevel.None;
+    private Semester selectedSemester = Semester.First;
+    private string selectedAcademicYear = string.Empty;
+    private List<string> availableAcademicYears = new();
+    private List<ClassLevel> availableClassLevels = new();
+    private List<Student> filteredStudents = new();
+    private bool isFiltered = false;
+    private bool showReportCardModal = false;
+    private Student? selectedStudent;
+    private StudentReportCard? selectedReportCard;
+
+    protected override void OnInitialized()
+    {
+        LoadAvailableAcademicYears();
+    }
+
+    private void LoadAvailableAcademicYears()
+    {
+        availableAcademicYears = SchoolDataService.GetArchivedAttendanceAcademicYears(); // Reuse attendance years for now
+    }
+
+    private void OnFiltersChanged()
+    {
+        if (selectedEducationLevel == EducationLevel.None)
+        {
+            selectedClassLevel = ClassLevel.None;
+        }
+        UpdateAvailableClassLevels();
+        LoadGradeData();
+    }
+
+    private void UpdateAvailableClassLevels()
+    {
+        if (selectedEducationLevel != EducationLevel.None)
+        {
+            availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
+        }
+        else
+        {
+            availableClassLevels.Clear();
+            selectedClassLevel = ClassLevel.None;
+        }
+    }
+
+    private void LoadGradeData()
+    {
+        isFiltered = true;
+        if (IsValidLearningPathSelected())
+        {
+            filteredStudents = SchoolDataService.GetArchivedStudents()
+                .Where(s => s.Person.EducationLevel == selectedEducationLevel &&
+                            s.Person.ClassLevel == selectedClassLevel &&
+                            s.ReportCards.Any(rc => rc.LearningPath != null &&
+                                rc.LearningPath.EducationLevel == selectedEducationLevel &&
+                                rc.LearningPath.ClassLevel == selectedClassLevel &&
+                                rc.LearningPath.Semester == selectedSemester &&
+                                rc.LearningPath.AcademicYearStart.ToString() == selectedAcademicYear))
+                .ToList();
+        }
+        else
+        {
+            filteredStudents.Clear();
+        }
+    }
+
+    private bool IsValidLearningPathSelected()
+    {
+        return !string.IsNullOrEmpty(selectedAcademicYear) &&
+               selectedEducationLevel != EducationLevel.None &&
+               selectedClassLevel != ClassLevel.None;
+    }
+
+    private void ShowReportCardDetails(Student student, StudentReportCard reportCard)
+    {
+        selectedStudent = student;
+        selectedReportCard = reportCard;
+        showReportCardModal = true;
+    }
+
+    private void CloseReportCardDetails()
+    {
+        showReportCardModal = false;
+        selectedStudent = null;
+        selectedReportCard = null;
+    }
+}

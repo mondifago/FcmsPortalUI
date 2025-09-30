@@ -118,7 +118,7 @@
                     <i class="fa fa-times"></i> Close
                 </button>
 
-                <button type="button" class="btn btn-primary" @onclick="FinalizeAllGrades">
+                <button type="button" class="btn btn-primary" @onclick="() => showFinalizeConfirm = true">
                     <i class="fa fa-check-circle"></i> Finalize All Grades
                 </button>
             </div>
@@ -129,6 +129,31 @@
 @if (IsVisible)
 {
     <div class="modal-backdrop fade show"></div>
+}
+
+@if (showFinalizeConfirm)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Finalize All Grades</h5>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Grades will be finalized and can no longer be modified.<br />
+                        This action cannot be undone.<br />
+                        Are you sure you want to continue?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CancelFinalize">Cancel</button>
+                    <button class="btn btn-danger" @onclick="FinalizeAllGrades">Finalize</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 <StudentReportCardModal IsVisible="showReportCardModal"
@@ -150,15 +175,37 @@
     private Dictionary<int, string> teacherRemarks = new();
     private Dictionary<int, string> principalRemarks = new();
     private bool showReportCardModal = false;
+    private bool showFinalizeConfirm = false;
+    private bool isGradesFinalized = false; 
 
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchool();
     }
 
-    private void FinalizeAllGrades()
+    private void ShowFinalizeConfirmation()
     {
-        SchoolDataService.SaveFinalizedGrades(LearningPath);
+        showFinalizeConfirm = true;
+    }
+
+    private void CancelFinalize()
+    {
+        showFinalizeConfirm = false;
+    }
+
+    private async Task FinalizeAllGrades()
+    {
+        showFinalizeConfirm = false;
+        var reportCards = SchoolDataService.GetStudentReportCardsForLearningPath(LearningPath.Id);
+
+        foreach (var reportCard in reportCards)
+        {
+            reportCard.IsFinalized = true;
+            reportCard.DateFinalized = DateTime.Now;
+            await SchoolDataService.SaveStudentReportCardAsync(reportCard);
+        }
+
+        isGradesFinalized = true;
         StateHasChanged();
     }
 

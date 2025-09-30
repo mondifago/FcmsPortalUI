@@ -175,7 +175,11 @@
                         <div class="card mb-4">
                             <div class="card-body">
                                 <h6>Class Teacher's Remarks:</h6>
-                                @if (isTeacher || string.IsNullOrEmpty(TeacherRemarks))
+                                @if (reportCardIsFinalized)
+                                {
+                                    <p class="ps-3">@TeacherRemarks</p>
+                                }
+                                else if (isTeacher || string.IsNullOrEmpty(TeacherRemarks))
                                 {
                                     <textarea class="form-control mb-3" @bind="TeacherRemarks" @bind:event="oninput"
                                               @onchange="@(async (e) => await OnTeacherRemarksChanged(e.Value?.ToString() ?? ""))"
@@ -186,7 +190,12 @@
                                     <p class="ps-3">@TeacherRemarks</p>
                                 }
 
-                                @if (isPrincipal)
+                                <h6>Principal's Remarks:</h6>
+                                @if (reportCardIsFinalized)
+                                {
+                                    <p class="ps-3">@PrincipalRemarks</p>
+                                }
+                                else if (isPrincipal)
                                 {
                                     <textarea class="form-control" @bind="PrincipalRemarks" @bind:event="oninput"
                                               @onchange="@(async (e) => await OnPrincipalRemarksChanged(e.Value?.ToString() ?? ""))"
@@ -260,9 +269,11 @@
     [Parameter] public EventCallback OnClose { get; set; }
 
     private School? school;
+    private Guardian? guardian;
     private bool isTeacher = false; 
     private bool isPrincipal = true; 
-    private Guardian? guardian;
+    private bool reportCardIsFinalized =>
+    SchoolDataService.GetStudentReportCard(Student?.Id ?? 0, LearningPath?.Id ?? 0)?.IsFinalized == true;
 
     protected override void OnInitialized()
     {
@@ -300,7 +311,7 @@
                 reportCard.PresentDays = attendanceDetails.PresentDays;
                 reportCard.TotalDays = attendanceDetails.TotalDays;
 
-                SchoolDataService.SaveStudentReportCard(reportCard);
+                //SchoolDataService.SaveStudentReportCard(reportCard);
             }
 
             guardian = SchoolDataService.GetGuardianByStudentId(Student.Id);

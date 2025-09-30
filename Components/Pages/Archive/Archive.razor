@@ -92,6 +92,29 @@
     </div>
 </div>
 
+<!-- Grades Archive Section -->
+<div class="row">
+    <div class="mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-graduation-cap me-2"></i>Student Grades Archives
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    
+                </p>
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-info text-white" @onclick="() => NavigateToGradesArchive()">
+                    View Grades Archives
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
     private int archivedStudentsCount = 0;
 
@@ -119,5 +142,10 @@
     private void NavigateToAttendanceArchive()
     {
         NavigationManager.NavigateTo("/archive/attendance");
+    }
+
+    private void NavigateToGradesArchive()
+    {
+        NavigationManager.NavigateTo("/archive/grades");
     }
 }

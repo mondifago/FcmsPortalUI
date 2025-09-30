@@ -144,7 +144,8 @@ namespace FcmsPortal.Services
 
         #region Student Report Cards
         StudentReportCard? GetStudentReportCard(int studentId, int learningPathId);
-        StudentReportCard SaveStudentReportCard(StudentReportCard reportCard);
+        List<StudentReportCard> GetStudentReportCardsForLearningPath(int learningPathId);
+        Task<StudentReportCard> SaveStudentReportCardAsync(StudentReportCard reportCard);
         void UpdateStudentReportCardRemarks(int studentId, int learningPathId, string? teacherRemarks = null, string? principalRemarks = null);
         #endregion
 

@@ -1,0 +1,79 @@
+Semester Transition
+The process of semester transition starts from Grade Finalization Stage. There are four categories semester transition based on the collection of events that happens after a learning path grade is concluded and approved. They are:
+1, semester to semester transition within the same class level
+2, semester to semester transition from one class level to the next.
+3, semester to semester transition from one education level to next.
+4, Graduation from SSS3 class level from SSS3 Third Semester.
+
+Semester Transition Events
+Events that happen on semester transition can also be categorised as well. They are categorized under:
+1, Grade Finalization Process
+2, Learning Path review and Approval Process  
+3, Grade Delivery to student and guardian
+4, Learning Path students management
+5, Data Archiving
+6, Template Preparation for next semester
+
+Transition Procedures
+Now we will examine how the listed 6 semester transition events are carried out in the 4 categories of Semester Transition.
+A, For Semester-to-Semester Transition Within the Same Class Level 
+i.	Grade Finalization Process
+•	Teacher clicks “Finalize Grades” button to have a final review of each student’s report card and leave a remark.
+•	“Finalize All Grades” button should not be visible to teacher so teacher will now be able to click “Finalize All Grades” button.
+•	“Finalize All Grades” button should only be visible to Principal.
+•	After reviewing all report cards, teacher exits the Finalize Grades page back to the learning path and submits the learning path.
+•	On submit, learning path is listed in the reports section of Grades from where principal can visit learning path. Learning path “Details”, “Delete” and “Edit” buttons (Action buttons) disappears from learning path list because no one is allowed to visit or action learning path while under review. At this point, learning path can only be visited or actioned via the reports page. 
+•	Principal visits learning path and review each report card, leaving a remark for each student. 
+•	If any issue, and it is to be corrected by teacher, clicks “Restore” Button.
+•	On Restore, learning path action buttons are restored on the learning path list page so that teacher can visit and make corrections, after which teacher submits again.
+•	If no changes needed to be done by teacher, and principal is done with review, Principal clicks “Finalize All Grades” button.
+•	On click of “Finalize All Grades” button a warning notification appears informing that grades will be finalized and can no longer be modified, this action cannot be undone, are sure you want to continue?  If continued, all Grades are recalculated, Grades cannot be modified again. 
+•	  Principal exits Finalize Grades page and return to learning path.
+
+ii.	Learning Path Review and Approval
+•	On Return to learning path, principal clicks “Approve” button and the following events should happen (to be arranged in logical order):
+•	All Report cards are attached to student’s page (yet to be created), and their Guardian’s page (yet to be created)
+•	All students’ Grades are de-listed in the Finalize grade page and transferred to the Grades archives (yet to be created).
+•	All students are removed from the learning path, they will; be added again when new learning path is created.
+•	Learning path is de-listed from learning path list and listed in learning path archive (to be created)
+•	Students who were part of that learning path are listed within that learning path in learning path archive (to be created).
+•	Class Schedules and class sessions contained in that learning path are listed along with teacher that handled them, within the learning path archive (to be created)
+•	Homeworks, lesson plans, teachers’ remarks will be found within, the class sessions within the class schedules and within the learning path in learning path archives.
+•	Students Attendance records will be transferred to attendance archives (to be created)
+•	Students financial and payment records will be transferred to the Payment archives (to be created)
+•	Learning path template is created. 
+
+B, For Semester-to-Semester Transition from One Class Level to the Next 
+i.	Grade Finalization Process
+•	Same as A with the following changes or additions:
+•	“Promote” button should only appear on click of “Finalize All Grades” if students report card said “Promoted”.
+•	For students whose report card said “Not Promoted” no “Promote” button should appear against their name (there would be no button against their name).
+•	Principal goes through the list promoting one by one students who have the “Promote” button against their name.
+•	On the click of “Promote” button, the student’s is incremented to the next Class level and removed from the learning path.
+•	After promoting all students that are to be promoted, leaving the rest that are not promoted, Principal returns to learning path.
+
+ii.	Learning Path Review and Approval
+•	Same as A with the following additions or changes:
+•	Students who were not promoted are removed from learning path, without incrementing their class level, to be added again when the next learning path of same class level is created again. 
+
+C, For Semester-to-Semester Transition from One Education Level to the Next 
+i.	Grade Finalization Process
+•	Same as A with the following changes or additions:
+•	“Graduate” button should only appear on click of “Finalize All Grades” if students report card said “Promoted”.
+•	For students whose report card said “Not Promoted” no “Graduate” button should appear against their name (there would be no button against their name).
+•	Principal goes through the list graduating one by one students who have the “Graduate” button against their name.
+•	On the click of “Graduate” button, the student’s is incremented to the next Education level and removed from the learning path.
+•	After graduating all students that are to be graduated, leaving the rest that are not graduated, Principal returns to learning path.
+
+iii.	Learning Path Review and Approval
+•	Same as A with the following additions or changes:
+•	Students who were not graduated are removed from learning path, without incrementing their class level and education level, to be added again when the next learning path of same class level and education level is created again. 
+
+D, Graduation from SSS3 class level from SSS3 Third Semester
+ii.	Grade Finalization Process
+•	Everything is the same as C, the only addition here is that students added to list of graduated students in Archives:
+
+iv.	Learning Path Review and Approval
+•	Same as A with the following additions or changes:
+•	Students who were not graduated are removed from learning path, without incrementing their class level and education level, to be added again when the next learning path of same class level and education level is created again. 
+

@@ -1894,9 +1894,22 @@ namespace FcmsPortal.Services
                 .FirstOrDefault(rc => rc.StudentId == studentId && rc.LearningPathId == learningPathId);
         }
 
-        public StudentReportCard SaveStudentReportCard(StudentReportCard reportCard)
+        public List<StudentReportCard> GetStudentReportCardsForLearningPath(int learningPathId)
+        {
+            return _context.StudentReportCards
+                .Include(rc => rc.Student)
+                .Include(rc => rc.LearningPath)
+                .Where(rc => rc.LearningPathId == learningPathId)
+                .ToList();
+        }
+
+        public async Task<StudentReportCard> SaveStudentReportCardAsync(StudentReportCard reportCard)
         {
             var existingReportCard = GetStudentReportCard(reportCard.StudentId, reportCard.LearningPathId);
+
+            var student = await _context.Students
+                .Include(s => s.ReportCards)
+                .FirstOrDefaultAsync(s => s.Id == reportCard.StudentId);
 
             if (existingReportCard != null)
             {
@@ -1916,13 +1929,21 @@ namespace FcmsPortal.Services
                 existingReportCard.FinalizedByPrincipalId = reportCard.FinalizedByPrincipalId;
 
                 _context.StudentReportCards.Update(existingReportCard);
-                _context.SaveChanges();
+                if (student != null && !student.ReportCards.Any(rc => rc.Id == existingReportCard.Id))
+                {
+                    student.ReportCards.Add(existingReportCard);
+                }
+                await _context.SaveChangesAsync();
                 return existingReportCard;
             }
             else
             {
                 _context.StudentReportCards.Add(reportCard);
-                _context.SaveChanges();
+                if (student != null)
+                {
+                    student.ReportCards.Add(reportCard);
+                }
+                await _context.SaveChangesAsync();
                 return reportCard;
             }
         }
@@ -2170,7 +2191,6 @@ namespace FcmsPortal.Services
                 .OrderBy(log => log.TimeStamp)
                 .ToList();
         }
-
         #endregion  
     }
 }
