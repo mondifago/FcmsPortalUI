@@ -2212,12 +2212,38 @@ namespace FcmsPortal.Services
 
         public LearningPath? GetLearningPathByFilter(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
         {
+            if (string.IsNullOrEmpty(academicYear))
+                return null;
+
+            // Extract start year from format "2024-2025"
+            var yearParts = academicYear.Split('-');
+            if (yearParts.Length != 2 || !int.TryParse(yearParts[0], out int startYear))
+                return null;
+
             return _context.LearningPaths
                 .AsNoTracking()
-                .FirstOrDefault(lp => lp.AcademicYearStart.ToString() == academicYear &&
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.CourseGrades)
+                .Include(lp => lp.ReportCards)
+                .FirstOrDefault(lp => lp.AcademicYearStart.Year == startYear &&
                                      lp.EducationLevel == educationLevel &&
                                      lp.ClassLevel == classLevel &&
                                      lp.Semester == semester);
+        }
+
+        public List<string> GetGradeArchiveAcademicYears()
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Include(lp => lp.ReportCards)
+                .Where(lp => lp.ReportCards.Any(rc => rc.IsFinalized))
+                .Select(lp => lp.AcademicYearStart.Year)
+                .Distinct()
+                .OrderByDescending(year => year)
+                .Select(year => $"{year}-{year + 1}")
+                .ToList();
         }
         #endregion  
     }

@@ -68,7 +68,7 @@
     </div>
 
     <!-- Students Table -->
-    @if (filteredStudents.Any())
+    @if (rankedStudents.Any())
     {
         <div class="card">
             <div class="card-header bg-info text-white">
@@ -86,7 +86,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                           
+                            @foreach (var (student, grade, rank) in rankedStudents)
+                            {
+                                <tr>
+                                    <td>@Util.GetFullName(student.Person)</td>
+                                    <td>@grade.ToString("F2")%</td>
+                                    <td>
+                                        <span class="fw-bold @Util.GetRankColorClass(rank)">
+                                            @Util.GetOrdinalNumber(rank)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" @onclick="() => ShowReportCardDetails(student)">
+                                            <i class="fa fa-file-alt"></i> View Report
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -102,10 +118,11 @@
 
     <StudentReportCardModal IsVisible="showReportCardModal"
                             Student="selectedStudent"
-                            LearningPath="selectedReportCard?.LearningPath"
-                            TeacherRemarks="selectedReportCard?.TeacherRemarks ?? string.Empty"
-                            PrincipalRemarks="selectedReportCard?.PrincipalRemarks ?? string.Empty"
-                            OnClose="CloseReportCardDetails" />
+                            LearningPath="@GetSelectedLearningPath()"
+                            TeacherRemarks="@(selectedReportCard?.TeacherRemarks ?? string.Empty)"
+                            PrincipalRemarks="@(selectedReportCard?.PrincipalRemarks ?? string.Empty)"
+                            OnClose="CloseReportCardDetails"
+                            IsFinalized="true" />
 </div>
 
 @code {
@@ -120,6 +137,7 @@
     private bool showReportCardModal = false;
     private Student? selectedStudent;
     private StudentReportCard? selectedReportCard;
+    private List<(Student Student, double Grade, int Rank)> rankedStudents = new();
 
     protected override void OnInitialized()
     {
@@ -128,7 +146,20 @@
 
     private void LoadAvailableAcademicYears()
     {
-        availableAcademicYears = SchoolDataService.GetArchivedAttendanceAcademicYears();
+        availableAcademicYears = SchoolDataService.GetGradeArchiveAcademicYears();
+    }
+
+    private LearningPath? GetSelectedLearningPath()
+    {
+        if (!IsValidLearningPathSelected())
+            return null;
+
+        return SchoolDataService.GetLearningPathByFilter(
+            selectedAcademicYear,
+            selectedEducationLevel,
+            selectedClassLevel,
+            selectedSemester
+        );
     }
 
     private void OnFiltersChanged()
@@ -156,7 +187,37 @@
 
     private void LoadGradeData()
     {
-      
+        rankedStudents.Clear();
+        isFiltered = false;
+
+        if (!IsValidLearningPathSelected())
+        {
+            return;
+        }
+
+        var learningPath = SchoolDataService.GetLearningPathByFilter(
+            selectedAcademicYear,
+            selectedEducationLevel,
+            selectedClassLevel,
+            selectedSemester
+        );
+
+        if (learningPath == null)
+        {
+            isFiltered = true;
+            return;
+        }
+
+        var rankedStudentsList = LogicMethods.RankStudentsBySemesterGrade(learningPath);
+
+        int rank = 1;
+        foreach (var (student, grade) in rankedStudentsList)
+        {
+            rankedStudents.Add((student, grade, rank));
+            rank++;
+        }
+
+        isFiltered = true;
     }
 
     private bool IsValidLearningPathSelected()
@@ -166,10 +227,22 @@
                selectedClassLevel != ClassLevel.None;
     }
 
-    private void ShowReportCardDetails(Student student, StudentReportCard reportCard)
+    private void ShowReportCardDetails(Student student)
     {
         selectedStudent = student;
-        selectedReportCard = reportCard;
+
+        var learningPath = SchoolDataService.GetLearningPathByFilter(
+            selectedAcademicYear,
+            selectedEducationLevel,
+            selectedClassLevel,
+            selectedSemester
+        );
+
+        if (learningPath != null)
+        {
+            selectedReportCard = SchoolDataService.GetStudentReportCard(student.Id, learningPath.Id);
+        }
+
         showReportCardModal = true;
     }
 
