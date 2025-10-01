@@ -169,6 +169,8 @@ namespace FcmsPortal.Services
         List<AttendanceArchive> GetArchivedStudentAttendanceDetails(int studentId, int learningPathId);
         List<string> GetArchivedAttendanceAcademicYears();
         List<DailyAttendanceLogEntry> GetDailyAttendanceForLearningPath(int learningPathId);
+        List<string> GetArchivedGradesAcademicYears();
+        LearningPath? GetLearningPathByFilter(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         #endregion
     }
 }

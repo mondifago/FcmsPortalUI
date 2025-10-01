@@ -79,32 +79,14 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Name of Students</th>
+                                <th>Student Name</th>
                                 <th>Overall Grade</th>
                                 <th>Ranking</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var student in filteredStudents)
-                            {
-                                var reportCard = student.ReportCards.FirstOrDefault(rc => rc.LearningPath != null && rc.LearningPath.EducationLevel == selectedEducationLevel && rc.LearningPath.ClassLevel == selectedClassLevel && rc.LearningPath.Semester == selectedSemester && rc.LearningPath.AcademicYearStart.ToString() == selectedAcademicYear);
-                                <tr>
-                                    <td>@student.Person.FirstName @student.Person.LastName</td>
-                                    <td>@(reportCard?.SemesterOverallGrade.ToString("F1") ?? "-")</td>
-                                    <td>@(reportCard?.StudentRank > 0 ? reportCard.StudentRank.ToString() : "-")</td>
-                                    <td>
-                                        @if (reportCard != null)
-                                        {
-                                            <button class="btn btn-sm btn-outline-info" @onclick="() => ShowReportCardDetails(student, reportCard)">Detail</button>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">No Report Card</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
+                           
                         </tbody>
                     </table>
                 </div>
@@ -119,11 +101,11 @@
     }
 
     <StudentReportCardModal IsVisible="showReportCardModal"
-                           Student="selectedStudent"
-                           LearningPath="selectedReportCard?.LearningPath"
-                           TeacherRemarks="selectedReportCard?.TeacherRemarks ?? string.Empty"
-                           PrincipalRemarks="selectedReportCard?.PrincipalRemarks ?? string.Empty"
-                           OnClose="CloseReportCardDetails" />
+                            Student="selectedStudent"
+                            LearningPath="selectedReportCard?.LearningPath"
+                            TeacherRemarks="selectedReportCard?.TeacherRemarks ?? string.Empty"
+                            PrincipalRemarks="selectedReportCard?.PrincipalRemarks ?? string.Empty"
+                            OnClose="CloseReportCardDetails" />
 </div>
 
 @code {
@@ -146,7 +128,7 @@
 
     private void LoadAvailableAcademicYears()
     {
-        availableAcademicYears = SchoolDataService.GetArchivedAttendanceAcademicYears(); // Reuse attendance years for now
+        availableAcademicYears = SchoolDataService.GetArchivedAttendanceAcademicYears();
     }
 
     private void OnFiltersChanged()
@@ -174,23 +156,7 @@
 
     private void LoadGradeData()
     {
-        isFiltered = true;
-        if (IsValidLearningPathSelected())
-        {
-            filteredStudents = SchoolDataService.GetArchivedStudents()
-                .Where(s => s.Person.EducationLevel == selectedEducationLevel &&
-                            s.Person.ClassLevel == selectedClassLevel &&
-                            s.ReportCards.Any(rc => rc.LearningPath != null &&
-                                rc.LearningPath.EducationLevel == selectedEducationLevel &&
-                                rc.LearningPath.ClassLevel == selectedClassLevel &&
-                                rc.LearningPath.Semester == selectedSemester &&
-                                rc.LearningPath.AcademicYearStart.ToString() == selectedAcademicYear))
-                .ToList();
-        }
-        else
-        {
-            filteredStudents.Clear();
-        }
+      
     }
 
     private bool IsValidLearningPathSelected()
@@ -214,3 +180,4 @@
         selectedReportCard = null;
     }
 }
+

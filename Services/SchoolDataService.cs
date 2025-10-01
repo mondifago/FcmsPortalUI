@@ -2034,6 +2034,8 @@ namespace FcmsPortal.Services
                 .AsNoTracking()
                 .Include(s => s.Person)
                 .Include(s => s.CourseGrades)
+                .Include(s => s.ReportCards)
+                    .ThenInclude(rc => rc.LearningPath)
                 .Where(s => s.Person.IsArchived == true)
                 .OrderByDescending(s => s.ArchivedDate)
                 .ToList();
@@ -2194,6 +2196,28 @@ namespace FcmsPortal.Services
                 .Where(log => log.LearningPathId == learningPathId)
                 .OrderBy(log => log.TimeStamp)
                 .ToList();
+        }
+
+        public List<string> GetArchivedGradesAcademicYears()
+        {
+            return _context.StudentReportCards
+                .AsNoTracking()
+                .Include(rc => rc.LearningPath)
+                .Where(rc => rc.LearningPath != null && rc.IsFinalized)
+                .Select(rc => rc.LearningPath.AcademicYearStart.ToString())
+                .Distinct()
+                .OrderByDescending(year => year)
+                .ToList();
+        }
+
+        public LearningPath? GetLearningPathByFilter(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .FirstOrDefault(lp => lp.AcademicYearStart.ToString() == academicYear &&
+                                     lp.EducationLevel == educationLevel &&
+                                     lp.ClassLevel == classLevel &&
+                                     lp.Semester == semester);
         }
         #endregion  
     }
