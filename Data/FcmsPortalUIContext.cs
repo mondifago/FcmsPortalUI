@@ -1,10 +1,11 @@
 ﻿using FcmsPortal.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FcmsPortalUI.Data
 {
-    public class FcmsPortalUIContext : IdentityDbContext<Person>
+    public class FcmsPortalUIContext : IdentityDbContext<Person, IdentityRole<int>, int>
     {
         public FcmsPortalUIContext(DbContextOptions<FcmsPortalUIContext> options) : base(options) { }
 
