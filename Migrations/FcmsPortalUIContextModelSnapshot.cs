@@ -892,9 +892,6 @@ namespace FcmsPortalUI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("UserRole")
-                        .HasColumnType("int");
-
                     b.Property<int>("PersonId")
                         .HasColumnType("int");
 
@@ -903,6 +900,9 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserRole")
                         .HasColumnType("int");
 
                     b.Property<string>("WorkExperience")

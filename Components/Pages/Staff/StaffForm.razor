@@ -100,15 +100,19 @@
             <h4 class="mb-3">Professional Information</h4>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="jobRole" class="form-label">Job Role<span class="text-danger">*</span></label>
-                    <InputSelect id="jobRole" class="form-select" @bind-Value="Staff.JobRole">
+                    <label for="userRole" class="form-label">User Role<span class="text-danger">*</span></label>
+                    <InputSelect id="userRole" class="form-select" @bind-Value="Staff.UserRole">
                         <option value="">-- Select Job Role --</option>
-                        @foreach (var role in Enum.GetValues(typeof(UserRole)).Cast<UserRole>().Where(r => r != UserRole.None))
+                        @foreach (var role in Enum.GetValues(typeof(UserRole))
+                                                .Cast<UserRole>()
+                                                .Where(r => r != UserRole.None &&
+                                                r != UserRole.Student &&
+                                                r != UserRole.Guardian))
                         {
                             <option value="@role">@role</option>
                         }
                     </InputSelect>
-                    <ValidationMessage For="@(() => Staff.JobRole)" />
+                    <ValidationMessage For="@(() => Staff.UserRole)" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="dateOfEmployment" class="form-label">Date of Employment<span class="text-danger">*</span></label>

@@ -260,7 +260,7 @@
 
     private Staff GetCurrentTeacher()
     {
-        return SchoolDataService.GetSchool().Staff.FirstOrDefault(s => s.JobRole == UserRole.Teacher) ?? new Staff();
+        return SchoolDataService.GetSchool().Staff.FirstOrDefault(s => s.UserRole == UserRole.Teacher) ?? new Staff();
     }
 
     private void Close()

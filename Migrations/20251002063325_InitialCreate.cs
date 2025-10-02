@@ -46,6 +46,33 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "AttendanceArchives",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    StudentId = table.Column<int>(type: "int", nullable: false),
+                    StudentName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LearningPathId = table.Column<int>(type: "int", nullable: false),
+                    LearningPathName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    IsPresent = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AcademicYear = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Semester = table.Column<int>(type: "int", nullable: false),
+                    EducationLevel = table.Column<int>(type: "int", nullable: false),
+                    ClassLevel = table.Column<int>(type: "int", nullable: false),
+                    ArchivedDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AttendanceArchives", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Persons",
                 columns: table => new
                 {
@@ -263,7 +290,7 @@ namespace FcmsPortalUI.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     SchoolId = table.Column<int>(type: "int", nullable: false),
                     PersonId = table.Column<int>(type: "int", nullable: false),
-                    JobRole = table.Column<int>(type: "int", nullable: false),
+                    UserRole = table.Column<int>(type: "int", nullable: false),
                     JobDescription = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Qualifications = table.Column<string>(type: "longtext", nullable: false)
@@ -1087,6 +1114,9 @@ namespace FcmsPortalUI.Migrations
         {
             migrationBuilder.DropTable(
                 name: "ArchivedPaymentDetails");
+
+            migrationBuilder.DropTable(
+                name: "AttendanceArchives");
 
             migrationBuilder.DropTable(
                 name: "DailyAttendanceAbsentStudents");

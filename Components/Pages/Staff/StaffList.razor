@@ -40,7 +40,7 @@
                         <th>Name</th>
                         <th>Email</th>
                         <th>Phone</th>
-                        <th>Job Role</th>
+                        <th>User Role</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -56,7 +56,7 @@
                             <td>@Util.GetFullName(staff.Person)</td>
                             <td>@staff.Person.Email</td>
                             <td>@staff.Person.PhoneNumber</td>
-                            <td>@staff.JobRole</td>
+                            <td>@staff.UserRole</td>
                             <td>
                                 <span class="badge @(staff.Person.IsActive ? "bg-success" : "bg-danger")">
                                     @(staff.Person.IsActive ? "Active" : "Inactive")

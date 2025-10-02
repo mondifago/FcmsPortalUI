@@ -138,7 +138,7 @@ namespace FcmsPortal.Services
             var existingStaff = _context.Staff.Include(s => s.Person).FirstOrDefault(s => s.Id == staff.Id);
             if (existingStaff != null)
             {
-                existingStaff.JobRole = staff.JobRole;
+                existingStaff.UserRole = staff.UserRole;
                 existingStaff.DateOfEmployment = staff.DateOfEmployment;
                 existingStaff.JobDescription = staff.JobDescription;
                 existingStaff.WorkExperience = staff.WorkExperience;

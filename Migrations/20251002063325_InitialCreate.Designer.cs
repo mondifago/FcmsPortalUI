@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20250913033516_InitialCreate")]
+    [Migration("20251002063325_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -142,6 +142,55 @@ namespace FcmsPortalUI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ArchivedStudentPayments");
+                });
+
+            modelBuilder.Entity("FcmsPortal.Models.AttendanceArchive", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AcademicYear")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("ArchivedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ClassLevel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("EducationLevel")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsPresent")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LearningPathId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LearningPathName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Semester")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StudentName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AttendanceArchives");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.CalendarModel", b =>
@@ -846,9 +895,6 @@ namespace FcmsPortalUI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("UserRole")
-                        .HasColumnType("int");
-
                     b.Property<int>("PersonId")
                         .HasColumnType("int");
 
@@ -857,6 +903,9 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<int>("SchoolId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserRole")
                         .HasColumnType("int");
 
                     b.Property<string>("WorkExperience")
