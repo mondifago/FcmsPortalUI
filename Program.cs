@@ -1,14 +1,31 @@
+using FcmsPortal.Models;
 using FcmsPortal.Services;
 using FcmsPortalUI.Components;
+using FcmsPortalUI.Components.Account;
 using FcmsPortalUI.Data;
 using FcmsPortalUI.Services;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityUserAccessor>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
+                .AddIdentityCookies();
+
 builder.Services.AddScoped<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<ExceptionHandlerService>();
+
 
 var connectionString = builder.Configuration.GetConnectionString("FcmsPortalUIContext");
 builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
@@ -24,6 +41,13 @@ builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
     options.EnableDetailedErrors();
 });
 
+
+builder.Services.AddIdentityCore<Person>(options => options.SignIn.RequireConfirmedAccount = true)
+               .AddEntityFrameworkStores<FcmsPortalUIContext>()
+               .AddSignInManager()
+               .AddDefaultTokenProviders();
+
+builder.Services.AddSingleton<IEmailSender<Person>, IdentityNoOpEmailSender>();
 
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -51,4 +75,5 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+app.MapAdditionalIdentityEndpoints();
 app.Run();
