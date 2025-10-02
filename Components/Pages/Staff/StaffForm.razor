@@ -103,7 +103,7 @@
                     <label for="jobRole" class="form-label">Job Role<span class="text-danger">*</span></label>
                     <InputSelect id="jobRole" class="form-select" @bind-Value="Staff.JobRole">
                         <option value="">-- Select Job Role --</option>
-                        @foreach (var role in Enum.GetValues(typeof(JobRole)).Cast<JobRole>().Where(r => r != JobRole.None))
+                        @foreach (var role in Enum.GetValues(typeof(UserRole)).Cast<UserRole>().Where(r => r != UserRole.None))
                         {
                             <option value="@role">@role</option>
                         }

@@ -68,7 +68,7 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
-            if (staff.JobRole == JobRole.None)
+            if (staff.JobRole == UserRole.None)
             {
                 var field = new FieldIdentifier(staff, nameof(staff.JobRole));
                 messageStore.Add(field, "Job role is required.");

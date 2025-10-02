@@ -894,7 +894,7 @@ namespace FcmsPortalUI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<int>("JobRole")
+                    b.Property<int>("UserRole")
                         .HasColumnType("int");
 
                     b.Property<int>("PersonId")

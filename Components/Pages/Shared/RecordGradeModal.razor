@@ -152,7 +152,7 @@
 
     private Staff? GetCurrentTeacher()
     {
-        return SchoolDataService.GetSchool()?.Staff?.FirstOrDefault(s => s.JobRole == JobRole.Teacher);
+        return SchoolDataService.GetSchool()?.Staff?.FirstOrDefault(s => s.JobRole == UserRole.Teacher);
     }
 
     private bool IsFormValid()
