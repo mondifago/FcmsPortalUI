@@ -10,23 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<IdentityUserAccessor>();
-builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-})
-                .AddIdentityCookies();
-
-builder.Services.AddScoped<ISchoolDataService, SchoolDataService>();
-builder.Services.AddScoped<ValidationService>();
-builder.Services.AddScoped<ExceptionHandlerService>();
-
-
+// Database connection
 var connectionString = builder.Configuration.GetConnectionString("FcmsPortalUIContext");
 builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
 {
@@ -41,14 +25,33 @@ builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
     options.EnableDetailedErrors();
 });
 
-
+// Identity configuration
 builder.Services.AddIdentityCore<Person>(options => options.SignIn.RequireConfirmedAccount = true)
                .AddEntityFrameworkStores<FcmsPortalUIContext>()
                .AddSignInManager()
                .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<Person>, IdentityNoOpEmailSender>();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+}).AddIdentityCookies();
 
+builder.Services.AddSingleton<IEmailSender<Person>, IdentityNoOpEmailSender>();
+builder.Services.AddAuthorization();
+
+// Blazor Auth 
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityUserAccessor>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+// Application services
+builder.Services.AddScoped<ISchoolDataService, SchoolDataService>();
+builder.Services.AddScoped<ValidationService>();
+builder.Services.AddScoped<ExceptionHandlerService>();
+
+// QuickGrid with EF Core
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -59,12 +62,16 @@ builder.Services.AddRazorComponents()
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseMigrationsEndPoint();
+}
+else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
-    app.UseMigrationsEndPoint();
 }
 app.UseStaticFiles();
 app.UseHttpsRedirection();
