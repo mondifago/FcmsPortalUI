@@ -61,30 +61,30 @@
             </div>
             <AuthorizeView>
                 <Authorized>
-                    <div class="nav-item px-3">
+                    <div class="nav-item">
                         <NavLink class="nav-link" href="Account/Manage">
-                            <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                            <i class="fa fa-user-circle me-2"></i> @context.User.Identity?.Name
                         </NavLink>
                     </div>
-                    <div class="nav-item px-3">
+                    <div class="nav-item">
                         <form action="Account/Logout" method="post">
                             <AntiforgeryToken />
                             <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                             <button type="submit" class="nav-link">
-                                <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                                <i class="fa fa-sign-out-alt me-2"></i> Logout
                             </button>
                         </form>
                     </div>
                 </Authorized>
                 <NotAuthorized>
-                    <div class="nav-item px-3">
+                    <div class="nav-item">
                         <NavLink class="nav-link" href="Account/Register">
-                            <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                            <i class="fa fa-user-plus me-2"></i> Register
                         </NavLink>
                     </div>
-                    <div class="nav-item px-3">
+                    <div class="nav-item">
                         <NavLink class="nav-link" href="Account/Login">
-                            <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                            <i class="fa fa-sign-in-alt me-2"></i> Login
                         </NavLink>
                     </div>
                 </NotAuthorized>
