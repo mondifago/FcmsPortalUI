@@ -21,21 +21,28 @@ builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorNumbersToAdd: null)
     );
-    options.EnableSensitiveDataLogging();
-    options.EnableDetailedErrors();
+
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    }
 });
 
-// Identity configuration
-builder.Services.AddIdentityCore<Person>(options => options.SignIn.RequireConfirmedAccount = true)
-               .AddEntityFrameworkStores<FcmsPortalUIContext>()
-               .AddSignInManager()
-               .AddDefaultTokenProviders();
-
+// Authentication schemes
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-}).AddIdentityCookies();
+})
+.AddIdentityCookies();
+
+// Identity configuration
+builder.Services.AddIdentityCore<Person>(options => options.SignIn.RequireConfirmedAccount = true)
+               .AddRoles<IdentityRole<int>>()
+               .AddEntityFrameworkStores<FcmsPortalUIContext>()
+               .AddSignInManager()
+               .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<Person>, IdentityNoOpEmailSender>();
 builder.Services.AddAuthorization();
@@ -62,7 +69,6 @@ builder.Services.AddRazorComponents()
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -70,17 +76,33 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
 app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapAdditionalIdentityEndpoints();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var config = services.GetRequiredService<IConfiguration>();
+
+    // Seed roles once
+    await RoleSeeder.EnsureRolesAsync(services);
+
+    // Seed Developer & Principal backup accounts (reads secrets from IConfiguration)
+    await AccountSeeder.EnsureSpecialAccountsAsync(services, config, app.Environment.IsDevelopment());
+}
+
 app.Run();
