@@ -78,6 +78,7 @@
     private NavMenu? navMenu;
     private bool collapseNavMenu = true;
     private bool showSchoolSettings = false;
+    private bool showPrincipalCreate = false;
     private bool hasSchool = false;
     private bool hasPrincipal = false;
     private bool isLoading = true;
@@ -90,29 +91,45 @@
     private void InitializeApp()
     {
         isLoading = true;
+        StateHasChanged();
+
         hasSchool = SchoolDataService.HasSchool();
 
         if (!hasSchool)
         {
-            NavigationManager.NavigateTo("/school/create", true);
-            return;
+            var currentUri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+            if (!currentUri.StartsWith("school/create"))
+            {
+                NavigationManager.NavigateTo("/school/create", true);
+                return;
+            }
         }
 
-        hasPrincipal = SchoolDataService.HasPrincipal(); 
-
-        if (!hasPrincipal)
+        if (hasSchool)
         {
-            NavigationManager.NavigateTo("/account/principal-register", true);
-            return;
+            hasPrincipal = SchoolDataService.HasPrincipal();
+
+            if (!hasPrincipal)
+            {
+                showPrincipalCreate = true;
+            }
         }
 
         isLoading = false;
+        StateHasChanged();
     }
 
     public void OnSchoolCreated()
     {
         hasSchool = true;
-        InitializeApp(); 
+        InitializeApp();
+    }
+
+    private void OnPrincipalCreated()
+    {
+        showPrincipalCreate = false;
+        hasPrincipal = true;
+        InitializeApp();
     }
 
     private void ToggleNavMenu()
@@ -121,11 +138,22 @@
         navMenu?.Toggle(collapseNavMenu);
     }
 
-    private void ShowSchoolSettings() => showSchoolSettings = true;
-    private void CloseSchoolSettings() => showSchoolSettings = false;
+    private void ShowSchoolSettings()
+    {
+        showSchoolSettings = true;
+        StateHasChanged();
+    }
+
+    private void CloseSchoolSettings()
+    {
+        showSchoolSettings = false;
+        StateHasChanged();
+    }
+
     private void HandleSchoolSettingsSaved()
     {
         FcmsPortalUI.Components.Pages.School.Home.TriggerSchoolDataRefresh();
         showSchoolSettings = false;
+        StateHasChanged();
     }
 }

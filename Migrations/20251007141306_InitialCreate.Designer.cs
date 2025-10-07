@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20251002151210_AddAuthenticationComponents")]
-    partial class AddAuthenticationComponents
+    [Migration("20251007141306_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

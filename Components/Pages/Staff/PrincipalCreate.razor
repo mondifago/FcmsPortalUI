@@ -1,0 +1,194 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Services
+@using FcmsPortalUI.Services
+@using Microsoft.AspNetCore.Identity
+@inject ISchoolDataService SchoolDataService
+@inject UserManager<Person> UserManager
+@rendermode InteractiveServer
+
+@if (IsVisible)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fa fa-user-shield me-2"></i>Create Principal Account
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle me-2"></i>
+                        <strong>Important:</strong> You are creating the Principal account for this school.
+                        This account will have full administrative access to manage the school.
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fa fa-exclamation-triangle me-2"></i>@errorMessage
+                        </div>
+                    }
+
+                    <!-- Password Section BEFORE StaffForm -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Account Password</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password"
+                                           id="password"
+                                           class="form-control"
+                                           @bind="password"
+                                           placeholder="Enter password" />
+                                    <small class="text-muted">Minimum 6 characters, at least one uppercase, one lowercase, one number, and one special character</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password"
+                                           id="confirmPassword"
+                                           class="form-control"
+                                           @bind="confirmPassword"
+                                           placeholder="Re-enter password" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Existing StaffForm Component -->
+                    <StaffForm Staff="@principalStaff"
+                               SubmitButtonText="Create Principal Account"
+                               OnSubmit="CreatePrincipal"
+                               OnCancel="Cancel" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback OnPrincipalCreated { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private Staff principalStaff = new();
+    private string password = "";
+    private string confirmPassword = "";
+    private string errorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        InitializePrincipalStaff();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible)
+        {
+            InitializePrincipalStaff();
+            password = "";
+            confirmPassword = "";
+            errorMessage = "";
+        }
+    }
+
+    private void InitializePrincipalStaff()
+    {
+        principalStaff = new Staff
+        {
+            Person = new Person
+            {
+                IsActive = true,
+                Address = new Address(),
+                DateOfBirth = DateTime.Today.AddYears(-30),
+                DateOfEnrollment = DateTime.Today
+            },
+            UserRole = UserRole.Principal,
+            DateOfEmployment = DateTime.Today
+        };
+    }
+
+    private async Task CreatePrincipal(Staff staff)
+    {
+        try
+        {
+            errorMessage = "";
+
+            // Validate password fields
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                errorMessage = "Password is required.";
+                return;
+            }
+
+            if (password != confirmPassword)
+            {
+                errorMessage = "Passwords do not match.";
+                return;
+            }
+
+            if (password.Length < 6)
+            {
+                errorMessage = "Password must be at least 6 characters long.";
+                return;
+            }
+
+            // Ensure email is provided
+            if (string.IsNullOrWhiteSpace(staff.Person.Email))
+            {
+                errorMessage = "Email is required for Principal account.";
+                return;
+            }
+
+            // Set UserName same as Email
+            staff.Person.UserName = staff.Person.Email;
+            staff.Person.EmailConfirmed = true;
+
+            // Create user account with Identity using the provided password
+            var createResult = await UserManager.CreateAsync(staff.Person, password);
+
+            if (!createResult.Succeeded)
+            {
+                errorMessage = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                return;
+            }
+
+            // Add to Principal role
+            var roleResult = await UserManager.AddToRoleAsync(staff.Person, nameof(UserRole.Principal));
+
+            if (!roleResult.Succeeded)
+            {
+                errorMessage = "User created but failed to assign Principal role: " +
+                              string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                return;
+            }
+
+            // Add to Staff table
+            var school = SchoolDataService.GetSchool();
+            staff.SchoolId = school.Id;
+            SchoolDataService.AddStaff(staff);
+
+            // Notify success
+            await OnPrincipalCreated.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating principal: {ex.Message}";
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await OnCancel.InvokeAsync();
+    }
+}

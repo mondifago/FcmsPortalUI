@@ -105,10 +105,15 @@ namespace FcmsPortal.Services
 
         public bool HasPrincipal()
         {
-            var principal = _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefault(u => u.Roles.Any(r => r.Name == "Principal"));
-            return principal != null;
+            int? principalRoleId = _context.Roles
+                .Where(r => r.Name == "Principal")
+                .Select(r => (int?)r.Id)
+                .SingleOrDefault();
+
+            if (principalRoleId == null)
+                return false;
+
+            return _context.UserRoles.Any(ur => ur.RoleId == principalRoleId.Value);
         }
         #endregion
 
