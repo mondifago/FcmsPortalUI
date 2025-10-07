@@ -57,7 +57,6 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddScoped<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<ExceptionHandlerService>();
-builder.Services.AddSingleton<AppStateService>();
 
 // QuickGrid with EF Core
 builder.Services.AddQuickGridEntityFrameworkAdapter();
@@ -88,21 +87,6 @@ app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.Use(async (context, next) =>
-{
-    var appState = context.RequestServices.GetRequiredService<AppStateService>();
-
-    if (appState.NeedPrincipalSetup &&
-        !context.Request.Path.StartsWithSegments("/PrincipalRegistration"))
-    {
-        context.Response.Redirect("/PrincipalRegistration");
-        return;
-    }
-
-    await next();
-});
-
-
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
@@ -119,7 +103,6 @@ using (var scope = app.Services.CreateScope())
 
     // Seed Developer & Principal backup accounts (reads secrets from IConfiguration)
     await AccountSeeder.EnsureSpecialAccountsAsync(services, config, app.Environment.IsDevelopment());
-    await SetupService.EnsurePrincipalExistsAsync(app.Services);
 }
 
 

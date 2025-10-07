@@ -8,6 +8,7 @@ namespace FcmsPortal.Services
         #region School
         School AddSchool(School school);
         bool HasSchool();
+        bool HasPrincipal();
         Task UpdateSchoolAsync(School updatedSchool);
         School? GetSchool();
         #endregion

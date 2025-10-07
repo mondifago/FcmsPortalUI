@@ -1,5 +1,6 @@
 ﻿using FcmsPortal.Enums;
 using FcmsPortal.Models;
+using FcmsPortalUI.Data;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -14,8 +15,16 @@ namespace FcmsPortalUI.Components.Account
         // InitialDeveloper:Password
         // InitialPrincipalBackup:Email
         // InitialPrincipalBackup:Password
+        // Only runs if at least one School exists in the database.
         public static async Task EnsureSpecialAccountsAsync(IServiceProvider services, IConfiguration config, bool isDevelopment = false)
         {
+            var context = services.GetRequiredService<FcmsPortalUIContext>();
+
+            if (!context.School.Any())
+            {
+                return;
+            }
+
             var userManager = services.GetRequiredService<UserManager<Person>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
@@ -51,7 +60,6 @@ namespace FcmsPortalUI.Components.Account
                             Country = "System Country"
                         }
                     };
-
 
                     var createResult = await userManager.CreateAsync(user, password);
                     if (!createResult.Succeeded)

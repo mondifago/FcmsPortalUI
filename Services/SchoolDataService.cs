@@ -102,6 +102,14 @@ namespace FcmsPortal.Services
                 await _context.SaveChangesAsync();
             }
         }
+
+        public bool HasPrincipal()
+        {
+            var principal = _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.Roles.Any(r => r.Name == "Principal"));
+            return principal != null;
+        }
         #endregion
 
         #region Staff
