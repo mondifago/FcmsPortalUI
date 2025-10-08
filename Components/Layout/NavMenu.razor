@@ -67,14 +67,11 @@
                         </NavLink>
                     </div>
                     <div class="nav-item">
-                        <form action="Account/Logout" method="post">
-                            <AntiforgeryToken />
-                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                            <button type="submit" class="nav-link">
-                                <i class="fa fa-sign-out-alt me-2"></i> Logout
-                            </button>
-                        </form>
+                        <NavLink class="nav-link" href="Account/Login">
+                            <i class="fa fa-sign-out-alt me-2"></i> Logout
+                        </NavLink>
                     </div>
+
                 </Authorized>
                 <NotAuthorized>
                     <div class="nav-item">
