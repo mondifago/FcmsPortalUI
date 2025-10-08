@@ -1,105 +1,113 @@
-﻿@using FcmsPortal.Models
+﻿@page "/principal/create"
+@using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Services
 @using FcmsPortalUI.Services
 @using Microsoft.AspNetCore.Identity
 @inject ISchoolDataService SchoolDataService
 @inject UserManager<Person> UserManager
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-@if (IsVisible)
-{
-    <div class="modal fade show d-block" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="fa fa-user-shield me-2"></i>Create Principal Account
-                    </h5>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fa fa-user-shield me-2"></i>
+                        Create Principal Account
+                    </h3>
+                    <p class="mb-0 mt-2">Set up the main administrator account for your school</p>
                 </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="fa fa-info-circle me-2"></i>
-                        <strong>Important:</strong> You are creating the Principal account for this school.
-                        This account will have full administrative access to manage the school.
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(errorMessage))
+                <div class="card-body">
+                    @if (isCreating)
                     {
-                        <div class="alert alert-danger">
-                            <i class="fa fa-exclamation-triangle me-2"></i>@errorMessage
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Creating principal account...</span>
+                            </div>
+                            <div class="mt-3">
+                                <h5>Setting up Principal account...</h5>
+                                <p class="text-muted">This will only take a moment</p>
+                            </div>
                         </div>
                     }
-
-                    <!-- Password Section BEFORE StaffForm -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">Account Password</h5>
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle me-2"></i>
+                            <strong>Important:</strong> You are creating the Principal account for this school.
+                            This account will have full administrative access to manage the school.
                         </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                                    <input type="password"
-                                           id="password"
-                                           class="form-control"
-                                           @bind="password"
-                                           placeholder="Enter password" />
-                                    <small class="text-muted">Minimum 6 characters, at least one uppercase, one lowercase, one number, and one special character</small>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                                    <input type="password"
-                                           id="confirmPassword"
-                                           class="form-control"
-                                           @bind="confirmPassword"
-                                           placeholder="Re-enter password" />
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="fa fa-exclamation-triangle me-2"></i>@errorMessage
+                            </div>
+                        }
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Account Password</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                        <input type="password"
+                                               id="password"
+                                               class="form-control"
+                                               @bind="password"
+                                               placeholder="Enter password" />
+                                        <small class="text-muted">Minimum 6 characters, at least one uppercase, one lowercase, one number, and one special character</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                        <input type="password"
+                                               id="confirmPassword"
+                                               class="form-control"
+                                               @bind="confirmPassword"
+                                               placeholder="Re-enter password" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Existing StaffForm Component -->
-                    <StaffForm Staff="@principalStaff"
-                               SubmitButtonText="Create Principal Account"
-                               OnSubmit="CreatePrincipal"
-                               OnCancel="Cancel" />
+                        <StaffForm Staff="@principalStaff"
+                                   SubmitButtonText="Create Principal Account"
+                                   OnSubmit="CreatePrincipal"
+                                   OnCancel="Cancel" />
+                    }
                 </div>
             </div>
         </div>
     </div>
-    <div class="modal-backdrop fade show"></div>
-}
+</div>
 
 @code {
-    [Parameter]
-    public bool IsVisible { get; set; }
-
-    [Parameter]
-    public EventCallback OnPrincipalCreated { get; set; }
-
-    [Parameter]
-    public EventCallback OnCancel { get; set; }
-
     private Staff principalStaff = new();
     private string password = "";
     private string confirmPassword = "";
     private string errorMessage = "";
+    private bool isCreating = false;
 
     protected override void OnInitialized()
     {
-        InitializePrincipalStaff();
-    }
-
-    protected override void OnParametersSet()
-    {
-        if (IsVisible)
+        if (!SchoolDataService.HasSchool())
         {
-            InitializePrincipalStaff();
-            password = "";
-            confirmPassword = "";
-            errorMessage = "";
+            NavigationManager.NavigateTo("/school/create", true);
+            return;
         }
+
+        if (SchoolDataService.HasPrincipal())
+        {
+            NavigationManager.NavigateTo("/", true);
+            return;
+        }
+
+        InitializePrincipalStaff();
     }
 
     private void InitializePrincipalStaff()
@@ -150,6 +158,9 @@
                 return;
             }
 
+            isCreating = true;
+            StateHasChanged();
+
             // Set UserName same as Email
             staff.Person.UserName = staff.Person.Email;
             staff.Person.EmailConfirmed = true;
@@ -160,6 +171,8 @@
             if (!createResult.Succeeded)
             {
                 errorMessage = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                isCreating = false;
+                StateHasChanged();
                 return;
             }
 
@@ -170,6 +183,8 @@
             {
                 errorMessage = "User created but failed to assign Principal role: " +
                               string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                isCreating = false;
+                StateHasChanged();
                 return;
             }
 
@@ -178,17 +193,17 @@
             staff.SchoolId = school.Id;
             SchoolDataService.AddStaff(staff);
 
-            // Notify success
-            await OnPrincipalCreated.InvokeAsync();
+            NavigationManager.NavigateTo("/", false);
         }
         catch (Exception ex)
         {
             errorMessage = $"Error creating principal: {ex.Message}";
+            isCreating = false;
+            StateHasChanged();
         }
     }
 
-    private async Task Cancel()
+    private void Cancel()
     {
-        await OnCancel.InvokeAsync();
     }
 }

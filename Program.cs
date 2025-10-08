@@ -105,6 +105,4 @@ using (var scope = app.Services.CreateScope())
     await AccountSeeder.EnsureSpecialAccountsAsync(services, config, app.Environment.IsDevelopment());
 }
 
-
-
 app.Run();

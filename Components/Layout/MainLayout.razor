@@ -3,6 +3,8 @@
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 @inherits LayoutComponentBase
+@implements IDisposable
+@rendermode InteractiveServer
 
 <div class="layout-container">
     @if (isLoading)
@@ -78,12 +80,17 @@
     private NavMenu? navMenu;
     private bool collapseNavMenu = true;
     private bool showSchoolSettings = false;
-    private bool showPrincipalCreate = false;
     private bool hasSchool = false;
     private bool hasPrincipal = false;
     private bool isLoading = true;
 
     protected override void OnInitialized()
+    {
+        InitializeApp();
+        NavigationManager.LocationChanged += OnLocationChanged;  
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)  
     {
         InitializeApp();
     }
@@ -111,25 +118,17 @@
 
             if (!hasPrincipal)
             {
-                showPrincipalCreate = true;
+                var currentUri = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+                if (!currentUri.StartsWith("principal/create"))
+                {
+                    NavigationManager.NavigateTo("/principal/create", true);
+                    return;
+                }
             }
         }
 
         isLoading = false;
         StateHasChanged();
-    }
-
-    public void OnSchoolCreated()
-    {
-        hasSchool = true;
-        InitializeApp();
-    }
-
-    private void OnPrincipalCreated()
-    {
-        showPrincipalCreate = false;
-        hasPrincipal = true;
-        InitializeApp();
     }
 
     private void ToggleNavMenu()
@@ -155,5 +154,10 @@
         FcmsPortalUI.Components.Pages.School.Home.TriggerSchoolDataRefresh();
         showSchoolSettings = false;
         StateHasChanged();
+    }
+
+    public void Dispose()  
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
