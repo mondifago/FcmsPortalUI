@@ -20,60 +20,62 @@
             </div>
         </div>
     }
-    else if (hasSchool && hasPrincipal)
-    {
-        <div class="top-row">
-            <div class="logo-container">
-                <a href="/" class="home-link">FCMS</a>
-            </div>
-            <button class="navbar-toggler" @onclick="ToggleNavMenu">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="top-icons">
-                <input type="text" class="search-box" placeholder="Search...">
-                <a href="/messages" class="icon-link"><i class="fas fa-envelope"></i></a>
-                <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
-                <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
-                    <i class="fas fa-cog"></i>
-                </button>
-                <a href="/profile" class="icon-link"><i class="fas fa-user-circle"></i></a>
-            </div>
-        </div>
-
-        <div class="page">
-            <NavMenu @ref="navMenu" HasSchool="@hasSchool" />
-            <main>
-                <article class="content px-4">
-                    @Body
-                </article>
-            </main>
-        </div>
-
-        <SchoolSettingsModal IsVisible="showSchoolSettings"
-                             OnClose="CloseSchoolSettings"
-                             OnSave="HandleSchoolSettingsSaved" />
-    }
     else
     {
-        <div class="top-row">
-            <div class="logo-container">
-                <a href="/" class="home-link">FCMS</a>
-            </div>
-        </div>
-        <div class="page">
-            <main style="margin-left: 0;">
-                <article class="content px-4">
-                    @Body
-                </article>
-            </main>
-        </div>
+        <AuthorizeView>
+            <Authorized>
+                @if (hasSchool && hasPrincipal)
+                {
+                    <div class="top-row">
+                        <div class="logo-container">
+                            <a href="/" class="home-link">FCMS</a>
+                        </div>
+                        <button class="navbar-toggler" @onclick="ToggleNavMenu">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <div class="top-icons">
+                            <input type="text" class="search-box" placeholder="Search...">
+                            <a href="/messages" class="icon-link"><i class="fas fa-envelope"></i></a>
+                            <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
+                            <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <a href="/profile" class="icon-link"><i class="fas fa-user-circle"></i></a>
+                        </div>
+                    </div>
+                    <div class="page">
+                        <NavMenu @ref="navMenu" HasSchool="@hasSchool" />
+                        <main>
+                            <article class="content px-4">
+                                @Body
+                            </article>
+                        </main>
+                    </div>
+                    <SchoolSettingsModal IsVisible="showSchoolSettings"
+                                         OnClose="CloseSchoolSettings"
+                                         OnSave="HandleSchoolSettingsSaved" />
+                }
+                else
+                {
+                    <div class="top-row">
+                        <div class="logo-container">
+                            <a href="/" class="home-link">FCMS</a>
+                        </div>
+                    </div>
+                    <div class="page">
+                        <main style="margin-left: 0;">
+                            <article class="content px-4">
+                                @Body
+                            </article>
+                        </main>
+                    </div>
+                }
+            </Authorized>
+            <NotAuthorized>
+                @Body
+            </NotAuthorized>
+        </AuthorizeView>
     }
-</div>
-
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
 </div>
 
 @code {

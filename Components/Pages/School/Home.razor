@@ -1,4 +1,5 @@
 ﻿@page "/"
+@attribute [Authorize]
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
 @using FcmsPortal.Services
@@ -6,6 +7,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortal
 @using FcmsPortalUI.Services
+@using Microsoft.AspNetCore.Authorization
 @rendermode InteractiveServer
 @implements IDisposable
 

@@ -3,6 +3,7 @@ using FcmsPortal.Services;
 using FcmsPortalUI.Components;
 using FcmsPortalUI.Components.Account;
 using FcmsPortalUI.Data;
+using FcmsPortalUI.Infrastructure.Startup;
 using FcmsPortalUI.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -104,5 +105,5 @@ using (var scope = app.Services.CreateScope())
     // Seed Developer & Principal backup accounts (reads secrets from IConfiguration)
     await AccountSeeder.EnsureSpecialAccountsAsync(services, config, app.Environment.IsDevelopment());
 }
-
+app.MapAccountServices();
 app.Run();
