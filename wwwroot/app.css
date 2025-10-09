@@ -911,3 +911,89 @@ main {
     }
 }
 
+/* Login Page */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+}
+
+.login-content {
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+.school-logo-display {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 20px;
+}
+
+.school-name-display {
+    color: #ff0000;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 30px;
+}
+
+.grey-label {
+    color: #6c757d;
+    text-align: left;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.black-label {
+    color: #000000;
+    text-align: left;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.login-btn-small {
+    color: #fff;
+    background-color: #28a745;
+    border-color: #218838;
+    padding: 8px 60px;
+    font-size: 0.9rem;
+    border-radius: 20px;
+}
+
+    .login-btn-small:hover {
+        color: #fff;
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
+
+.sign-in-box {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: border-color 0.3s ease;
+    width: 100%;
+}
+
+    .sign-in-box:focus {
+        border-color: #28a745;
+    }
+
+.form-check-input {
+    border: 1px solid #ccc;
+}
+
+    .form-check-input:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+    .form-check-input:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #28a745;
+    }
+

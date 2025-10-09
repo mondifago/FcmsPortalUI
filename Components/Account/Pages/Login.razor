@@ -15,92 +15,66 @@
 
 <PageTitle>Log in</PageTitle>
 
-<style>
-    .login-container {
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-        background: linear-gradient(135deg, #f5f7fb, #e9ecef);
-    }
-</style>
-
 <div class="login-container">
-    <div class="col-md-5">
-        <!-- Branding -->
-        <div class="text-center mb-4">
-            <h2 style="color: #dc3545; font-weight: bold;">FCMS Portal</h2>
-            @if (school != null && !string.IsNullOrEmpty(school.Name))
+    <div class="login-content">
+        @if (school != null)
+        {
+            @if (!string.IsNullOrEmpty(school.LogoUrl))
             {
-                <div class="d-flex justify-content-center align-items-center gap-2">
-                    @if (!string.IsNullOrEmpty(school.LogoUrl))
-                    {
-                        <img src="@school.LogoUrl" alt="School Logo" style="height: 40px; width: 40px; object-fit: contain;" />
-                    }
-                    <p class="mb-0 text-muted">@school.Name</p>
-                </div>
+                <img src="@school.LogoUrl" alt="School Logo" class="school-logo-display" />
             }
-        </div>
 
-        <!-- Login Card -->
-        <div class="card shadow-lg">
-            <div class="card-header text-white text-center" style="background-color: #28a745;">
-                <h4 class="mb-0">Welcome Back</h4>
-                <p class="mb-0 small">Sign in to your account</p>
+            @if (!string.IsNullOrEmpty(school.Name))
+            {
+                <div class="school-name-display">@school.Name</div>
+            }
+        }
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">
+                <i class="fa fa-exclamation-triangle me-2"></i>@errorMessage
             </div>
-            <div class="card-body p-4">
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <div class="alert alert-danger">
-                        <i class="fa fa-exclamation-triangle me-2"></i>@errorMessage
-                    </div>
-                }
+        }
 
-                <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary class="text-danger mb-3" role="alert" />
+        <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger mb-3" role="alert" />
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <InputText @bind-Value="Input.Email"
-                                   id="email"
-                                   class="form-control"
-                                   autocomplete="username"
-                                   placeholder="Enter your email" />
-                        <ValidationMessage For="() => Input.Email" class="text-danger" />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <InputText type="password"
-                                   @bind-Value="Input.Password"
-                                   id="password"
-                                   class="form-control"
-                                   autocomplete="current-password"
-                                   placeholder="Enter your password" />
-                        <ValidationMessage For="() => Input.Password" class="text-danger" />
-                    </div>
-
-                    <div class="form-check mb-3">
-                        <InputCheckbox @bind-Value="Input.RememberMe"
-                                       class="form-check-input"
-                                       id="rememberMe" />
-                        <label class="form-check-label" for="rememberMe">
-                            Remember me
-                        </label>
-                    </div>
-
-                    <button type="submit" class="w-100 btn btn-lg text-white" style="background-color: #28a745;">
-                        Log In
-                    </button>
-
-                    <div class="text-center mt-3">
-                        <a href="Account/ForgotPassword" class="text-muted small">Forgot your password?</a>
-                    </div>
-                </EditForm>
+            <div class="mb-3">
+                <label for="email" class="black-label">Email</label>
+                <InputText @bind-Value="Input.Email"
+                           id="email"
+                           class="sign-in-box"
+                           autocomplete="username"
+                           placeholder="Enter your email" />
+                <ValidationMessage For="() => Input.Email" class="text-danger" />
             </div>
-        </div>
+
+            <div class="mb-3">
+                <label for="password" class="black-label">Password</label>
+                <InputText type="password"
+                           @bind-Value="Input.Password"
+                           id="password"
+                           class="sign-in-box"
+                           autocomplete="current-password"
+                           placeholder="Enter your password" />
+                <ValidationMessage For="() => Input.Password" class="text-danger" />
+            </div>
+
+            <div class="form-check mb-3 text-start">
+                <InputCheckbox @bind-Value="Input.RememberMe" id="remember-me" class="form-check-input" />
+                <label for="remember-me" class="form-check-label grey-label" style="display: inline;">Remember me</label>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn login-btn-small">Log in</button>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="Account/ForgotPassword" class="text-muted small">Forgot your password?</a>
+            </div>
+        </EditForm>
     </div>
 </div>
 
