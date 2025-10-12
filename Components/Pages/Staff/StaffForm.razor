@@ -107,7 +107,8 @@
                                                 .Cast<UserRole>()
                                                 .Where(r => r != UserRole.None &&
                                                 r != UserRole.Student &&
-                                                r != UserRole.Guardian))
+                                                r != UserRole.Guardian &&
+                                                r != UserRole.Developer))
                         {
                             <option value="@role">@role</option>
                         }
