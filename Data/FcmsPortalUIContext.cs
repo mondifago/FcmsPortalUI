@@ -30,6 +30,7 @@ namespace FcmsPortalUI.Data
         public DbSet<ArchivedStudentPayment> ArchivedStudentPayments { get; set; }
         public DbSet<ArchivedPaymentDetail> ArchivedPaymentDetails { get; set; }
         public DbSet<AttendanceArchive> AttendanceArchives { get; set; }
+        public DbSet<AccountInvitation> AccountInvitations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
