@@ -111,7 +111,9 @@ else
         guardian = SchoolDataService.GetGuardianById(GuardianId);
 
         if (guardian != null)
-            invitations = await AccountInvitationService.GetInvitationsForPersonAsync(guardian.PersonId);
+        {
+            invitations = await AccountInvitationService.GetInvitationsForPersonAsync(guardian.Id);
+        }
     }
 
     private async Task SendInvitation()
@@ -132,13 +134,13 @@ else
             int.TryParse(user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var senderId);
 
             await AccountInvitationService.CreateInvitationAsync(
-                guardian.PersonId,
+                guardian.Id,
                 guardian.Person.Email,
                 "Guardian",
                 senderId
             );
 
-            invitations = await AccountInvitationService.GetInvitationsForPersonAsync(guardian.PersonId);
+            invitations = await AccountInvitationService.GetInvitationsForPersonAsync(guardian.Id);
             message = $"Invitation sent to {guardian.Person.Email} at {DateTime.Now:g}.";
         }
         catch (Exception ex)

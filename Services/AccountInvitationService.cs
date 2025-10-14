@@ -6,16 +6,16 @@ namespace FcmsPortalUI.Services
 {
     public class AccountInvitationService : IAccountInvitationService
     {
-        private readonly FcmsPortalUIContext _context;
+        private readonly IDbContextFactory<FcmsPortalUIContext> _contextFactory;
         private readonly IEmailNotificationService _emailService;
         private readonly IConfiguration _configuration;
 
         public AccountInvitationService(
-            FcmsPortalUIContext context,
+            IDbContextFactory<FcmsPortalUIContext> contextFactory,
             IEmailNotificationService emailService,
             IConfiguration configuration)
         {
-            _context = context;
+            _contextFactory = contextFactory;
             _emailService = emailService;
             _configuration = configuration;
         }
@@ -37,8 +37,11 @@ namespace FcmsPortalUI.Services
                 SentByAccountId = sentById
             };
 
-            _context.AccountInvitations.Add(invitation);
-            await _context.SaveChangesAsync();
+            await using (var context = await _contextFactory.CreateDbContextAsync())
+            {
+                context.AccountInvitations.Add(invitation);
+                await context.SaveChangesAsync();
+            }
 
             await SendInvitationAsync(invitation);
 
@@ -51,7 +54,7 @@ namespace FcmsPortalUI.Services
             var registrationUrl = $"{baseUrl}/register?token={Uri.EscapeDataString(invitation.Token)}";
 
             // Get person name from database (you'll need to add this logic based on Role)
-            var personName = await GetPersonNameAsync(invitation.PersonId, invitation.Role);
+            var personName = await GetPersonNameAsync(invitation.PersonId);
 
             await _emailService.SendInvitationEmailAsync(
                 invitation.Email,
@@ -62,20 +65,22 @@ namespace FcmsPortalUI.Services
 
         public async Task<AccountInvitation?> GetByTokenAsync(string token)
         {
-            return await _context.AccountInvitations
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.AccountInvitations
                 .FirstOrDefaultAsync(i => i.Token == token && !i.IsUsed && i.ExpiryDate > DateTime.UtcNow);
         }
 
         public async Task<bool> MarkAsUsedAsync(string token)
         {
-            var invitation = await _context.AccountInvitations
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var invitation = await context.AccountInvitations
                 .FirstOrDefaultAsync(i => i.Token == token);
 
             if (invitation == null)
                 return false;
 
             invitation.IsUsed = true;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return true;
         }
 
@@ -85,30 +90,17 @@ namespace FcmsPortalUI.Services
             return invitation != null;
         }
 
-        private async Task<string> GetPersonNameAsync(int personId, string role)
+        private async Task<string> GetPersonNameAsync(int personId)
         {
-            // Logic to get person name based on role
-            if (role == "Teacher" || role == "Admin")
-            {
-                var staff = await _context.Staff.FindAsync(personId);
-                return staff?.Person.FirstName ?? "User";
-            }
-            if (role == "Student")
-            {
-                var student = await _context.Students.FindAsync(personId);
-                return student?.Person.FirstName ?? "User";
-            }
-            if (role == "Guardian")
-            {
-                var guardian = await _context.Guardians.FindAsync(personId);
-                return guardian?.Person.FirstName ?? "User";
-            }
-            return "User";
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var person = await context.Persons.FindAsync(personId);
+            return person?.FirstName ?? "User";
         }
 
         public async Task<List<AccountInvitation>> GetInvitationsForPersonAsync(int personId)
         {
-            return await _context.AccountInvitations
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.AccountInvitations
                 .Where(i => i.PersonId == personId)
                 .OrderByDescending(i => i.CreatedAt)
                 .ToListAsync();

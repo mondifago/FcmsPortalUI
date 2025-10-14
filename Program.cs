@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Database connection
 var connectionString = builder.Configuration.GetConnectionString("FcmsPortalUIContext");
-builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
+void ConfigureDbContext(DbContextOptionsBuilder options)
 {
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
         mySqlOptions => mySqlOptions
@@ -28,7 +28,12 @@ builder.Services.AddDbContext<FcmsPortalUIContext>(options =>
         options.EnableSensitiveDataLogging();
         options.EnableDetailedErrors();
     }
-});
+}
+builder.Services.AddPooledDbContextFactory<FcmsPortalUIContext>(ConfigureDbContext);
+builder.Services.AddScoped(sp =>
+    sp.GetRequiredService<IDbContextFactory<FcmsPortalUIContext>>().CreateDbContext());
+
+
 
 // Authentication schemes
 builder.Services.AddAuthentication(options =>
