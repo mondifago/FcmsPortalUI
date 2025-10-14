@@ -8,16 +8,13 @@ namespace FcmsPortalUI.Services
     {
         private readonly IDbContextFactory<FcmsPortalUIContext> _contextFactory;
         private readonly IEmailNotificationService _emailService;
-        private readonly IConfiguration _configuration;
 
         public AccountInvitationService(
             IDbContextFactory<FcmsPortalUIContext> contextFactory,
-            IEmailNotificationService emailService,
-            IConfiguration configuration)
+            IEmailNotificationService emailService)
         {
             _contextFactory = contextFactory;
             _emailService = emailService;
-            _configuration = configuration;
         }
 
         public async Task<AccountInvitation?> CreateInvitationAsync(
@@ -44,23 +41,17 @@ namespace FcmsPortalUI.Services
             }
 
             await SendInvitationAsync(invitation);
-
             return invitation;
         }
 
         public async Task SendInvitationAsync(AccountInvitation invitation)
         {
-            var baseUrl = _configuration["AppSettings:BaseUrl"];
-            var registrationUrl = $"{baseUrl}/register?token={Uri.EscapeDataString(invitation.Token)}";
-
-            // Get person name from database (you'll need to add this logic based on Role)
-            var personName = await GetPersonNameAsync(invitation.PersonId);
-
-            await _emailService.SendInvitationEmailAsync(
+            await _emailService.SendAccountInvitationAsync(
                 invitation.Email,
-                personName,
+                invitation.Token,
                 invitation.Role,
-                registrationUrl);
+                invitation.ExpiryDate
+            );
         }
 
         public async Task<AccountInvitation?> GetByTokenAsync(string token)
@@ -73,8 +64,7 @@ namespace FcmsPortalUI.Services
         public async Task<bool> MarkAsUsedAsync(string token)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
-            var invitation = await context.AccountInvitations
-                .FirstOrDefaultAsync(i => i.Token == token);
+            var invitation = await context.AccountInvitations.FirstOrDefaultAsync(i => i.Token == token);
 
             if (invitation == null)
                 return false;
@@ -88,13 +78,6 @@ namespace FcmsPortalUI.Services
         {
             var invitation = await GetByTokenAsync(token);
             return invitation != null;
-        }
-
-        private async Task<string> GetPersonNameAsync(int personId)
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-            var person = await context.Persons.FindAsync(personId);
-            return person?.FirstName ?? "User";
         }
 
         public async Task<List<AccountInvitation>> GetInvitationsForPersonAsync(int personId)

@@ -1,13 +1,13 @@
-﻿using FcmsPortal.Constants;
+﻿using FcmsPortal;
+using FcmsPortal.Constants;
 using FcmsPortal.Enums;
 using FcmsPortal.Models;
-using FcmsPortalUI;
 using FcmsPortalUI.Data;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace FcmsPortal.Services
+namespace FcmsPortalUI.Services
 {
     public class SchoolDataService : ISchoolDataService
     {

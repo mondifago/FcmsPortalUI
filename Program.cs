@@ -1,5 +1,4 @@
 using FcmsPortal.Models;
-using FcmsPortal.Services;
 using FcmsPortalUI.Components;
 using FcmsPortalUI.Components.Account;
 using FcmsPortalUI.Data;
@@ -63,6 +62,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddScoped<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<ExceptionHandlerService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
 builder.Services.AddScoped<IAccountInvitationService, AccountInvitationService>();
 

@@ -1,7 +1,7 @@
 ﻿using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using Microsoft.AspNetCore.Components.Forms;
-namespace FcmsPortal.Services
+namespace FcmsPortalUI.Services
 {
     public interface ISchoolDataService
     {

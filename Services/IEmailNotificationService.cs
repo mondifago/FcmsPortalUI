@@ -2,15 +2,10 @@
 {
     public interface IEmailNotificationService
     {
-        // Account invitation
-        Task SendInvitationEmailAsync(string recipientEmail, string recipientName, string role, string registrationUrl);
-
-        // Future school notifications
-        Task SendFeeReminderAsync(string email, string studentName, decimal amount, DateTime dueDate);
-        Task SendEventNotificationAsync(string email, string eventTitle, DateTime eventDate);
-        Task SendResultsNotificationAsync(string email, string studentName, string term);
-
-        // Generic email sender
-        Task SendEmailAsync(string toEmail, string subject, string htmlBody);
+        Task SendAccountInvitationAsync(string to, string token, string role, DateTime expiryDate);
+        Task SendSchoolFeesReminderAsync(string to, string studentName, decimal amount, DateTime dueDate);
+        Task SendEventNotificationAsync(string to, string eventTitle, string details);
+        Task SendResultNotificationAsync(string to, string studentName, string reportUrl);
+        Task SendNewsletterAsync(string to, string subject, string htmlContent);
     }
 }

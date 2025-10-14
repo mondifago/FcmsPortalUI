@@ -5,60 +5,103 @@
 @using System.Text.Encodings.Web
 @using FcmsPortal.Models
 @using FcmsPortalUI.Components.Account.Shared
+@using FcmsPortalUI.Services
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.Components
 
-
+@inject NavigationManager NavigationManager
+@inject IAccountInvitationService InvitationService
 @inject UserManager<Person> UserManager
 @inject IUserStore<Person> UserStore
 @inject SignInManager<Person> SignInManager
 @inject IEmailSender<Person> EmailSender
 @inject ILogger<Register> Logger
-@inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Register</PageTitle>
 
 <h1>Register</h1>
 
-<div class="row">
-    <div class="col-lg-6">
-        <StatusMessage Message="@Message" />
-        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
-            <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label for="Input.Email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.Password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
-            </div>
-            <div class="form-floating mb-3">
-                <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label for="Input.ConfirmPassword">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
+@if (!isTokenValid && token is not null)
+{
+    <div class="alert alert-danger">
+        Invalid or expired registration link.
     </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
+}
+else
+{
+    <div class="row">
+        <div class="col-lg-6">
+            <StatusMessage Message="@Message" />
+            <EditForm Model="Input" OnValidSubmit="RegisterUser" FormName="register">
+                <DataAnnotationsValidator />
+                <h2>Create a new account.</h2>
+                <hr />
+                <ValidationSummary class="text-danger" role="alert" />
+
+                <!-- Email -->
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.Email"
+                               id="Input.Email"
+                               class="form-control"
+                               autocomplete="username"
+                               aria-required="true"
+                               placeholder="name@example.com"
+                               readonly="@isEmailReadOnly" />
+                    <label for="Input.Email">Email</label>
+                    <ValidationMessage For="@(() => Input.Email)" class="text-danger" />
+                </div>
+
+                <!-- Password -->
+                <div class="form-floating mb-3">
+                    <InputText type="password"
+                               @bind-Value="Input.Password"
+                               id="Input.Password"
+                               class="form-control"
+                               autocomplete="new-password"
+                               aria-required="true"
+                               placeholder="password" />
+                    <label for="Input.Password">Password</label>
+                    <ValidationMessage For="@(() => Input.Password)" class="text-danger" />
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-floating mb-3">
+                    <InputText type="password"
+                               @bind-Value="Input.ConfirmPassword"
+                               id="Input.ConfirmPassword"
+                               class="form-control"
+                               autocomplete="new-password"
+                               aria-required="true"
+                               placeholder="password" />
+                    <label for="Input.ConfirmPassword">Confirm Password</label>
+                    <ValidationMessage For="@(() => Input.ConfirmPassword)" class="text-danger" />
+                </div>
+
+                <button type="submit" class="w-100 btn btn-lg btn-primary"
+                        disabled="@(!isTokenValid && token is not null)">
+                    Register
+                </button>
+            </EditForm>
+        </div>
+
+        <div class="col-lg-4 col-lg-offset-2">
+            <section>
+                <h3>Use another service to register.</h3>
+                <hr />
+                <ExternalLoginPicker />
+            </section>
+        </div>
     </div>
-</div>
+}
 
 @code {
+    private string? token;
+    private bool isTokenValid = true;
+    private bool isEmailReadOnly = false;
     private IEnumerable<IdentityError>? identityErrors;
 
     [SupplyParameterFromForm]
@@ -67,10 +110,45 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+    private string? Message =>
+        identityErrors is null
+            ? null
+            : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("token", out var tokenValue))
+        {
+            token = tokenValue;
+            var invitation = await InvitationService.GetByTokenAsync(token!);
+
+            if (invitation is not null && !string.IsNullOrWhiteSpace(invitation.Email))
+            {
+                Input.Email = invitation.Email;
+                isTokenValid = true;
+                isEmailReadOnly = true;
+            }
+            else
+            {
+                isTokenValid = false;
+            }
+        }
+    }
 
     public async Task RegisterUser(EditContext editContext)
     {
+        if (!isTokenValid && token is not null)
+        {
+            identityErrors = new[]
+            {
+                new IdentityError { Description = "Invalid or expired invitation token." }
+            };
+            return;
+        }
+
         var user = CreateUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
@@ -83,14 +161,26 @@
             identityErrors = result.Errors;
             return;
         }
+
         Logger.LogInformation("User created a new account with password.");
+
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            await InvitationService.MarkAsUsedAsync(token);
+        }
 
         var userId = await UserManager.GetUserIdAsync(user);
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+            new Dictionary<string, object?>
+            {
+                ["userId"] = userId,
+                ["code"] = code,
+                ["returnUrl"] = ReturnUrl
+            });
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
@@ -109,12 +199,12 @@
     {
         try
         {
-            return Activator.CreateInstance<Person>();
+            return Activator.CreateInstance<Person>()!;
         }
         catch
         {
             throw new InvalidOperationException($"Can't create an instance of '{nameof(Person)}'. " +
-                $"Ensure that '{nameof(Person)}' is not an abstract class and has a parameterless constructor.");
+                $"Ensure that '{nameof(Person)}' is not abstract and has a parameterless constructor.");
         }
     }
 
@@ -124,6 +214,7 @@
         {
             throw new NotSupportedException("The default UI requires a user store with email support.");
         }
+
         return (IUserEmailStore<Person>)UserStore;
     }
 
