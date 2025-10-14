@@ -1,64 +1,29 @@
 ﻿using FcmsPortal.Models;
 using FcmsPortalUI.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
-
 
 namespace FcmsPortalUI.Services
 {
     public class AccountInvitationService : IAccountInvitationService
     {
         private readonly FcmsPortalUIContext _context;
-        private readonly UserManager<Person> _userManager;
-        private readonly RoleManager<IdentityRole<int>> _roleManager;
-        private readonly IEmailSender _emailSender;
-        private readonly IConfiguration _config;
+        private readonly IEmailNotificationService _emailService;
+        private readonly IConfiguration _configuration;
 
         public AccountInvitationService(
             FcmsPortalUIContext context,
-            UserManager<Person> userManager,
-            RoleManager<IdentityRole<int>> roleManager,
-               IEmailSender emailSender,
-            IConfiguration config)
+            IEmailNotificationService emailService,
+            IConfiguration configuration)
         {
             _context = context;
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _emailSender = emailSender;
-            _config = config;
+            _emailService = emailService;
+            _configuration = configuration;
         }
 
         public async Task<AccountInvitation?> CreateInvitationAsync(
             int personId, string email, string role, int sentById)
         {
-            //Ensure user exists in Identity (Person = ApplicationUser)
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                user = await _context.Persons.FindAsync(personId);
-                if (user == null)
-                    throw new InvalidOperationException("Person not found.");
-
-                user.UserName = email;
-                user.Email = email;
-                user.EmailConfirmed = false;
-
-                var createResult = await _userManager.CreateAsync(user);
-                if (!createResult.Succeeded)
-                    throw new InvalidOperationException(
-                        $"Failed to create user: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
-            }
-
-            if (!await _roleManager.RoleExistsAsync(role))
-                await _roleManager.CreateAsync(new IdentityRole<int>(role));
-
-
-            if (!await _userManager.IsInRoleAsync(user, role))
-                await _userManager.AddToRoleAsync(user, role);
-
-            //Generate a secure confirmation token
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var token = Guid.NewGuid().ToString();
 
             var invitation = new AccountInvitation
             {
@@ -75,32 +40,24 @@ namespace FcmsPortalUI.Services
             _context.AccountInvitations.Add(invitation);
             await _context.SaveChangesAsync();
 
-            await SendInvitationEmailAsync(invitation);
+            await SendInvitationAsync(invitation);
 
             return invitation;
         }
 
-        private async Task SendInvitationEmailAsync(AccountInvitation invitation)
+        public async Task SendInvitationAsync(AccountInvitation invitation)
         {
-            var baseUrl = _config["AppSettings:BaseUrl"] ?? "https://localhost:5001";
-            var link = $"{baseUrl}/register?token={Uri.EscapeDataString(invitation.Token)}&email={Uri.EscapeDataString(invitation.Email)}";
+            var baseUrl = _configuration["AppSettings:BaseUrl"];
+            var registrationUrl = $"{baseUrl}/register?token={Uri.EscapeDataString(invitation.Token)}";
 
-            var subject = "Your School Portal Account Invitation";
-            var body = $@"
-                <html>
-                <body>
-                    <h2>Welcome!</h2>
-                    <p>You have been invited to join the school portal as a <strong>{invitation.Role}</strong>.</p>
-                    <p>Please click the button below to complete your registration:</p>
-                    <p>
-                        <a href='{link}' style='background-color:#1b6ec2;color:white;padding:10px 20px;
-                        text-decoration:none;border-radius:5px;'>Complete Registration</a>
-                    </p>
-                    <p>This link will expire on <b>{invitation.ExpiryDate:MMMM dd, yyyy}</b>.</p>
-                </body>
-                </html>";
+            // Get person name from database (you'll need to add this logic based on Role)
+            var personName = await GetPersonNameAsync(invitation.PersonId, invitation.Role);
 
-            await _emailSender.SendEmailAsync(invitation.Email, subject, body);
+            await _emailService.SendInvitationEmailAsync(
+                invitation.Email,
+                personName,
+                invitation.Role,
+                registrationUrl);
         }
 
         public async Task<AccountInvitation?> GetByTokenAsync(string token)
@@ -111,22 +68,50 @@ namespace FcmsPortalUI.Services
 
         public async Task<bool> MarkAsUsedAsync(string token)
         {
-            var invite = await _context.AccountInvitations
+            var invitation = await _context.AccountInvitations
                 .FirstOrDefaultAsync(i => i.Token == token);
 
-            if (invite == null)
+            if (invitation == null)
                 return false;
 
-            invite.IsUsed = true;
+            invitation.IsUsed = true;
             await _context.SaveChangesAsync();
             return true;
         }
 
-        //Validate token only
         public async Task<bool> IsValidTokenAsync(string token)
         {
-            var invite = await GetByTokenAsync(token);
-            return invite != null;
+            var invitation = await GetByTokenAsync(token);
+            return invitation != null;
+        }
+
+        private async Task<string> GetPersonNameAsync(int personId, string role)
+        {
+            // Logic to get person name based on role
+            if (role == "Teacher" || role == "Admin")
+            {
+                var staff = await _context.Staff.FindAsync(personId);
+                return staff?.Person.FirstName ?? "User";
+            }
+            if (role == "Student")
+            {
+                var student = await _context.Students.FindAsync(personId);
+                return student?.Person.FirstName ?? "User";
+            }
+            if (role == "Guardian")
+            {
+                var guardian = await _context.Guardians.FindAsync(personId);
+                return guardian?.Person.FirstName ?? "User";
+            }
+            return "User";
+        }
+
+        public async Task<List<AccountInvitation>> GetInvitationsForPersonAsync(int personId)
+        {
+            return await _context.AccountInvitations
+                .Where(i => i.PersonId == personId)
+                .OrderByDescending(i => i.CreatedAt)
+                .ToListAsync();
         }
     }
 }

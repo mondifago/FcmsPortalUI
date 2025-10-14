@@ -8,5 +8,6 @@ namespace FcmsPortalUI.Services
         Task<AccountInvitation?> GetByTokenAsync(string token);
         Task<bool> MarkAsUsedAsync(string token);
         Task<bool> IsValidTokenAsync(string token);
+        Task<List<AccountInvitation>> GetInvitationsForPersonAsync(int personId);
     }
 }

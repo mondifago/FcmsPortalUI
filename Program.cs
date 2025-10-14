@@ -7,7 +7,6 @@ using FcmsPortalUI.Infrastructure.Startup;
 using FcmsPortalUI.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,8 +46,6 @@ builder.Services.AddIdentityCore<Person>(options => options.SignIn.RequireConfir
                .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<Person>, IdentityNoOpEmailSender>();
-builder.Services.AddSingleton<IEmailSender>(sp =>
-    new EmailSenderExtension(sp.GetRequiredService<IEmailSender<Person>>()));
 builder.Services.AddAuthorization();
 
 // Blazor Auth 
@@ -61,6 +58,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 builder.Services.AddScoped<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ValidationService>();
 builder.Services.AddScoped<ExceptionHandlerService>();
+builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
 builder.Services.AddScoped<IAccountInvitationService, AccountInvitationService>();
 
 // QuickGrid with EF Core
