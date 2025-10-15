@@ -78,7 +78,6 @@ else
         foreach (var student in removedStudents)
         {
             SchoolDataService.SetStudentSchoolFees(student, 0);
-            student.Person.IsActive = false;
             SchoolDataService.UpdateStudent(student);
         }
 
@@ -89,7 +88,6 @@ else
         foreach (var student in newlyAddedStudents)
         {
             SchoolDataService.SetStudentSchoolFees(student, submittedLearningPath.FeePerSemester);
-            student.Person.IsActive = true;
             SchoolDataService.UpdateStudent(student);
         }
 

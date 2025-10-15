@@ -413,6 +413,24 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
             return true;
         }
+
+        public void ActivateStudent(Student student)
+        {
+            if (student?.Person == null)
+                throw new ArgumentNullException(nameof(student), "Student and Person cannot be null.");
+
+            student.Person.IsActive = true;
+            _context.SaveChanges();
+        }
+
+        public void DeActivateStudent(Student student)
+        {
+            if (student?.Person == null)
+                throw new ArgumentNullException(nameof(student), "Student and Person cannot be null.");
+
+            student.Person.IsActive = false;
+            _context.SaveChanges();
+        }
         #endregion
 
         #region Learning Paths
@@ -449,6 +467,15 @@ namespace FcmsPortalUI.Services
                 student.Person.SchoolFees.TotalAmount = feeAmount;
             }
             _context.SaveChanges();
+
+            if (feeAmount > 0)
+            {
+                ActivateStudent(student);
+            }
+            else
+            {
+                DeActivateStudent(student);
+            }
         }
 
         public void RemoveStudentFromLearningPath(LearningPath learningPath, Student student)
@@ -598,7 +625,7 @@ namespace FcmsPortalUI.Services
                 existingLearningPath.Students.Add(student);
 
                 SetStudentSchoolFees(student, existingLearningPath.FeePerSemester);
-                student.Person.IsActive = true;
+
                 if (student.LearningPathId == 0)
                 {
                     student.LearningPathId = existingLearningPath.Id;
@@ -644,7 +671,6 @@ namespace FcmsPortalUI.Services
                     existingLearningPath.Students.Add(student);
 
                     SetStudentSchoolFees(student, existingLearningPath.FeePerSemester);
-                    student.Person.IsActive = true;
                     if (student.LearningPathId == 0)
                     {
                         student.LearningPathId = existingLearningPath.Id;
