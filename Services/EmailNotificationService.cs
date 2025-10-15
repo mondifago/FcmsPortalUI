@@ -21,7 +21,7 @@ namespace FcmsPortalUI.Services
 
             var subject = "Activate Your School Portal Account";
             var body = new StringBuilder();
-            body.AppendLine("<h3>Welcome to the School Portal!</h3>");
+            body.AppendLine("<h3>Welcome to Future Champions Model School Portal!</h3>");
             body.AppendLine($"<p>You have been invited to create an account as a <strong>{role}</strong>.</p>");
             body.AppendLine($"<p><a href='{registrationUrl}' style='background:#1b6ec2;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;'>Complete Registration</a></p>");
             body.AppendLine($"<p>This link will expire on <strong>{expiryDate:MMMM dd, yyyy}</strong>.</p>");

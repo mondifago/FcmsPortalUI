@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Net.Mail;
+﻿using System.Net.Mail;
 
 namespace FcmsPortalUI.Services
 {
@@ -17,11 +16,11 @@ namespace FcmsPortalUI.Services
         public async Task SendEmailAsync(string to, string subject, string htmlBody, string? from = null)
         {
             var smtpSection = _config.GetSection("SmtpSettings");
-            var smtpHost = smtpSection["Host"];
-            var smtpPort = int.Parse(smtpSection["Port"] ?? "587");
+            var smtpHost = smtpSection["Host"] ?? "localhost";
+            var smtpPort = int.Parse(smtpSection["Port"] ?? "25");
             var smtpUser = smtpSection["Username"];
             var smtpPass = smtpSection["Password"];
-            var smtpFrom = from ?? smtpSection["FromEmail"];
+            var smtpFrom = from ?? smtpSection["FromEmail"] ?? "noreply@fcms.com";
             var saveToFile = bool.TryParse(smtpSection["SaveToFile"], out var save) && save;
 
             var message = new MailMessage
@@ -52,8 +51,9 @@ namespace FcmsPortalUI.Services
 
             using var smtpClient = new SmtpClient(smtpHost, smtpPort)
             {
-                Credentials = new NetworkCredential(smtpUser, smtpPass),
-                EnableSsl = true
+                EnableSsl = false,
+                UseDefaultCredentials = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network
             };
 
             await smtpClient.SendMailAsync(message);
