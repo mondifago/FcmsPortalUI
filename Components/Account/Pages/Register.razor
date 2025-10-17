@@ -1,5 +1,7 @@
 ﻿@page "/Account/Register"
 
+@using Microsoft.AspNetCore.Antiforgery
+@attribute [RequireAntiforgeryToken(required: false)]
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
@@ -9,6 +11,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.AspNetCore.Components
 
@@ -98,8 +101,10 @@ else
     </div>
 }
 
+
 @code {
     private string? token;
+    private int? invitedPersonId;
     private bool isTokenValid = true;
     private bool isEmailReadOnly = false;
     private IEnumerable<IdentityError>? identityErrors;
@@ -127,6 +132,7 @@ else
 
             if (invitation is not null && !string.IsNullOrWhiteSpace(invitation.Email))
             {
+                invitedPersonId = invitation.PersonId;
                 Input.Email = invitation.Email;
                 isTokenValid = true;
                 isEmailReadOnly = true;
@@ -138,74 +144,85 @@ else
         }
     }
 
+
     public async Task RegisterUser(EditContext editContext)
     {
-        if (!isTokenValid && token is not null)
+        if (!isTokenValid || token is null)
         {
             identityErrors = new[]
             {
-                new IdentityError { Description = "Invalid or expired invitation token." }
+                new IdentityError
+                { Description = "Invalid or expired invitation token." }
             };
             return;
         }
 
-        var user = CreateUser();
-
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-        var emailStore = GetEmailStore();
-        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-        var result = await UserManager.CreateAsync(user, Input.Password);
-
-        if (!result.Succeeded)
+        //Re-fetch the invitation (defensive)
+        var invitation = await InvitationService.GetByTokenAsync(token);
+        if (invitation is null)
         {
-            identityErrors = result.Errors;
+            identityErrors = new[] { new IdentityError { Description = "Invitation not found." } };
             return;
         }
 
-        Logger.LogInformation("User created a new account with password.");
-
-        if (!string.IsNullOrWhiteSpace(token))
+        //Locate the EXISTING Person tied to this invitation
+        Person? user = null;
+        if (invitedPersonId is not null)
         {
-            await InvitationService.MarkAsUsedAsync(token);
+            user = await UserManager.FindByIdAsync(invitedPersonId.Value.ToString());
         }
 
-        var userId = await UserManager.GetUserIdAsync(user);
-        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        // Fallback by email if needed
+        user ??= await UserManager.FindByEmailAsync(Input.Email);
 
-        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
-            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?>
+        if (user is null)
+        {
+            identityErrors = new[]
             {
-                ["userId"] = userId,
-                ["code"] = code,
-                ["returnUrl"] = ReturnUrl
-            });
-
-        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
-
-        if (UserManager.Options.SignIn.RequireConfirmedAccount)
-        {
-            RedirectManager.RedirectTo(
-                "Account/RegisterConfirmation",
-                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+            new IdentityError { Description = "Linked person not found for this invitation." }
+        };
+            return;
         }
+
+        //Ensure username/email are set correctly on the existing user
+        user.UserName = Input.Email;
+        user.Email = Input.Email;
+
+        //auto-confirming invited email manually set because havin recieved the email by user, email is confirmed:
+        user.EmailConfirmed = true;
+
+        //ensure user security stamp exists
+        if (string.IsNullOrEmpty(user.SecurityStamp))
+            user.SecurityStamp = Guid.NewGuid().ToString();
+
+        var updateRes = await UserManager.UpdateAsync(user);
+        if (!updateRes.Succeeded)
+        {
+            identityErrors = updateRes.Errors;
+            return;
+        }
+
+        // Add a password IF one doesn’t exist yet
+        if (string.IsNullOrEmpty(user.PasswordHash))
+        {
+            var setPassRes = await UserManager.AddPasswordAsync(user, Input.Password);
+            if (!setPassRes.Succeeded)
+            {
+                identityErrors = setPassRes.Errors;
+                return;
+            }
+        }
+        else
+        {
+            // If a password already exists, you may want to block or allow reset
+            identityErrors = new[] { new IdentityError { Description = "Account already has a password. Use Login or Forgot Password." } };
+            return;
+        }
+
+        await InvitationService.MarkAsUsedAsync(token);
 
         await SignInManager.SignInAsync(user, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl);
-    }
-
-    private Person CreateUser()
-    {
-        try
-        {
-            return Activator.CreateInstance<Person>()!;
-        }
-        catch
-        {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(Person)}'. " +
-                $"Ensure that '{nameof(Person)}' is not abstract and has a parameterless constructor.");
-        }
     }
 
     private IUserEmailStore<Person> GetEmailStore()
