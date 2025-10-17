@@ -14,6 +14,7 @@
 @using Microsoft.AspNetCore.Mvc
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.AspNetCore.Components
+@using System.Security.Claims
 
 @inject NavigationManager NavigationManager
 @inject IAccountInvitationService InvitationService
@@ -151,13 +152,13 @@ else
         {
             identityErrors = new[]
             {
-                new IdentityError
-                { Description = "Invalid or expired invitation token." }
-            };
+            new IdentityError
+            { Description = "Invalid or expired invitation token." }
+        };
             return;
         }
 
-        //Re-fetch the invitation (defensive)
+        // Re-fetch the invitation (defensive)
         var invitation = await InvitationService.GetByTokenAsync(token);
         if (invitation is null)
         {
@@ -165,7 +166,7 @@ else
             return;
         }
 
-        //Locate the EXISTING Person tied to this invitation
+        // Locate the EXISTING Person tied to this invitation
         Person? user = null;
         if (invitedPersonId is not null)
         {
@@ -184,14 +185,14 @@ else
             return;
         }
 
-        //Ensure username/email are set correctly on the existing user
+        // Ensure username/email are set correctly on the existing user
         user.UserName = Input.Email;
         user.Email = Input.Email;
 
-        //auto-confirming invited email manually set because havin recieved the email by user, email is confirmed:
+        // Auto-confirming invited email manually set because having received the email by user, email is confirmed
         user.EmailConfirmed = true;
 
-        //ensure user security stamp exists
+        // Ensure user security stamp exists
         if (string.IsNullOrEmpty(user.SecurityStamp))
             user.SecurityStamp = Guid.NewGuid().ToString();
 
@@ -219,11 +220,31 @@ else
             return;
         }
 
+        if (!string.IsNullOrWhiteSpace(invitation.Role))
+        {
+            var roleName = invitation.Role.Trim();
+
+            if (!await UserManager.IsInRoleAsync(user, roleName))
+                await UserManager.AddToRoleAsync(user, roleName);
+
+            var claims = await UserManager.GetClaimsAsync(user);
+
+            if (!claims.Any(c => c.Type == "Role"))
+                await UserManager.AddClaimAsync(user, new Claim("Role", roleName));
+
+            if (!claims.Any(c => c.Type == "PersonId"))
+                await UserManager.AddClaimAsync(user, new Claim("PersonId", user.Id.ToString()));
+
+            if (user.SchoolFees?.Id > 0 && !claims.Any(c => c.Type == "SchoolId"))
+                await UserManager.AddClaimAsync(user, new Claim("SchoolId", user.SchoolFees.Id.ToString()));
+        }
+
         await InvitationService.MarkAsUsedAsync(token);
 
         await SignInManager.SignInAsync(user, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl);
     }
+
 
     private IUserEmailStore<Person> GetEmailStore()
     {

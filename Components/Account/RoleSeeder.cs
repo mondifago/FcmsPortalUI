@@ -32,7 +32,7 @@ namespace FcmsPortalUI.Components.Account
             var userManager = serviceProvider.GetRequiredService<UserManager<Person>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
-            // ensure Admin role exists
+            // ensure Principal role exists
             if (await roleManager.FindByNameAsync(nameof(UserRole.Principal)) == null)
                 await roleManager.CreateAsync(new IdentityRole<int>(nameof(UserRole.Principal)));
 
