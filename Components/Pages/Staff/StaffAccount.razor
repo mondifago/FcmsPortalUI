@@ -1,0 +1,158 @@
+﻿@page "/staff/account/{StaffId:int}"
+@using FcmsPortal.Models
+@using FcmsPortalUI.Services
+@inject ISchoolDataService SchoolDataService
+@inject IAccountInvitationService AccountInvitationService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+
+<h3>Staff Account Management</h3>
+
+@if (staff == null)
+{
+    <div class="alert alert-warning">Staff not found.</div>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">@staff.Person.FirstName @staff.Person.LastName</h5>
+            <a class="btn btn-secondary btn-sm" href="/staff">
+                <i class="fa fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <div class="card-body">
+            <p><strong>Email:</strong> @staff.Person.Email</p>
+            <p><strong>Job Description:</strong> @staff.JobDescription</p>
+            <p><strong>Qualifications:</strong> @staff.Qualifications</p>
+            <p><strong>Role:</strong> @staff.UserRole</p>
+            <p><strong>Date of Employment:</strong> @staff.DateOfEmployment</p>
+            <p>
+                <strong>Account Status:</strong>
+                @(staff.Person.EmailConfirmed ? "Confirmed" : "Not Confirmed")
+            </p>
+
+            <button class="btn btn-primary" @onclick="SendInvitation" disabled="@sending">
+                <i class="fa fa-envelope"></i>
+                @(sending ? "Sending..." : "Send Account Invitation")
+            </button>
+
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert alert-info mt-3">@message</div>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Invitation History</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (invitations == null || !invitations.Any())
+            {
+                <div class="p-3 text-muted">No invitations sent.</div>
+            }
+            else
+            {
+                <table class="table table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sent</th>
+                            <th>Expires</th>
+                            <th>Status</th>
+                            <th>Used On</th>
+                            <th>Sent By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var invite in invitations)
+                        {
+                            <tr>
+                                <td>@invite.CreatedAt.ToLocalTime():g</td>
+                                <td>@invite.ExpiryDate.ToLocalTime():g</td>
+                                <td>
+                                    @if (invite.IsUsed)
+                                    {
+                                        <span class="badge bg-success">Used</span>
+                                    }
+                                    else if (invite.ExpiryDate < DateTime.UtcNow)
+                                    {
+                                        <span class="badge bg-danger">Expired</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    }
+                                </td>
+                                <td>@(invite.IsUsed? invite.ExpiryDate.ToLocalTime().ToString("g") : "-")</td>
+                                <td>@invite.SentByAccountId</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int StaffId { get; set; }
+
+    private Staff? staff;
+    private List<AccountInvitation>? invitations;
+    private bool sending = false;
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        staff = SchoolDataService.GetStaffById(StaffId);
+
+        if (staff != null)
+        {
+            invitations = await AccountInvitationService.GetInvitationsForPersonAsync(staff.PersonId);
+        }
+    }
+
+    private async Task SendInvitation()
+    {
+        if (staff == null || string.IsNullOrWhiteSpace(staff.Person.Email))
+        {
+            message = "Staff has no valid email address.";
+            return;
+        }
+
+        sending = true;
+        message = string.Empty;
+
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            int.TryParse(user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var senderId);
+
+            // 🔹 Use the actual role selected in StaffForm
+            string roleName = staff.UserRole.ToString();
+
+            await AccountInvitationService.CreateInvitationAsync(
+                staff.PersonId,
+                staff.Person.Email,
+                roleName,   // ✅ Pass the role from Staff.UserRole
+                senderId
+            );
+
+            invitations = await AccountInvitationService.GetInvitationsForPersonAsync(staff.PersonId);
+            message = $"Invitation sent to {staff.Person.Email} as {roleName} at {DateTime.Now:g}.";
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            sending = false;
+        }
+    }
+}
+

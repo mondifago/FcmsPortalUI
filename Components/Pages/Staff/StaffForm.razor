@@ -116,7 +116,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="dateOfEmployment" class="form-label">Date of Employment<span class="text-danger">*</span></label>
-                    <InputDate id="dateOfEmployment" class="form-control" @bind-Value="employmentDate" />
+                    <InputDate id="dateOfEmployment" class="form-control" @bind-Value="Staff.DateOfEmployment" />
                 </div>
             </div>
 
@@ -229,7 +229,6 @@
     private ValidationMessageStore? messageStore;
     private string profilePictureUrl = "";
     private string oldProfilePictureUrl = "";
-    private DateTime employmentDate = DateTime.Today;
     private List<string> availableCourses { get; set; } = new();
 
     protected override void OnInitialized()
@@ -240,8 +239,8 @@
         if (Staff.Person.DateOfBirth == default)
             Staff.Person.DateOfBirth = DateTime.Today;
 
-        if (Staff.Person.DateOfEnrollment == default)
-            Staff.Person.DateOfEnrollment = DateTime.Today;
+        if (Staff.DateOfEmployment == default)
+            Staff.DateOfEmployment = DateTime.Today;
 
         profilePictureUrl = Staff.Person.ProfilePictureUrl ?? "";
         oldProfilePictureUrl = profilePictureUrl;
