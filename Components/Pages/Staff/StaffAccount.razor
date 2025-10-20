@@ -27,7 +27,7 @@ else
             <p><strong>Job Description:</strong> @staff.JobDescription</p>
             <p><strong>Qualifications:</strong> @staff.Qualifications</p>
             <p><strong>Role:</strong> @staff.UserRole</p>
-            <p><strong>Date of Employment:</strong> @staff.DateOfEmployment</p>
+            <p><strong>Date of Employment:</strong> @staff.DateOfEmployment.ToShortDateString()</p>
             <p>
                 <strong>Account Status:</strong>
                 @(staff.Person.EmailConfirmed ? "Confirmed" : "Not Confirmed")
@@ -132,13 +132,13 @@ else
             var user = authState.User;
             int.TryParse(user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var senderId);
 
-            // 🔹 Use the actual role selected in StaffForm
+            //Use the actual role selected in StaffForm
             string roleName = staff.UserRole.ToString();
 
             await AccountInvitationService.CreateInvitationAsync(
                 staff.PersonId,
                 staff.Person.Email,
-                roleName,   // ✅ Pass the role from Staff.UserRole
+                roleName,   
                 senderId
             );
 
