@@ -6,6 +6,7 @@
 @using FcmsPortalUI.Components.Pages.Shared
 @using System.Globalization
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
 
 <div class="container-fluid mt-3">
@@ -24,12 +25,26 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h2>Learning Path Details</h2>
                     <div>
-                        <button class="btn btn-success" @onclick="ShowAddStudentsModal">
-                            <i class="fa fa-user-plus"></i> Add Students
-                        </button>
-                        <a href="/learningpath/edit/@learningPath.Id" class="btn btn-warning me-2">
-                            <i class="fa fa-pencil"></i> Edit
-                        </a>
+                        <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+                            <Authorized>
+                                <button class="btn btn-success" @onclick="ShowAddStudentsModal">
+                                    <i class="fa fa-user-plus"></i> Add Students
+                                </button>
+                            </Authorized>
+                            <NotAuthorized>
+
+                            </NotAuthorized>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="Developer,Principal,Admin">
+                            <Authorized>
+                                <a href="/learningpath/edit/@learningPath.Id" class="btn btn-warning me-2">
+                                    <i class="fa fa-pencil"></i> Edit
+                                </a>
+                            </Authorized>
+                            <NotAuthorized>
+
+                            </NotAuthorized>
+                        </AuthorizeView>
                         <a href="/classes" class="btn btn-secondary">
                             <i class="fa fa-arrow-left"></i> Back to List
                         </a>
@@ -87,29 +102,50 @@
                             </div>
                         </div>
 
-                        @if (isTeacher && learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending)
-                        {
-                            <button class="btn btn-primary" @onclick="SubmitForReview">
-                                <i class="fa fa-check-circle"></i> Submit
-                            </button>
-                        }
-                        @if (isPrincipal && learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
-                        {
-                            <button class="btn btn-success" @onclick="ApproveLearningPath">
-                                <i class="fa fa-thumbs-up"></i> Approve
-                            </button>
-                            <button class="btn btn-secondary" @onclick="RestoreLearningPath">
-                                <i class="fa fa-undo"></i> Restore
-                            </button>
-                        }
+                        <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+                            <Authorized>
+                                @if (isTeacher && learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending)
+                                {
+                                    <button class="btn btn-primary" @onclick="SubmitForReview">
+                                        <i class="fa fa-check-circle"></i> Submit
+                                    </button>
+                                }
+                            </Authorized>
+                            <NotAuthorized>
 
+                            </NotAuthorized>
+                        </AuthorizeView>
+
+                        <AuthorizeView Roles="Developer,Principal">
+                            <Authorized>
+                                @if (isPrincipal && learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
+                                {
+                                    <button class="btn btn-success" @onclick="ApproveLearningPath">
+                                        <i class="fa fa-thumbs-up"></i> Approve
+                                    </button>
+                                    <button class="btn btn-secondary" @onclick="RestoreLearningPath">
+                                        <i class="fa fa-undo"></i> Restore
+                                    </button>
+                                }
+                            </Authorized>
+                            <NotAuthorized>
+
+                            </NotAuthorized>
+                        </AuthorizeView>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <button class="btn btn-success" @onclick="ShowScheduleCreateModal">
-                        <i class="fa fa-plus"></i> Schedule A Class
-                    </button>
-                </div>
+                <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+                    <Authorized>
+                        <div class="mb-3">
+                            <button class="btn btn-success" @onclick="ShowScheduleCreateModal">
+                                <i class="fa fa-plus"></i> Schedule A Class
+                            </button>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+
+                    </NotAuthorized>
+                </AuthorizeView>
                 <MonthlyCalendarView Title="Class Schedule"
                                      CurrentDate="@currentDate"
                                      CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
@@ -122,47 +158,55 @@
             </div>
 
             <div class="col-md-4">
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="list-group list-group-flush">
-                            @if (learningPath.Students == null || !learningPath.Students.Any())
+                <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+                    <Authorized>
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0">Enrolled Students (@learningPath.Students.Count)</h4>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush">
+                                    @if (learningPath.Students == null || !learningPath.Students.Any())
+                                    {
+                                        <div class="list-group-item">
+                                            <p class="text-muted mb-0">No students enrolled</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var student in learningPath.Students)
+                                        {
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <a href="/students/details/@student.Id" class="text-decoration-none">
+                                                        @Util.GetFullName(student.Person)
+                                                    </a>
+                                                </div>
+                                                @{
+                                                    var (statusText, badgeClass) = Util.GetPaymentStatus(student);
+                                                }
+                                                <span class="badge @badgeClass">@statusText</span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            @if (learningPath.Students != null && learningPath.Students.Any())
                             {
-                                <div class="list-group-item">
-                                    <p class="text-muted mb-0">No students enrolled</p>
+                                <div class="card-footer text-center">
+                                    <button class="@GetAttendanceButtonClass()" @onclick="HandleAttendanceAction">
+                                        @GetAttendanceButtonText()
+                                    </button>
                                 </div>
                             }
-                            else
-                            {
-                                @foreach (var student in learningPath.Students)
-                                {
-                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <a href="/students/details/@student.Id" class="text-decoration-none">
-                                                @Util.GetFullName(student.Person)
-                                            </a>
-                                        </div>
-                                        @{
-                                            var (statusText, badgeClass) = Util.GetPaymentStatus(student);
-                                        }
-                                        <span class="badge @badgeClass">@statusText</span>
-                                    </div>
-                                }
-                            }
-                        </div>
-                    </div>
-                    @if (learningPath.Students != null && learningPath.Students.Any())
-                    {
-                        <div class="card-footer text-center">
-                            <button class="@GetAttendanceButtonClass()" @onclick="HandleAttendanceAction">
-                                @GetAttendanceButtonText()
-                            </button>
-                        </div>
-                    }
-                </div>
 
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+
+                    </NotAuthorized>
+                </AuthorizeView>
                 <!-- Student Grade -->
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -254,14 +298,21 @@
                                 </table>
                             </div>
                         }
-                        <div class="d-flex justify-content-center mt-4">
-                            <button class="btn btn-primary" @onclick="ShowMainGradePage">
-                                Manage Grades
-                            </button>
-                            <button class="btn btn-success ms-2" @onclick="ShowFinalizeGradesModal">
-                                Finalize Grades
-                            </button>
-                        </div>
+                        <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+                            <Authorized>
+                                <div class="d-flex justify-content-center mt-4">
+                                    <button class="btn btn-primary" @onclick="ShowMainGradePage">
+                                        Manage Grades
+                                    </button>
+                                    <button class="btn btn-success ms-2" @onclick="ShowFinalizeGradesModal">
+                                        Finalize Grades
+                                    </button>
+                                </div>
+                            </Authorized>
+                            <NotAuthorized>
+
+                            </NotAuthorized>
+                        </AuthorizeView>
                     </div>
                 </div>
             </div>
@@ -368,24 +419,34 @@
                          OnClose="() => showGradesModal = false" />
 
 
-@if (showAttendanceModal)
-{
-    <TakeAttendanceModal IsVisible="showAttendanceModal"
-                         Students="@(learningPath?.Students ?? new List<Student>())"
-                         LearningPath="learningPath"
-                         AttendanceDate="DateTime.Now"
-                         TeacherId="@GetCurrentTeacher().Id"
-                         OnAttendanceSubmitted="OnAttendanceSubmitted"
-                         OnClose="CloseAttendanceModal" />
-}
+<AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+    <Authorized>
+        @if (showAttendanceModal)
+        {
+            <TakeAttendanceModal IsVisible="showAttendanceModal"
+                                 Students="@(learningPath?.Students ?? new List<Student>())"
+                                 LearningPath="learningPath"
+                                 AttendanceDate="DateTime.Now"
+                                 TeacherId="@(currentUserId ?? 0)"
+                                 OnAttendanceSubmitted="OnAttendanceSubmitted"
+                                 OnClose="CloseAttendanceModal" />
+        }
 
-@if (showDailyAttendanceModal && todaysAttendance != null)
-{
-    <DailyAttendanceViewModal IsVisible="showDailyAttendanceModal"
-                              SelectedDate="DateTime.Now"
-                              AttendanceData="dailyAttendanceData"
-                              OnClose="CloseDailyAttendanceModal" />
-}
+        @if (showDailyAttendanceModal && todaysAttendance != null)
+        {
+            <DailyAttendanceViewModal IsVisible="showDailyAttendanceModal"
+                                      SelectedDate="DateTime.Now"
+                                      AttendanceData="dailyAttendanceData"
+                                      OnClose="CloseDailyAttendanceModal" />
+        }
+    </Authorized>
+    <NotAuthorized>
+
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
 
 <StudentGradeDetailsModal IsVisible="showStudentDetailsModal"
                           Student="selectedStudent"
@@ -414,17 +475,20 @@
     private bool isPrincipal = true;
     private bool isTeacher = true;
 
+    private Person? currentUser;
+    private int? currentUserId;
+
     protected override void OnInitialized()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
     }
 
-    private Staff GetCurrentTeacher()
+    protected override async Task OnInitializedAsync()
     {
-        if (learningPath == null) return new Staff();
+        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
 
-        var school = SchoolDataService.GetSchool();
-        return LogicMethods.GetFirstTeacherByEducationLevel(school, learningPath.EducationLevel);
+        currentUserId = await PermissionService.GetCurrentUserIdAsync();
+        currentUser = await PermissionService.GetCurrentPersonAsync();
     }
 
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
@@ -447,10 +511,9 @@
 
     private void ShowAddStudentsModal()
     {
-        var allEligibleStudents = LogicMethods.GetStudentsByLevel(
-            SchoolDataService.GetSchool(),
-            learningPath.EducationLevel,
-            learningPath.ClassLevel);
+        var allEligibleStudents = SchoolDataService.GetStudentsByLevel(
+           learningPath.EducationLevel,
+           learningPath.ClassLevel);
 
         availableStudents = allEligibleStudents
             .Where(s => !learningPath.Students.Any(existingStudent => existingStudent.Id == s.Id))

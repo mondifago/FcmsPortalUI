@@ -335,7 +335,6 @@
     [Parameter]
     public EventCallback OnClearTemplate { get; set; }
 
-    private School? school;
     private List<Student> availableStudents = new List<Student>();
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
     private HashSet<int> selectedStudentIds = new HashSet<int>();
@@ -347,11 +346,10 @@
     private bool showCreateScheduleModal = false;
     private bool showEditScheduleModal = false;
     private bool showDeleteConfirmation = false;
- 
+
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
 
         if (LearningPath.Students != null)
         {
@@ -370,9 +368,9 @@
 
     private void LoadAvailableStudents()
     {
-        if (school != null && LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
+        if (LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
         {
-            availableStudents = LogicMethods.GetStudentsByLevel(school, LearningPath.EducationLevel, LearningPath.ClassLevel);
+            availableStudents = SchoolDataService.GetStudentsByLevel(LearningPath.EducationLevel, LearningPath.ClassLevel);
         }
     }
 

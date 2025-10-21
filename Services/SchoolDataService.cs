@@ -431,6 +431,15 @@ namespace FcmsPortalUI.Services
             student.Person.IsActive = false;
             _context.SaveChanges();
         }
+
+        public List<Student> GetStudentsByLevel(EducationLevel educationLevel, ClassLevel classLevel)
+        {
+            return _context.Students
+                .Include(s => s.Person)
+                .Where(s => s.Person.EducationLevel == educationLevel &&
+                            s.Person.ClassLevel == classLevel)
+                .ToList();
+        }
         #endregion
 
         #region Learning Paths
