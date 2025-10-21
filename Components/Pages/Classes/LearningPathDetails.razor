@@ -657,7 +657,6 @@
     private void OnAttendanceSubmitted(DailyAttendanceLogEntry attendanceLog)
     {
         showAttendanceModal = false;
-        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
         StateHasChanged();
     }
 

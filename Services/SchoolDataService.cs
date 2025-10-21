@@ -1837,10 +1837,6 @@ namespace FcmsPortalUI.Services
             if (learningPath == null)
                 throw new ArgumentException($"Learning path with ID {learningPathId} not found.");
 
-            var teacher = GetStaffById(teacherId);
-            if (teacher == null)
-                throw new ArgumentException($"Teacher with ID {teacherId} not found.");
-
             var presentStudents = learningPath.Students
                 .Where(s => presentStudentIds.Contains(s.Id))
                 .ToList();
@@ -1866,8 +1862,7 @@ namespace FcmsPortalUI.Services
             {
                 LearningPathId = learningPath.Id,
                 LearningPath = learningPath,
-                TeacherId = teacher.Id,
-                Teacher = teacher,
+                TeacherId = teacherId,
                 PresentStudents = presentStudents,
                 AbsentStudents = absentStudents,
                 TimeStamp = targetDate

@@ -173,27 +173,24 @@
         selectedStudentIds.Clear();
     }
 
-    private async Task SubmitAttendance()
+    private void SubmitAttendance()
     {
-        if (LearningPath == null || TeacherId <= 0)
+        var staff = SchoolDataService.GetStaff()
+            .FirstOrDefault(s => s.PersonId == TeacherId);
+
+        if (staff == null)
         {
-            errorMessage = "Missing required information to submit attendance.";
-            return;
+            throw new InvalidOperationException($"No Staff record found for Person ID {TeacherId}. The logged-in user must be registered as a Staff member.");
         }
 
-        isSubmitting = true;
-    
-        var attendanceLog = SchoolDataService.SaveAttendance(
-            LearningPath.Id, 
-            selectedStudentIds.ToList(), 
-            TeacherId, 
-            AttendanceDate
-        );
+        SchoolDataService.SaveAttendance(
+            LearningPath.Id,
+            selectedStudentIds.ToList(),
+            staff.Id,           
+            AttendanceDate);
 
-        await OnAttendanceSubmitted.InvokeAsync(attendanceLog);
-        await Close();
-    
-        isSubmitting = false;
+        OnAttendanceSubmitted.InvokeAsync();
+        OnClose.InvokeAsync();
     }
 
     private async Task Close()
