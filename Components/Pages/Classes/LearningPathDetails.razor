@@ -104,7 +104,7 @@
 
                         <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
                             <Authorized>
-                                @if (isTeacher && learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending)
+                                @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending)
                                 {
                                     <button class="btn btn-primary" @onclick="SubmitForReview">
                                         <i class="fa fa-check-circle"></i> Submit
@@ -118,7 +118,7 @@
 
                         <AuthorizeView Roles="Developer,Principal">
                             <Authorized>
-                                @if (isPrincipal && learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
+                                @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
                                 {
                                     <button class="btn btn-success" @onclick="ApproveLearningPath">
                                         <i class="fa fa-thumbs-up"></i> Approve
@@ -472,16 +472,8 @@
     private bool showDailyAttendanceModal = false;
     private bool showScheduleCreateModal = false;
     private bool showAddStudentsModal = false;
-    private bool isPrincipal = true;
-    private bool isTeacher = true;
-
     private Person? currentUser;
     private int? currentUserId;
-
-    protected override void OnInitialized()
-    {
-        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
-    }
 
     protected override async Task OnInitializedAsync()
     {
