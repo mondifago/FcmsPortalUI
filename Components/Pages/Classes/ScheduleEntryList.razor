@@ -7,6 +7,7 @@
 @using System.Globalization
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -25,9 +26,12 @@
                     }
                 </h2>
                 <div>
-                    <button class="btn btn-success me-2" @onclick="ShowCreateModal">
-                        <i class="fa fa-plus"></i> Add More Sessions
-                    </button>
+                    @if (canManageSchedules)
+                    {
+                        <button class="btn btn-success me-2" @onclick="ShowCreateModal">
+                            <i class="fa fa-plus"></i> Add More Sessions
+                        </button>
+                    }
                     <a href="/learningpaths/details/@LearningPathId" class="btn btn-secondary">
                         <i class="fa fa-arrow-left"></i> Back to Learning Path
                     </a>
@@ -87,7 +91,7 @@
                                     <td>@schedule.Duration.ToString(@"hh\:mm")</td>
                                     <td>@schedule.Venue</td>
                                     <td>
-                                        @if (schedule.ClassSession != null)
+                                        @if (schedule.ClassSession != null && canSeeCourseLink)
                                         {
                                             <a href="/classsession/details/@schedule.ClassSession.Id">
                                                 @(schedule.ClassSession.Course ?? "N/A")
@@ -103,16 +107,24 @@
                                             <button class="btn btn-info btn-sm" @onclick="() => ShowScheduleDetails(schedule)">
                                                 <span class="fa fa-eye"></span>Details
                                             </button>
-                                            <button class="btn btn-sm btn-warning" @onclick="() => EditScheduleEntry(schedule)">
-                                                <i class="fa fa-pencil"></i>Edit
-                                            </button>
-                                            @if (schedule.ClassSession == null)
+                                            @if (canManageSchedules)
+                                            {
+                                                <button class="btn btn-sm btn-warning" @onclick="() => EditScheduleEntry(schedule)">
+                                                    <i class="fa fa-pencil"></i>Edit
+                                                </button>
+                                            }
+                                            
+                                            @if (schedule.ClassSession == null && canManageSchedules)
                                             {
                                                 <button class="btn btn-success btn-sm" @onclick="() => AddClassSession(schedule)">Add Session</button>
                                             }
-                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteScheduleEntry(schedule)">
-                                                <span class="fa fa-trash"></span>Delete
-                                            </button>
+                                            @if (canManageSchedules)
+                                            {
+                                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteScheduleEntry(schedule)">
+                                                    <span class="fa fa-trash"></span>Delete
+                                                </button>
+                                            }
+                                           
                                         </div>
                                     </td>
                                 </tr>
@@ -169,18 +181,34 @@
     [Parameter]
     public string? Date { get; set; }
 
+    private ScheduleEntry? selectedSchedule;
+    private ScheduleEntry? selectedScheduleForClassSession;
+    private ScheduleEntry? selectedScheduleForEdit;
+    private ScheduleEntry? scheduleToDelete;
     private LearningPath? learningPath;
     private List<ScheduleEntry> scheduleEntries = new List<ScheduleEntry>();
     private DateTime? filterDate;
     private bool showDeleteConfirmation = false;
-    private ScheduleEntry? scheduleToDelete;
     private bool showDetailsModal = false;
-    private ScheduleEntry? selectedSchedule;
     private bool showClassSessionModal = false;
-    private ScheduleEntry? selectedScheduleForClassSession;
     private bool showEditModal = false;
-    private ScheduleEntry? selectedScheduleForEdit;
     private bool showCreateModal = false;
+
+    private bool canManageSchedules;
+    private bool canSeeCourseLink;
+    private bool canSeeDetailsOnly;
+
+    protected override async Task OnInitializedAsync()
+    {
+        canManageSchedules = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
+        var isStudent = await PermissionService.IsInRoleAsync("Student");
+        var isStaff = await PermissionService.IsInRoleAsync("Staff");
+        var isGuardian = await PermissionService.IsInRoleAsync("Guardian");
+
+        canSeeCourseLink = isStudent || canManageSchedules;
+
+        canSeeDetailsOnly = isStaff || isGuardian;
+    }
 
     protected override void OnParametersSet()
     {
