@@ -42,5 +42,22 @@ namespace FcmsPortalUI.Services
 
             return await _userManager.FindByIdAsync(id.Value.ToString());
         }
+
+        public async Task<bool> IsInRoleAsync(string roleName)
+        {
+            var user = await GetCurrentPrincipalAsync();
+            return user.IsInRole(roleName);
+        }
+
+
+        public async Task<bool> IsInAnyRoleAsync(params string[] roleNames)
+        {
+            if (roleNames == null || roleNames.Length == 0)
+                return false;
+
+            var user = await GetCurrentPrincipalAsync();
+
+            return roleNames.Any(role => user.IsInRole(role));
+        }
     }
 }

@@ -5,6 +5,7 @@
 @using FcmsPortal
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -24,7 +25,7 @@
 
     @if (classSession == null)
     {
-        <div class="d-flex justify-content-center" >
+        <div class="d-flex justify-content-center">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -83,7 +84,7 @@
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Course Materials</h4>
-                        @if (isTeacher)
+                        @if (canEditLessonPlan)
                         {
                             <button class="btn btn-sm btn-light" @onclick="ToggleMaterialsUpload">
                                 <i class="fa fa-plus"></i> Add Materials
@@ -102,7 +103,7 @@
                                 <div class="pdf-viewer-placeholder">
                                     <i class="fa fa-file-pdf text-muted"></i>
                                     <p class="mt-3 text-muted">No slide presentation available</p>
-                                    @if (isTeacher)
+                                    @if (canEditLessonPlan)
                                     {
                                         <p class="text-muted">Upload a PDF file to display your presentation slides here</p>
                                         <button class="btn btn-primary btn-sm mt-1" @onclick="ToggleMaterialsUpload">
@@ -121,7 +122,7 @@
                                                        Category="@($"ClassSession-{classSession.Id}-Materials")"
                                                        ReferenceId="classSession.Id"
                                                        AllowUpload="true"
-                                                       AllowDelete="isTeacher"
+                                                       AllowDelete="canEditLessonPlan"
                                                        AllowMultiple="true"
                                                        OnAttachmentsChanged="HandleMaterialsChanged" />
                             </div>
@@ -146,7 +147,7 @@
                                                 <a href="@material.FilePath" target="_blank" class="btn btn-sm btn-outline-primary me-2" @onclick:stopPropagation>
                                                     <i class="fa fa-download"></i>
                                                 </a>
-                                                @if (isTeacher && IsPdfFile(material.FileName))
+                                                @if (canEditLessonPlan && IsPdfFile(material.FileName))
                                                 {
                                                     <button class="btn btn-sm @(selectedPdfUrl == material.FilePath ? "btn-success" : "btn-outline-secondary")" @onclick:stopPropagation="true" @onclick="() => SelectMaterial(material)">
                                                         <i class="fa fa-eye"></i> @(selectedPdfUrl == material.FilePath ? "Showing" : "Show")
@@ -165,7 +166,7 @@
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Lesson Plan</h4>
-                        @if (isTeacher && !editingLessonPlan && !string.IsNullOrEmpty(classSession.LessonPlan))
+                        @if (!editingLessonPlan && !string.IsNullOrEmpty(classSession.LessonPlan) && canEditLessonPlan)
                         {
                             <button class="btn btn-sm btn-light" @onclick="EditLessonPlan">
                                 <i class="fa fa-edit"></i> Edit
@@ -173,7 +174,7 @@
                         }
                     </div>
                     <div class="card-body">
-                        @if (editingLessonPlan)
+                        @if (editingLessonPlan && canEditLessonPlan)
                         {
                             <EditForm Model="@classSession" OnValidSubmit="SaveLessonPlan">
                                 <div class="mb-3">
@@ -202,7 +203,7 @@
                                     <div class="text-center text-muted my-5">
                                         <i class="fa fa-book-open fa-3x mb-3"></i>
                                         <p>No lesson plan has been created yet.</p>
-                                        @if (isTeacher)
+                                        @if (canEditLessonPlan)
                                         {
                                             <button class="btn btn-outline-primary mt-2" @onclick="EditLessonPlan">
                                                 <i class="fa fa-plus"></i> Create Lesson Plan
@@ -216,55 +217,58 @@
                 </div>
 
                 <!-- Teacher's Remarks Section -->
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">Teacher's Remarks</h4>
-                        @if (isTeacher && !showRemarksEditor && !string.IsNullOrEmpty(classSession.TeacherRemarks))
-                        {
-                            <button class="btn btn-sm btn-light" @onclick="() => showRemarksEditor = true">
-                                <i class="fa fa-edit"></i> Edit
-                            </button>
-                        }
-                    </div>
-                    <div class="card-body">
-                        @if (showRemarksEditor)
-                        {
-                            <EditForm Model="@classSession" OnValidSubmit="SaveRemarks">
-                                <div class="mb-3">
-                                    <InputTextArea @bind-Value="classSession.TeacherRemarks" class="form-control" rows="5" placeholder="Add your remarks about this class session..." />
-                                </div>
-                                <div class="d-flex justify-content-end">
-                                    <button type="button" class="btn btn-secondary me-2" @onclick="() => showRemarksEditor = false">Cancel</button>
-                                    <button type="submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </EditForm>
-                        }
-                        else
-                        {
-                            @if (string.IsNullOrEmpty(classSession.TeacherRemarks))
-                            {
-                                <div class="text-center text-muted my-4">
-                                    <i class="fa fa-comment-dots fa-3x mb-3"></i>
-                                    <p>No remarks available yet.</p>
-                                    @if (isTeacher)
+                <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+                    <Authorized Context="auth">
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0">Teacher's Remarks</h4>
+                                @if (!showRemarksEditor && !string.IsNullOrEmpty(classSession.TeacherRemarks))
+                                {
+                                    <button class="btn btn-sm btn-light" @onclick="() => showRemarksEditor = true">
+                                        <i class="fa fa-edit"></i> Edit
+                                    </button>
+                                }
+                            </div>
+                            <div class="card-body">
+                                @if (showRemarksEditor)
+                                {
+                                    <EditForm Model="@classSession" OnValidSubmit="SaveRemarks">
+                                        <div class="mb-3">
+                                            <InputTextArea @bind-Value="classSession.TeacherRemarks" class="form-control" rows="5" placeholder="Add your remarks about this class session..." />
+                                        </div>
+                                        <div class="d-flex justify-content-end">
+                                            <button type="button" class="btn btn-secondary me-2" @onclick="() => showRemarksEditor = false">Cancel</button>
+                                            <button type="submit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </EditForm>
+                                }
+                                else
+                                {
+                                    @if (string.IsNullOrEmpty(classSession.TeacherRemarks))
                                     {
-                                        <button class="btn btn-outline-primary mt-2" @onclick="() => showRemarksEditor = true">
-                                            <i class="fa fa-plus"></i> Add Remarks
-                                        </button>
+                                        <div class="text-center text-muted my-4">
+                                            <i class="fa fa-comment-dots fa-3x mb-3"></i>
+                                            <p>No remarks available yet.</p>
+                                                <button class="btn btn-outline-primary mt-2" @onclick="() => showRemarksEditor = true">
+                                                    <i class="fa fa-plus"></i> Add Remarks
+                                                </button>
+                                        </div>
                                     }
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="formatted-content">
-                                    @((MarkupString)Util.FormatTextWithLinks(classSession.TeacherRemarks))
-                                </div>
-                            }
-                        }
-                    </div>
-                </div>
+                                    else
+                                    {
+                                        <div class="formatted-content">
+                                            @((MarkupString)Util.FormatTextWithLinks(classSession.TeacherRemarks))
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
 
-               <!-- Homework Section -->
+                    </NotAuthorized>
+                </AuthorizeView>
+                <!-- Homework Section -->
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Homework</h4>
@@ -272,7 +276,7 @@
                     <div class="card-body">
                         @if (classSession.HomeworkDetails == null)
                         {
-                            @if (isTeacher)
+                            @if (canEditLessonPlan)
                             {
                                 <div class="text-center py-4">
                                     <p class="text-muted mb-3">No homework assigned yet.</p>
@@ -299,7 +303,7 @@
                             </div>
 
                             <div class="homework-actions d-flex gap-2 flex-wrap">
-                                @if (isTeacher)
+                                @if (canEditLessonPlan)
                                 {
                                     <button class="btn btn-outline-primary" @onclick="ViewHomework">
                                         <i class="fa fa-eye"></i> View Homework
@@ -307,7 +311,7 @@
                                     <button class="btn btn-outline-success" @onclick="ViewSubmissions">
                                         <i class="fa fa-list"></i> View Submissions (@(classSession.HomeworkDetails.Submissions?.Count ?? 0))
                                     </button>
-                    
+
                                     @if (classSession.HomeworkDetails.Submissions == null || !classSession.HomeworkDetails.Submissions.Any())
                                     {
                                         <button class="btn btn-outline-warning" @onclick="EditHomework">
@@ -320,7 +324,7 @@
                                 }
                                 else
                                 {
-                                    var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+                                    var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.PersonId == currentUserId);
                                     @if (studentSubmission == null)
                                     {
                                         <button class="btn btn-outline-primary" @onclick="ViewHomework">
@@ -366,7 +370,7 @@
                     <div class="card-body">
                         <DiscussionThreadComponent AllThreads="classSession.DiscussionThreads ?? new List<DiscussionThread>()"
                                                    AllowReplies="true"
-                                                   CurrentUser="currentStudent?.Person ?? currentTeacher?.Person"
+                                                   CurrentUser="currentUser"
                                                    ClassSessionId="classSession.Id" />
                     </div>
                 </div>
@@ -475,7 +479,7 @@
 
     private School school = new();
     private string selectedPdfUrl = string.Empty;
-    private ClassSession classSession = new(); 
+    private ClassSession classSession = new();
     private ScheduleEntry scheduleEntry = new();
     private LearningPath relatedLearningPath = new();
     private List<Student> enrolledStudents = new List<Student>();
@@ -495,10 +499,14 @@
     private bool showSubmissionsListModal = false;
     private bool showGradingModal = false;
     private bool showStudentGradeModal = false;
-    private bool isTeacher = true;
+
+    private Person? currentUser;
+    private int? currentUserId;
+    private bool canEditLessonPlan;
+    private bool isStudent;
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         school = SchoolDataService.GetSchool();
         classSession = SchoolDataService.GetClassSessionById(Id) ?? new ClassSession();
@@ -506,25 +514,26 @@
         if (classSession != null)
         {
             scheduleEntry = LogicMethods.GetScheduleEntryForClassSession(school, Id) ?? new ScheduleEntry();
-            currentTeacher = classSession.Teacher ?? new Staff();
+
+            currentUserId = await PermissionService.GetCurrentUserIdAsync();
+            currentUser = await PermissionService.GetCurrentPersonAsync();
+
+            if (currentUser != null)
+            {
+                if (await PermissionService.IsInRoleAsync("Teacher"))
+                    currentTeacher = SchoolDataService.GetStaff()
+                        .FirstOrDefault(s => s.PersonId == currentUser.Id) ?? new Staff();
+
+                if (await PermissionService.IsInRoleAsync("Student"))
+                    currentStudent = SchoolDataService.GetStudents()
+                        .FirstOrDefault(st => st.PersonId == currentUser.Id) ?? new Student();
+            }
 
             LoadEnrolledStudents();
 
-            if (enrolledStudents.Any())
-            {
-                // Pick the first student
-                currentStudent = enrolledStudents.ElementAtOrDefault(0) ?? new Student();
+            canEditLessonPlan = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
+            isStudent = await PermissionService.IsInRoleAsync("Student");
 
-                // Pick the second student
-                //currentStudent = enrolledStudents.ElementAtOrDefault(1) ?? new Student();
-
-                // Pick the third student
-                //currentStudent = enrolledStudents.ElementAtOrDefault(2) ?? new Student();
-            }
-            else
-            {
-                currentStudent = new Student(); 
-            }
         }
     }
 
@@ -541,11 +550,20 @@
 
     private void HandleMaterialsChanged(List<FileAttachment> materials)
     {
-        classSession.StudyMaterials = materials;
+        if (classSession.StudyMaterials == null)
+            classSession.StudyMaterials = new List<FileAttachment>();
+
+        foreach (var material in materials)
+        {
+            if (!classSession.StudyMaterials.Any(m => m.FilePath == material.FilePath))
+            {
+                classSession.StudyMaterials.Add(material);
+            }
+        }
 
         if (string.IsNullOrEmpty(selectedPdfUrl))
         {
-            var firstPdf = materials.FirstOrDefault(m => IsPdfFile(m.FileName));
+            var firstPdf = classSession.StudyMaterials.FirstOrDefault(m => IsPdfFile(m.FileName));
             if (firstPdf != null)
             {
                 selectedPdfUrl = firstPdf.FilePath;
@@ -555,13 +573,14 @@
         SchoolDataService.UpdateClassSession(classSession);
     }
 
+
     private void SaveRemarks()
     {
         SchoolDataService.UpdateClassSession(classSession);
         showRemarksEditor = false;
     }
 
-    private void EditHomework(Homework homework)     
+    private void EditHomework(Homework homework)
     {
         selectedHomework = homework;
         showHomeworkModal = true;
@@ -729,7 +748,7 @@
 
         SchoolDataService.UpdateHomework(classSession.HomeworkDetails);
         showGradingModal = false;
-        showSubmissionsListModal = false; 
+        showSubmissionsListModal = false;
     }
 
     private void ViewMyGrade()

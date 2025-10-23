@@ -8,6 +8,7 @@ namespace FcmsPortalUI.Services
         Task<ClaimsPrincipal> GetCurrentPrincipalAsync();
         Task<int?> GetCurrentUserIdAsync();
         Task<Person?> GetCurrentPersonAsync();
-
+        Task<bool> IsInRoleAsync(string roleName);
+        Task<bool> IsInAnyRoleAsync(params string[] roleNames);
     }
 }
