@@ -12,11 +12,15 @@
 <div class="container">
     <h1>Students Management</h1>
 
-    <div class="mb-3">
-        <button @onclick="ShowGuardianSelectionModal" class="btn btn-primary">
-            <i class="fa fa-plus"></i> Add New Student
-        </button>
-    </div>
+    <AuthorizeView Roles="Developer,Principal,Admin">
+        <Authorized>
+            <div class="mb-3">
+                <button @onclick="ShowGuardianSelectionModal" class="btn btn-primary">
+                    <i class="fa fa-plus"></i> Add New Student
+                </button>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 
     @if (students == null)
     {
@@ -66,15 +70,21 @@
                                     <a href="/students/details/@student.Id" class="btn btn-info btn-sm">
                                         <i class="fa fa-eye"></i> View
                                     </a>
-                                    <a href="/students/edit/@student.Id" class="btn btn-warning btn-sm">
-                                        <i class="fa fa-pencil"></i> Edit
-                                    </a>
-                                    <a href="/students/account/@student.Id" class="btn btn-primary btn-sm">
-                                        <i class="fa fa-user"></i> Account
-                                    </a>
-                                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteStudent(student.Id)">
-                                        <i class="fa fa-trash"></i> Delete
-                                    </button>
+                                    <AuthorizeView Roles="Developer,Principal,Admin">
+                                        <Authorized>
+                                            <a href="/students/edit/@student.Id" class="btn btn-warning btn-sm">
+                                                <i class="fa fa-pencil"></i> Edit
+                                            </a>
+
+                                            <a href="/students/account/@student.Id" class="btn btn-primary btn-sm">
+                                                <i class="fa fa-user"></i> Account
+                                            </a>
+
+                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteStudent(student.Id)">
+                                                <i class="fa fa-trash"></i> Delete
+                                            </button>
+                                        </Authorized>
+                                    </AuthorizeView>
                                 </div>
                             </td>
                         </tr>
@@ -105,7 +115,7 @@
     protected override void OnInitialized()
     {
         students = SchoolDataService.GetStudents();
-       
+
     }
 
     private void ShowGuardianSelectionModal()
