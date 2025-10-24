@@ -12,11 +12,15 @@
 <div class="container">
     <h1>Staff Management</h1>
 
-    <div class="mb-3">
-        <a href="/staff/create" class="btn btn-primary">
-            <i class="fa fa-plus"></i> Add New Staff
-        </a>
-    </div>
+    <AuthorizeView Roles="Developer,Principal,Admin">
+        <Authorized>
+            <div class="mb-3">
+                <a href="/staff/create" class="btn btn-primary">
+                    <i class="fa fa-plus"></i> Add New Staff
+                </a>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 
     @if (staffList == null)
     {
@@ -66,15 +70,19 @@
                                     <a href="/staff/details/@staff.Id" class="btn btn-info btn-sm">
                                         <i class="fa fa-eye"></i> View
                                     </a>
-                                    <a href="/staff/edit/@staff.Id" class="btn btn-warning btn-sm">
-                                        <i class="fa fa-pencil"></i> Edit
-                                    </a>
-                                    <a href="/staff/account/@staff.Id" class="btn btn-primary btn-sm">
-                                        <i class="fa fa-user"></i> Account
-                                    </a>
-                                    <button class="btn btn-danger btn-sm" @onclick="() => DeleteStaff(staff.Id)">
-                                        <i class="fa fa-trash"></i> Delete
-                                    </button>
+                                    <AuthorizeView Roles="Developer,Principal,Admin">
+                                        <Authorized>
+                                            <a href="/staff/edit/@staff.Id" class="btn btn-warning btn-sm">
+                                                <i class="fa fa-pencil"></i> Edit
+                                            </a>
+                                            <a href="/staff/account/@staff.Id" class="btn btn-primary btn-sm">
+                                                <i class="fa fa-user"></i> Account
+                                            </a>
+                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteStaff(staff.Id)">
+                                                <i class="fa fa-trash"></i> Delete
+                                            </button>
+                                        </Authorized>
+                                    </AuthorizeView>
                                 </div>
                             </td>
                         </tr>
