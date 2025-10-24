@@ -1,6 +1,5 @@
 ﻿@page "/students/details/{Id:int}"
 @inject ISchoolDataService SchoolDataService
-@inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
 @using FcmsPortal
 @using FcmsPortalUI.Services
@@ -31,9 +30,6 @@
                             </button>
                         }
                     </Authorized>
-                    <NotAuthorized>
-
-                    </NotAuthorized>
                 </AuthorizeView>
                 <a href="/students/edit/@Id" class="btn btn-warning">
                     <i class="fa fa-pencil"></i> Edit
@@ -116,9 +112,6 @@
                             </div>
                         </div>
                     </Authorized>
-                    <NotAuthorized>
-
-                    </NotAuthorized>
                 </AuthorizeView>
             </div>
 
@@ -312,16 +305,13 @@
     [Parameter]
     public int Id { get; set; }
 
-    private Person? currentUser;
-    private int? currentUserId;
-
     private Student? student;
     private Guardian? guardian;
     private bool showLearningPathModal = false;
     private int selectedLearningPathId = 0;
     private List<LearningPath> availableLearningPaths = new List<LearningPath>();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         student = SchoolDataService.GetStudentById(Id);
 
@@ -333,9 +323,6 @@
         {
             guardian = SchoolDataService.GetGuardianById(student.GuardianId);
         }
-
-        currentUserId = await PermissionService.GetCurrentUserIdAsync();
-        currentUser = await PermissionService.GetCurrentPersonAsync();
     }
 
     private void ShowLearningPathModal()

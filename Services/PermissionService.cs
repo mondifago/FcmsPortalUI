@@ -16,7 +16,6 @@ namespace FcmsPortalUI.Services
             _userManager = userManager;
         }
 
-
         public async Task<ClaimsPrincipal> GetCurrentPrincipalAsync()
         {
             var authState = await _auth.GetAuthenticationStateAsync();
@@ -48,7 +47,6 @@ namespace FcmsPortalUI.Services
             var user = await GetCurrentPrincipalAsync();
             return user.IsInRole(roleName);
         }
-
 
         public async Task<bool> IsInAnyRoleAsync(params string[] roleNames)
         {

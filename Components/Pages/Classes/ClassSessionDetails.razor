@@ -84,7 +84,7 @@
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Course Materials</h4>
-                        @if (canEditLessonPlan)
+                        @if (canManageClassSession)
                         {
                             <button class="btn btn-sm btn-light" @onclick="ToggleMaterialsUpload">
                                 <i class="fa fa-plus"></i> Add Materials
@@ -103,7 +103,7 @@
                                 <div class="pdf-viewer-placeholder">
                                     <i class="fa fa-file-pdf text-muted"></i>
                                     <p class="mt-3 text-muted">No slide presentation available</p>
-                                    @if (canEditLessonPlan)
+                                    @if (canManageClassSession)
                                     {
                                         <p class="text-muted">Upload a PDF file to display your presentation slides here</p>
                                         <button class="btn btn-primary btn-sm mt-1" @onclick="ToggleMaterialsUpload">
@@ -122,7 +122,7 @@
                                                        Category="@($"ClassSession-{classSession.Id}-Materials")"
                                                        ReferenceId="classSession.Id"
                                                        AllowUpload="true"
-                                                       AllowDelete="canEditLessonPlan"
+                                                       AllowDelete="canManageClassSession"
                                                        AllowMultiple="true"
                                                        OnAttachmentsChanged="HandleMaterialsChanged" />
                             </div>
@@ -147,7 +147,7 @@
                                                 <a href="@material.FilePath" target="_blank" class="btn btn-sm btn-outline-primary me-2" @onclick:stopPropagation>
                                                     <i class="fa fa-download"></i>
                                                 </a>
-                                                @if (canEditLessonPlan && IsPdfFile(material.FileName))
+                                                @if (canManageClassSession && IsPdfFile(material.FileName))
                                                 {
                                                     <button class="btn btn-sm @(selectedPdfUrl == material.FilePath ? "btn-success" : "btn-outline-secondary")" @onclick:stopPropagation="true" @onclick="() => SelectMaterial(material)">
                                                         <i class="fa fa-eye"></i> @(selectedPdfUrl == material.FilePath ? "Showing" : "Show")
@@ -166,7 +166,7 @@
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Lesson Plan</h4>
-                        @if (!editingLessonPlan && !string.IsNullOrEmpty(classSession.LessonPlan) && canEditLessonPlan)
+                        @if (!editingLessonPlan && !string.IsNullOrEmpty(classSession.LessonPlan) && canManageClassSession)
                         {
                             <button class="btn btn-sm btn-light" @onclick="EditLessonPlan">
                                 <i class="fa fa-edit"></i> Edit
@@ -174,7 +174,7 @@
                         }
                     </div>
                     <div class="card-body">
-                        @if (editingLessonPlan && canEditLessonPlan)
+                        @if (editingLessonPlan && canManageClassSession)
                         {
                             <EditForm Model="@classSession" OnValidSubmit="SaveLessonPlan">
                                 <div class="mb-3">
@@ -203,7 +203,7 @@
                                     <div class="text-center text-muted my-5">
                                         <i class="fa fa-book-open fa-3x mb-3"></i>
                                         <p>No lesson plan has been created yet.</p>
-                                        @if (canEditLessonPlan)
+                                        @if (canManageClassSession)
                                         {
                                             <button class="btn btn-outline-primary mt-2" @onclick="EditLessonPlan">
                                                 <i class="fa fa-plus"></i> Create Lesson Plan
@@ -276,7 +276,7 @@
                     <div class="card-body">
                         @if (classSession.HomeworkDetails == null)
                         {
-                            @if (canEditLessonPlan)
+                            @if (canManageClassSession)
                             {
                                 <div class="text-center py-4">
                                     <p class="text-muted mb-3">No homework assigned yet.</p>
@@ -303,7 +303,7 @@
                             </div>
 
                             <div class="homework-actions d-flex gap-2 flex-wrap">
-                                @if (canEditLessonPlan)
+                                @if (canManageClassSession)
                                 {
                                     <button class="btn btn-outline-primary" @onclick="ViewHomework">
                                         <i class="fa fa-eye"></i> View Homework
@@ -502,7 +502,7 @@
 
     private Person? currentUser;
     private int? currentUserId;
-    private bool canEditLessonPlan;
+    private bool canManageClassSession;
     private bool isStudent;
 
 
@@ -531,7 +531,7 @@
 
             LoadEnrolledStudents();
 
-            canEditLessonPlan = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
+            canManageClassSession = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
             isStudent = await PermissionService.IsInRoleAsync("Student");
 
         }

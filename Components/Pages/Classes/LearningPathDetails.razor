@@ -31,19 +31,14 @@
                                     <i class="fa fa-user-plus"></i> Add Students
                                 </button>
                             </Authorized>
-                            <NotAuthorized>
-
-                            </NotAuthorized>
                         </AuthorizeView>
+
                         <AuthorizeView Roles="Developer,Principal,Admin">
                             <Authorized>
                                 <a href="/learningpath/edit/@learningPath.Id" class="btn btn-warning me-2">
                                     <i class="fa fa-pencil"></i> Edit
                                 </a>
                             </Authorized>
-                            <NotAuthorized>
-
-                            </NotAuthorized>
                         </AuthorizeView>
                         <a href="/classes" class="btn btn-secondary">
                             <i class="fa fa-arrow-left"></i> Back to List
@@ -111,9 +106,6 @@
                                     </button>
                                 }
                             </Authorized>
-                            <NotAuthorized>
-
-                            </NotAuthorized>
                         </AuthorizeView>
 
                         <AuthorizeView Roles="Developer,Principal">
@@ -128,9 +120,6 @@
                                     </button>
                                 }
                             </Authorized>
-                            <NotAuthorized>
-
-                            </NotAuthorized>
                         </AuthorizeView>
                     </div>
                 </div>
@@ -142,10 +131,8 @@
                             </button>
                         </div>
                     </Authorized>
-                    <NotAuthorized>
-
-                    </NotAuthorized>
                 </AuthorizeView>
+
                 <MonthlyCalendarView Title="Class Schedule"
                                      CurrentDate="@currentDate"
                                      CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
@@ -309,9 +296,6 @@
                                     </button>
                                 </div>
                             </Authorized>
-                            <NotAuthorized>
-
-                            </NotAuthorized>
                         </AuthorizeView>
                     </div>
                 </div>
