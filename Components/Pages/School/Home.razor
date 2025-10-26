@@ -2,178 +2,302 @@
 @attribute [Authorize]
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
 @using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal
 @using Microsoft.AspNetCore.Authorization
 @rendermode InteractiveServer
-@implements IDisposable
 
-<div class="school-logo-container">
-    <div class="school-logo-display">
-        @if (!string.IsNullOrEmpty(school?.LogoUrl))
-        {
-            <img src="@school.LogoUrl" alt="School Logo" class="school-logo" />
-        }
-        else
-        {
-            <div class="no-logo-placeholder">
-                <i class="fa fa-school placeholder-icon"></i>
+<div class="container-fluid py-4">
+    <!-- Top Row -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <div>
+                <span class="fw-normal text-danger"
+                      style="font-family: 'Calisto MT', 'Book Antiqua', 'Palatino Linotype', serif; font-size: 2.8rem; letter-spacing: 0.5px;">
+                    Welcome,
+                </span>
+                <span class="text-success fw-bold"
+                      style="font-family: 'Calisto MT', 'Book Antiqua', 'Palatino Linotype', serif; font-size: 3rem; letter-spacing: 0.5px;">
+                    @userFirstName
+                </span>
             </div>
-        }
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="text-muted fs-6">
+                @currentDateTime.ToString("dddd, MMMM d, yyyy, hh:mm tt")
+            </div>
+        </div>
     </div>
-    <h3 class="school-name">@school?.Name</h3>
+
+    <!-- Main Body -->
+    <div class="row">
+        <!-- Left Main Content -->
+        <div class="col-lg-9">
+            <!-- Center Space -->
+            <div style="height: 45vh;"></div>
+
+            <!-- Horizontal Info Bar - Staff View -->
+            <AuthorizeView Roles="Developer,Staff">
+                <Authorized>
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="row text-center align-items-center">
+                                <!-- Quick Links or General Info -->
+                                <div class="col-md-12">
+                                    <i class="fa fa-briefcase text-info me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted">
+                                        Your work schedule and duties can be found in the
+                                        <a href="/staff-resources" class="text-decoration-none">Staff Resources</a> section.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <!-- Horizontal Info Bar - Teacher View -->
+            <AuthorizeView Roles="Developer,Teacher">
+                <Authorized>
+                    <div class="card shadow-sm">
+                        <div class="card-body position-relative">
+                            <!-- View All Link - Top Right -->
+                            <a href="/teacher-dashboard" class="text-decoration-none position-absolute top-0 end-0 mt-2 me-3" style="font-size: 0.85rem;">
+                                View All <i class="fa fa-arrow-right ms-1"></i>
+                            </a>
+
+                            <div class="row text-center">
+                                <!-- Today's Class Schedule -->
+                                <div class="col-md-6 border-end">
+                                    <i class="fa fa-chalkboard-teacher text-primary me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Today's Classes</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Mathematics - Grade 10A at 9:00 AM</strong>
+                                    <span class="text-muted" style="font-size: 0.85rem;">4 classes scheduled today</span>
+                                </div>
+
+                                <!-- Submitted Homework -->
+                                <div class="col-md-6">
+                                    <i class="fa fa-file-alt text-success me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Homework Submissions</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">15 new submissions</strong>
+                                    <span class="text-muted" style="font-size: 0.85rem;">Pending review from 3 classes</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <!-- Horizontal Info Bar - Student View -->
+            <AuthorizeView Roles="Developer,Student">
+                <Authorized>
+                    <div class="card shadow-sm">
+                        <div class="card-body position-relative">
+                            <!-- View All Link - Top Right -->
+                            <a href="/student-dashboard" class="text-decoration-none position-absolute top-0 end-0 mt-2 me-3" style="font-size: 0.85rem;">
+                                View All <i class="fa fa-arrow-right ms-1"></i>
+                            </a>
+
+                            <div class="row text-center">
+                                <!-- Today's Class Schedule -->
+                                <div class="col-md-4 border-end">
+                                    <i class="fa fa-chalkboard-teacher text-primary me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Today's Classes</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Mathematics at 9:00 AM</strong>
+                                    <span class="text-muted" style="font-size: 0.85rem;">5 classes scheduled</span>
+                                </div>
+
+                                <!-- Pending Homework -->
+                                <div class="col-md-4 border-end">
+                                    <i class="fa fa-tasks text-warning me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Pending Homework</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">2 assignments due today</strong>
+                                    <span class="text-muted" style="font-size: 0.85rem;">Science & English</span>
+                                </div>
+
+                                <!-- Recent Grades -->
+                                <div class="col-md-4">
+                                    <i class="fa fa-award text-success me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">New Grades Available</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Math Quiz - 85%</strong>
+                                    <span class="text-muted" style="font-size: 0.85rem;">2 more results ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <!-- Horizontal Info Bar - Guardian View -->
+            <AuthorizeView Roles="Developer,Guardian">
+                <Authorized>
+                    <div class="card shadow-sm">
+                        <div class="card-body position-relative">
+                            <!-- View All Link - Top Right -->
+                            <a href="/student-dashboard" class="text-decoration-none position-absolute top-0 end-0 mt-2 me-3" style="font-size: 0.85rem;">
+                                View All <i class="fa fa-arrow-right ms-1"></i>
+                            </a>
+
+                            <div class="row text-center">
+                                <!-- Today's Class Schedule -->
+                                <div class="col-md-4 border-end">
+                                    <i class="fa fa-chalkboard-teacher text-primary me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Ward's Today's Classes</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Mathematics at 9:00 AM</strong>
+                                    <span class="text-muted" style="font-size: 0.85rem;">5 classes scheduled</span>
+                                </div>
+
+                                <!-- Pending Homework -->
+                                <div class="col-md-4 border-end">
+                                    <i class="fa fa-tasks text-warning me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Ward's Pending Homework</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">2 assignments due today</strong>
+                                    <span class="text-muted" style="font-size: 0.85rem;">Science & English</span>
+                                </div>
+
+                                <!-- Recent Grades -->
+                                <div class="col-md-4">
+                                    <i class="fa fa-award text-success me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Ward's New Grades Available</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Math Quiz - 85%</strong>
+                                    <span class="text-muted" style="font-size: 0.85rem;">2 more results ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <!-- Horizontal Info Bar - Admin/Principal/Developer View -->
+            <AuthorizeView Roles="Developer,Principal,Admin">
+                <Authorized>
+                    <div class="card shadow-sm">
+                        <div class="card-body position-relative">
+                            <!-- View All Link - Top Right -->
+                            <a href="/reports" class="text-decoration-none position-absolute top-0 end-0 mt-2 me-3" style="font-size: 0.85rem;">
+                                View All <i class="fa fa-arrow-right ms-1"></i>
+                            </a>
+
+                            <div class="row text-center">
+                                <!-- Attendance Report -->
+                                <div class="col-md-4 border-end">
+                                    <i class="fa fa-user-check text-primary me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Attendance Report</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Posted today at 9:00 AM</strong>
+                                </div>
+
+                                <!-- Teachers Remark Report -->
+                                <div class="col-md-4 border-end">
+                                    <i class="fa fa-comments text-success me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Teachers Remark</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Posted today at 10:30 AM</strong>
+                                </div>
+
+                                <!-- Learning Path Report -->
+                                <div class="col-md-4">
+                                    <i class="fa fa-chart-line text-info me-2" style="font-size: 1.3rem;"></i>
+                                    <span class="text-muted small d-block mt-2">Learning Path Report</span>
+                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Posted today at 2:15 PM</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-lg-3">
+            <!-- Semester Timeline -->
+            <div class="card mb-3 border-0" style="border-left: 3px solid #17a2b8 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-info fw-semibold">
+                        <i class="fa fa-calendar-alt me-2"></i>Academic Year & Semester
+                    </h6>
+                </div>
+                <div class="card-body pt-2 pb-3">
+                    <p class="mb-1 text-muted" style="font-size: 0.875rem;">
+                        <strong>Current:</strong> 2024/2025 - First Semester
+                    </p>
+                    <p class="mb-1 text-muted" style="font-size: 0.875rem;">
+                        <strong>Exam Period:</strong> Dec 15-20, 2024
+                    </p>
+                    <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                        <strong>Semester Ends:</strong> Dec 22, 2024
+                    </p>
+                </div>
+            </div>
+
+            <!-- Announcements -->
+            <div class="card mb-3 border-0" style="border-left: 3px solid #28a745 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-success fw-semibold">
+                        <i class="fa fa-bullhorn me-2"></i>Announcements
+                    </h6>
+                </div>
+                <div class="card-body pt-2 pb-3">
+                    <p class="mb-2 text-muted" style="font-size: 0.875rem;">
+                        • New timetable released for next week.
+                    </p>
+                    <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                        • Uniform inspection on Friday.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Upcoming Events & Meetings -->
+            <div class="card border-0" style="border-left: 3px solid #007bff !important; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="mb-0 text-primary fw-semibold">
+                        <i class="fa fa-calendar-check me-2"></i>Upcoming Events & Meetings
+                    </h6>
+                </div>
+                <div class="card-body pt-2 pb-3">
+                    <p class="mb-2 text-muted" style="font-size: 0.875rem;">
+                        • <strong>Today:</strong> Staff Meeting at 2:00 PM
+                    </p>
+                    <p class="mb-2 text-muted" style="font-size: 0.875rem;">
+                        • <strong>Tomorrow:</strong> Parent–Teacher Conf. at 4:00 PM
+                    </p>
+                    <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                        • <strong>In 2 days:</strong> Holiday - Easter Day
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-@if (school != null)
-{
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h4>Contact Information</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <dl class="row">
-                        <dt class="col-sm-4">Email:</dt>
-                        <dd class="col-sm-8">@(string.IsNullOrEmpty(school.Email) ? "Not specified" : school.Email)</dd>
-
-                        <dt class="col-sm-4">Phone:</dt>
-                        <dd class="col-sm-8">@(string.IsNullOrEmpty(school.PhoneNumber) ? "Not specified" : school.PhoneNumber)</dd>
-
-                        <dt class="col-sm-4">Website:</dt>
-                        <dd class="col-sm-8">
-                            @if (string.IsNullOrEmpty(school.WebsiteUrl))
-                            {
-                                <span>Not specified</span>
-                            }
-                            else
-                            {
-                                <a href="@school.WebsiteUrl" target="_blank">@school.WebsiteUrl</a>
-                            }
-                        </dd>
-                    </dl>
-                </div>
-                <div class="col-md-6">
-                    <h4>Address</h4>
-                    @if (school.Address != null)
-                    {
-                        <address>
-                            @school.Address.Street<br />
-                            @school.Address.City, @school.Address.State @school.Address.PostalCode<br />
-                            @school.Address.Country
-                        </address>
-                    }
-                    else
-                    {
-                        <p>No address specified</p>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Students</h4>
-                </div>
-                <div class="card-body">
-                    <p>Total Students: @(school.Students?.Count ?? 0)</p>
-                    <a href="/students" class="btn btn-outline-primary">View Students</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Staff</h4>
-                </div>
-                <div class="card-body">
-                    <p>Total Staff: @(school.Staff?.Count ?? 0)</p>
-                    <a href="/staff" class="btn btn-outline-primary">View Staff</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Learning Paths</h4>
-                </div>
-                <div class="card-body">
-                    <p>Total Learning Paths: @(school.LearningPaths?.Count ?? 0)</p>
-                    <a href="/classes" class="btn btn-outline-primary">View Learning Path</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Education Levels</h4>
-                </div>
-                <div class="card-body">
-                    <p>Total Education Levels: @(educationLevels?.Count ?? 0)</p>
-                    <a href="/educationlevels" class="btn btn-outline-primary">View Education Levels</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4>Class Levels</h4>
-                </div>
-                <div class="card-body">
-                    <p>Total Class Levels: @(classlevels?.Count ?? 0)</p>
-                    <a href="/classlevels" class="btn btn-outline-primary">View Class Levels</a>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-else
-{
-    <p>Loading school information...</p>
-}
-
 @code {
-    private FcmsPortal.Models.School? school { get; set; }
-    private List<EducationLevel>? educationLevels;
-    private IList<ClassLevel>? classlevels;
+    private School? school;
+    private string userFirstName = "User";
+    private DateTime currentDateTime = DateTime.Now;
+    private System.Threading.Timer? timer;
 
-    public static event Action? OnSchoolDataChanged;
-
-    protected override void OnInitialized()
-    {
-        LoadSchoolData();
-        OnSchoolDataChanged += RefreshSchoolData;
-    }
-
-    private void LoadSchoolData()
+    protected override async Task OnInitializedAsync()
     {
         school = SchoolDataService.GetSchool();
-        educationLevels = FcmsPortal.LogicMethods.GetExistingEducationLevels(school);
-        classlevels = FcmsPortal.LogicMethods.GetExistingClassLevels(school);
+
+        var person = await PermissionService.GetCurrentPersonAsync();
+        if (person != null && !string.IsNullOrWhiteSpace(person.FirstName))
+        {
+            userFirstName = person.FirstName;
+        }
+
+        timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
-    private void RefreshSchoolData()
+    private void UpdateTime(object? state)
     {
-        LoadSchoolData();
+        currentDateTime = DateTime.Now;
         InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        OnSchoolDataChanged -= RefreshSchoolData;
-    }
-
-    public static void TriggerSchoolDataRefresh()
-    {
-        OnSchoolDataChanged?.Invoke();
+        timer?.Dispose();
     }
 }
