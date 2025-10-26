@@ -539,6 +539,15 @@ namespace FcmsPortalUI.Services
             .FirstOrDefault(lp => lp.Id == id);
         }
 
+        public LearningPath? GetCurrentActiveLearningPath()
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Where(lp => lp.ApprovalStatus == PrincipalApprovalStatus.Pending)
+                .OrderByDescending(lp => lp.SemesterStartDate)
+                .FirstOrDefault();
+        }
+
         public IEnumerable<LearningPath> GetAllLearningPaths()
         {
             return _context.LearningPaths

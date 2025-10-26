@@ -48,6 +48,7 @@ namespace FcmsPortalUI.Services
         void RemoveStudentFromLearningPath(LearningPath learningPath, Student student);
         IEnumerable<LearningPath> GetAllLearningPaths();
         LearningPath? GetLearningPathById(int id);
+        LearningPath? GetCurrentActiveLearningPath();
         LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId);
         LearningPath? GetLearningPathByClassSessionId(int classSessionId);
         void UpdateLearningPath(LearningPath learningPath);

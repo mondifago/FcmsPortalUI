@@ -219,15 +219,36 @@
                     </h6>
                 </div>
                 <div class="card-body pt-2 pb-3">
-                    <p class="mb-1 text-muted" style="font-size: 0.875rem;">
-                        <strong>Current:</strong> 2024/2025 - First Semester
-                    </p>
-                    <p class="mb-1 text-muted" style="font-size: 0.875rem;">
-                        <strong>Exam Period:</strong> Dec 15-20, 2024
-                    </p>
-                    <p class="mb-0 text-muted" style="font-size: 0.875rem;">
-                        <strong>Semester Ends:</strong> Dec 22, 2024
-                    </p>
+                    @if (!string.IsNullOrEmpty(currentAcademicYear))
+                    {
+                        <p class="mb-1 text-muted" style="font-size: 0.875rem;">
+                            <strong>Current:</strong> @currentAcademicYear - @currentSemester Semester
+                        </p>
+                        @if (semesterStartDate.HasValue)
+                        {
+                            <p class="mb-1 text-muted" style="font-size: 0.875rem;">
+                                <strong>Semester Start:</strong> @semesterStartDate.Value.ToString("MMM dd, yyyy")
+                            </p>
+                        }
+                        @if (examsStartDate.HasValue)
+                        {
+                            <p class="mb-1 text-muted" style="font-size: 0.875rem;">
+                                <strong>Exam Start:</strong> @examsStartDate.Value.ToString("MMM dd, yyyy")
+                            </p>
+                        }
+                        @if (semesterEndDate.HasValue)
+                        {
+                            <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                                <strong>Semester Ends:</strong> @semesterEndDate.Value.ToString("MMM dd, yyyy")
+                            </p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                            <em>No active semester information available.</em>
+                        </p>
+                    }
                 </div>
             </div>
 
@@ -272,22 +293,42 @@
 </div>
 
 @code {
-    private School? school;
+    //private School? school;
     private string userFirstName = "User";
     private DateTime currentDateTime = DateTime.Now;
     private System.Threading.Timer? timer;
+    // Semester Timeline Data
+    private string currentAcademicYear = "";
+    private string currentSemester = "";
+    private DateTime? semesterStartDate;
+    private DateTime? semesterEndDate;
+    private DateTime? examsStartDate;
 
     protected override async Task OnInitializedAsync()
     {
-        school = SchoolDataService.GetSchool();
+        //school = SchoolDataService.GetSchool();
 
         var person = await PermissionService.GetCurrentPersonAsync();
         if (person != null && !string.IsNullOrWhiteSpace(person.FirstName))
         {
             userFirstName = person.FirstName;
         }
-
+        LoadSemesterTimeline();
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
+    }
+
+    private void LoadSemesterTimeline()
+    {
+        var activeLearningPath = SchoolDataService.GetCurrentActiveLearningPath();
+
+        if (activeLearningPath != null)
+        {
+            currentAcademicYear = activeLearningPath.AcademicYear;
+            currentSemester = activeLearningPath.Semester.ToString();
+            semesterStartDate = activeLearningPath.SemesterStartDate;
+            semesterEndDate = activeLearningPath.SemesterEndDate;
+            examsStartDate = activeLearningPath.ExamsStartDate;
+        }
     }
 
     private void UpdateTime(object? state)

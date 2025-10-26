@@ -31,6 +31,8 @@ namespace FcmsPortalUI.Data
         public DbSet<ArchivedPaymentDetail> ArchivedPaymentDetails { get; set; }
         public DbSet<AttendanceArchive> AttendanceArchives { get; set; }
         public DbSet<AccountInvitation> AccountInvitations { get; set; }
+        public DbSet<Quote> Quotes { get; set; }
+        public DbSet<Announcement> Announcements { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
