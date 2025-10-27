@@ -84,6 +84,16 @@ namespace FcmsPortalUI.Services
             return school;
         }
 
+        public School? GetSchoolForSettings()
+        {
+            var school = _context.School
+                .Include(s => s.Address)
+                .FirstOrDefault();
+
+            return school;
+        }
+
+
 
         public bool HasSchool()
         {

@@ -415,7 +415,7 @@
 
     private void LoadSchoolData()
     {
-        school = SchoolDataService.GetSchool();
+        school = SchoolDataService.GetSchoolForSettings();
         logoUrl = school?.LogoUrl ?? "";
 
         LoadAnnouncements();

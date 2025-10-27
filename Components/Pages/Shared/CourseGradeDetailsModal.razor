@@ -4,6 +4,7 @@
 @using FcmsPortal.Constants
 @using FcmsPortal
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-xl">
@@ -131,11 +132,13 @@
     private List<GradeSection> gradeSections = new();
     private int editingStudentId = 0;
     private Dictionary<string, double> pendingGradeChanges = new();
+    private Staff? currentTeacher;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (IsVisible && LearningPath != null && !string.IsNullOrEmpty(Course))
         {
+            await InitializeCurrentTeacherAsync();
             LoadGradeData();
         }
     }
@@ -211,7 +214,8 @@
 
     private void SaveStudentGrades(Student student)
     {
-        var currentTeacher = GetCurrentTeacher();
+        if (currentTeacher == null)
+            return; // add warning message
 
         foreach (var change in pendingGradeChanges)
         {
@@ -258,9 +262,16 @@
         StateHasChanged();
     }
 
-    private Staff GetCurrentTeacher()
+    private async Task InitializeCurrentTeacherAsync()
     {
-        return SchoolDataService.GetSchool().Staff.FirstOrDefault(s => s.UserRole == UserRole.Teacher) ?? new Staff();
+        var person = await PermissionService.GetCurrentPersonAsync();
+        if (person == null)
+        {
+            currentTeacher = null;
+            return;
+        }
+        currentTeacher = SchoolDataService.GetStaff()
+            .FirstOrDefault(s => s.PersonId == person.Id);
     }
 
     private void Close()
