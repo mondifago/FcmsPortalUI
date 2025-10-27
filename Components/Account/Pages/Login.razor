@@ -95,7 +95,7 @@
     {
         if (SchoolDataService.HasSchool())
         {
-            school = SchoolDataService.GetSchool();
+            school = SchoolDataService.GetSchoolBasicInfo();
         }
 
         if (HttpMethods.IsGet(HttpContext.Request.Method))

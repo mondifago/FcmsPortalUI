@@ -11,6 +11,7 @@ namespace FcmsPortalUI.Services
         bool HasPrincipal();
         Task UpdateSchoolAsync(School updatedSchool);
         School? GetSchool();
+        School? GetSchoolBasicInfo();
         #endregion
 
         #region Staff

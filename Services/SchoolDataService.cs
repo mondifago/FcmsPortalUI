@@ -65,6 +65,26 @@ namespace FcmsPortalUI.Services
             return school;
         }
 
+        public School? GetSchoolBasicInfo()
+        {
+            var school = _context.School
+                .AsNoTracking()
+                .Select(s => new School
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    LogoUrl = s.LogoUrl,
+                    Email = s.Email,
+                    PhoneNumber = s.PhoneNumber,
+                    WebsiteUrl = s.WebsiteUrl,
+                    Address = s.Address
+                })
+                .FirstOrDefault();
+
+            return school;
+        }
+
+
         public bool HasSchool()
         {
             return _context.School.Any();
