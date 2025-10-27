@@ -842,6 +842,18 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Calendar & Scheduling
+        public ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date)
+        {
+            var targetDate = date.Date;
+
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Where(e => e.DateTime.Date == targetDate &&
+                           (e.Event != null || e.Meeting != null))
+                .OrderByDescending(e => e.DateTime)
+                .FirstOrDefault();
+        }
+
         public ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)
         {
             var learningPath = GetLearningPathById(learningPathId);
@@ -2297,6 +2309,105 @@ namespace FcmsPortalUI.Services
                 .Select(year => $"{year}-{year + 1}")
                 .ToList();
         }
-        #endregion  
+        #endregion
+
+        #region Announcements
+        public List<Announcement> GetAllAnnouncements()
+        {
+            return _context.Announcements
+                .Include(a => a.PostedBy)
+                .OrderByDescending(a => a.PostedAt)
+                .ToList();
+        }
+
+        public List<Announcement> GetActiveAnnouncements()
+        {
+            var today = DateTime.Today;
+            return _context.Announcements
+                .AsNoTracking()
+                .Where(a => a.StartDate <= today && a.EndDate >= today)
+                .OrderByDescending(a => a.PostedAt)
+                .ToList();
+        }
+
+        public Announcement CreateAnnouncement(Announcement announcement, int userId)
+        {
+            announcement.PostedAt = DateTime.Now;
+            announcement.PostedById = userId;
+
+            _context.Announcements.Add(announcement);
+            _context.SaveChanges();
+
+            return announcement;
+        }
+
+        public Announcement UpdateAnnouncement(Announcement announcement)
+        {
+            var existing = _context.Announcements.Find(announcement.Id);
+            if (existing == null)
+                throw new InvalidOperationException("Announcement not found.");
+
+            existing.Message = announcement.Message;
+            existing.StartDate = announcement.StartDate;
+            existing.EndDate = announcement.EndDate;
+
+            _context.SaveChanges();
+            return existing;
+        }
+
+        public void DeleteAnnouncement(int announcementId)
+        {
+            var announcement = _context.Announcements.Find(announcementId);
+            if (announcement != null)
+            {
+                _context.Announcements.Remove(announcement);
+                _context.SaveChanges();
+            }
+        }
+        #endregion
+
+        #region Quotes
+        public List<Quote> GetAllQuotes()
+        {
+            return _context.Quotes
+                .Include(q => q.AddedBy)
+                .OrderByDescending(q => q.DateAdded)
+                .ToList();
+        }
+
+        public Quote CreateQuote(Quote quote, int userId)
+        {
+            quote.DateAdded = DateTime.Now;
+            quote.AddedById = userId;
+
+            _context.Quotes.Add(quote);
+            _context.SaveChanges();
+
+            return quote;
+        }
+
+        public Quote UpdateQuote(Quote quote)
+        {
+            var existing = _context.Quotes.Find(quote.Id);
+            if (existing == null)
+                throw new InvalidOperationException("Quote not found.");
+
+            existing.Text = quote.Text;
+            existing.Author = quote.Author;
+
+            _context.SaveChanges();
+            return existing;
+        }
+
+        public void DeleteQuote(int quoteId)
+        {
+            var quote = _context.Quotes.Find(quoteId);
+            if (quote != null)
+            {
+                _context.Quotes.Remove(quote);
+                _context.SaveChanges();
+            }
+        }
+        #endregion
     }
 }

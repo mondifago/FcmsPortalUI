@@ -66,6 +66,7 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Calendar & Scheduling
+        ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date);
         ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
         IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules();
         bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
@@ -177,6 +178,21 @@ namespace FcmsPortalUI.Services
         List<string> GetArchivedGradesAcademicYears();
         LearningPath? GetLearningPathByFilter(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         List<string> GetGradeArchiveAcademicYears();
+        #endregion
+
+        #region Announcements
+        List<Announcement> GetAllAnnouncements();
+        List<Announcement> GetActiveAnnouncements();
+        Announcement CreateAnnouncement(Announcement announcement, int userId);
+        Announcement UpdateAnnouncement(Announcement announcement);
+        void DeleteAnnouncement(int announcementId);
+        #endregion
+
+        #region Quotes
+        List<Quote> GetAllQuotes();
+        Quote CreateQuote(Quote quote, int userId);
+        Quote UpdateQuote(Quote quote);
+        void DeleteQuote(int quoteId);
         #endregion
     }
 }

@@ -3,6 +3,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
 @rendermode InteractiveServer
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -102,6 +103,249 @@
                             </div>
                         </div>
 
+
+
+                        <!-- Home Page Settings Section -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">Home Page Settings</h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- School Announcements Subsection -->
+                                <div class="mb-4">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fa fa-bullhorn me-2"></i>School Announcements
+                                    </h6>
+
+                                    <!-- Add New Announcement Form -->
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-12 mb-2">
+                                                    <label class="form-label">Announcement Message<span class="text-danger">*</span></label>
+                                                    <textarea class="form-control"
+                                                              rows="2"
+                                                              maxlength="100"
+                                                              @bind="newAnnouncement.Message"
+                                                              placeholder="Enter announcement message (max 100 characters)"></textarea>
+                                                    <small class="text-muted">@newAnnouncement.Message.Length / 100 characters</small>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-5 mb-2">
+                                                    <label class="form-label">Start Date<span class="text-danger">*</span></label>
+                                                    <input type="date" class="form-control" @bind="newAnnouncement.StartDate" />
+                                                </div>
+                                                <div class="col-md-5 mb-2">
+                                                    <label class="form-label">End Date<span class="text-danger">*</span></label>
+                                                    <input type="date" class="form-control" @bind="newAnnouncement.EndDate" />
+                                                </div>
+                                                <div class="col-md-2 mb-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-success w-100" @onclick="AddAnnouncement">
+                                                        <i class="fa fa-plus me-1"></i>Post
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Announcements List -->
+                                    @if (announcements != null && announcements.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width: 50%;">Message</th>
+                                                        <th style="width: 15%;">Start Date</th>
+                                                        <th style="width: 15%;">End Date</th>
+                                                        <th style="width: 10%;">Status</th>
+                                                        <th style="width: 10%;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var announcement in announcements.OrderByDescending(a => a.PostedAt))
+                                                    {
+                                                        @if (editingAnnouncementId == announcement.Id)
+                                                        {
+                                                            <!-- Edit Mode -->
+                                                            <tr>
+                                                                <td>
+                                                                    <textarea class="form-control form-control-sm"
+                                                                              rows="2"
+                                                                              maxlength="100"
+                                                                              @bind="editingAnnouncement.Message"></textarea>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="date" class="form-control form-control-sm" @bind="editingAnnouncement.StartDate" />
+                                                                </td>
+                                                                <td>
+                                                                    <input type="date" class="form-control form-control-sm" @bind="editingAnnouncement.EndDate" />
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge @(editingAnnouncement.IsActive ? "bg-success" : "bg-secondary")">
+                                                                        @(editingAnnouncement.IsActive ? "Active" : "Inactive")
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-sm btn-primary me-1" @onclick="SaveAnnouncement">
+                                                                        <i class="fa fa-save"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEditAnnouncement">
+                                                                        <i class="fa fa-times"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            <!-- View Mode -->
+                                                            <tr>
+                                                                <td>@announcement.Message</td>
+                                                                <td>@announcement.StartDate.ToString("MMM dd, yyyy")</td>
+                                                                <td>@announcement.EndDate.ToString("MMM dd, yyyy")</td>
+                                                                <td>
+                                                                    <span class="badge @(announcement.IsActive ? "bg-success" : "bg-secondary")">
+                                                                        @(announcement.IsActive ? "Active" : "Inactive")
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-sm btn-warning me-1" @onclick="() => EditAnnouncement(announcement)">
+                                                                        <i class="fa fa-edit"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteAnnouncement(announcement.Id)">
+                                                                        <i class="fa fa-trash"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fa fa-info-circle me-2"></i>No announcements posted yet.
+                                        </div>
+                                    }
+                                </div>
+
+                                <hr class="my-4" />
+
+                                <!-- Quotes Subsection -->
+                                <div class="mb-3">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fa fa-quote-left me-2"></i>Quotes
+                                    </h6>
+
+                                    <!-- Add New Quote Form -->
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-12 mb-2">
+                                                    <label class="form-label">Quote Text<span class="text-danger">*</span></label>
+                                                    <textarea class="form-control"
+                                                              rows="3"
+                                                              maxlength="500"
+                                                              @bind="newQuote.Text"
+                                                              placeholder="Enter inspirational or educational quote (max 500 characters)"></textarea>
+                                                    <small class="text-muted">@newQuote.Text.Length / 500 characters</small>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-10 mb-2">
+                                                    <label class="form-label">Author<span class="text-danger">*</span></label>
+                                                    <input type="text"
+                                                           class="form-control"
+                                                           maxlength="50"
+                                                           @bind="newQuote.Author"
+                                                           placeholder="Author name" />
+                                                </div>
+                                                <div class="col-md-2 mb-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-success w-100" @onclick="AddQuote">
+                                                        <i class="fa fa-plus me-1"></i>Add
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quotes List -->
+                                    @if (quotes != null && quotes.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th style="width: 70%;">Quote</th>
+                                                        <th style="width: 20%;">Author</th>
+                                                        <th style="width: 10%;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var quote in quotes.OrderByDescending(q => q.DateAdded))
+                                                    {
+                                                        @if (editingQuoteId == quote.Id)
+                                                        {
+                                                            <!-- Edit Mode -->
+                                                            <tr>
+                                                                <td>
+                                                                    <textarea class="form-control form-control-sm"
+                                                                              rows="3"
+                                                                              maxlength="500"
+                                                                              @bind="editingQuote.Text"></textarea>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text"
+                                                                           class="form-control form-control-sm"
+                                                                           maxlength="50"
+                                                                           @bind="editingQuote.Author" />
+                                                                </td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-sm btn-primary me-1" @onclick="SaveQuote">
+                                                                        <i class="fa fa-save"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEditQuote">
+                                                                        <i class="fa fa-times"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            <!-- View Mode -->
+                                                            <tr>
+                                                                <td style="font-style: italic;">"@quote.Text"</td>
+                                                                <td>@quote.Author</td>
+                                                                <td>
+                                                                    <button type="button" class="btn btn-sm btn-warning me-1" @onclick="() => EditQuote(quote)">
+                                                                        <i class="fa fa-edit"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteQuote(quote.Id)">
+                                                                        <i class="fa fa-trash"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fa fa-info-circle me-2"></i>No quotes added yet.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+
+
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
                             <button type="submit" class="btn btn-primary">
@@ -120,6 +364,9 @@
                     </div>
                 }
             </div>
+
+
+
         </div>
     </div>
 </div>
@@ -137,18 +384,42 @@
     private FcmsPortal.Models.School? school;
     private string logoUrl = "";
 
-    protected override void OnParametersSet()
+    private Person? currentUser;
+    private int? currentUserId;
+
+    private List<Announcement> announcements = new();
+    private Announcement newAnnouncement = new();
+    private Announcement editingAnnouncement = new();
+    private int editingAnnouncementId = 0;
+
+    // Quotes
+    private List<Quote> quotes = new();
+    private Quote newQuote = new();
+    private Quote editingQuote = new();
+    private int editingQuoteId = 0;
+
+    protected override async Task OnParametersSetAsync()
     {
         if (IsVisible && school == null)
         {
+            await LoadCurrentUser();
             LoadSchoolData();
         }
+    }
+
+    private async Task LoadCurrentUser()
+    {
+        currentUserId = await PermissionService.GetCurrentUserIdAsync();
+        currentUser = await PermissionService.GetCurrentPersonAsync();
     }
 
     private void LoadSchoolData()
     {
         school = SchoolDataService.GetSchool();
         logoUrl = school?.LogoUrl ?? "";
+
+        LoadAnnouncements();
+        LoadQuotes();
     }
 
     private async Task Close()
@@ -188,5 +459,111 @@
                 Console.WriteLine($"Error uploading file: {ex.Message}");
             }
         }
+    }
+
+
+    // Announcement Methods
+    private void LoadAnnouncements()
+    {
+        announcements = SchoolDataService.GetAllAnnouncements();
+    }
+
+    private void AddAnnouncement()
+    {
+        if (string.IsNullOrWhiteSpace(newAnnouncement.Message))
+            return;
+
+        SchoolDataService.CreateAnnouncement(newAnnouncement, currentUserId.Value);
+        newAnnouncement = new Announcement();
+        LoadAnnouncements();
+    }
+
+    private void EditAnnouncement(Announcement announcement)
+    {
+        editingAnnouncementId = announcement.Id;
+        editingAnnouncement = new Announcement
+        {
+            Id = announcement.Id,
+            Message = announcement.Message,
+            StartDate = announcement.StartDate,
+            EndDate = announcement.EndDate,
+            PostedAt = announcement.PostedAt,
+            PostedById = announcement.PostedById
+        };
+    }
+
+    private void SaveAnnouncement()
+    {
+        if (string.IsNullOrWhiteSpace(editingAnnouncement.Message))
+            return;
+
+        SchoolDataService.UpdateAnnouncement(editingAnnouncement);
+        editingAnnouncementId = 0;
+        editingAnnouncement = new Announcement();
+        LoadAnnouncements();
+    }
+
+    private void CancelEditAnnouncement()
+    {
+        editingAnnouncementId = 0;
+        editingAnnouncement = new Announcement();
+    }
+
+    private void DeleteAnnouncement(int id)
+    {
+        SchoolDataService.DeleteAnnouncement(id);
+        LoadAnnouncements();
+    }
+
+    // Quote Methods
+    private void LoadQuotes()
+    {
+        quotes = SchoolDataService.GetAllQuotes();
+    }
+
+    private void AddQuote()
+    {
+        if (string.IsNullOrWhiteSpace(newQuote.Text) || string.IsNullOrWhiteSpace(newQuote.Author))
+            return;
+
+        SchoolDataService.CreateQuote(newQuote, currentUserId.Value);
+        newQuote = new Quote();
+        LoadQuotes();
+    }
+
+    private void EditQuote(Quote quote)
+    {
+        editingQuoteId = quote.Id;
+        editingQuote = new Quote
+        {
+            Id = quote.Id,
+            Text = quote.Text,
+            Author = quote.Author,
+            DateAdded = quote.DateAdded,
+            AddedById = quote.AddedById
+        };
+    }
+
+    private void SaveQuote()
+    {
+        if (string.IsNullOrWhiteSpace(editingQuote.Text) || string.IsNullOrWhiteSpace(editingQuote.Author))
+            return;
+
+        SchoolDataService.UpdateQuote(editingQuote);
+        editingQuoteId = 0;
+        editingQuote = new Quote();
+        LoadQuotes();
+    }
+
+    private void CancelEditQuote()
+    {
+        editingQuoteId = 0;
+        editingQuote = new Quote();
+    }
+
+    private void DeleteQuote(int id)
+    {
+        SchoolDataService.DeleteQuote(id);
+        LoadQuotes();
     }
 }

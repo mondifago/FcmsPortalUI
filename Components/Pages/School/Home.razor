@@ -36,8 +36,20 @@
     <div class="row">
         <!-- Left Main Content -->
         <div class="col-lg-9">
-            <!-- Center Space -->
-            <div style="height: 45vh;"></div>
+            <!-- Center Space with Quote -->
+            <div style="height: 45vh; display: flex; align-items: center; justify-content: center;">
+                @if (randomQuote != null)
+                {
+                    <div class="text-center px-5">
+                        <blockquote class="blockquote" style="font-family: Garamond, 'Cormorant Garamond', 'Goudy Old Style', serif; font-style: italic; font-size: 1.2rem; color: #555; line-height: 1.6;">
+                            "@randomQuote.Text"
+                        </blockquote>
+                        <footer class="blockquote-footer mt-3" style="font-size: 0.6rem; font-style: italic;">
+                            @randomQuote.Author
+                        </footer>
+                    </div>
+                }
+            </div>
 
             <!-- Horizontal Info Bar - Staff View -->
             <AuthorizeView Roles="Developer,Staff">
@@ -260,12 +272,21 @@
                     </h6>
                 </div>
                 <div class="card-body pt-2 pb-3">
-                    <p class="mb-2 text-muted" style="font-size: 0.875rem;">
-                        • New timetable released for next week.
-                    </p>
-                    <p class="mb-0 text-muted" style="font-size: 0.875rem;">
-                        • Uniform inspection on Friday.
-                    </p>
+                    @if (announcements != null && announcements.Any())
+                    {
+                        @foreach (var announcement in announcements)
+                        {
+                            <p class="mb-2 text-danger" style="font-size: 0.875rem;">
+                                • @announcement.Message
+                            </p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                            <em>No announcements at this time.</em>
+                        </p>
+                    }
                 </div>
             </div>
 
@@ -277,15 +298,30 @@
                     </h6>
                 </div>
                 <div class="card-body pt-2 pb-3">
-                    <p class="mb-2 text-muted" style="font-size: 0.875rem;">
-                        • <strong>Today:</strong> Staff Meeting at 2:00 PM
-                    </p>
-                    <p class="mb-2 text-muted" style="font-size: 0.875rem;">
-                        • <strong>Tomorrow:</strong> Parent–Teacher Conf. at 4:00 PM
-                    </p>
-                    <p class="mb-0 text-muted" style="font-size: 0.875rem;">
-                        • <strong>In 2 days:</strong> Holiday - Easter Day
-                    </p>
+                    @if (todayEventOrMeeting != null)
+                    {
+                        <p class="mb-2 text-muted" style="font-size: 0.875rem;">
+                            • <strong>Today:</strong> @GetEventOrMeetingName(todayEventOrMeeting) at @todayEventOrMeeting.DateTime.ToString("h:mm tt")
+                        </p>
+                    }
+                    @if (tomorrowEventOrMeeting != null)
+                    {
+                        <p class="mb-2 text-muted" style="font-size: 0.875rem;">
+                            • <strong>Tomorrow:</strong> @GetEventOrMeetingName(tomorrowEventOrMeeting) at @tomorrowEventOrMeeting.DateTime.ToString("h:mm tt")
+                        </p>
+                    }
+                    @if (dayAfterEventOrMeeting != null)
+                    {
+                        <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                            • <strong>In 2 days:</strong> @GetEventOrMeetingName(dayAfterEventOrMeeting) at @dayAfterEventOrMeeting.DateTime.ToString("h:mm tt")
+                        </p>
+                    }
+                    @if (todayEventOrMeeting == null && tomorrowEventOrMeeting == null && dayAfterEventOrMeeting == null)
+                    {
+                        <p class="mb-0 text-muted" style="font-size: 0.875rem;">
+                            <em>No upcoming events or meetings.</em>
+                        </p>
+                    }
                 </div>
             </div>
         </div>
@@ -304,6 +340,13 @@
     private DateTime? semesterEndDate;
     private DateTime? examsStartDate;
 
+    private List<Announcement> announcements = new();
+    private Quote? randomQuote;
+
+    private ScheduleEntry? todayEventOrMeeting;
+    private ScheduleEntry? tomorrowEventOrMeeting;
+    private ScheduleEntry? dayAfterEventOrMeeting;
+
     protected override async Task OnInitializedAsync()
     {
         //school = SchoolDataService.GetSchool();
@@ -314,6 +357,9 @@
             userFirstName = person.FirstName;
         }
         LoadSemesterTimeline();
+        LoadAnnouncements();
+        LoadRandomQuote();
+        LoadUpcomingEvents();
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
@@ -329,6 +375,29 @@
             semesterEndDate = activeLearningPath.SemesterEndDate;
             examsStartDate = activeLearningPath.ExamsStartDate;
         }
+    }
+
+    private void LoadAnnouncements()
+    {
+        announcements = SchoolDataService.GetActiveAnnouncements();
+    }
+
+    private void LoadRandomQuote()
+    {
+        var quotes = SchoolDataService.GetAllQuotes();
+        randomQuote = LogicMethods.GetRandomQuote(quotes);
+    }
+
+    private void LoadUpcomingEvents()
+    {
+        todayEventOrMeeting = SchoolDataService.GetLatestEventOrMeetingForDate(DateTime.Today);
+        tomorrowEventOrMeeting = SchoolDataService.GetLatestEventOrMeetingForDate(DateTime.Today.AddDays(1));
+        dayAfterEventOrMeeting = SchoolDataService.GetLatestEventOrMeetingForDate(DateTime.Today.AddDays(2));
+    }
+
+    private string GetEventOrMeetingName(ScheduleEntry entry)
+    {
+        return entry.Title;
     }
 
     private void UpdateTime(object? state)
