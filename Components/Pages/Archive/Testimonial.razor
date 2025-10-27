@@ -16,7 +16,7 @@
             <div class="card">
                 <div class="card-header text-center bg-primary text-white">
                     <h3 class="mb-0">Student Testimonial</h3>
-                    <p class="mb-0">@SchoolDataService.GetSchool().Name</p>
+                    <p class="mb-0">@school?.Name</p>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -126,12 +126,14 @@
 @code {
     [Parameter] public int StudentId { get; set; }
 
+    private School? school;
     private Student? student;
     private Guardian? guardian;
     private string principalRemark = "";
 
     protected override void OnInitialized()
     {
+        school = SchoolDataService.GetSchoolBasicInfo();
         LoadStudentData();
     }
 
