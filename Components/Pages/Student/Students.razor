@@ -161,9 +161,7 @@
             {
                 FcmsPortal.LogicMethods.RemoveStudentFromGuardianWards(guardian, student);
             }
-
-            var school = SchoolDataService.GetSchool();
-            FcmsPortal.LogicMethods.RemoveStudentFromAllLearningPaths(school, student);
+            SchoolDataService.RemoveStudentFromAllLearningPaths(student);
         }
 
         var result = SchoolDataService.DeleteStudent(studentIdToDelete);

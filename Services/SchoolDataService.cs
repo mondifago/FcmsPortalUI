@@ -240,6 +240,14 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
+        public List<Guardian> GetAllGuardians()
+        {
+            return _context.Guardians
+                .Include(g => g.Person)
+                .AsNoTracking()
+                .ToList();
+        }
+
         public Guardian? GetGuardianById(int id)
         {
             return _context.Guardians
@@ -420,6 +428,22 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
             return student;
         }
+
+        public void RemoveStudentFromAllLearningPaths(Student student)
+        {
+            var learningPaths = _context.LearningPaths
+                .Include(lp => lp.Students)
+                .Where(lp => lp.Students.Any(s => s.Id == student.Id))
+                .ToList();
+
+            foreach (var lp in learningPaths)
+            {
+                lp.Students.Remove(student);
+            }
+
+            _context.SaveChanges();
+        }
+
 
         public bool DeleteStudent(int studentId)
         {

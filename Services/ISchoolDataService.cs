@@ -35,8 +35,10 @@ namespace FcmsPortalUI.Services
         #region Students
         Student AddStudent(Student student);
         IEnumerable<Student> GetStudents();
+        List<Guardian> GetAllGuardians();
         Student? GetStudentById(int id);
         void UpdateStudent(Student student);
+        void RemoveStudentFromAllLearningPaths(Student student);
         bool DeleteStudent(int studentId);
         string? ValidateGuardianDeletion(int guardianId);
         public void ActivateStudent(Student student);

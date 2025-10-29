@@ -216,13 +216,11 @@
     private string profilePictureUrl = "";
     private string oldProfilePictureUrl = "";
     private List<Guardian> guardians = new();
-    private FcmsPortal.Models.School? school;
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
-        guardians = FcmsPortal.LogicMethods.GetAllGuardians(school);
+        guardians = SchoolDataService.GetAllGuardians();
 
         if (Student.Person.DateOfEnrollment == default)
             Student.Person.DateOfEnrollment = DateTime.Today;

@@ -171,11 +171,9 @@
 
     private Guardian? guardian;
     private List<Student>? associatedStudents;
-    private FcmsPortal.Models.School? school;
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
         guardian = SchoolDataService.GetGuardianById(Id);
 
         if (guardian == null)
