@@ -1121,6 +1121,14 @@ namespace FcmsPortalUI.Services
             }
             return false;
         }
+
+        public List<ScheduleEntry> GetAllSchedules()
+        {
+            return _context.ScheduleEntries
+                .Include(se => se.ClassSession)
+                .AsNoTracking()
+                .ToList();
+        }
         #endregion
 
         #region Class Sessions
