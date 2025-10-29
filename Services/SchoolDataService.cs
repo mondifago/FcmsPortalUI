@@ -545,6 +545,18 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
+        public List<LearningPath> GetLearningPathsForPayments(int academicYearStartYear, Semester semester)
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Where(lp => lp.AcademicYearStart.Year == academicYearStartYear && lp.Semester == semester)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                        .ThenInclude(p => p.SchoolFees)
+                            .ThenInclude(sf => sf.Payments)
+                .ToList();
+        }
+
         public LearningPath? GetLearningPathById(int id)
         {
             return _context.LearningPaths
@@ -740,8 +752,6 @@ namespace FcmsPortalUI.Services
                 _context.SaveChanges();
             }
         }
-
-
         #endregion
 
         #region Learning Path Templates

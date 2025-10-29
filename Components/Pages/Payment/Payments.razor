@@ -188,10 +188,12 @@
 </div>
 
 <SchoolPaymentReportModal IsVisible="showSchoolReport"
-School="school"
-AcademicYear="GetSelectedAcademicYearString()"
-Semester="selectedSemester"
-OnClose="CloseSchoolReport" />
+                          LearningPaths="filteredLearningPaths"
+                          Students="filteredLearningPaths.SelectMany(lp => lp.Students).ToList()"
+                          AcademicYear="GetSelectedAcademicYearString()"
+                          Semester="selectedSemester"
+                          OnClose="CloseSchoolReport"
+                          SchoolName="@school.Name" />
 
 <LearningPathPaymentReportModal IsVisible="showLearningPathReport"
 LearningPath="selectedLearningPath"
@@ -218,8 +220,8 @@ OnClose="CloseLearningPathReport" />
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
-        allLearningPaths = school.LearningPaths.ToList();
+        school = SchoolDataService.GetSchoolBasicInfo();
+        allLearningPaths = SchoolDataService.GetLearningPathsForPayments(academicYearStartYear, selectedSemester);
         selectedSemester = Semester.First;
         FilterData();
     }
