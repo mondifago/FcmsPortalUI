@@ -11,7 +11,6 @@ namespace FcmsPortalUI.Services
         bool HasSchool();
         bool HasPrincipal();
         Task UpdateSchoolAsync(School updatedSchool);
-        School? GetSchool();
         public School? GetSchoolLearningPathsForReports();
         School? GetSchoolBasicInfo();
         School? GetSchoolForSettings();
@@ -75,6 +74,7 @@ namespace FcmsPortalUI.Services
 
         #region Calendar & Scheduling
         ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date);
+        ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId);
         ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
         IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules();
         Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync(bool includeTeachers = false);

@@ -477,7 +477,6 @@
     [Parameter]
     public int Id { get; set; }
 
-    private School school = new();
     private string selectedPdfUrl = string.Empty;
     private ClassSession classSession = new();
     private ScheduleEntry scheduleEntry = new();
@@ -508,12 +507,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        school = SchoolDataService.GetSchool();
         classSession = SchoolDataService.GetClassSessionById(Id) ?? new ClassSession();
 
         if (classSession != null)
         {
-            scheduleEntry = LogicMethods.GetScheduleEntryForClassSession(school, Id) ?? new ScheduleEntry();
+            scheduleEntry = SchoolDataService.GetScheduleEntryByClassSessionId(Id) ?? new ScheduleEntry();
 
             currentUserId = await PermissionService.GetCurrentUserIdAsync();
             currentUser = await PermissionService.GetCurrentPersonAsync();

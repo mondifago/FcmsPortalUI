@@ -27,48 +27,6 @@ namespace FcmsPortalUI.Services
         }
 
         #region School
-        public School GetSchool()
-        {
-            var school = _context.School
-                .Include(s => s.Staff)
-                    .ThenInclude(st => st.Person)
-                .Include(s => s.Students)
-                    .ThenInclude(st => st.Person)
-                        .ThenInclude(p => p.SchoolFees)
-                            .ThenInclude(sf => sf.Payments)
-                .Include(s => s.Students)
-                    .ThenInclude(st => st.Guardian)
-                        .ThenInclude(g => g.Person)
-                .Include(s => s.Students)
-                    .ThenInclude(st => st.LearningPath)
-                .Include(s => s.Guardians)
-                    .ThenInclude(g => g.Person)
-                .Include(s => s.LearningPaths)
-                    .ThenInclude(lp => lp.Students)
-                        .ThenInclude(st => st.Person)
-                .Include(s => s.LearningPaths)
-                    .ThenInclude(lp => lp.Schedule)
-                        .ThenInclude(se => se.ClassSession)
-                            .ThenInclude(cs => cs.Teacher)
-                                .ThenInclude(t => t.Person)
-                .Include(s => s.LearningPaths)
-                    .ThenInclude(lp => lp.Schedule)
-                        .ThenInclude(se => se.ClassSession)
-                            .ThenInclude(cs => cs.StudyMaterials)
-                .Include(s => s.LearningPaths)
-                    .ThenInclude(lp => lp.Schedule)
-                        .ThenInclude(se => se.ClassSession)
-                            .ThenInclude(cs => cs.DiscussionThreads)
-                .Include(s => s.SchoolCalendar)
-                    .ThenInclude(c => c.ScheduleEntries)
-                        .ThenInclude(se => se.ClassSession)
-                            .ThenInclude(cs => cs.Teacher)
-                                .ThenInclude(t => t.Person)
-                .FirstOrDefault();
-
-            return school;
-        }
-
         public School? GetSchoolLearningPathsForReports()
         {
             var school = _context.School
@@ -977,6 +935,14 @@ namespace FcmsPortalUI.Services
                            (e.Event != null || e.Meeting != null))
                 .OrderByDescending(e => e.DateTime)
                 .FirstOrDefault();
+        }
+
+        public ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId)
+        {
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Include(se => se.LearningPath)
+                .FirstOrDefault(se => se.ClassSessionId == classSessionId);
         }
 
         public ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)
