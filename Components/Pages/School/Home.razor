@@ -347,6 +347,9 @@
     private ScheduleEntry? tomorrowEventOrMeeting;
     private ScheduleEntry? dayAfterEventOrMeeting;
 
+    private static event Action? RefreshRequested;
+    private static object refreshLock = new object();
+
     protected override async Task OnInitializedAsync()
     {
         //school = SchoolDataService.GetSchool();
@@ -361,6 +364,34 @@
         LoadRandomQuote();
         LoadUpcomingEvents();
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            lock (refreshLock)
+            {
+                RefreshRequested += HandleRefreshRequest;
+            }
+        }
+    }
+
+    public static void TriggerSchoolDataRefresh()
+    {
+        lock (refreshLock)
+        {
+            RefreshRequested?.Invoke();
+        }
+    }
+
+    private void HandleRefreshRequest()
+    {
+        LoadSemesterTimeline();
+        LoadAnnouncements();
+        LoadRandomQuote();
+        LoadUpcomingEvents();
+        InvokeAsync(StateHasChanged);
     }
 
     private void LoadSemesterTimeline()

@@ -437,22 +437,6 @@
         return Math.Round(semesterGrades.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT);
     }
 
-
-    /*private double GetPromotionGrade()
-    {
-        if (school == null || LearningPath == null || Student == null)
-            return 0;
-
-        var allLearningPaths = school.LearningPaths
-            .Where(lp =>
-                lp.EducationLevel == LearningPath.EducationLevel &&
-                lp.ClassLevel == LearningPath.ClassLevel &&
-                lp.AcademicYear == LearningPath.AcademicYear)
-            .ToList();
-
-        return LogicMethods.CalculatePromotionGrade(Student, allLearningPaths);
-    }*/
-
     private bool IsPromoted()
     {
         return GetPromotionGrade() >= FcmsConstants.PASSING_GRADE;

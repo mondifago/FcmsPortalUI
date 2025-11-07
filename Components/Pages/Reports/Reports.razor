@@ -359,7 +359,7 @@
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
+        school = SchoolDataService.GetSchoolLearningPathsForReports();
         LoadAvailableAcademicYears();
         InitializeWithCurrentData();
     }

@@ -69,6 +69,53 @@ namespace FcmsPortalUI.Services
             return school;
         }
 
+        public School? GetSchoolLearningPathsForReports()
+        {
+            var school = _context.School
+                .AsNoTracking()
+                .Select(s => new School
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    LearningPaths = s.LearningPaths
+                        .Where(lp => !lp.IsTemplate)
+                        .Select(lp => new LearningPath
+                        {
+                            Id = lp.Id,
+                            AcademicYearStart = lp.AcademicYearStart,
+                            Semester = lp.Semester,
+                            EducationLevel = lp.EducationLevel,
+                            ClassLevel = lp.ClassLevel,
+                            ApprovalStatus = lp.ApprovalStatus,
+                            Schedule = lp.Schedule
+                                .Select(se => new ScheduleEntry
+                                {
+                                    Id = se.Id,
+                                    DateTime = se.DateTime,
+                                    ClassSession = se.ClassSession != null ? new ClassSession
+                                    {
+                                        Id = se.ClassSession.Id,
+                                        Course = se.ClassSession.Course,
+                                        Topic = se.ClassSession.Topic,
+                                        TeacherRemarks = se.ClassSession.TeacherRemarks,
+                                        Teacher = se.ClassSession.Teacher != null ? new Staff
+                                        {
+                                            Id = se.ClassSession.Teacher.Id,
+                                            Person = new Person
+                                            {
+                                                FirstName = se.ClassSession.Teacher.Person.FirstName,
+                                                LastName = se.ClassSession.Teacher.Person.LastName
+                                            }
+                                        } : null
+                                    } : null
+                                }).ToList()
+                        }).ToList()
+                })
+                .FirstOrDefault();
+
+            return school;
+        }
+
         public School? GetSchoolBasicInfo()
         {
             var school = _context.School
@@ -164,6 +211,16 @@ namespace FcmsPortalUI.Services
             return _context.Staff
                 .Include(st => st.Person)
                 .FirstOrDefault(st => st.Id == id);
+        }
+
+        public List<Staff> GetTeachersByEducationLevel(EducationLevel educationLevel)
+        {
+            return _context.Staff
+                .AsNoTracking()
+                .Include(st => st.Person)
+                .Where(st => st.UserRole == UserRole.Teacher &&
+                             st.Person.EducationLevel == educationLevel)
+                .ToList();
         }
 
         public Staff AddStaff(Staff staff)

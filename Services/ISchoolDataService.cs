@@ -12,6 +12,7 @@ namespace FcmsPortalUI.Services
         bool HasPrincipal();
         Task UpdateSchoolAsync(School updatedSchool);
         School? GetSchool();
+        public School? GetSchoolLearningPathsForReports();
         School? GetSchoolBasicInfo();
         School? GetSchoolForSettings();
         #endregion
@@ -20,6 +21,7 @@ namespace FcmsPortalUI.Services
         Staff AddStaff(Staff staff);
         IEnumerable<Staff> GetStaff();
         Staff? GetStaffById(int id);
+        List<Staff> GetTeachersByEducationLevel(EducationLevel educationLevel);
         void UpdateStaff(Staff staff);
         bool DeleteStaff(int staffId);
         #endregion
