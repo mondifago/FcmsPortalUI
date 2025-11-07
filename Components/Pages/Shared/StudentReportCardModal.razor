@@ -389,7 +389,6 @@
 
         var configs = LearningPath.CourseGradingConfigurations.ToList();
 
-        // Check if all configs are the same
         bool isUniform = configs.All(c =>
             c.HomeworkWeightPercentage == configs[0].HomeworkWeightPercentage &&
             c.QuizWeightPercentage == configs[0].QuizWeightPercentage &&

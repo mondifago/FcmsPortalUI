@@ -2,7 +2,6 @@
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal
-@using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
 @inject ValidationService ValidationService
 
@@ -78,7 +77,6 @@
     [Parameter] public EventCallback<ClassSession> OnSave { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
-    private School school = new();
     private ClassSession classSession = new();
     private List<string> availableCourses = new();
     private List<Staff> availableTeachers = new();
@@ -87,7 +85,6 @@
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
         classSession = new ClassSession();
         editContext = new EditContext(classSession);
         messageStore = new ValidationMessageStore(editContext);
@@ -108,7 +105,7 @@
     private void LoadData()
     {
         availableCourses = CourseDefaults.GetCourseNames(EducationLevel);
-        availableTeachers = LogicMethods.GetTeachersByEducationLevel(school, EducationLevel);
+        availableTeachers = SchoolDataService.GetTeachersByEducationLevel(EducationLevel);
     }
 
     private void Close()

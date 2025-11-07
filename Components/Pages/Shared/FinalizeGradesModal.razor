@@ -175,7 +175,6 @@
     [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
     [Parameter] public EventCallback OnClose { get; set; }
 
-    //private School? school = new School();
     private Student? selectedStudentForReport = null;
     private Dictionary<int, string> teacherRemarks = new();
     private Dictionary<int, string> principalRemarks = new();
@@ -186,7 +185,6 @@
 
     protected override void OnInitialized()
     {
-        //school = SchoolDataService.GetSchool();
         CheckGradesFinalizationStatus();
         if (LearningPath != null && LearningPath.Semester == Semester.Third)
         {

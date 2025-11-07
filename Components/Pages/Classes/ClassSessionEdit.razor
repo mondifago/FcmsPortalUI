@@ -86,7 +86,6 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private School school = new();
     private ClassSession classSession;
     private List<string> availableCourses = new List<string>();
     private List<Staff> availableTeachers = new List<Staff>();
@@ -95,7 +94,6 @@
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
         LoadData();
     }
 
@@ -117,7 +115,7 @@
     private void LoadData()
     {
         availableCourses = CourseDefaults.GetCourseNames(EducationLevel);
-        availableTeachers = LogicMethods.GetTeachersByEducationLevel(school, EducationLevel);
+        availableTeachers = SchoolDataService.GetTeachersByEducationLevel(EducationLevel);
     }
 
     private void Close()
