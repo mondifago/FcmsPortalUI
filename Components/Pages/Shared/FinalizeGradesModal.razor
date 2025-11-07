@@ -46,15 +46,18 @@
                                         <td>@student.Person.LastName, @student.Person.FirstName</td>
                                         @if (LearningPath.Semester == Semester.Third)
                                         {
-                                            var allSemesterGrades = LogicMethods.GetStudentAllSemesterGrades(student, school, LearningPath.EducationLevel, LearningPath.ClassLevel);
-
+                                            
+                                                var grades = studentSemesterGrades.ContainsKey(student.Id)
+                                                ? studentSemesterGrades[student.Id]
+                                                : new List<double>();
+                                            
                                             @for (int i = 0; i < 3; i++)
                                             {
                                                 <td class="text-center">
-                                                    @if (i < allSemesterGrades.Count)
+                                                    @if (i < grades.Count)
                                                     {
-                                                        <span class="badge bg-@Util.GetGradeColorClass(allSemesterGrades[i])">
-                                                            @allSemesterGrades[i].ToString("F1")%
+                                                        <span class="badge bg-@Util.GetGradeColorClass(grades[i])">
+                                                            @grades[i].ToString("F1")%
                                                         </span>
                                                     }
                                                     else
@@ -64,18 +67,17 @@
                                                 </td>
                                             }
 
+
                                             <td class="text-center bg-info bg-opacity-10">
                                                 <strong>
                                                     @{
-                                                        var allLearningPaths = school.LearningPaths
-                                                        .Where(lp => lp.EducationLevel == LearningPath.EducationLevel &&
-                                                        lp.ClassLevel == LearningPath.ClassLevel &&
-                                                        lp.AcademicYear == LearningPath.AcademicYear)
-                                                        .ToList();
-
-                                                        var promotionGrade = LogicMethods.CalculatePromotionGrade(student, allLearningPaths);
+                                                        
+                                                        var promotionGrade = grades.Any()
+                                                        ? Math.Round(grades.Average(), 2)
+                                                        : 0;
                                                     }
                                                     @promotionGrade.ToString("F1")%
+
                                                 </strong>
                                             </td>
                                         }
@@ -173,17 +175,55 @@
     [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
     [Parameter] public EventCallback OnClose { get; set; }
 
-    private School school = new School();
+    //private School? school = new School();
     private Student? selectedStudentForReport = null;
     private Dictionary<int, string> teacherRemarks = new();
     private Dictionary<int, string> principalRemarks = new();
     private bool showReportCardModal = false;
     private bool showFinalizeConfirm = false;
-    private bool isGradesFinalized = true; 
+    private bool isGradesFinalized = false;
+    private Dictionary<int, List<double>> studentSemesterGrades = new();
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchool();
+        //school = SchoolDataService.GetSchool();
+        CheckGradesFinalizationStatus();
+        if (LearningPath != null && LearningPath.Semester == Semester.Third)
+        {
+            LoadAllSemesterGrades();
+        }
+    }
+
+    private void LoadAllSemesterGrades()
+    {
+        studentSemesterGrades.Clear();
+
+        foreach (var student in LearningPath.Students)
+        {
+            var grades = SchoolDataService.GetStudentAllSemesterGrades(
+                student.Id,
+                LearningPath.EducationLevel,
+                LearningPath.ClassLevel);
+
+            studentSemesterGrades[student.Id] = grades;
+        }
+    }
+
+
+    private void CheckGradesFinalizationStatus()
+    {
+        if (LearningPath == null)
+        {
+            isGradesFinalized = false;
+            return;
+        }
+
+        var reportCards = SchoolDataService.GetStudentReportCardsForLearningPath(LearningPath.Id);
+
+        if (reportCards.Any())
+        {
+            isGradesFinalized = reportCards.All(rc => rc.IsFinalized);
+        }
     }
 
     private void ShowFinalizeConfirmation()
@@ -209,6 +249,7 @@
         }
 
         isGradesFinalized = true;
+        LoadAllSemesterGrades();
         StateHasChanged();
     }
 

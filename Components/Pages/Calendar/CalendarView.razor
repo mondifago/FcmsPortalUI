@@ -37,6 +37,7 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Schedule Types</label>
+
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="showClasses"
                                    @bind="showClasses" @bind:after="ApplyFilters">
@@ -46,6 +47,7 @@
                                 </span>
                             </label>
                         </div>
+
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="showMeetings"
                                    @bind="showMeetings" @bind:after="ApplyFilters">
@@ -55,6 +57,7 @@
                                 </span>
                             </label>
                         </div>
+
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="showEvents"
                                    @bind="showEvents" @bind:after="ApplyFilters">
@@ -75,24 +78,27 @@
                         </select>
                     </div>
                 </div>
-
             </div>
 
             @if (selectedDate != null)
             {
+                
+                    var filteredForSelectedDate = GetFilteredSchedules(selectedDate.Value);
+                
+
                 <div class="card">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">@selectedDate.Value.ToString("MMMM d, yyyy")</h5>
                     </div>
                     <div class="card-body">
-                        @if (!GetFilteredSchedules(selectedDate.Value).Any())
+                        @if (!filteredForSelectedDate.Any())
                         {
                             <p class="text-muted">No events scheduled for this date.</p>
                         }
                         else
                         {
                             <div class="list-group">
-                                @foreach (var schedule in GetFilteredSchedules(selectedDate.Value).OrderBy(s => s.DateTime.TimeOfDay))
+                                @foreach (var schedule in filteredForSelectedDate.OrderBy(s => s.DateTime.TimeOfDay))
                                 {
                                     <div class="list-group-item p-2">
                                         <div class="d-flex align-items-center">
@@ -164,7 +170,6 @@
                 </div>
             }
         </div>
-
     </div>
 </div>
 
@@ -173,7 +178,7 @@
     <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
                         Title="Confirm Delete"
                         Message="Are you sure you want to delete this schedule? This action cannot be undone."
-                        OnConfirm="ConfirmDeleteSchedule"
+                        OnConfirm="ConfirmDeleteScheduleAsync"
                         OnCancel="CancelDelete" />
 }
 
@@ -182,14 +187,14 @@
                      DateParam="@null"
                      AllowClassSchedule="false"
                      RestrictToClassOnly="false"
-                     OnSave="SaveScheduleEntry"
+                     OnSave="SaveScheduleEntryAsync"
                      OnClose="CloseAddEventModal" />
 
 <ScheduleEntryEdit IsVisible="showEditModal"
                    ExistingScheduleEntry="selectedSchedule"
                    AllowClassSchedule="false"
                    RestrictToClassOnly="false"
-                   OnSave="UpdateScheduleEntry"
+                   OnSave="UpdateScheduleEntryAsync"
                    OnClose="CloseEditModal" />
 
 @if (showScheduleDetailsModal && selectedSchedule != null)
@@ -201,15 +206,16 @@
 }
 
 @code {
-    private School school = new School();
+    private List<ScheduleEntry> allSchedules = new(); 
+
     private ScheduleEntry? scheduleToDelete = null;
     private ScheduleEntry? selectedSchedule = null;
     private ScheduleType? selectedScheduleType = null;
     private DateTime currentDate = DateTime.Now;
     private DateTime? selectedDate = null;
     private string viewMode = "month";
-    private bool showClasses = true;
-    private bool showMeetings = true;
+    private bool showClasses = false;
+    private bool showMeetings = false;
     private bool showEvents = true;
     private bool showDailyView = false;
     private bool showEditModal = false;
@@ -217,41 +223,27 @@
     private bool showAddEventModal = false;
     private bool showScheduleDetailsModal = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        school = SchoolDataService.GetSchool();
-
-        if (school.SchoolCalendar == null)
-        {
-            school.SchoolCalendar = new List<CalendarModel>();
-        }
-
-        if (!school.SchoolCalendar.Any())
-        {
-            school.SchoolCalendar.Add(new CalendarModel
-            {
-                Id = 1,
-                Name = "Main School Calendar",
-                ScheduleEntries = new List<ScheduleEntry>()
-            });
-        }
+        await RefreshSchedulesAsync();
     }
 
-    private List<ScheduleEntry> GetAllSchedules()
+    private async Task RefreshSchedulesAsync()
     {
-        return SchoolDataService.GetAllSchoolCalendarSchedules().ToList();
+        allSchedules = await SchoolDataService.GetAllSchoolCalendarSchedulesAsync();
+        StateHasChanged();
     }
 
     private List<ScheduleEntry> GetFilteredSchedules(DateTime date)
     {
-        var schedules = GetAllSchedules()
+        var schedulesForDay = allSchedules
             .Where(s => s.DateTime.Date == date.Date)
             .ToList();
 
-        return schedules.Where(s =>
-            (showClasses && s.ClassSession != null) ||
-            (showMeetings && !string.IsNullOrEmpty(s.Meeting)) ||
-            (showEvents && !string.IsNullOrEmpty(s.Event))
+        return schedulesForDay.Where(s =>
+            (showClasses && s.ClassSessionId != null) ||
+            (showMeetings && !string.IsNullOrWhiteSpace(s.Meeting)) ||
+            (showEvents && !string.IsNullOrWhiteSpace(s.Event))
         ).ToList();
     }
 
@@ -307,38 +299,22 @@
         showDeleteConfirmation = false;
     }
 
-    private void ConfirmDeleteSchedule()
+    private async Task ConfirmDeleteScheduleAsync()
     {
         if (scheduleToDelete != null)
         {
             SchoolDataService.DeleteGeneralCalendarScheduleEntry(scheduleToDelete.Id);
+            await RefreshSchedulesAsync();
         }
         showDeleteConfirmation = false;
         scheduleToDelete = null;
         StateHasChanged();
     }
 
-    private void ShowAddEventModal()
-    {
-        showAddEventModal = true;
-    }
-
-    private void CloseAddEventModal()
-    {
-        showAddEventModal = false;
-    }
-
-    private void CloseEditModal()
-    {
-        showEditModal = false;
-        selectedSchedule = null;
-    }
-
-    private void CloseScheduleDetailsModal()
-    {
-        showScheduleDetailsModal = false;
-        selectedSchedule = null;
-    }
+    private void ShowAddEventModal() => showAddEventModal = true;
+    private void CloseAddEventModal() => showAddEventModal = false;
+    private void CloseEditModal() { showEditModal = false; selectedSchedule = null; }
+    private void CloseScheduleDetailsModal() { showScheduleDetailsModal = false; selectedSchedule = null; }
 
     private async Task HandleDateChanged(DateTime newDate)
     {
@@ -347,14 +323,24 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private void SaveScheduleEntry(ScheduleEntry scheduleEntry)
+    private async Task SaveScheduleEntryAsync(ScheduleEntry scheduleEntry)
     {
-        if (scheduleEntry.Id == 0)
+        if (scheduleEntry.Id ==0)
             SchoolDataService.AddGeneralScheduleEntry(scheduleEntry);
         else
             SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
 
+        await RefreshSchedulesAsync();
         showAddEventModal = false;
+        StateHasChanged();
+    }
+
+    private async Task UpdateScheduleEntryAsync(ScheduleEntry scheduleEntry)
+    {
+        SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
+        await RefreshSchedulesAsync();
+        showEditModal = false;
+        selectedSchedule = null;
         StateHasChanged();
     }
 
@@ -364,13 +350,5 @@
         selectedScheduleType = data.type;
         showDailyView = true;
         await InvokeAsync(StateHasChanged);
-    }
-
-    private void UpdateScheduleEntry(ScheduleEntry scheduleEntry)
-    {
-        SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
-        showEditModal = false;
-        selectedSchedule = null;
-        StateHasChanged();
     }
 }

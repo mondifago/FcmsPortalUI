@@ -12,13 +12,17 @@ namespace FcmsPortalUI.Services
     public class SchoolDataService : ISchoolDataService
     {
         private readonly FcmsPortalUIContext _context;
+        private readonly IDbContextFactory<FcmsPortalUIContext> _contextFactory;
         private readonly IWebHostEnvironment _environment;
         private List<Student> _archivedStudents = new List<Student>();
 
-
-        public SchoolDataService(FcmsPortalUIContext context, IWebHostEnvironment environment)
+        public SchoolDataService(
+            FcmsPortalUIContext context,
+            IDbContextFactory<FcmsPortalUIContext> contextFactory,
+            IWebHostEnvironment environment)
         {
             _context = context;
+            _contextFactory = contextFactory;
             _environment = environment;
         }
 
@@ -936,13 +940,37 @@ namespace FcmsPortalUI.Services
         public IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules()
         {
             return _context.ScheduleEntries
-                .Include(se => se.ClassSession)
+                .AsNoTracking()
+                .Include(s => s.ClassSession)
                     .ThenInclude(cs => cs.Teacher)
                         .ThenInclude(t => t.Person)
-                .OrderBy(se => se.DateTime)
                 .ToList();
         }
 
+        public async Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync(bool includeTeachers = false)
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var query = context.ScheduleEntries
+                .AsNoTracking()
+                .OrderBy(se => se.DateTime)
+                .AsQueryable();
+
+            if (includeTeachers)
+            {
+                query = query
+                    .Include(se => se.ClassSession)
+                        .ThenInclude(cs => cs.Teacher)
+                            .ThenInclude(t => t.Person);
+            }
+            else
+            {
+                query = query
+                    .Include(se => se.ClassSession);
+            }
+
+            return await query.ToListAsync();
+        }
 
         public bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)
         {
@@ -1883,6 +1911,42 @@ namespace FcmsPortalUI.Services
             }
             _context.SaveChanges();
         }
+
+        public List<double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel)
+        {
+            var student = _context.Students
+                .AsNoTracking()
+                .Include(s => s.CourseGrades)
+                .FirstOrDefault(s => s.Id == studentId);
+
+            if (student == null)
+                return new List<double>();
+
+            var learningPathIds = student.CourseGrades
+                .Where(cg => cg.LearningPathId > 0)
+                .Select(cg => cg.LearningPathId)
+                .Distinct()
+                .ToList();
+
+            var learningPaths = _context.LearningPaths
+                .AsNoTracking()
+                .Where(lp => learningPathIds.Contains(lp.Id) &&
+                             lp.EducationLevel == educationLevel &&
+                             lp.ClassLevel == classLevel)
+                .OrderBy(lp => lp.Semester)
+                .ToList();
+
+            var semesterGrades = new List<double>();
+
+            foreach (var learningPath in learningPaths)
+            {
+                var grade = LogicMethods.CalculateSemesterOverallGrade(student, learningPath);
+                semesterGrades.Add(grade);
+            }
+
+            return semesterGrades;
+        }
+
         #endregion
 
         #region Curriculum
@@ -2404,6 +2468,11 @@ namespace FcmsPortalUI.Services
 
         public Announcement CreateAnnouncement(Announcement announcement, int userId)
         {
+            var totalAnnouncements = _context.Announcements.Count();
+            if (totalAnnouncements >= 3)
+                throw new BusinessRuleException("You can only keep up to 3 active announcements. Please delete an existing one before adding a new announcement.");
+
+
             announcement.PostedAt = DateTime.Now;
             announcement.PostedById = userId;
 
@@ -2449,6 +2518,10 @@ namespace FcmsPortalUI.Services
 
         public Quote CreateQuote(Quote quote, int userId)
         {
+            var totalQuotes = _context.Quotes.Count();
+            if (totalQuotes >= 10)
+                throw new BusinessRuleException("You can only store up to 10 quotes. Please delete one before adding another.");
+
             quote.DateAdded = DateTime.Now;
             quote.AddedById = userId;
 

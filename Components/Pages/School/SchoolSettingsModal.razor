@@ -1,9 +1,11 @@
 ﻿
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortalUI.Components.Pages.Shared
 @using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
 @inject IPermissionService PermissionService
+@inject ExceptionHandlerService ExceptionHandlerService
 @rendermode InteractiveServer
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -102,9 +104,6 @@
                                 </div>
                             </div>
                         </div>
-
-
-
                         <!-- Home Page Settings Section -->
                         <div class="card mb-4">
                             <div class="card-header">
@@ -343,9 +342,6 @@
                                 </div>
                             </div>
                         </div>
-
-
-
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
                             <button type="submit" class="btn btn-primary">
@@ -364,9 +360,6 @@
                     </div>
                 }
             </div>
-
-
-
         </div>
     </div>
 </div>
@@ -375,6 +368,11 @@
 {
     <div class="modal-backdrop fade show"></div>
 }
+
+<ErrorDisplayModal IsVisible="showErrorModal"
+                   Title="Operation Error"
+                   Message="@errorMessage"
+                   OnClose="CloseErrorModal" />
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
@@ -397,6 +395,9 @@
     private Quote newQuote = new();
     private Quote editingQuote = new();
     private int editingQuoteId = 0;
+
+    private bool showErrorModal = false;
+    private string errorMessage = "";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -470,12 +471,28 @@
 
     private void AddAnnouncement()
     {
-        if (string.IsNullOrWhiteSpace(newAnnouncement.Message))
-            return;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newAnnouncement.Message))
+                return;
 
-        SchoolDataService.CreateAnnouncement(newAnnouncement, currentUserId.Value);
-        newAnnouncement = new Announcement();
-        LoadAnnouncements();
+            SchoolDataService.CreateAnnouncement(newAnnouncement, currentUserId!.Value);
+            newAnnouncement = new Announcement();
+            LoadAnnouncements();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandlerService.HandleException(ex);
+            errorMessage = "An unexpected error occurred while adding announcement.";
+            showErrorModal = true;
+            StateHasChanged();
+        }
     }
 
     private void EditAnnouncement(Announcement announcement)
@@ -523,12 +540,35 @@
 
     private void AddQuote()
     {
-        if (string.IsNullOrWhiteSpace(newQuote.Text) || string.IsNullOrWhiteSpace(newQuote.Author))
-            return;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(newQuote.Text) || string.IsNullOrWhiteSpace(newQuote.Author))
+                return;
 
-        SchoolDataService.CreateQuote(newQuote, currentUserId.Value);
-        newQuote = new Quote();
-        LoadQuotes();
+            SchoolDataService.CreateQuote(newQuote, currentUserId!.Value);
+            newQuote = new Quote();
+            LoadQuotes();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandlerService.HandleException(ex);
+            errorMessage = "An unexpected error occurred while adding quote.";
+            showErrorModal = true;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseErrorModal()
+    {
+        showErrorModal = false;
+        errorMessage = "";
+        StateHasChanged();
     }
 
     private void EditQuote(Quote quote)

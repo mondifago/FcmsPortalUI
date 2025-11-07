@@ -1,6 +1,7 @@
 ﻿using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using Microsoft.AspNetCore.Components.Forms;
+
 namespace FcmsPortalUI.Services
 {
     public interface ISchoolDataService
@@ -74,6 +75,7 @@ namespace FcmsPortalUI.Services
         ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date);
         ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
         IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules();
+        Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync(bool includeTeachers = false);
         bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
         bool DeleteScheduleEntry(int learningPathId, int scheduleEntryId);
         ScheduleEntry? AddGeneralScheduleEntry(ScheduleEntry scheduleEntry);
@@ -139,6 +141,7 @@ namespace FcmsPortalUI.Services
                 string teacherRemark,
                 int learningPathId);
         void SaveFinalizedGrades(LearningPath learningPath);
+        public List<double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
         #endregion
 
         #region Curriculum

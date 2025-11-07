@@ -66,9 +66,21 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>Course</th>
-                                        <th class="text-center">Homework<br /><small>(@GetHomeworkWeight().ToString("F0")%)</small></th>
-                                        <th class="text-center">Quiz<br /><small>(@GetQuizWeight().ToString("F0")%)</small></th>
-                                        <th class="text-center">Exam<br /><small>(@GetExamWeight().ToString("F0")%)</small></th>
+                                        @{
+                                            var weights = GetWeightDisplay();
+                                        }
+                                        @if (weights.IsUniform)
+                                        {
+                                            <th class="text-center">Homework<br /><small>(@weights.Homework.ToString("F0")%)</small></th>
+                                            <th class="text-center">Quiz<br /><small>(@weights.Quiz.ToString("F0")%)</small></th>
+                                            <th class="text-center">Exam<br /><small>(@weights.Exam.ToString("F0")%)</small></th>
+                                        }
+                                        else
+                                        {
+                                            <th class="text-center">Homework<br /><small>(Varies)</small></th>
+                                            <th class="text-center">Quiz<br /><small>(Varies)</small></th>
+                                            <th class="text-center">Exam<br /><small>(Varies)</small></th>
+                                        }
                                         <th class="text-center">Total</th>
                                         <th class="text-center">Grade</th>
                                         <th>Remark</th>
@@ -138,7 +150,6 @@
                                     <table class="table table-sm">
                                         <tbody>
                                             @{
-                                                var allSemesterGrades = LogicMethods.GetStudentAllSemesterGrades(Student, school, LearningPath.EducationLevel, LearningPath.ClassLevel);
                                                 var semesterNames = new[] { "First Semester", "Second Semester", "Third Semester" };
                                             }
                                             @for (int i = 0; i < 3; i++)
@@ -146,9 +157,9 @@
                                                 <tr>
                                                     <td>@semesterNames[i]</td>
                                                     <td class="text-end">
-                                                        @if (i < allSemesterGrades.Count)
+                                                        @if (i < semesterGrades.Count)
                                                         {
-                                                            <span>@allSemesterGrades[i].ToString("F1")%</span>
+                                                            <span>@semesterGrades[i].ToString("F1")%</span>
                                                         }
                                                         else
                                                         {
@@ -157,6 +168,7 @@
                                                     </td>
                                                 </tr>
                                             }
+
                                             <tr class="table-primary">
                                                 <td><strong>PROMOTION GRADE</strong></td>
                                                 <td class="text-end">
@@ -277,21 +289,24 @@
     private Guardian? guardian;
     private bool isTeacher = false; 
     private bool isPrincipal = true; 
-
-    protected override void OnInitialized()
-    {
-        school = SchoolDataService.GetSchoolBasicInfo();
-
-        if (Student != null)
-        {
-            guardian = SchoolDataService.GetGuardianByStudentId(Student.Id);
-        }
-    }
+    private List<double> semesterGrades = new();
 
     protected override void OnParametersSet()
     {
+        school = SchoolDataService.GetSchoolBasicInfo();
+
         if (Student != null && LearningPath != null)
         {
+            guardian = SchoolDataService.GetGuardianByStudentId(Student.Id);
+
+            if (LearningPath.Semester == Semester.Third)
+            {
+                semesterGrades = SchoolDataService.GetStudentAllSemesterGrades(
+                    Student.Id,
+                    LearningPath.EducationLevel,
+                    LearningPath.ClassLevel);
+            }
+
             var reportCard = SchoolDataService.GetStudentReportCard(Student.Id, LearningPath.Id);
 
             if (reportCard == null)
@@ -316,7 +331,6 @@
 
                 var saved = SchoolDataService.SaveStudentReportCard(reportCard);
             }
-            guardian = SchoolDataService.GetGuardianByStudentId(Student.Id);
         }
     }
 
@@ -363,6 +377,29 @@
         return config?.FinalExamWeightPercentage ?? FcmsConstants.DEFAULT_EXAM_WEIGHT;
     }
 
+    private (double Homework, double Quiz, double Exam, bool IsUniform) GetWeightDisplay()
+    {
+        if (LearningPath?.CourseGradingConfigurations == null || !LearningPath.CourseGradingConfigurations.Any())
+        {
+            return (FcmsConstants.DEFAULT_HOMEWORK_WEIGHT,
+                    FcmsConstants.DEFAULT_QUIZ_WEIGHT,
+                    FcmsConstants.DEFAULT_EXAM_WEIGHT,
+                    true);
+        }
+
+        var configs = LearningPath.CourseGradingConfigurations.ToList();
+
+        // Check if all configs are the same
+        bool isUniform = configs.All(c =>
+            c.HomeworkWeightPercentage == configs[0].HomeworkWeightPercentage &&
+            c.QuizWeightPercentage == configs[0].QuizWeightPercentage &&
+            c.FinalExamWeightPercentage == configs[0].FinalExamWeightPercentage);
+
+        return (configs[0].HomeworkWeightPercentage,
+                configs[0].QuizWeightPercentage,
+                configs[0].FinalExamWeightPercentage,
+                isUniform);
+    }
 
     private int GetStudentRank()
     {
@@ -394,6 +431,15 @@
 
     private double GetPromotionGrade()
     {
+        if (semesterGrades == null || !semesterGrades.Any())
+            return 0;
+
+        return Math.Round(semesterGrades.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT);
+    }
+
+
+    /*private double GetPromotionGrade()
+    {
         if (school == null || LearningPath == null || Student == null)
             return 0;
 
@@ -405,7 +451,7 @@
             .ToList();
 
         return LogicMethods.CalculatePromotionGrade(Student, allLearningPaths);
-    }
+    }*/
 
     private bool IsPromoted()
     {

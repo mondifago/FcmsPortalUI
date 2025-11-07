@@ -188,7 +188,7 @@
             }
 
             // Add to Staff table
-            var school = SchoolDataService.GetSchool();
+            var school = SchoolDataService.GetSchoolBasicInfo();
             staff.SchoolId = school.Id;
             SchoolDataService.AddStaff(staff);
 
