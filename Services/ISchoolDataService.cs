@@ -55,8 +55,10 @@ namespace FcmsPortalUI.Services
         List<LearningPath> GetLearningPathsForPayments(int academicYearStartYear, Semester semester);
         IEnumerable<LearningPath> GetAllLearningPaths();
         LearningPath? GetLearningPathById(int id);
+        LearningPath? GetLearningPathForSchedules(int id);
         LearningPath? GetCurrentActiveLearningPath();
         LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId);
+        Dictionary<int, LearningPath?> GetLearningPathsByScheduleEntries(List<int> scheduleEntryIds);
         LearningPath? GetLearningPathByClassSessionId(int classSessionId);
         void UpdateLearningPath(LearningPath learningPath);
         bool DeleteLearningPath(int id);
@@ -77,7 +79,7 @@ namespace FcmsPortalUI.Services
         ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId);
         ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
         IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules();
-        Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync(bool includeTeachers = false);
+        Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync();
         bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
         bool DeleteScheduleEntry(int learningPathId, int scheduleEntryId);
         ScheduleEntry? AddGeneralScheduleEntry(ScheduleEntry scheduleEntry);

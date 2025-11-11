@@ -120,12 +120,21 @@
             .Where(s => s.ClassSession != null)
             .ToList();
 
-        foreach (var schedule in classSchedules)
+        if (!classSchedules.Any())
+            return;
+
+        var scheduleIdsToLoad = classSchedules
+            .Where(s => !learningPathCache.ContainsKey(s.Id))
+            .Select(s => s.Id)
+            .ToList();
+
+        if (scheduleIdsToLoad.Any())
         {
-            if (!learningPathCache.ContainsKey(schedule.Id))
+            var loadedPaths = SchoolDataService.GetLearningPathsByScheduleEntries(scheduleIdsToLoad);
+
+            foreach (var kvp in loadedPaths)
             {
-                var lp = SchoolDataService.GetLearningPathByScheduleEntry(schedule.Id);
-                learningPathCache[schedule.Id] = lp;
+                learningPathCache[kvp.Key] = kvp.Value;
             }
         }
     }

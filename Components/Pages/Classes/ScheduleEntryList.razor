@@ -225,7 +225,7 @@
 
     private void LoadData()
     {
-        learningPath = SchoolDataService.GetLearningPathById(LearningPathId);
+        learningPath = SchoolDataService.GetLearningPathForSchedules(LearningPathId);
 
         if (learningPath != null)
         {

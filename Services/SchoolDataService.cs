@@ -624,6 +624,17 @@ namespace FcmsPortalUI.Services
             .FirstOrDefault(lp => lp.Id == id);
         }
 
+        public LearningPath? GetLearningPathForSchedules(int id)
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.Teacher)
+                            .ThenInclude(t => t.Person)
+                .FirstOrDefault(lp => lp.Id == id);
+        }
+
         public LearningPath? GetCurrentActiveLearningPath()
         {
             return _context.LearningPaths
@@ -651,6 +662,15 @@ namespace FcmsPortalUI.Services
             return _context.LearningPaths
                 .Include(lp => lp.Schedule)
                 .FirstOrDefault(lp => lp.Schedule.Any(s => s.Id == scheduleEntryId));
+        }
+
+        public Dictionary<int, LearningPath?> GetLearningPathsByScheduleEntries(List<int> scheduleEntryIds)
+        {
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Where(se => scheduleEntryIds.Contains(se.Id))
+                .Include(se => se.LearningPath)
+                .ToDictionary(se => se.Id, se => se.LearningPath);
         }
 
         public LearningPath? GetLearningPathByClassSessionId(int classSessionId)
@@ -970,29 +990,17 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public async Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync(bool includeTeachers = false)
+        public async Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync()
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var query = context.ScheduleEntries
+            return await context.ScheduleEntries
                 .AsNoTracking()
+                .Include(se => se.ClassSession)
+                    .ThenInclude(cs => cs.Teacher)
+                        .ThenInclude(t => t.Person)
                 .OrderBy(se => se.DateTime)
-                .AsQueryable();
-
-            if (includeTeachers)
-            {
-                query = query
-                    .Include(se => se.ClassSession)
-                        .ThenInclude(cs => cs.Teacher)
-                            .ThenInclude(t => t.Person);
-            }
-            else
-            {
-                query = query
-                    .Include(se => se.ClassSession);
-            }
-
-            return await query.ToListAsync();
+                .ToListAsync();
         }
 
         public bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)

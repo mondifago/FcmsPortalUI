@@ -88,7 +88,6 @@
         classSession = new ClassSession();
         editContext = new EditContext(classSession);
         messageStore = new ValidationMessageStore(editContext);
-        LoadData();
     }
 
     protected override void OnParametersSet()
@@ -115,11 +114,6 @@
 
     private async Task HandleSubmit()
     {
-        if (classSession.TeacherId > 0)
-        {
-            classSession.Teacher = availableTeachers.FirstOrDefault(t => t.Id == classSession.TeacherId);
-        }
-
         if (!ValidationService.ValidateClassSession(editContext!, classSession, messageStore!))
         {
             return;

@@ -207,7 +207,7 @@
 
             if (LearningPathId.HasValue)
             {
-                learningPath = SchoolDataService.GetLearningPathById(LearningPathId.Value);
+                learningPath = SchoolDataService.GetLearningPathForSchedules(LearningPathId.Value);
                 scheduleType = ScheduleType.ClassSession;
             }
 

@@ -279,7 +279,7 @@
     {
         if (LearningPathId.HasValue)
         {
-            learningPath = SchoolDataService.GetLearningPathById(LearningPathId.Value);
+            learningPath = SchoolDataService.GetLearningPathForSchedules(LearningPathId.Value);
         }
 
         scheduleEntry = new ScheduleEntry();
@@ -296,6 +296,11 @@
             {
                 scheduleEntry = foundEntry;
             }
+        }
+
+        if (scheduleEntry.ClassSession != null && scheduleEntry.ClassSession.TeacherId > 0)
+        {
+            scheduleEntry.ClassSession.Teacher = SchoolDataService.GetStaffById(scheduleEntry.ClassSession.TeacherId);
         }
 
         if (scheduleEntry != null)
