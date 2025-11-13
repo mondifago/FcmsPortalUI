@@ -102,8 +102,6 @@ namespace FcmsPortalUI.Services
             return school;
         }
 
-
-
         public bool HasSchool()
         {
             return _context.School.Any();
@@ -764,17 +762,17 @@ namespace FcmsPortalUI.Services
             }
         }
 
-        public void AddMultipleStudentsToLearningPath(LearningPath learningPath, List<Student> studentsToAdd)
+        public void AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd)
         {
-            if (learningPath == null)
-                throw new ArgumentNullException(nameof(learningPath));
+            if (learningPathId == 0)
+                throw new ArgumentNullException(nameof(learningPathId));
             if (studentsToAdd == null || !studentsToAdd.Any())
                 throw new ArgumentException("Students list cannot be null or empty.", nameof(studentsToAdd));
 
             var existingLearningPath = _context.LearningPaths
                 .Include(lp => lp.Students)
                 .Include(lp => lp.StudentsWithAccess)
-                .FirstOrDefault(lp => lp.Id == learningPath.Id);
+                .FirstOrDefault(lp => lp.Id == learningPathId);
 
             if (existingLearningPath == null)
                 throw new ArgumentException("Learning path not found in database.");
@@ -1621,6 +1619,8 @@ namespace FcmsPortalUI.Services
                 existingPayment.PaymentMethod = payment.PaymentMethod;
                 existingPayment.Reference = payment.Reference;
                 existingPayment.Semester = payment.Semester;
+                existingPayment.EducationLevel = payment.EducationLevel;
+                existingPayment.ClassLevel = payment.ClassLevel;
                 existingPayment.AcademicYearStart = payment.AcademicYearStart;
                 existingPayment.LearningPathId = payment.LearningPathId;
 
@@ -1664,9 +1664,10 @@ namespace FcmsPortalUI.Services
             {
                 payment.AcademicYearStart = student.LearningPath.AcademicYearStart;
                 payment.Semester = student.LearningPath.Semester;
+                payment.EducationLevel = student.LearningPath.EducationLevel;
+                payment.ClassLevel = student.LearningPath.ClassLevel;
                 payment.LearningPathId = student.LearningPath.Id;
             }
-
             return payment;
         }
 

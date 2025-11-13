@@ -62,7 +62,7 @@ namespace FcmsPortalUI.Services
         LearningPath? GetLearningPathByClassSessionId(int classSessionId);
         void UpdateLearningPath(LearningPath learningPath);
         bool DeleteLearningPath(int id);
-        void AddMultipleStudentsToLearningPath(LearningPath learningPath, List<Student> studentsToAdd);
+        void AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd);
         void AddStudentToLearningPath(int learningPathId, Student student);
         #endregion
 

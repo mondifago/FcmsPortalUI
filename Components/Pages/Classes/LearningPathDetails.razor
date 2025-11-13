@@ -533,8 +533,7 @@
             .Where(s => selectedStudentIds.Contains(s.Id))
             .ToList();
 
-        SchoolDataService.AddMultipleStudentsToLearningPath(learningPath, studentsToAdd);
-        SchoolDataService.UpdateLearningPath(learningPath);
+        SchoolDataService.AddMultipleStudentsToLearningPath(Id, studentsToAdd);
         learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
 
         CloseAddStudentsModal();

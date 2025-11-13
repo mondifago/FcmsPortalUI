@@ -192,11 +192,11 @@ else
                         <dt class="col-sm-4">Academic Year:</dt>
                         <dd class="col-sm-8">@selectedPayment.AcademicYear</dd>
 
-                        <dt class="col-sm-4">Education Level:</dt>
-                        <dd class="col-sm-8">@selectedPaymentLearningPath?.EducationLevel</dd>
+                        <dt>Education Level:</dt>
+                        <dd>@selectedPayment.EducationLevel</dd>
 
-                        <dt class="col-sm-4">Class Level:</dt>
-                        <dd class="col-sm-8">@selectedPaymentLearningPath?.ClassLevel</dd>
+                        <dt>Class Level:</dt>
+                        <dd>@selectedPayment.ClassLevel</dd>
 
                         <dt class="col-sm-4">Semester:</dt>
                         <dd class="col-sm-8">@selectedPayment.Semester</dd>
@@ -302,11 +302,6 @@ else
     private void ViewPaymentDetails(Payment payment)
     {
         selectedPayment = payment;
-
-        if (payment.LearningPathId > 0)
-        {
-            selectedPaymentLearningPath = SchoolDataService.GetLearningPathById(payment.LearningPathId);
-        }
         showPaymentDetailsModal = true;
     }
 
@@ -328,6 +323,8 @@ else
                 Reference = payment.Reference,
                 SchoolFeesId = payment.SchoolFeesId,
                 Semester = payment.Semester,
+                EducationLevel = payment.EducationLevel,
+                ClassLevel = payment.ClassLevel,
                 AcademicYearStart = payment.AcademicYearStart,
                 LearningPathId = payment.LearningPathId
             };
