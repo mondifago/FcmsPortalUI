@@ -317,8 +317,6 @@
 
         LearningPath.Students.Remove(student);
         SchoolDataService.UpdateStudent(student);
-        SchoolDataService.UpdateLearningPath(LearningPath);
-        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id) ?? new LearningPath();
         StateHasChanged();
     }
 
@@ -326,8 +324,6 @@
     {
         LearningPath.Students.Remove(student);
         SchoolDataService.ArchiveStudent(student);
-        SchoolDataService.UpdateLearningPath(LearningPath);
-        LearningPath = SchoolDataService.GetLearningPathById(LearningPath.Id) ?? new LearningPath();
         StateHasChanged();
     }
 
