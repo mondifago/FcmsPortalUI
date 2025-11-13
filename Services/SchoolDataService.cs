@@ -725,17 +725,17 @@ namespace FcmsPortalUI.Services
             }
         }
 
-        public void AddStudentToLearningPath(LearningPath learningPath, Student student)
+        public void AddStudentToLearningPath(int learningPathId, Student student)
         {
-            if (learningPath == null)
-                throw new ArgumentNullException(nameof(learningPath));
+            if (learningPathId == 0)
+                throw new ArgumentNullException(nameof(learningPathId));
             if (student == null)
                 throw new ArgumentNullException(nameof(student));
 
             var existingLearningPath = _context.LearningPaths
-                .Include(lp => lp.Students)
-                .Include(lp => lp.StudentsWithAccess)
-                .FirstOrDefault(lp => lp.Id == learningPath.Id);
+             .Include(lp => lp.Students)
+             .Include(lp => lp.StudentsWithAccess)
+             .FirstOrDefault(lp => lp.Id == learningPathId);
 
             if (existingLearningPath == null)
                 throw new ArgumentException("Learning path not found in database.");

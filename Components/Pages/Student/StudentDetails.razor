@@ -347,14 +347,9 @@
         if (selectedLearningPathId == 0 || student == null)
             return;
 
-        var learningPath = SchoolDataService.GetLearningPathById(selectedLearningPathId);
-        if (learningPath != null)
-        {
-            SchoolDataService.AddStudentToLearningPath(learningPath, student);
-            SchoolDataService.UpdateLearningPath(learningPath);
-            student = SchoolDataService.GetStudentById(Id);
-            CloseLearningPathModal();
-        }
+        SchoolDataService.AddStudentToLearningPath(selectedLearningPathId, student);
+        student = SchoolDataService.GetStudentById(Id);
+        CloseLearningPathModal();
     }
 
     private bool IsStudentInLearningPath()
