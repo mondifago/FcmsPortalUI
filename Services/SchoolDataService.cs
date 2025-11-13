@@ -622,6 +622,20 @@ namespace FcmsPortalUI.Services
             .FirstOrDefault(lp => lp.Id == id);
         }
 
+        public LearningPath? GetLearningPathForGradeManagement(int id)
+        {
+            return _context.LearningPaths
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.CourseGrades)
+                        .ThenInclude(cg => cg.TestGrades)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.CourseGrades)
+                        .ThenInclude(cg => cg.GradingConfiguration)
+                .FirstOrDefault(lp => lp.Id == id);
+        }
+
         public LearningPath? GetLearningPathForSchedules(int id)
         {
             return _context.LearningPaths
