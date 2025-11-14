@@ -334,6 +334,7 @@
 <DailyAttendanceViewModal IsVisible="showDailyAttendanceModal"
                           SelectedDate="selectedDate"
                           AttendanceData="dailyAttendanceData"
+                          LearningPathName="@selectedLearningPathName"
                           OnClose="CloseDailyAttendanceModal" />
 
 
@@ -356,6 +357,7 @@
     private string selectedSemester = "";
     private bool showDailyAttendanceModal = false;
     private bool showSemesterAttendanceModal = false;
+    private string selectedLearningPathName = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -434,13 +436,11 @@
 
     private void ViewDailyAttendance(int learningPathId)
     {
-        selectedLearningPath = SchoolDataService.GetLearningPathById(learningPathId) ?? new LearningPath();
-        if (selectedLearningPath != null)
-        {
-            var learningPaths = new List<LearningPath> { selectedLearningPath };
-            dailyAttendanceData = SchoolDataService.GetAttendanceForDate(selectedLearningPath.Id, selectedDate) ?? new DailyAttendanceLogEntry();
-            showDailyAttendanceModal = true;
-        }
+        var learningPath = filteredLearningPaths.FirstOrDefault(lp => lp.Id == learningPathId);
+
+        dailyAttendanceData = SchoolDataService.GetAttendanceForDate(learningPathId, selectedDate) ?? new DailyAttendanceLogEntry();
+        selectedLearningPathName = learningPath != null ? Util.GetLearningPathName(learningPath) : "Unknown";
+        showDailyAttendanceModal = true;
     }
 
     private void ViewSemesterAttendance(int learningPathId)

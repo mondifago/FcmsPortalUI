@@ -421,6 +421,7 @@
             <DailyAttendanceViewModal IsVisible="showDailyAttendanceModal"
                                       SelectedDate="DateTime.Now"
                                       AttendanceData="dailyAttendanceData"
+                                      LearningPathName="@Util.GetLearningPathName(learningPath)"
                                       OnClose="CloseDailyAttendanceModal" />
         }
     </Authorized>
