@@ -622,6 +622,19 @@ namespace FcmsPortalUI.Services
             .FirstOrDefault(lp => lp.Id == id);
         }
 
+        public LearningPath? GetLearningPathForAttendanceReport(int id)
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Include(lp => lp.AttendanceLog)
+                    .ThenInclude(al => al.PresentStudents)
+                .Include(lp => lp.AttendanceLog)
+                    .ThenInclude(al => al.AbsentStudents)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .FirstOrDefault(lp => lp.Id == id);
+        }
+
         public LearningPath? GetLearningPathForGradeManagement(int id)
         {
             return _context.LearningPaths

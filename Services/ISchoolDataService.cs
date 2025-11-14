@@ -55,6 +55,7 @@ namespace FcmsPortalUI.Services
         List<LearningPath> GetLearningPathsForPayments(int academicYearStartYear, Semester semester);
         IEnumerable<LearningPath> GetAllLearningPaths();
         LearningPath? GetLearningPathById(int id);
+        LearningPath? GetLearningPathForAttendanceReport(int id);
         LearningPath? GetLearningPathForGradeManagement(int id);
         LearningPath? GetLearningPathForSchedules(int id);
         LearningPath? GetCurrentActiveLearningPath();

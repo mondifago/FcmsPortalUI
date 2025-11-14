@@ -339,7 +339,7 @@
 
 
 <SemesterAttendanceViewModal IsVisible="showSemesterAttendanceModal"
-                             LearningPath="selectedLearningPath"
+                             LearningPathName="@(selectedLearningPath != null ? Util.GetLearningPathName(selectedLearningPath) : string.Empty)"
                              AttendanceReport="semesterAttendanceReport"
                              OnClose="CloseSemesterAttendanceModal" />
 @code {
@@ -445,7 +445,7 @@
 
     private void ViewSemesterAttendance(int learningPathId)
     {
-        selectedLearningPath = SchoolDataService.GetLearningPathById(learningPathId);
+        selectedLearningPath = SchoolDataService.GetLearningPathForAttendanceReport(learningPathId);
         if (selectedLearningPath != null)
         {
             semesterAttendanceReport = LogicMethods.GenerateSemesterAttendanceReport(selectedLearningPath);

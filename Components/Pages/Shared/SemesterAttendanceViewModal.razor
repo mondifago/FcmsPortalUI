@@ -8,7 +8,7 @@
             <div class="modal-header bg-primary text-white">
                 <h4 class="mb-0">
                     <i class="fa fa-table me-2"></i>
-                    Semester Attendance Report - @(LearningPath != null ? Util.GetLearningPathName(LearningPath) : "")
+                    Semester Attendance Report - @LearningPathName
                 </h4>
                 <button type="button" class="btn-close btn-close-white" @onclick="Close"></button>
             </div>
@@ -79,14 +79,7 @@
                         <i class="fa fa-chart-line fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No semester attendance data available</h5>
                         <p class="text-muted">
-                            @if (LearningPath != null)
-                            {
-                                <span>No attendance records found for @Util.GetLearningPathName(LearningPath)</span>
-                            }
-                            else
-                            {
-                                <span>Please select a learning path to view attendance data.</span>
-                            }
+                            <span>No attendance records found for @LearningPathName</span>
                         </p>
                     </div>
                 }
@@ -126,7 +119,7 @@
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
-    [Parameter] public LearningPath LearningPath { get; set; } = new LearningPath();
+    [Parameter] public string LearningPathName { get; set; } = string.Empty;
     [Parameter] public SemesterAttendanceReport AttendanceReport { get; set; } = new SemesterAttendanceReport();
     [Parameter] public EventCallback OnClose { get; set; }
 
