@@ -535,8 +535,6 @@
             .ToList();
 
         SchoolDataService.AddMultipleStudentsToLearningPath(Id, studentsToAdd);
-        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
-
         CloseAddStudentsModal();
     }
 
@@ -597,7 +595,6 @@
 
     private void HandleScheduleCreated(ScheduleEntry scheduleEntry)
     {
-        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
         showScheduleCreateModal = false;
         selectedDateForSchedule = null;
         StateHasChanged();
@@ -705,7 +702,6 @@
     private void CloseFinalizeGradesModal()
     {
         showFinalizeGradesModal = false;
-        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
         StateHasChanged();
     }
 }

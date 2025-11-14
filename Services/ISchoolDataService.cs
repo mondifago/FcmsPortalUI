@@ -157,6 +157,7 @@ namespace FcmsPortalUI.Services
 
         #region Attendance
         DailyAttendanceLogEntry SaveAttendance(int learningPathId, List<int> presentStudentIds, int teacherId, DateTime? attendanceDate = null);
+        public LearningPath? GetLearningPathForAttendance(int id);
         bool HasAttendanceBeenTaken(int learningPathId, DateTime date);
         DailyAttendanceLogEntry? GetAttendanceForDate(int learningPathId, DateTime date);
         int GetNumberOfAttendanceDaysRecorded(int learningPathId);

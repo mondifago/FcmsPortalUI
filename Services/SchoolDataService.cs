@@ -992,8 +992,7 @@ namespace FcmsPortalUI.Services
 
         public ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)
         {
-            var learningPath = GetLearningPathById(learningPathId);
-            if (learningPath == null)
+            if (!_context.LearningPaths.Any(lp => lp.Id == learningPathId))
                 return null;
 
             scheduleEntry.LearningPathId = learningPathId;
@@ -2049,7 +2048,7 @@ namespace FcmsPortalUI.Services
         #region Attendance
         public DailyAttendanceLogEntry SaveAttendance(int learningPathId, List<int> presentStudentIds, int teacherId, DateTime? attendanceDate = null)
         {
-            var learningPath = GetLearningPathById(learningPathId);
+            var learningPath = GetLearningPathForAttendance(learningPathId);
             if (learningPath == null)
                 throw new ArgumentException($"Learning path with ID {learningPathId} not found.");
 
@@ -2094,6 +2093,14 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
 
             return attendanceEntry;
+        }
+
+        public LearningPath? GetLearningPathForAttendance(int id)
+        {
+            return _context.LearningPaths
+                .Include(lp => lp.Students)
+                .Include(lp => lp.AttendanceLog)
+                .FirstOrDefault(lp => lp.Id == id);
         }
 
         public bool HasAttendanceBeenTaken(int learningPathId, DateTime date)
