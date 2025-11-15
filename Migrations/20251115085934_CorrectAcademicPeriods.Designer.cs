@@ -4,6 +4,7 @@ using FcmsPortalUI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    partial class FcmsPortalUIContextModelSnapshot : ModelSnapshot
+    [Migration("20251115085934_CorrectAcademicPeriods")]
+    partial class CorrectAcademicPeriods
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,6 +68,15 @@ namespace FcmsPortalUI.Migrations
 
                     b.Property<DateTime?>("ExamsStartDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("SchoolId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Semester")
                         .HasColumnType("int");
@@ -1010,6 +1022,9 @@ namespace FcmsPortalUI.Migrations
                     b.Property<int?>("CurrentAcademicPeriodId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CurrentAcademicPeriodId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -1032,7 +1047,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentAcademicPeriodId");
+                    b.HasIndex("CurrentAcademicPeriodId1");
 
                     b.ToTable("School");
                 });
@@ -1739,7 +1754,7 @@ namespace FcmsPortalUI.Migrations
                 {
                     b.HasOne("FcmsPortal.Models.AcademicPeriod", "CurrentAcademicPeriod")
                         .WithMany()
-                        .HasForeignKey("CurrentAcademicPeriodId");
+                        .HasForeignKey("CurrentAcademicPeriodId1");
 
                     b.OwnsOne("FcmsPortal.Models.Address", "Address", b1 =>
                         {

@@ -33,6 +33,7 @@ namespace FcmsPortalUI.Data
         public DbSet<AccountInvitation> AccountInvitations { get; set; }
         public DbSet<Quote> Quotes { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
+        public DbSet<AcademicPeriod> AcademicPeriods { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
