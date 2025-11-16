@@ -396,15 +396,15 @@
 
     private void LoadSemesterTimeline()
     {
-        var activeLearningPath = SchoolDataService.GetCurrentActiveLearningPath();
+        var academicPeriod = SchoolDataService.GetCurrentAcademicPeriod();
 
-        if (activeLearningPath != null)
+        if (academicPeriod != null)
         {
-            currentAcademicYear = activeLearningPath.AcademicYear;
-            currentSemester = activeLearningPath.Semester.ToString();
-            semesterStartDate = activeLearningPath.SemesterStartDate;
-            semesterEndDate = activeLearningPath.SemesterEndDate;
-            examsStartDate = activeLearningPath.ExamsStartDate;
+            currentAcademicYear = academicPeriod.AcademicYear;
+            currentSemester = academicPeriod.Semester.ToString();
+            semesterStartDate = academicPeriod.SemesterStartDate;
+            semesterEndDate = academicPeriod.SemesterEndDate;
+            examsStartDate = academicPeriod.ExamsStartDate;
         }
     }
 
