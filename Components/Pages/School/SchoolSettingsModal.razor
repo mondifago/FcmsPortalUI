@@ -1,4 +1,4 @@
-﻿
+﻿@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Components.Pages.Shared
@@ -104,6 +104,85 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Academic Period Management Section  -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i>Academic Period Management
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                @if (currentAcademicPeriod != null)
+                                {
+                                    <div class="alert alert-success">
+                                        <strong><i class="fa fa-check-circle me-2"></i>Current Active Period:</strong>
+                                        @currentAcademicPeriod.DisplayName
+                                        <br />
+                                        <small class="mt-1 d-block">
+                                            <i class="fa fa-calendar me-1"></i>
+                                            @currentAcademicPeriod.SemesterStartDate.ToString("MMM dd, yyyy") -
+                                            @currentAcademicPeriod.SemesterEndDate.ToString("MMM dd, yyyy")
+                                        </small>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+                                        <i class="fa fa-exclamation-triangle me-2"></i>
+                                        No academic period has been set. Please set one below.
+                                    </div>
+                                }
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Academic Year Start</label>
+                                        <select @bind="academicYearStartYear" class="form-select">
+                                            @for (int year = DateTime.Now.Year - 1; year <= DateTime.Now.Year + 2; year++)
+                                            {
+                                                <option value="@year">@year-@(year + 1)</option>
+                                            }
+                                        </select>
+                                        <small class="text-muted">Select the start year of the academic year</small>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Semester</label>
+                                        <select @bind="selectedSemester" class="form-select">
+                                            @foreach (var semester in Enum.GetValues(typeof(Semester)))
+                                            {
+                                                <option value="@semester">@semester</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Semester Start Date</label>
+                                        <input type="date" @bind="semesterStartDate" class="form-control" />
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Semester End Date</label>
+                                        <input type="date" @bind="semesterEndDate" class="form-control" />
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Exams Start Date <span class="text-muted">(Optional)</span></label>
+                                        <input type="date" @bind="examsStartDate" class="form-control" />
+                                        <small class="text-muted">Leave blank if not yet determined</small>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-success" @onclick="SetAcademicPeriod">
+                                    <i class="fas fa-calendar-check me-2"></i>Set Academic Period
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Home Page Settings Section -->
                         <div class="card mb-4">
                             <div class="card-header">
@@ -399,6 +478,14 @@
     private bool showErrorModal = false;
     private string errorMessage = "";
 
+    // Academic Period fields
+    private AcademicPeriod? currentAcademicPeriod;
+    private int academicYearStartYear = DateTime.Now.Year;
+    private Semester selectedSemester = Semester.First;
+    private DateTime semesterStartDate = DateTime.Now;
+    private DateTime semesterEndDate = DateTime.Now.AddMonths(3);
+    private DateTime? examsStartDate = null;
+
     protected override async Task OnParametersSetAsync()
     {
         if (IsVisible && school == null)
@@ -419,8 +506,54 @@
         school = SchoolDataService.GetSchoolForSettings();
         logoUrl = school?.LogoUrl ?? "";
 
+        currentAcademicPeriod = SchoolDataService.GetCurrentAcademicPeriod();
+
+        var (year, semester, startDate, endDate, examDate) =
+            LogicMethods.GetAcademicPeriodFormDefaults(currentAcademicPeriod);
+
+        academicYearStartYear = year;
+        selectedSemester = semester;
+        semesterStartDate = startDate;
+        semesterEndDate = endDate;
+        examsStartDate = examDate;
+
         LoadAnnouncements();
         LoadQuotes();
+    }
+
+    private void SetAcademicPeriod()
+    {
+        try
+        {
+            var newPeriod = new AcademicPeriod
+            {
+                AcademicYearStart = new DateTime(academicYearStartYear, 9, 1),
+                Semester = selectedSemester,
+                SemesterStartDate = semesterStartDate,
+                SemesterEndDate = semesterEndDate,
+                ExamsStartDate = examsStartDate
+            };
+
+            SchoolDataService.SetSchoolAcademicPeriod(newPeriod);
+
+            // Reload to reflect changes
+            currentAcademicPeriod = SchoolDataService.GetCurrentAcademicPeriod();
+
+            StateHasChanged();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHandlerService.HandleException(ex);
+            errorMessage = "An unexpected error occurred while setting academic period.";
+            showErrorModal = true;
+            StateHasChanged();
+        }
     }
 
     private async Task Close()
