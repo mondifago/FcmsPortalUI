@@ -210,5 +210,11 @@ namespace FcmsPortalUI.Services
         Quote UpdateQuote(Quote quote);
         void DeleteQuote(int quoteId);
         #endregion
+
+        #region Academic Period Management
+        AcademicPeriod? GetCurrentAcademicPeriod();
+        void SetSchoolAcademicPeriod(AcademicPeriod academicPeriod);
+        #endregion
+
     }
 }

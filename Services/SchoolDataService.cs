@@ -2622,7 +2622,64 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Academic Period Management
+        public void SetSchoolAcademicPeriod(AcademicPeriod academicPeriod)
+        {
+            // Validate date sequence
+            if (academicPeriod.SemesterStartDate >= academicPeriod.SemesterEndDate)
+            {
+                throw new BusinessRuleException("Semester start date must be before semester end date.");
+            }
 
+            if (academicPeriod.ExamsStartDate.HasValue)
+            {
+                if (academicPeriod.ExamsStartDate < academicPeriod.SemesterStartDate ||
+                    academicPeriod.ExamsStartDate > academicPeriod.SemesterEndDate)
+                {
+                    throw new BusinessRuleException("Exams start date must fall within the semester dates.");
+                }
+            }
+
+            // Check if this exact period already exists
+            var existingPeriod = _context.AcademicPeriods
+                .FirstOrDefault(ap =>
+                    ap.AcademicYearStart.Year == academicPeriod.AcademicYearStart.Year &&
+                    ap.Semester == academicPeriod.Semester);
+
+            var school = _context.School.FirstOrDefault();
+            if (school == null)
+                throw new InvalidOperationException("No school found.");
+
+            if (existingPeriod != null)
+            {
+                // Check if it's already the current period
+                if (school.CurrentAcademicPeriodId == existingPeriod.Id)
+                {
+                    throw new BusinessRuleException(
+                        $"The academic period '{academicPeriod.AcademicYear} - {academicPeriod.Semester} Semester' is already set as the current period.");
+                }
+
+                // Period exists but is not current - it's in the past, cannot reactivate
+                throw new BusinessRuleException(
+                    $"The academic period '{academicPeriod.AcademicYear} - {academicPeriod.Semester} Semester' already exists as a past period. Academic periods can only move forward in time.");
+            }
+
+            // Create new period
+            _context.AcademicPeriods.Add(academicPeriod);
+            _context.SaveChanges();
+
+            // Set as current period
+            school.CurrentAcademicPeriodId = academicPeriod.Id;
+            _context.SaveChanges();
+        }
+
+        public AcademicPeriod? GetCurrentAcademicPeriod()
+        {
+            var school = _context.School
+                .Include(s => s.CurrentAcademicPeriod)
+                .FirstOrDefault();
+
+            return school?.CurrentAcademicPeriod;
+        }
         #endregion
     }
 }
