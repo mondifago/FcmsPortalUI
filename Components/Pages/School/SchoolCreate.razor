@@ -5,6 +5,8 @@
 @using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
+@using FcmsPortal
 @using Microsoft.AspNetCore.Components.Forms
 @rendermode InteractiveServer
 
@@ -120,6 +122,58 @@
                                 </div>
                             </div>
 
+                            <div class="card mb-4">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-calendar-alt me-2"></i>Academic Period
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Academic Year Start</label>
+                                            <select @bind="academicYearStartYear" class="form-select">
+                                                @for (int year = DateTime.Now.Year - 1; year <= DateTime.Now.Year + 2; year++)
+                                                {
+                                                    <option value="@year">@year-@(year + 1)</option>
+                                                }
+                                            </select>
+                                            <small class="text-muted">Select the start year of the academic year</small>
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Semester</label>
+                                            <select @bind="selectedSemester" class="form-select">
+                                                @foreach (var semester in Enum.GetValues(typeof(Semester)))
+                                                {
+                                                    <option value="@semester">@semester</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Semester Start Date</label>
+                                            <input type="date" @bind="semesterStartDate" class="form-control" />
+                                        </div>
+
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Semester End Date</label>
+                                            <input type="date" @bind="semesterEndDate" class="form-control" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Exams Start Date <span class="text-muted">(Optional)</span></label>
+                                            <input type="date" @bind="examsStartDate" class="form-control" />
+                                            <small class="text-muted">Leave blank if not yet determined</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="mt-4 text-center">
                                 <button type="submit" class="btn btn-primary btn-lg" disabled="@isCreating">
                                     @if (isCreating)
@@ -156,6 +210,13 @@
     private string logoUrl = "";
     private bool isCreating = false;
 
+    private AcademicPeriod? currentAcademicPeriod;
+    private int academicYearStartYear = DateTime.Now.Year;
+    private Semester selectedSemester = Semester.First;
+    private DateTime semesterStartDate = DateTime.Now;
+    private DateTime semesterEndDate = DateTime.Now.AddMonths(3);
+    private DateTime? examsStartDate = null;
+
     protected override void OnInitialized()
     {
         if (SchoolDataService.HasSchool())
@@ -179,6 +240,16 @@
                 Country = "",
             }
         };
+
+        InitializeAcademicPeriodDefaults();
+    }
+
+    private void InitializeAcademicPeriodDefaults()
+    {
+        var (semester, startDate, endDate) = LogicMethods.GetDefaultSemesterDates();
+        selectedSemester = semester;
+        semesterStartDate = startDate;
+        semesterEndDate = endDate;
     }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
@@ -223,8 +294,26 @@
                 school.LogoUrl = logoUrl;
                 var createdSchool = SchoolDataService.AddSchool(school);
 
+                var academicPeriod = new AcademicPeriod
+                {
+                    AcademicYearStart = new DateTime(academicYearStartYear, FcmsConstants.SEMESTER_1_STARTMONTH, FcmsConstants.SEMESTER_1_STARTDAY),
+                    Semester = selectedSemester,
+                    SemesterStartDate = semesterStartDate,
+                    SemesterEndDate = semesterEndDate,
+                    ExamsStartDate = examsStartDate
+                };
+
+                SchoolDataService.SetSchoolAcademicPeriod(academicPeriod);
+
                 ShowSuccessAndNavigate();
             }
+        }
+        catch (BusinessRuleException ex)
+        {
+            isCreating = false;
+            StateHasChanged();
+            // Show error message to user
+            Console.WriteLine($"Business rule error: {ex.Message}");
         }
         catch (Exception ex)
         {

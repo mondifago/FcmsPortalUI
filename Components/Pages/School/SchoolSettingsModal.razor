@@ -1,6 +1,7 @@
 ﻿@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortalUI.Components.Pages.Shared
 @using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
@@ -527,7 +528,7 @@
         {
             var newPeriod = new AcademicPeriod
             {
-                AcademicYearStart = new DateTime(academicYearStartYear, 9, 1),
+                AcademicYearStart = new DateTime(academicYearStartYear, FcmsConstants.SEMESTER_1_STARTMONTH, FcmsConstants.SEMESTER_1_STARTDAY),
                 Semester = selectedSemester,
                 SemesterStartDate = semesterStartDate,
                 SemesterEndDate = semesterEndDate,

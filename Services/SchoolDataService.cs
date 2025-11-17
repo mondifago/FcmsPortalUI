@@ -2639,29 +2639,9 @@ namespace FcmsPortalUI.Services
                 }
             }
 
-            // Check if this exact period already exists
-            var existingPeriod = _context.AcademicPeriods
-                .FirstOrDefault(ap =>
-                    ap.AcademicYearStart.Year == academicPeriod.AcademicYearStart.Year &&
-                    ap.Semester == academicPeriod.Semester);
-
             var school = _context.School.FirstOrDefault();
             if (school == null)
                 throw new InvalidOperationException("No school found.");
-
-            if (existingPeriod != null)
-            {
-                // Check if it's already the current period
-                if (school.CurrentAcademicPeriodId == existingPeriod.Id)
-                {
-                    throw new BusinessRuleException(
-                        $"The academic period '{academicPeriod.AcademicYear} - {academicPeriod.Semester} Semester' is already set as the current period.");
-                }
-
-                // Period exists but is not current - it's in the past, cannot reactivate
-                throw new BusinessRuleException(
-                    $"The academic period '{academicPeriod.AcademicYear} - {academicPeriod.Semester} Semester' already exists as a past period. Academic periods can only move forward in time.");
-            }
 
             // Create new period
             _context.AcademicPeriods.Add(academicPeriod);
