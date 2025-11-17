@@ -2624,7 +2624,6 @@ namespace FcmsPortalUI.Services
         #region Academic Period Management
         public void SetSchoolAcademicPeriod(AcademicPeriod academicPeriod)
         {
-            // Validate date sequence
             if (academicPeriod.SemesterStartDate >= academicPeriod.SemesterEndDate)
             {
                 throw new BusinessRuleException("Semester start date must be before semester end date.");

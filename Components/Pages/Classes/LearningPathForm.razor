@@ -1,5 +1,6 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortalUI.Services
 @using FcmsPortal
 @using FcmsPortalUI.Components.Pages.Shared
@@ -425,10 +426,10 @@
     private void OnAcademicYearChanged()
     {
         LearningPath.AcademicYearStart = new DateTime(
-            academicYearStartYear,
-            LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : 9,
-            LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : 1
-        );
+         academicYearStartYear,
+         LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : FcmsConstants.SEMESTER_1_STARTMONTH,
+         LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : FcmsConstants.SEMESTER_1_STARTDAY
+     );
     }
 
     private void OnFeePerSemesterChanged()
@@ -558,8 +559,8 @@
 
         LearningPath.AcademicYearStart = new DateTime(
             academicYearStartYear,
-            LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : 9,
-            LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : 1
+        LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : FcmsConstants.SEMESTER_1_STARTMONTH,
+        LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : FcmsConstants.SEMESTER_1_STARTDAY
         );
 
         await OnSubmit.InvokeAsync(LearningPath);

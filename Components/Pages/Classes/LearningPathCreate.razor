@@ -6,6 +6,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
 @using FcmsPortal
+@using FcmsPortal.Constants
 @using FcmsPortalUI.Components.Pages.Shared
 
 <h3>Create Learning Path</h3>
@@ -50,17 +51,39 @@
 
     private void InitializeNewLearningPath()
     {
-        learningPath = new LearningPath
+        var currentAcademicPeriod = SchoolDataService.GetCurrentAcademicPeriod();
+
+        if (currentAcademicPeriod != null)
         {
-            Students = new List<Student>(),
-            StudentsWithAccess = new List<Student>(),
-            Schedule = new List<ScheduleEntry>(),
-            AcademicYearStart = new DateTime(DateTime.Now.Year, 9, 1),
-            SemesterStartDate = new DateTime(DateTime.Now.Year, 9, 1),
-            SemesterEndDate = new DateTime(DateTime.Now.Year, 12, 15),
-            ExamsStartDate = new DateTime(DateTime.Now.Year, 12, 1),
-            Semester = Semester.First 
-        };
+            learningPath = new LearningPath
+            {
+                Students = new List<Student>(),
+                StudentsWithAccess = new List<Student>(),
+                Schedule = new List<ScheduleEntry>(),
+                AcademicPeriodId = currentAcademicPeriod.Id,
+                AcademicYearStart = currentAcademicPeriod.AcademicYearStart,
+                Semester = currentAcademicPeriod.Semester,
+                SemesterStartDate = currentAcademicPeriod.SemesterStartDate,
+                SemesterEndDate = currentAcademicPeriod.SemesterEndDate,
+                ExamsStartDate = currentAcademicPeriod.ExamsStartDate ?? DateTime.Now
+            };
+        }
+        else
+        {
+            var (semester, startDate, endDate) = LogicMethods.GetDefaultSemesterDates();
+
+            learningPath = new LearningPath
+            {
+                Students = new List<Student>(),
+                StudentsWithAccess = new List<Student>(),
+                Schedule = new List<ScheduleEntry>(),
+                AcademicYearStart = new DateTime(DateTime.Now.Year, FcmsConstants.SEMESTER_1_STARTMONTH, FcmsConstants.SEMESTER_1_STARTDAY),
+                Semester = semester,
+                SemesterStartDate = startDate,
+                SemesterEndDate = endDate,
+                ExamsStartDate = DateTime.Now
+            };
+        }
 
         templateApplied = false;
         templateSource = "";
