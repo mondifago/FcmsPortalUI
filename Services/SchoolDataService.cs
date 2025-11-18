@@ -718,6 +718,16 @@ namespace FcmsPortalUI.Services
                 return false;
             }
 
+            var hasGrades = learningPath.Students
+                .Any(s => s.CourseGrades
+                .Any(cg => cg.LearningPathId == id && cg.TestGrades.Any()));
+
+            if (hasGrades)
+            {
+                throw new BusinessRuleException(
+                    "Active Learning path containing grades cannot be deleted.");
+            }
+
             _context.LearningPaths.Remove(learningPath);
             _context.SaveChanges();
             return true;
