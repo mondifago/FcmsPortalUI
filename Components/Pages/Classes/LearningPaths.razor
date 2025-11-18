@@ -8,7 +8,7 @@
 @inject NavigationManager NavigationManager
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Learning Paths</h3>
+    <h2 class="mb-0">Learning Paths</h2>
 
     @if (canManageLearningPaths)
     {
@@ -208,7 +208,7 @@ else
     private void FilterLearningPaths()
     {
         filtersApplied = !string.IsNullOrEmpty(selectedAcademicYear) ||
-                         !string.IsNullOrEmpty(selectedSemester); 
+                         !string.IsNullOrEmpty(selectedSemester);
 
         if (!filtersApplied)
         {
@@ -254,7 +254,7 @@ else
             {
                 SchoolDataService.DeleteLearningPath(learningPathToDelete.Id);
                 LoadLearningPaths();
-                LoadAvailableFilters(); 
+                LoadAvailableFilters();
                 FilterLearningPaths();
             }
 

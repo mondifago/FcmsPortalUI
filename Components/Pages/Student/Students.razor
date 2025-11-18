@@ -1,6 +1,7 @@
 ﻿@page "/students"
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
@@ -10,26 +11,65 @@
 <PageTitle>Students</PageTitle>
 
 <div class="container">
-    <h1>Students Management</h1>
-
-    <AuthorizeView Roles="Developer,Principal,Admin">
-        <Authorized>
-            <div class="mb-3">
-                <button @onclick="ShowGuardianSelectionModal" class="btn btn-primary">
-                    <i class="fa fa-plus"></i> Add New Student
-                </button>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Students Management</h2>
+        <AuthorizeView Roles="Developer,Principal,Admin">
+            <Authorized>
+                <div class="mb-3">
+                    <button @onclick="ShowGuardianSelectionModal" class="btn btn-primary">
+                        <i class="fa fa-plus"></i> Add New Student
+                    </button>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="educationLevel" class="form-label">Education Level:</label>
+                    <select class="form-select" id="educationLevel"
+                            @bind="selectedEducationLevel"
+                            @bind:after="OnEducationLevelFilterChanged">
+                        <option value="">Select Education Level</option>
+                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)).Cast<EducationLevel>().Where(e => e != EducationLevel.None))
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="classLevel" class="form-label">Class Level:</label>
+                    <select class="form-select" id="classLevel"
+                            @bind="selectedClassLevel"
+                            @bind:after="FilterStudents">
+                        <option value="">Select Class Level</option>
+                        @foreach (var level in availableClassLevelsForFilter)
+                        {
+                            <option value="@level">@level</option>
+                        }
+                    </select>
+                </div>
             </div>
-        </Authorized>
-    </AuthorizeView>
+        </div>
+    </div>
 
     @if (students == null)
     {
         <p><em>Loading...</em></p>
     }
-    else if (!students.Any())
+    else if (!filtersApplied)
     {
         <div class="alert alert-info">
-            No students found. Add a new student to get started.
+            <i class="fa fa-info-circle me-2"></i>
+            Please select filters to view students.
+        </div>
+    }
+    else if (!visibleStudents.Any())
+    {
+        <div class="alert alert-warning">
+            <i class="fa fa-exclamation-triangle me-2"></i>
+            No students found matching the selected filters.
         </div>
     }
     else
@@ -49,7 +89,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var student in students)
+                    @foreach (var student in visibleStudents)
                     {
                         <tr>
                             <td>@student.Id</td>
@@ -111,11 +151,64 @@
     private int studentIdToDelete;
     private bool showDeleteConfirmation = false;
     private bool showGuardianSelectionModal = false;
+    private List<Student> visibleStudents = new();
+    private List<ClassLevel> availableClassLevelsForFilter = new();
+    private string selectedEducationLevel = "";
+    private string selectedClassLevel = "";
+    private bool filtersApplied = false;
 
     protected override void OnInitialized()
     {
         students = SchoolDataService.GetStudents();
 
+    }
+
+    private void OnEducationLevelFilterChanged()
+    {
+        selectedClassLevel = "";
+
+        if (!string.IsNullOrEmpty(selectedEducationLevel) &&
+            Enum.TryParse<EducationLevel>(selectedEducationLevel, out var eduLevel))
+        {
+            availableClassLevelsForFilter = LogicMethods.GetAvailableClassLevels(eduLevel);
+        }
+        else
+        {
+            availableClassLevelsForFilter = new List<ClassLevel>();
+        }
+
+        FilterStudents();
+        StateHasChanged();
+    }
+
+    private void FilterStudents()
+    {
+        filtersApplied = !string.IsNullOrEmpty(selectedEducationLevel) ||
+                         !string.IsNullOrEmpty(selectedClassLevel);
+
+        if (!filtersApplied)
+        {
+            visibleStudents = new List<Student>();
+            return;
+        }
+
+        visibleStudents = students?.ToList() ?? new List<Student>();
+
+        if (!string.IsNullOrEmpty(selectedEducationLevel) &&
+            Enum.TryParse<EducationLevel>(selectedEducationLevel, out var eduLevel))
+        {
+            visibleStudents = visibleStudents
+                .Where(s => s.Person.EducationLevel == eduLevel)
+                .ToList();
+        }
+
+        if (!string.IsNullOrEmpty(selectedClassLevel) &&
+            Enum.TryParse<ClassLevel>(selectedClassLevel, out var classLevel))
+        {
+            visibleStudents = visibleStudents
+                .Where(s => s.Person.ClassLevel == classLevel)
+                .ToList();
+        }
     }
 
     private void ShowGuardianSelectionModal()
