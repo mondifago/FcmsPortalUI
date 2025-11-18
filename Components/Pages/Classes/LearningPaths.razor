@@ -155,6 +155,7 @@ else
 
         LoadLearningPaths();
         LoadAvailableFilters();
+        InitializeWithCurrentAcademicPeriod();
 
         if (isGuardian)
         {
@@ -181,6 +182,18 @@ else
     public void LoadLearningPaths()
     {
         learningPaths = SchoolDataService.GetAllLearningPaths();
+    }
+
+    private void InitializeWithCurrentAcademicPeriod()
+    {
+        var currentPeriod = SchoolDataService.GetCurrentAcademicPeriod();
+
+        if (currentPeriod != null)
+        {
+            selectedAcademicYear = currentPeriod.AcademicYear;
+            selectedSemester = currentPeriod.Semester.ToString();
+            FilterLearningPaths();
+        }
     }
 
     private void LoadAvailableFilters()
