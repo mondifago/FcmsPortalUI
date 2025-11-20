@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20251013083303_AddAccountInvitation")]
-    partial class AddAccountInvitation
+    [Migration("20251120100119_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -55,6 +55,34 @@ namespace FcmsPortalUI.Migrations
                     b.ToTable("DailyAttendanceAbsentStudents", (string)null);
                 });
 
+            modelBuilder.Entity("FcmsPortal.Models.AcademicPeriod", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AcademicYearStart")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ExamsStartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Semester")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SemesterEndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("SemesterStartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AcademicPeriods");
+                });
+
             modelBuilder.Entity("FcmsPortal.Models.AccountInvitation", b =>
                 {
                     b.Property<int>("Id")
@@ -93,6 +121,38 @@ namespace FcmsPortalUI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AccountInvitations");
+                });
+
+            modelBuilder.Entity("FcmsPortal.Models.Announcement", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("PostedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("PostedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostedById");
+
+                    b.ToTable("Announcements");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedPaymentDetail", b =>
@@ -600,6 +660,9 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AcademicPeriodId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("AcademicYearStart")
                         .HasColumnType("datetime(6)");
 
@@ -658,8 +721,14 @@ namespace FcmsPortalUI.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("double");
 
+                    b.Property<int>("ClassLevel")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int>("EducationLevel")
+                        .HasColumnType("int");
 
                     b.Property<int>("LearningPathId")
                         .HasColumnType("int");
@@ -803,6 +872,37 @@ namespace FcmsPortalUI.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("FcmsPortal.Models.Quote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AddedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddedById");
+
+                    b.ToTable("Quotes");
+                });
+
             modelBuilder.Entity("FcmsPortal.Models.Reply", b =>
                 {
                     b.Property<int>("Id")
@@ -913,6 +1013,9 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CurrentAcademicPeriodId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -934,6 +1037,8 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CurrentAcademicPeriodId");
 
                     b.ToTable("School");
                 });
@@ -1341,6 +1446,15 @@ namespace FcmsPortalUI.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FcmsPortal.Models.Announcement", b =>
+                {
+                    b.HasOne("FcmsPortal.Models.Person", "PostedBy")
+                        .WithMany()
+                        .HasForeignKey("PostedById");
+
+                    b.Navigation("PostedBy");
+                });
+
             modelBuilder.Entity("FcmsPortal.Models.ArchivedPaymentDetail", b =>
                 {
                     b.HasOne("FcmsPortal.Models.ArchivedStudentPayment", "ArchivedStudentPayment")
@@ -1580,6 +1694,15 @@ namespace FcmsPortalUI.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FcmsPortal.Models.Quote", b =>
+                {
+                    b.HasOne("FcmsPortal.Models.Person", "AddedBy")
+                        .WithMany()
+                        .HasForeignKey("AddedById");
+
+                    b.Navigation("AddedBy");
+                });
+
             modelBuilder.Entity("FcmsPortal.Models.Reply", b =>
                 {
                     b.HasOne("FcmsPortal.Models.DiscussionThread", "DiscussionThread")
@@ -1620,6 +1743,10 @@ namespace FcmsPortalUI.Migrations
 
             modelBuilder.Entity("FcmsPortal.Models.School", b =>
                 {
+                    b.HasOne("FcmsPortal.Models.AcademicPeriod", "CurrentAcademicPeriod")
+                        .WithMany()
+                        .HasForeignKey("CurrentAcademicPeriodId");
+
                     b.OwnsOne("FcmsPortal.Models.Address", "Address", b1 =>
                         {
                             b1.Property<int>("SchoolId")
@@ -1655,6 +1782,8 @@ namespace FcmsPortalUI.Migrations
 
                     b.Navigation("Address")
                         .IsRequired();
+
+                    b.Navigation("CurrentAcademicPeriod");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.SchoolFees", b =>

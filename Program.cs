@@ -65,6 +65,7 @@ builder.Services.AddScoped<ExceptionHandlerService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
 builder.Services.AddScoped<IAccountInvitationService, AccountInvitationService>();
+builder.Services.AddSingleton<LayoutTrigger>();
 
 // QuickGrid with EF Core
 builder.Services.AddQuickGridEntityFrameworkAdapter();

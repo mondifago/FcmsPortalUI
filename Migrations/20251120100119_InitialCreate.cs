@@ -16,6 +16,48 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "AcademicPeriods",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    AcademicYearStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Semester = table.Column<int>(type: "int", nullable: false),
+                    SemesterStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    SemesterEndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ExamsStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AcademicPeriods", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "AccountInvitations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    PersonId = table.Column<int>(type: "int", nullable: false),
+                    Token = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Email = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Role = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ExpiryDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    IsUsed = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    SentByAccountId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountInvitations", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ArchivedStudentPayments",
                 columns: table => new
                 {
@@ -182,11 +224,17 @@ namespace FcmsPortalUI.Migrations
                     Address_PostalCode = table.Column<string>(type: "varchar(30)", maxLength: 30, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Address_Country = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CurrentAcademicPeriodId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_School", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_School_AcademicPeriods_CurrentAcademicPeriodId",
+                        column: x => x.CurrentAcademicPeriodId,
+                        principalTable: "AcademicPeriods",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -236,6 +284,30 @@ namespace FcmsPortalUI.Migrations
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Announcements",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Message = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    PostedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    PostedById = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Announcements", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Announcements_AspNetUsers_PostedById",
+                        column: x => x.PostedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -337,6 +409,30 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Quotes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Text = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Author = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DateAdded = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    AddedById = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Quotes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Quotes_AspNetUsers_AddedById",
+                        column: x => x.AddedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "SchoolFees",
                 columns: table => new
                 {
@@ -415,6 +511,7 @@ namespace FcmsPortalUI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     SchoolId = table.Column<int>(type: "int", nullable: false),
+                    AcademicPeriodId = table.Column<int>(type: "int", nullable: false),
                     EducationLevel = table.Column<int>(type: "int", nullable: false),
                     ClassLevel = table.Column<int>(type: "int", nullable: false),
                     Semester = table.Column<int>(type: "int", nullable: false),
@@ -490,6 +587,8 @@ namespace FcmsPortalUI.Migrations
                     SchoolFeesId = table.Column<int>(type: "int", nullable: false),
                     Semester = table.Column<int>(type: "int", nullable: false),
                     AcademicYearStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    EducationLevel = table.Column<int>(type: "int", nullable: false),
+                    ClassLevel = table.Column<int>(type: "int", nullable: false),
                     LearningPathId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -1053,6 +1152,11 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Announcements_PostedById",
+                table: "Announcements",
+                column: "PostedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ArchivedPaymentDetails_ArchivedStudentPaymentId",
                 table: "ArchivedPaymentDetails",
                 column: "ArchivedStudentPaymentId");
@@ -1212,6 +1316,11 @@ namespace FcmsPortalUI.Migrations
                 column: "SchoolFeesId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Quotes_AddedById",
+                table: "Quotes",
+                column: "AddedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Replies_DiscussionThreadId",
                 table: "Replies",
                 column: "DiscussionThreadId");
@@ -1235,6 +1344,11 @@ namespace FcmsPortalUI.Migrations
                 name: "IX_ScheduleEntries_LearningPathId",
                 table: "ScheduleEntries",
                 column: "LearningPathId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_School_CurrentAcademicPeriodId",
+                table: "School",
+                column: "CurrentAcademicPeriodId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SchoolFees_PersonId",
@@ -1308,6 +1422,12 @@ namespace FcmsPortalUI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AccountInvitations");
+
+            migrationBuilder.DropTable(
+                name: "Announcements");
+
+            migrationBuilder.DropTable(
                 name: "ArchivedPaymentDetails");
 
             migrationBuilder.DropTable(
@@ -1348,6 +1468,9 @@ namespace FcmsPortalUI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "Quotes");
 
             migrationBuilder.DropTable(
                 name: "Replies");
@@ -1408,6 +1531,9 @@ namespace FcmsPortalUI.Migrations
 
             migrationBuilder.DropTable(
                 name: "School");
+
+            migrationBuilder.DropTable(
+                name: "AcademicPeriods");
         }
     }
 }

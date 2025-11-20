@@ -2,9 +2,9 @@
 @using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@inject LayoutTrigger LayoutTrigger
 @inherits LayoutComponentBase
 @implements IDisposable
-
 
 <div class="layout-container">
     @if (isLoading)
@@ -88,13 +88,16 @@
 
     protected override void OnInitialized()
     {
-        InitializeApp();
-        NavigationManager.LocationChanged += OnLocationChanged;  
+        LayoutTrigger.OnChange += HandleLayoutTrigger;
+        InitializeApp(); 
     }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)  
+    private void HandleLayoutTrigger()
     {
-        InitializeApp();
+        InvokeAsync(() =>
+        {
+            InitializeApp();
+        });
     }
 
     private void InitializeApp()
@@ -158,8 +161,8 @@
         StateHasChanged();
     }
 
-    public void Dispose()  
+    public void Dispose()
     {
-        NavigationManager.LocationChanged -= OnLocationChanged;
+        LayoutTrigger.OnChange -= HandleLayoutTrigger;
     }
 }
