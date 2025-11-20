@@ -221,18 +221,13 @@ OnClose="CloseLearningPathReport" />
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchoolBasicInfo();
-        allLearningPaths = SchoolDataService.GetLearningPathsForPayments(academicYearStartYear, selectedSemester);
-        selectedSemester = Semester.First;
         FilterData();
     }
 
     private void FilterData()
     {
-        filteredLearningPaths = allLearningPaths
-            .Where(lp => lp.AcademicYearStart.Year == academicYearStartYear)
-            .Where(lp => lp.Semester == selectedSemester)
-            .ToList();
-
+        allLearningPaths = SchoolDataService.GetLearningPathsForPayments(academicYearStartYear, selectedSemester);
+        filteredLearningPaths = allLearningPaths;
         CalculateSummaryData();
     }
 

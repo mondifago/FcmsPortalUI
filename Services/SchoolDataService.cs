@@ -104,8 +104,10 @@ namespace FcmsPortalUI.Services
 
         public bool HasSchool()
         {
-            return _context.School.Any();
+            using var context = _contextFactory.CreateDbContext();
+            return context.School.Any();
         }
+
 
         public School AddSchool(School school)
         {
@@ -590,7 +592,10 @@ namespace FcmsPortalUI.Services
         {
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(lp => lp.AcademicYearStart.Year == academicYearStartYear && lp.Semester == semester)
+                .Where(lp => lp.AcademicYearStart.Year == academicYearStartYear
+                    && lp.Semester == semester
+                    && !lp.IsTemplate
+                    && lp.ApprovalStatus != PrincipalApprovalStatus.Approved)
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.Person)
                         .ThenInclude(p => p.SchoolFees)
