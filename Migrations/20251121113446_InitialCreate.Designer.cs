@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20251120100119_InitialCreate")]
+    [Migration("20251121113446_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

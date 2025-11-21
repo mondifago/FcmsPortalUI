@@ -6,7 +6,6 @@
 @inject ISchoolDataService SchoolDataService
 @inject UserManager<Person> UserManager
 @inject NavigationManager NavigationManager
-@inject LayoutTrigger LayoutTrigger
 @rendermode InteractiveServer
 
 <div class="container mt-5">
@@ -192,7 +191,6 @@
             var school = SchoolDataService.GetSchoolBasicInfo();
             staff.SchoolId = school.Id;
             SchoolDataService.AddStaff(staff);
-            //LayoutTrigger.NotifyStateChanged();
             NavigationManager.NavigateTo("/", false);
         }
         catch (Exception ex)

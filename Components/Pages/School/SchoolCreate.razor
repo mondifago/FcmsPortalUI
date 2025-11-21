@@ -2,7 +2,6 @@
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
 @inject IJSRuntime JSRuntime
-@inject LayoutTrigger LayoutTrigger
 @using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
@@ -305,7 +304,6 @@
                 };
 
                 SchoolDataService.SetSchoolAcademicPeriod(academicPeriod);
-                LayoutTrigger.NotifyStateChanged();
                 ShowSuccessAndNavigate();
             }
         }

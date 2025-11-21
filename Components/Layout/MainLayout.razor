@@ -2,9 +2,7 @@
 @using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
-@inject LayoutTrigger LayoutTrigger
 @inherits LayoutComponentBase
-@implements IDisposable
 
 <div class="layout-container">
     @if (isLoading)
@@ -86,18 +84,22 @@
     private bool hasPrincipal = false;
     private bool isLoading = true;
 
+    private int renderCount = 0;
+    private int initCount = 0;
+
+
     protected override void OnInitialized()
     {
-        LayoutTrigger.OnChange += HandleLayoutTrigger;
+        initCount++;
+        Console.WriteLine($"[DEBUG] MainLayout OnInitialized called. Count: {initCount}");
+
         InitializeApp(); 
     }
 
-    private void HandleLayoutTrigger()
+    protected override void OnAfterRender(bool firstRender)
     {
-        InvokeAsync(() =>
-        {
-            InitializeApp();
-        });
+        renderCount++;
+        Console.WriteLine($"[DEBUG] MainLayout Render #{renderCount}. FirstRender={firstRender}");
     }
 
     private void InitializeApp()
@@ -159,10 +161,5 @@
         FcmsPortalUI.Components.Pages.School.Home.TriggerSchoolDataRefresh();
         showSchoolSettings = false;
         StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        LayoutTrigger.OnChange -= HandleLayoutTrigger;
     }
 }

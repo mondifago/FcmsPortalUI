@@ -144,8 +144,10 @@ namespace FcmsPortalUI.Services
 
         public bool HasPrincipal()
         {
-            int? principalRoleId = _context.Roles
-                .Where(r => r.Name == "Principal")
+            using var context = _contextFactory.CreateDbContext();
+
+            int? principalRoleId = context.Roles
+                        .Where(r => r.Name == "Principal")
                 .Select(r => (int?)r.Id)
                 .SingleOrDefault();
 
