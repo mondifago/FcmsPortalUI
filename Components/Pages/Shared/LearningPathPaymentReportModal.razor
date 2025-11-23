@@ -73,24 +73,30 @@
 }
 
 @code {
-    [Parameter]
-    public bool IsVisible { get; set; }
-
-    [Parameter]
-    public LearningPath? LearningPath { get; set; }
-
-    [Parameter]
-    public EventCallback OnClose { get; set; }
+    [Parameter]public bool IsVisible { get; set; }
+    [Parameter]public LearningPath? LearningPath { get; set; }
+    [Parameter]public ArchivedLearningPathPayment? ArchiveEntry { get; set; }
+    [Parameter]public EventCallback OnClose { get; set; }
 
     private LearningPathPaymentReportEntry reportData = new LearningPathPaymentReportEntry();
 
+
     protected override void OnParametersSet()
     {
-        if (IsVisible && LearningPath != null)
+        if (!IsVisible) return;
+
+        if (ArchiveEntry != null)
         {
-            reportData = LogicMethods.GenerateLearningPathPaymentReport(LearningPath, LearningPath.Students);
+            reportData = LogicMethods.GenerateArchivedLearningPathPaymentReport(ArchiveEntry);
+            return;
+        }
+
+        if (LearningPath != null)
+        {
+            reportData = LogicMethods.GenerateLearningPathPaymentReport(LearningPath,LearningPath.Students);
         }
     }
+
 
     private async Task PrintReport()
     {
