@@ -2549,6 +2549,15 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
+        public ArchivedSchoolPaymentSummary? GetArchivedSchoolPaymentSummary(string academicYear, Semester semester)
+        {
+            return _context.ArchivedSchoolPaymentSummaries
+                .AsNoTracking()
+                .FirstOrDefault(a =>
+                    a.AcademicYear == academicYear &&
+                    a.Semester == semester
+                );
+        }
         #endregion
 
         #region Announcements

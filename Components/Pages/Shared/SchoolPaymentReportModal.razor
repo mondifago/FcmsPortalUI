@@ -68,37 +68,33 @@
 }
 
 @code {
-    [Parameter]
-    public bool IsVisible { get; set; }
-
-    [Parameter] 
-    public string? SchoolName { get; set; }
-
-    [Parameter]
-    public List<LearningPath> LearningPaths { get; set; } = new();
-
-    [Parameter]
-    public List<Student> Students { get; set; } = new();
-
-    [Parameter]
-    public string? AcademicYear { get; set; }
-
-    [Parameter]
-    public Semester Semester { get; set; }
-
-    [Parameter]
-    public EventCallback OnClose { get; set; }
+    [Parameter]public bool IsVisible { get; set; }
+    [Parameter]public string? SchoolName { get; set; }
+    [Parameter]public List<LearningPath> LearningPaths { get; set; } = new();
+    [Parameter]public List<Student> Students { get; set; } = new();
+    [Parameter]public string? AcademicYear { get; set; }
+    [Parameter]public Semester Semester { get; set; }
+    [Parameter] public ArchivedSchoolPaymentSummary? ArchiveEntry { get; set; }
+    [Parameter]public EventCallback OnClose { get; set; }
 
     private SchoolPaymentReportEntry reportData = new SchoolPaymentReportEntry();
 
     protected override void OnParametersSet()
     {
-        if (IsVisible && LearningPaths.Any() && Students.Any())
+        if (!IsVisible)
+            return;
+
+        if (ArchiveEntry != null)
+        {
+            reportData = LogicMethods.GenerateArchivedSchoolPaymentReport(ArchiveEntry);
+            return;
+        }
+
+        if (LearningPaths.Any() && Students.Any())
         {
             reportData = LogicMethods.GenerateSchoolPaymentReport(LearningPaths, Students);
         }
     }
-
 
     private async Task PrintReport()
     {
