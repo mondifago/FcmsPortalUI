@@ -4,6 +4,7 @@ using FcmsPortalUI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    partial class FcmsPortalUIContextModelSnapshot : ModelSnapshot
+    [Migration("20251123024451_AddLearningPathAndSchoolPaymentArchives")]
+    partial class AddLearningPathAndSchoolPaymentArchives
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,75 +155,6 @@ namespace FcmsPortalUI.Migrations
                     b.ToTable("Announcements");
                 });
 
-            modelBuilder.Entity("FcmsPortal.Models.ArchivedLearningPathPayment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AcademicYear")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("ArchivedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<double>("AverageStudentPaymentCompletionRateInPath")
-                        .HasColumnType("double");
-
-                    b.Property<double>("AverageStudentTimelyCompletionRateInPath")
-                        .HasColumnType("double");
-
-                    b.Property<int>("ClassLevel")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EducationLevel")
-                        .HasColumnType("int");
-
-                    b.Property<double>("FeePerStudent")
-                        .HasColumnType("double");
-
-                    b.Property<double>("LearningPathExpectedRevenue")
-                        .HasColumnType("double");
-
-                    b.Property<int>("LearningPathId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("LearningPathName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<double>("LearningPathPaymentCompletionRate")
-                        .HasColumnType("double");
-
-                    b.Property<double>("LearningPathTimelyCompletionRate")
-                        .HasColumnType("double");
-
-                    b.Property<double>("Outstanding")
-                        .HasColumnType("double");
-
-                    b.Property<int>("Semester")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("SemesterEndDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("SemesterStartDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<double>("TotalPaid")
-                        .HasColumnType("double");
-
-                    b.Property<int>("TotalStudentsInPath")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ArchivedLearningPathPayments");
-                });
-
             modelBuilder.Entity("FcmsPortal.Models.ArchivedPaymentDetail", b =>
                 {
                     b.Property<int>("Id")
@@ -250,68 +184,6 @@ namespace FcmsPortalUI.Migrations
                     b.HasIndex("ArchivedStudentPaymentId");
 
                     b.ToTable("ArchivedPaymentDetails");
-                });
-
-            modelBuilder.Entity("FcmsPortal.Models.ArchivedSchoolPaymentSummary", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AcademicYear")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("ArchivedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<double>("AverageStudentPaymentCompletionRateInSchool")
-                        .HasColumnType("double");
-
-                    b.Property<double>("AverageStudentTimelyCompletionRateInSchool")
-                        .HasColumnType("double");
-
-                    b.Property<int>("FullyPaidStudents")
-                        .HasColumnType("int");
-
-                    b.Property<double>("SchoolWidePaymentCompletionRate")
-                        .HasColumnType("double");
-
-                    b.Property<double>("SchoolWideTimelyCompletionRate")
-                        .HasColumnType("double");
-
-                    b.Property<int>("Semester")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("SemesterEndDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("SemesterStartDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("StudentsWithBalance")
-                        .HasColumnType("int");
-
-                    b.Property<double>("TotalAmountReceived")
-                        .HasColumnType("double");
-
-                    b.Property<double>("TotalExpectedRevenue")
-                        .HasColumnType("double");
-
-                    b.Property<int>("TotalLearningPaths")
-                        .HasColumnType("int");
-
-                    b.Property<double>("TotalOutstandingBalance")
-                        .HasColumnType("double");
-
-                    b.Property<int>("TotalStudents")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ArchivedSchoolPaymentSummaries");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedStudentPayment", b =>

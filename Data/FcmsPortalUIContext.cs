@@ -34,6 +34,8 @@ namespace FcmsPortalUI.Data
         public DbSet<Quote> Quotes { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<AcademicPeriod> AcademicPeriods { get; set; }
+        public DbSet<ArchivedLearningPathPayment> ArchivedLearningPathPayments { get; set; }
+        public DbSet<ArchivedSchoolPaymentSummary> ArchivedSchoolPaymentSummaries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
