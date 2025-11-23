@@ -18,98 +18,148 @@
 
     <div class="row">
         <div class="mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fa fa-user-graduate me-2"></i>Student Archives
-                    </h5>
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="fa fa-user-graduate me-2 fs-5"></i>
+                    <h5 class="mb-0">Student Archives</h5>
                 </div>
-                <div class="card-body">
-                    <p class="card-text">
 
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        Access graduated students final grades and testimonials.
                     </p>
-                    <div class="d-flex flex-column gap-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Graduated Students:</span>
-                            <span class="badge bg-primary">@archivedStudentsCount</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <button class="btn btn-primary" @onclick="() => NavigateToStudentArchive()">
-                        View Student Archives
-                    </button>
+
+                    <ul class="list-group">
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Graduated Students</strong><br />
+                            </div>
+
+                            <button class="btn btn-primary btn-sm"
+                                    @onclick="NavigateToStudentArchive">
+                                View
+                            </button>
+                        </li>
+
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Payments Archive Section  -->
 
     <div class="row">
         <div class="mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fa fa-money-bill-wave me-2"></i>Student Payment Archives
-                    </h5>
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="fa fa-money-bill-wave me-2 fs-5"></i>
+                    <h5 class="mb-0">Payments Archive</h5>
                 </div>
+
                 <div class="card-body">
-                    <p class="card-text">
-
+                    <p class="text-muted mb-3">
+                        Access archived payment data for past semesters
                     </p>
-                </div>
-                <div class="card-footer">
-                    <button class="btn btn-success" @onclick="() => NavigateToPaymentArchive()">
-                        View Student Payments
-                    </button>
+
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Student Payments</strong><br />
+                            </div>
+
+                            <button class="btn btn-success btn-sm"
+                                    @onclick="NavigateToStudentPaymentArchive">
+                                View
+                            </button>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Learning Path Payments</strong><br />
+                            </div>
+
+                            <button class="btn btn-success btn-sm"
+                                    @onclick="NavigateToLearningPathPaymentArchive">
+                                View
+                            </button>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>School Payment Summaries</strong><br />
+                            </div>
+                            <button class="btn btn-success btn-sm"
+                                    @onclick="NavigateToSchoolPaymentArchive">
+                                View
+                            </button>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Attendance Archive Section -->
-<div class="row">
-    <div class="mb-4">
-        <div class="card h-100">
-            <div class="card-header bg-warning">
-                <h5 class="mb-0">
-                    <i class="fa fa-calendar-check me-2"></i>Student Attendance Archives
-                </h5>
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    
-                </p>
-            </div>
-            <div class="card-footer">
-                <button class="btn btn-warning" @onclick="() => NavigateToAttendanceArchive()">
-                    View Attendance Archives
-                </button>
+    <!-- Attendance Archive Section -->
+    <div class="row">
+        <div class="mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white d-flex align-items-center">
+                    <i class="fa fa-calendar-check me-2 fs-5"></i>
+                    <h5 class="mb-0">Attendance Archives</h5>
+                </div>
+
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        View archived student attendance records from previous semesters.
+                    </p>
+
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Students Attendance Records</strong><br />
+                            </div>
+
+                            <button class="btn btn-primary btn-sm"
+                                    @onclick="NavigateToAttendanceArchive">
+                                View
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Grades Archive Section -->
-<div class="row">
-    <div class="mb-4">
-        <div class="card h-100">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">
-                    <i class="fa fa-graduation-cap me-2"></i>Student Grades Archives
-                </h5>
-            </div>
-            <div class="card-body">
-                <p class="card-text">
-                    
-                </p>
-            </div>
-            <div class="card-footer">
-                <button class="btn btn-info text-white" @onclick="() => NavigateToGradesArchive()">
-                    View Grades Archives
-                </button>
+    <!-- Grades Archive Section -->
+    <div class="row">
+        <div class="mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="fa fa-graduation-cap me-2 fs-5"></i>
+                    <h5 class="mb-0">Grades Archives</h5>
+                </div>
+
+                <div class="card-body">
+                    <p class="text-muted mb-3">
+                        Access students grades from previous semesters.
+                    </p>
+
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Students Grade Records</strong><br />
+                            </div>
+
+                            <button class="btn btn-success btn-sm text-white"
+                                    @onclick="NavigateToGradesArchive">
+                                View
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -134,9 +184,19 @@
         NavigationManager.NavigateTo("/archive/students");
     }
 
-    private void NavigateToPaymentArchive()
+    private void NavigateToStudentPaymentArchive()
     {
         NavigationManager.NavigateTo("/archive/payments");
+    }
+
+    private void NavigateToLearningPathPaymentArchive()
+    {
+        NavigationManager.NavigateTo("/archive/payments/learningpaths");
+    }
+
+    private void NavigateToSchoolPaymentArchive()
+    {
+        NavigationManager.NavigateTo("/archive/payments/school");
     }
 
     private void NavigateToAttendanceArchive()
