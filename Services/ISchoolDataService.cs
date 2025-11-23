@@ -214,6 +214,8 @@ namespace FcmsPortalUI.Services
         #region Academic Period Management
         AcademicPeriod? GetCurrentAcademicPeriod();
         void SetSchoolAcademicPeriod(AcademicPeriod academicPeriod);
+        List<string> GetArchivedLearningPathAcademicYears();
+        List<ArchivedLearningPathPayment> GetArchivedLearningPathPayments(string academicYear, Semester semester);
         #endregion
 
     }

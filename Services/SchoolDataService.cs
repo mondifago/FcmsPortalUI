@@ -2528,6 +2528,27 @@ namespace FcmsPortalUI.Services
                 .Select(year => $"{year}-{year + 1}")
                 .ToList();
         }
+
+        public List<string> GetArchivedLearningPathAcademicYears()
+        {
+            return _context.ArchivedLearningPathPayments
+                .AsNoTracking()
+                .Select(alp => alp.AcademicYear)
+                .Distinct()
+                .OrderByDescending(year => year)
+                .ToList();
+        }
+
+        public List<ArchivedLearningPathPayment> GetArchivedLearningPathPayments(string academicYear, Semester semester)
+        {
+            return _context.ArchivedLearningPathPayments
+                .AsNoTracking()
+                .Where(alp => alp.AcademicYear == academicYear && alp.Semester == semester)
+                .OrderBy(alp => alp.EducationLevel)
+                .ThenBy(alp => alp.ClassLevel)
+                .ToList();
+        }
+
         #endregion
 
         #region Announcements
