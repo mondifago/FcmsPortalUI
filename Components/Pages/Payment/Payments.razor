@@ -15,28 +15,23 @@
 <div class="container-fluid mt-3">
     <h2 class="mb-4">School Payments Summary</h2>
 
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="mb-3">
-                <label for="academicYearStart" class="form-label">Academic Year</label>
-                <select id="academicYearStart" @bind="academicYearStartYear" @bind:after="FilterData" class="form-select">
-                    <option value="0">All Academic Years</option>
-                    @for (int year = DateTime.Now.Year - 5; year <= DateTime.Now.Year + 5; year++)
-                    {
-                        <option value="@year">@year-@(year + 1)</option>
-                    }
-                </select>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="mb-3">
-                <label for="semester" class="form-label">Semester</label>
-                <select id="semester" @bind="selectedSemester" @bind:after="FilterData" class="form-select">
-                    @foreach (var semester in Enum.GetValues(typeof(Semester)))
-                    {
-                        <option value="@semester">@semester</option>
-                    }
-                </select>
+    <div class="card mb-4 bg-light">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fa fa-calendar-alt me-2"></i>Current Academic Period</h5>
+                    <p class="mb-0">
+                        <strong>Academic Year:</strong> @currentPeriod.AcademicYearStart.Year - @(currentPeriod.AcademicYearStart.Year + 1)<br />
+                        <strong>Semester:</strong> @currentPeriod.Semester Semester
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small class="text-muted">
+                        <i class="fa fa-info-circle me-1"></i>
+                        This page shows real-time payment data for the current academic period.<br />
+                        For historical data, visit <a href="/archive/payments">Payment Archives</a>
+                    </small>
+                </div>
             </div>
         </div>
     </div>
@@ -190,8 +185,8 @@
 <SchoolPaymentReportModal IsVisible="showSchoolReport"
                           LearningPaths="filteredLearningPaths"
                           Students="filteredLearningPaths.SelectMany(lp => lp.Students).ToList()"
-                          AcademicYear="GetSelectedAcademicYearString()"
-                          Semester="selectedSemester"
+                          AcademicYear="currentPeriod?.AcademicYear ?? string.Empty"
+                          Semester="currentPeriod?.Semester ?? Semester.First"
                           OnClose="CloseSchoolReport"
                           SchoolName="@school.Name" />
 
@@ -204,8 +199,7 @@ OnClose="CloseLearningPathReport" />
     private LearningPath? selectedLearningPath = null;
     private List<LearningPath> allLearningPaths = new List<LearningPath>();
     private List<LearningPath> filteredLearningPaths = new List<LearningPath>();
-    private Semester selectedSemester = Semester.First;
-    private int academicYearStartYear = DateTime.Now.Year;
+    private AcademicPeriod? currentPeriod;
     private int totalLearningPaths = 0;
     private int totalStudents = 0;
     private int fullyPaidStudents = 0;
@@ -221,14 +215,22 @@ OnClose="CloseLearningPathReport" />
     protected override void OnInitialized()
     {
         school = SchoolDataService.GetSchoolBasicInfo();
-        FilterData();
+        currentPeriod = SchoolDataService.GetCurrentAcademicPeriod();
+        LoadRealTimeData();
     }
 
-    private void FilterData()
+    private void LoadRealTimeData()
     {
-        allLearningPaths = SchoolDataService.GetLearningPathsForPayments(academicYearStartYear, selectedSemester);
-        filteredLearningPaths = allLearningPaths;
-        CalculateSummaryData();
+        if (currentPeriod != null)
+        {
+            allLearningPaths = SchoolDataService.GetLearningPathsForPayments(
+                currentPeriod.AcademicYearStart.Year,
+                currentPeriod.Semester
+            );
+
+            filteredLearningPaths = allLearningPaths;
+            CalculateSummaryData();
+        }
     }
 
     private void CalculateSummaryData()
@@ -290,10 +292,5 @@ OnClose="CloseLearningPathReport" />
     {
         showLearningPathReport = false;
         selectedLearningPath = null;
-    }
-
-    private string GetSelectedAcademicYearString()
-    {
-        return $"{academicYearStartYear}-{academicYearStartYear + 1}";
     }
 }
