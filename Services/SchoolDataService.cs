@@ -2558,6 +2558,147 @@ namespace FcmsPortalUI.Services
                     a.Semester == semester
                 );
         }
+
+        public void ArchiveSchoolPayments()
+        {
+            var currentPeriod = GetCurrentAcademicPeriod();
+            if (currentPeriod == null)
+                throw new InvalidOperationException("No active academic period found.");
+
+            // Check if already archived
+            var existing = _context.ArchivedSchoolPaymentSummaries
+                .AsNoTracking()
+                .FirstOrDefault(a =>
+                    a.AcademicYear == currentPeriod.AcademicYear &&
+                    a.Semester == currentPeriod.Semester);
+
+            if (existing != null)
+                return;
+
+            // Get all learning paths for this period
+            var learningPaths = _context.LearningPaths
+                  .Include(lp => lp.Students)
+                      .ThenInclude(s => s.Person)
+                          .ThenInclude(p => p.SchoolFees)
+                              .ThenInclude(sf => sf.Payments)
+                  .Where(lp => lp.AcademicPeriodId == currentPeriod.Id)
+                  .ToList();
+
+            var allStudents = learningPaths
+                .SelectMany(lp => lp.Students)
+                .Distinct()
+                .ToList();
+
+            // Compute fully paid + balance counts
+            int fullyPaidStudents = 0;
+            int studentsWithBalance = 0;
+
+            foreach (var student in allStudents)
+            {
+                double paid = student.Person.SchoolFees?.TotalPaid ?? 0;
+                double fees = student.Person.SchoolFees?.TotalAmount ?? 0;
+
+                if (paid >= fees)
+                    fullyPaidStudents++;
+                else if (fees > 0)
+                    studentsWithBalance++;
+            }
+
+            // compute totals
+            double totalExpectedRevenue = learningPaths.Sum(lp => lp.FeePerSemester * lp.Students.Count);
+            double totalAmountReceived = allStudents.Sum(s => s.Person.SchoolFees?.TotalPaid ?? 0);
+            double totalOutstanding = totalExpectedRevenue - totalAmountReceived;
+
+            double timelyRate = LogicMethods.CalculateOverallTimelyCompletionRate(
+                learningPaths,
+                allStudents
+            );
+
+            // Save archive
+            var archive = new ArchivedSchoolPaymentSummary
+            {
+                AcademicYear = currentPeriod.AcademicYear,
+                Semester = currentPeriod.Semester,
+                SemesterStartDate = currentPeriod.SemesterStartDate,
+                SemesterEndDate = currentPeriod.SemesterEndDate,
+                ArchivedDate = DateTime.Now,
+
+                TotalLearningPaths = learningPaths.Count,
+                TotalStudents = allStudents.Count,
+                FullyPaidStudents = fullyPaidStudents,
+                StudentsWithBalance = studentsWithBalance,
+
+                TotalExpectedRevenue = totalExpectedRevenue,
+                TotalAmountReceived = totalAmountReceived,
+                TotalOutstandingBalance = totalOutstanding,
+
+                SchoolWidePaymentCompletionRate = LogicMethods.CalculatePaymentCompletionRate(
+                    totalAmountReceived,
+                    totalExpectedRevenue
+                ),
+
+                SchoolWideTimelyCompletionRate = timelyRate,
+
+                AverageStudentPaymentCompletionRateInSchool =
+                    LogicMethods.CalculateAveragePaymentCompletionRate(allStudents),
+
+                AverageStudentTimelyCompletionRateInSchool =
+                    LogicMethods.CalculateAverageTimelyCompletionRate(allStudents)
+            };
+
+            _context.ArchivedSchoolPaymentSummaries.Add(archive);
+            _context.SaveChanges();
+        }
+
+        public void ArchiveLearningPathPayments(LearningPath lp)
+        {
+            if (lp == null)
+                throw new ArgumentNullException(nameof(lp));
+
+            var exists = _context.ArchivedLearningPathPayments
+                .AsNoTracking()
+                .Any(a =>
+                    a.LearningPathId == lp.Id &&
+                    a.AcademicYear == lp.AcademicYear &&
+                    a.Semester == lp.Semester);
+
+            if (exists)
+                return;
+
+            var studentsInPath = lp.Students.ToList();
+
+            var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp);
+            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(studentsInPath);
+            var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(studentsInPath);
+
+            var archive = new ArchivedLearningPathPayment
+            {
+                LearningPathId = lp.Id,
+                LearningPathName = $"{lp.EducationLevel} - {lp.ClassLevel}",
+                EducationLevel = lp.EducationLevel,
+                ClassLevel = lp.ClassLevel,
+                Semester = lp.Semester,
+                AcademicYear = lp.AcademicYear,
+                TotalStudentsInPath = summary.StudentCount,
+                FeePerStudent = summary.FeePerSemester,
+                LearningPathExpectedRevenue = summary.ExpectedRevenue,
+                TotalPaid = summary.TotalPaid,
+                Outstanding = summary.Outstanding,
+                LearningPathPaymentCompletionRate = summary.PaymentCompletionRate,
+                AverageStudentPaymentCompletionRateInPath = avgPaymentRate,
+                LearningPathTimelyCompletionRate = summary.TimelyCompletionRate,
+                AverageStudentTimelyCompletionRateInPath = avgTimelyRate,
+                SemesterStartDate = lp.SemesterStartDate,
+                SemesterEndDate = lp.SemesterEndDate,
+                ArchivedDate = DateTime.Now
+            };
+
+            _context.ArchivedLearningPathPayments.Add(archive);
+            _context.SaveChanges();
+        }
+
+
+
         #endregion
 
         #region Announcements

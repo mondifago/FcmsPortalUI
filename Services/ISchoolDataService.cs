@@ -217,6 +217,9 @@ namespace FcmsPortalUI.Services
         List<string> GetArchivedLearningPathAcademicYears();
         List<ArchivedLearningPathPayment> GetArchivedLearningPathPayments(string academicYear, Semester semester);
         ArchivedSchoolPaymentSummary? GetArchivedSchoolPaymentSummary(string academicYear, Semester semester);
+        void ArchiveSchoolPayments();
+        void ArchiveLearningPathPayments(LearningPath lp);
+
         #endregion
 
     }
