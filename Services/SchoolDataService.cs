@@ -667,15 +667,6 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(lp => lp.Id == id);
         }
 
-        public LearningPath? GetCurrentActiveLearningPath()
-        {
-            return _context.LearningPaths
-                .AsNoTracking()
-                .Where(lp => lp.ApprovalStatus == PrincipalApprovalStatus.Pending)
-                .OrderByDescending(lp => lp.SemesterStartDate)
-                .FirstOrDefault();
-        }
-
         public IEnumerable<LearningPath> GetAllLearningPaths()
         {
             return _context.LearningPaths
@@ -715,7 +706,6 @@ namespace FcmsPortalUI.Services
 
             return scheduleEntry?.LearningPath;
         }
-
 
         public bool DeleteLearningPath(int id)
         {
@@ -2378,11 +2368,7 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public List<ArchivedStudentPayment> GetArchivedStudentPayments(
-            string academicYear,
-            EducationLevel educationLevel,
-            ClassLevel classLevel,
-            Semester semester)
+        public List<ArchivedStudentPayment> GetArchivedStudentPayments(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
         {
             return _context.ArchivedStudentPayments
                 .AsNoTracking()
@@ -2434,11 +2420,7 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public List<AttendanceArchive> GetArchivedStudentAttendance(
-            string academicYear,
-            EducationLevel educationLevel,
-            ClassLevel classLevel,
-            Semester semester)
+        public List<AttendanceArchive> GetArchivedStudentAttendance(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
         {
             return _context.AttendanceArchives
                 .AsNoTracking()
@@ -2498,7 +2480,6 @@ namespace FcmsPortalUI.Services
             if (string.IsNullOrEmpty(academicYear))
                 return null;
 
-            // Extract start year from format "2024-2025"
             var yearParts = academicYear.Split('-');
             if (yearParts.Length != 2 || !int.TryParse(yearParts[0], out int startYear))
                 return null;
@@ -2565,7 +2546,6 @@ namespace FcmsPortalUI.Services
             if (currentPeriod == null)
                 throw new InvalidOperationException("No active academic period found.");
 
-            // Check if already archived
             var existing = _context.ArchivedSchoolPaymentSummaries
                 .AsNoTracking()
                 .FirstOrDefault(a =>
@@ -2575,21 +2555,13 @@ namespace FcmsPortalUI.Services
             if (existing != null)
                 return;
 
-            // Get all learning paths for this period
-            var learningPaths = _context.LearningPaths
-                  .Include(lp => lp.Students)
-                      .ThenInclude(s => s.Person)
-                          .ThenInclude(p => p.SchoolFees)
-                              .ThenInclude(sf => sf.Payments)
-                  .Where(lp => lp.AcademicPeriodId == currentPeriod.Id)
-                  .ToList();
+            var learningPaths = GetLearningPathsForPayments(currentPeriod.AcademicYearStart.Year, currentPeriod.Semester);
 
             var allStudents = learningPaths
                 .SelectMany(lp => lp.Students)
                 .Distinct()
                 .ToList();
 
-            // Compute fully paid + balance counts
             int fullyPaidStudents = 0;
             int studentsWithBalance = 0;
 
@@ -2604,7 +2576,6 @@ namespace FcmsPortalUI.Services
                     studentsWithBalance++;
             }
 
-            // compute totals
             double totalExpectedRevenue = learningPaths.Sum(lp => lp.FeePerSemester * lp.Students.Count);
             double totalAmountReceived = allStudents.Sum(s => s.Person.SchoolFees?.TotalPaid ?? 0);
             double totalOutstanding = totalExpectedRevenue - totalAmountReceived;
@@ -2614,7 +2585,6 @@ namespace FcmsPortalUI.Services
                 allStudents
             );
 
-            // Save archive
             var archive = new ArchivedSchoolPaymentSummary
             {
                 AcademicYear = currentPeriod.AcademicYear,
@@ -2696,9 +2666,6 @@ namespace FcmsPortalUI.Services
             _context.ArchivedLearningPathPayments.Add(archive);
             _context.SaveChanges();
         }
-
-
-
         #endregion
 
         #region Announcements

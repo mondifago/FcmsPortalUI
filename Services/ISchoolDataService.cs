@@ -58,7 +58,6 @@ namespace FcmsPortalUI.Services
         LearningPath? GetLearningPathForAttendanceReport(int id);
         LearningPath? GetLearningPathForGradeManagement(int id);
         LearningPath? GetLearningPathForSchedules(int id);
-        LearningPath? GetCurrentActiveLearningPath();
         LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId);
         Dictionary<int, LearningPath?> GetLearningPathsByScheduleEntries(List<int> scheduleEntryIds);
         LearningPath? GetLearningPathByClassSessionId(int classSessionId);
