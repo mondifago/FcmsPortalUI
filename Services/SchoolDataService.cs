@@ -2562,28 +2562,7 @@ namespace FcmsPortalUI.Services
                 .Distinct()
                 .ToList();
 
-            int fullyPaidStudents = 0;
-            int studentsWithBalance = 0;
-
-            foreach (var student in allStudents)
-            {
-                double paid = student.Person.SchoolFees?.TotalPaid ?? 0;
-                double fees = student.Person.SchoolFees?.TotalAmount ?? 0;
-
-                if (paid >= fees)
-                    fullyPaidStudents++;
-                else if (fees > 0)
-                    studentsWithBalance++;
-            }
-
-            double totalExpectedRevenue = learningPaths.Sum(lp => lp.FeePerSemester * lp.Students.Count);
-            double totalAmountReceived = allStudents.Sum(s => s.Person.SchoolFees?.TotalPaid ?? 0);
-            double totalOutstanding = totalExpectedRevenue - totalAmountReceived;
-
-            double timelyRate = LogicMethods.CalculateOverallTimelyCompletionRate(
-                learningPaths,
-                allStudents
-            );
+            var summary = LogicMethods.CalculateSchoolPaymentSummary(learningPaths);
 
             var archive = new ArchivedSchoolPaymentSummary
             {
@@ -2592,28 +2571,21 @@ namespace FcmsPortalUI.Services
                 SemesterStartDate = currentPeriod.SemesterStartDate,
                 SemesterEndDate = currentPeriod.SemesterEndDate,
                 ArchivedDate = DateTime.Now,
-
-                TotalLearningPaths = learningPaths.Count,
-                TotalStudents = allStudents.Count,
-                FullyPaidStudents = fullyPaidStudents,
-                StudentsWithBalance = studentsWithBalance,
-
-                TotalExpectedRevenue = totalExpectedRevenue,
-                TotalAmountReceived = totalAmountReceived,
-                TotalOutstandingBalance = totalOutstanding,
-
-                SchoolWidePaymentCompletionRate = LogicMethods.CalculatePaymentCompletionRate(
-                    totalAmountReceived,
-                    totalExpectedRevenue
-                ),
-
-                SchoolWideTimelyCompletionRate = timelyRate,
+                TotalLearningPaths = summary.TotalLearningPaths,
+                TotalStudents = summary.TotalStudents,
+                FullyPaidStudents = summary.FullyPaidStudents,
+                StudentsWithBalance = summary.StudentsWithBalance,
+                TotalExpectedRevenue = summary.TotalExpectedRevenue,
+                TotalAmountReceived = summary.TotalAmountReceived,
+                TotalOutstandingBalance = summary.TotalOutstanding,
+                SchoolWidePaymentCompletionRate = summary.PaymentCompletionRate,
+                SchoolWideTimelyCompletionRate = summary.TimelyCompletionRate,
 
                 AverageStudentPaymentCompletionRateInSchool =
-                    LogicMethods.CalculateAveragePaymentCompletionRate(allStudents),
+                LogicMethods.CalculateAveragePaymentCompletionRate(allStudents),
 
                 AverageStudentTimelyCompletionRateInSchool =
-                    LogicMethods.CalculateAverageTimelyCompletionRate(allStudents)
+                LogicMethods.CalculateAverageTimelyCompletionRate(allStudents)
             };
 
             _context.ArchivedSchoolPaymentSummaries.Add(archive);

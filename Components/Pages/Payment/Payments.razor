@@ -230,38 +230,17 @@ OnClose="CloseLearningPathReport" />
 
     private void CalculateSummaryData()
     {
-        totalExpectedRevenue = learningPaths.Sum(lp => lp.FeePerSemester * lp.Students.Count);
-        totalAmountReceived = 0;
-        fullyPaidStudents = 0;
-        studentsWithBalance = 0;
+        var summary = LogicMethods.CalculateSchoolPaymentSummary(learningPaths);
 
-        var uniqueStudents = new HashSet<Student>(learningPaths.SelectMany(lp => lp.Students));
-        totalStudents = uniqueStudents.Count;
-
-        foreach (var student in uniqueStudents)
-        {
-            double studentPaid = student.Person.SchoolFees?.TotalPaid ?? 0;
-            double studentTotal = student.Person.SchoolFees?.TotalAmount ?? 0;
-
-            totalAmountReceived += studentPaid;
-
-            if (studentPaid >= studentTotal)
-            {
-                fullyPaidStudents++;
-            }
-            else if (studentTotal > 0)
-            {
-                studentsWithBalance++;
-            }
-        }
-
-        totalOutstandingBalance = totalExpectedRevenue - totalAmountReceived;
-
-        totalLearningPaths = learningPaths.Count;
-
-        schoolWidePaymentCompletionRate = LogicMethods.CalculateOverallPaymentCompletionRate(learningPaths.SelectMany(lp => lp.Students).ToList());
-
-        schoolWideTimelyCompletionRate = LogicMethods.CalculateOverallTimelyCompletionRate(learningPaths,learningPaths.SelectMany(lp => lp.Students).ToList());
+        totalLearningPaths = summary.TotalLearningPaths;
+        totalStudents = summary.TotalStudents;
+        fullyPaidStudents = summary.FullyPaidStudents;
+        studentsWithBalance = summary.StudentsWithBalance;
+        totalExpectedRevenue = summary.TotalExpectedRevenue;
+        totalAmountReceived = summary.TotalAmountReceived;
+        totalOutstandingBalance = summary.TotalOutstanding;
+        schoolWidePaymentCompletionRate = summary.PaymentCompletionRate;
+        schoolWideTimelyCompletionRate = summary.TimelyCompletionRate;
     }
 
     private void ShowSchoolReport()

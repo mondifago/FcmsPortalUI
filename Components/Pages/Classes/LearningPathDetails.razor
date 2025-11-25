@@ -547,8 +547,7 @@
     private void ApproveLearningPath()
     {
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
-        SchoolDataService.ArchiveStudentPayments(learningPath);
-        SchoolDataService.ArchiveStudentAttendance(learningPath);
+       
         foreach (var student in learningPath.Students.ToList())
         {
             SchoolDataService.RemoveStudentFromLearningPath(learningPath, student);
