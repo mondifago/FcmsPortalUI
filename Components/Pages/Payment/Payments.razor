@@ -151,7 +151,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var learningPath in filteredLearningPaths)
+                        @foreach (var learningPath in learningPaths)
                         {
                             var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath);
 
@@ -183,8 +183,8 @@
 </div>
 
 <SchoolPaymentReportModal IsVisible="showSchoolReport"
-                          LearningPaths="filteredLearningPaths"
-                          Students="filteredLearningPaths.SelectMany(lp => lp.Students).ToList()"
+                          LearningPaths="learningPaths"
+                          Students="learningPaths.SelectMany(lp => lp.Students).ToList()"
                           AcademicYear="currentPeriod?.AcademicYear ?? string.Empty"
                           Semester="currentPeriod?.Semester ?? Semester.First"
                           OnClose="CloseSchoolReport"
@@ -197,8 +197,7 @@ OnClose="CloseLearningPathReport" />
 @code {
     private School school = new School();
     private LearningPath? selectedLearningPath = null;
-    private List<LearningPath> allLearningPaths = new List<LearningPath>();
-    private List<LearningPath> filteredLearningPaths = new List<LearningPath>();
+    private List<LearningPath> learningPaths = new();
     private AcademicPeriod? currentPeriod;
     private int totalLearningPaths = 0;
     private int totalStudents = 0;
@@ -223,25 +222,20 @@ OnClose="CloseLearningPathReport" />
     {
         if (currentPeriod != null)
         {
-            allLearningPaths = SchoolDataService.GetLearningPathsForPayments(
-                currentPeriod.AcademicYearStart.Year,
-                currentPeriod.Semester
-            );
+            learningPaths = SchoolDataService.GetLearningPathsForPayments(currentPeriod.AcademicYearStart.Year, currentPeriod.Semester);
 
-            filteredLearningPaths = allLearningPaths;
             CalculateSummaryData();
         }
     }
 
     private void CalculateSummaryData()
     {
-        totalExpectedRevenue = filteredLearningPaths.Sum(lp => lp.FeePerSemester * lp.Students.Count);
-
+        totalExpectedRevenue = learningPaths.Sum(lp => lp.FeePerSemester * lp.Students.Count);
         totalAmountReceived = 0;
         fullyPaidStudents = 0;
         studentsWithBalance = 0;
 
-        var uniqueStudents = new HashSet<Student>(filteredLearningPaths.SelectMany(lp => lp.Students));
+        var uniqueStudents = new HashSet<Student>(learningPaths.SelectMany(lp => lp.Students));
         totalStudents = uniqueStudents.Count;
 
         foreach (var student in uniqueStudents)
@@ -262,14 +256,12 @@ OnClose="CloseLearningPathReport" />
         }
 
         totalOutstandingBalance = totalExpectedRevenue - totalAmountReceived;
-        totalLearningPaths = filteredLearningPaths.Count;
 
-        schoolWidePaymentCompletionRate = LogicMethods.CalculateOverallPaymentCompletionRate(
-            filteredLearningPaths.SelectMany(lp => lp.Students).ToList());
+        totalLearningPaths = learningPaths.Count;
 
-        schoolWideTimelyCompletionRate = LogicMethods.CalculateOverallTimelyCompletionRate(
-            filteredLearningPaths,
-            filteredLearningPaths.SelectMany(lp => lp.Students).ToList());
+        schoolWidePaymentCompletionRate = LogicMethods.CalculateOverallPaymentCompletionRate(learningPaths.SelectMany(lp => lp.Students).ToList());
+
+        schoolWideTimelyCompletionRate = LogicMethods.CalculateOverallTimelyCompletionRate(learningPaths,learningPaths.SelectMany(lp => lp.Students).ToList());
     }
 
     private void ShowSchoolReport()
