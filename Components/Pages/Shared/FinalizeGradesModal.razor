@@ -236,6 +236,8 @@
     {
         showFinalizeConfirm = false;
         //SchoolDataService.SaveFinalizedGrades(LearningPath);
+        SchoolDataService.ArchiveSchoolPayments();
+        SchoolDataService.ArchiveLearningPathPayments(LearningPath);
         var reportCards = SchoolDataService.GetStudentReportCardsForLearningPath(LearningPath.Id);
         foreach (var reportCard in reportCards)
         {

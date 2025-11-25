@@ -13,7 +13,7 @@
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
             <div class="modal-body">
-                @if (LearningPath == null)
+                @if (ArchiveEntry == null && LearningPath == null)
                 {
                     <p>Loading...</p>
                 }
@@ -25,7 +25,11 @@
                         <div class="report-section">
                             <div class="report-grid">
                                 <div>
-                                    <p><strong>Learning Path:</strong> @Util.GetLearningPathName(LearningPath)</p>
+                                    <p>
+                                        <strong>Learning Path:</strong> @(ArchiveEntry != null
+                                                                            ? ArchiveEntry.LearningPathName
+                                                                            : Util.GetLearningPathName(LearningPath))
+                                </p>
                                     <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>
                                     <p><strong>Semester:</strong> @reportData.Semester</p>
                                 </div>
