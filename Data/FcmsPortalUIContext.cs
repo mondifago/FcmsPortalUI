@@ -36,6 +36,10 @@ namespace FcmsPortalUI.Data
         public DbSet<AcademicPeriod> AcademicPeriods { get; set; }
         public DbSet<ArchivedLearningPathPayment> ArchivedLearningPathPayments { get; set; }
         public DbSet<ArchivedSchoolPaymentSummary> ArchivedSchoolPaymentSummaries { get; set; }
+        public DbSet<ArchivedLearningPathGrade> ArchivedLearningPathGrades { get; set; }
+        public DbSet<ArchivedStudentGrade> ArchivedStudentGrades { get; set; }
+        public DbSet<ArchivedCourseGrade> ArchivedCourseGrades { get; set; }
+        public DbSet<ArchivedTestGrade> ArchivedTestGrades { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
