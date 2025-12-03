@@ -2251,6 +2251,9 @@ namespace FcmsPortalUI.Services
 
             _context.SaveChanges();
         }
+
+
+
         #endregion
 
         #region Archives
@@ -2653,6 +2656,235 @@ namespace FcmsPortalUI.Services
                     a.Semester == semester
                 );
         }
+
+        public void ArchiveStudentReportCard(StudentReportCard reportCard)
+        {
+            var archivedPath = _context.ArchivedLearningPathGrades
+                .Include(a => a.StudentGrades)
+                    .ThenInclude(sg => sg.CourseGrades)
+                .FirstOrDefault(a =>
+                    a.LearningPathId == reportCard.LearningPathId &&
+                    a.AcademicYear == reportCard.LearningPath.AcademicYearStart.Year + "/" + (reportCard.LearningPath.AcademicYearStart.Year + 1) &&
+                    a.EducationLevel == reportCard.LearningPath.EducationLevel &&
+                    a.ClassLevel == reportCard.LearningPath.ClassLevel &&
+                    a.Semester == reportCard.LearningPath.Semester
+                );
+
+            if (archivedPath == null)
+                return; // Should never happen if ArchiveLearningPathGrades ran correctly
+
+            var archivedStudent = archivedPath.StudentGrades
+                .FirstOrDefault(s => s.StudentId == reportCard.StudentId);
+
+            if (archivedStudent == null)
+                return;
+
+            // Attach the finalized report card snapshot
+            archivedStudent.ArchivedReportCard = reportCard;
+
+            _context.ArchivedStudentGrades.Update(archivedStudent);
+            _context.SaveChanges();
+        }
+
+        public void ArchiveLearningPathGrades(LearningPath learningPath)
+        {
+            if (learningPath == null)
+                throw new ArgumentNullException(nameof(learningPath));
+
+            // Reload LearningPath from database with all the pieces we need
+            var dbLearningPath = _context.LearningPaths
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.CourseGrades)
+                        .ThenInclude(cg => cg.GradingConfiguration)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.CourseGrades)
+                        .ThenInclude(cg => cg.TestGrades)
+                .Include(lp => lp.AttendanceLog)
+                .FirstOrDefault(lp => lp.Id == learningPath.Id);
+
+            if (dbLearningPath == null)
+                throw new InvalidOperationException("Learning path not found for archiving grades.");
+
+            // Avoid duplicate archive for same learning path / year / semester
+            bool alreadyArchived = _context.ArchivedLearningPathGrades
+                .AsNoTracking()
+                .Any(a =>
+                    a.LearningPathId == dbLearningPath.Id &&
+                    a.AcademicYear == dbLearningPath.AcademicYear &&
+                    a.EducationLevel == dbLearningPath.EducationLevel &&
+                    a.ClassLevel == dbLearningPath.ClassLevel &&
+                    a.Semester == dbLearningPath.Semester);
+
+            if (alreadyArchived)
+                return;
+
+            // Rank students using existing logic
+            var gradeReport = LogicMethods.GenerateLearningPathGradeReport(dbLearningPath);
+
+            var rankLookup = new Dictionary<int, (int Rank, double Grade)>();
+            int rankPosition = 1;
+            foreach (var summary in gradeReport.RankedStudents)
+            {
+                rankLookup[summary.Student.Id] = (rankPosition, summary.SemesterOverallGrade);
+                rankPosition++;
+            }
+
+            var archivedLearningPath = new ArchivedLearningPathGrade
+            {
+                LearningPathId = dbLearningPath.Id,
+                LearningPathName = LogicMethods.GetLearningPathDisplayName(dbLearningPath),
+                AcademicYear = dbLearningPath.AcademicYear,
+                EducationLevel = dbLearningPath.EducationLevel,
+                ClassLevel = dbLearningPath.ClassLevel,
+                Semester = dbLearningPath.Semester,
+                SemesterStartDate = dbLearningPath.SemesterStartDate,
+                SemesterEndDate = dbLearningPath.SemesterEndDate,
+                TotalStudentsInPath = dbLearningPath.Students.Count,
+                ArchivedDate = DateTime.Now,
+                StudentGrades = new List<ArchivedStudentGrade>()
+            };
+
+            double totalSemesterGrade = 0;
+            int countedStudents = 0;
+
+            foreach (var student in dbLearningPath.Students)
+            {
+                // Semester overall & rank
+                if (!rankLookup.TryGetValue(student.Id, out var rankInfo))
+                {
+                    // Fallback if for some reason student is missing in the rank list
+                    var fallbackGrade = LogicMethods.CalculateSemesterOverallGrade(student, dbLearningPath);
+                    rankInfo = (0, fallbackGrade);
+                }
+
+                // Per-semester grades for promotion
+                var semesterGrades = GetStudentAllSemesterGrades(
+                    student.Id,
+                    dbLearningPath.EducationLevel,
+                    dbLearningPath.ClassLevel);
+
+                double firstSemesterGrade = semesterGrades.Count > 0 ? semesterGrades[0] : 0;
+                double secondSemesterGrade = semesterGrades.Count > 1 ? semesterGrades[1] : 0;
+                double thirdSemesterGrade = semesterGrades.Count > 2 ? semesterGrades[2] : 0;
+
+                double promotionGrade = semesterGrades.Any()
+                    ? Math.Round(semesterGrades.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT)
+                    : 0;
+
+                bool isPromoted = promotionGrade >= FcmsConstants.PASSING_GRADE;
+                string promotionStatus = LogicMethods.GetPromotionStatusForArchive(dbLearningPath, isPromoted);
+
+                // Attendance snapshot
+                var (presentDays, totalDays, attendanceRate) =
+                    LogicMethods.CalculateStudentAttendance(dbLearningPath.AttendanceLog, student.Id);
+
+                // Guardian snapshot from live data
+                var guardian = GetGuardianByStudentId(student.Id);
+
+                var archivedStudent = new ArchivedStudentGrade
+                {
+                    StudentId = student.Id,
+                    StudentName = Util.GetFullName(student.Person),
+                    StudentAge = student.Person.Age,
+                    StudentEmail = student.Person.Email ?? string.Empty,
+
+                    GuardianName = guardian != null ? Util.GetFullName(guardian.Person) : string.Empty,
+                    GuardianEmail = guardian?.Person.Email ?? string.Empty,
+                    GuardianPhoneNumber = guardian?.Person.PhoneNumber ?? string.Empty,
+
+                    SemesterOverallGrade = rankInfo.Grade,
+                    StudentRank = rankInfo.Rank,
+                    PromotionGrade = promotionGrade,
+
+                    PresentDays = presentDays,
+                    TotalDays = totalDays,
+                    AttendanceRate = attendanceRate,
+
+                    IsPromoted = isPromoted,
+                    PromotionStatus = promotionStatus,
+
+                    FirstSemesterGrade = firstSemesterGrade,
+                    SecondSemesterGrade = secondSemesterGrade,
+                    ThirdSemesterGrade = thirdSemesterGrade,
+
+                    CourseGrades = new List<ArchivedCourseGrade>()
+                };
+
+                totalSemesterGrade += rankInfo.Grade;
+                countedStudents++;
+
+                // Capture all course grades + individual test grades
+                var courseGrades = student.CourseGrades
+                    .Where(cg => cg.LearningPathId == dbLearningPath.Id)
+                    .ToList();
+
+                foreach (var courseGrade in courseGrades)
+                {
+                    var config = courseGrade.GradingConfiguration;
+                    double homeworkWeight = config?.HomeworkWeightPercentage ?? FcmsConstants.DEFAULT_HOMEWORK_WEIGHT;
+                    double quizWeight = config?.QuizWeightPercentage ?? FcmsConstants.DEFAULT_QUIZ_WEIGHT;
+                    double examWeight = config?.FinalExamWeightPercentage ?? FcmsConstants.DEFAULT_EXAM_WEIGHT;
+
+                    var homeworkTests = courseGrade.TestGrades
+                        .Where(t => t.GradeType == GradeType.Homework)
+                        .ToList();
+                    var quizTests = courseGrade.TestGrades
+                        .Where(t => t.GradeType == GradeType.Quiz)
+                        .ToList();
+                    var examTests = courseGrade.TestGrades
+                        .Where(t => t.GradeType == GradeType.FinalExam)
+                        .ToList();
+
+                    double homeworkAverage = homeworkTests.Any() ? homeworkTests.Average(t => t.Score) : 0;
+                    double quizAverage = quizTests.Any() ? quizTests.Average(t => t.Score) : 0;
+                    double examAverage = examTests.Any() ? examTests.Average(t => t.Score) : 0;
+
+                    var archivedCourse = new ArchivedCourseGrade
+                    {
+                        Course = courseGrade.Course,
+                        TotalGrade = courseGrade.TotalGrade,
+                        FinalGradeCode = courseGrade.FinalGradeCode ?? Util.GetGradeCode(courseGrade.TotalGrade),
+
+                        HomeworkWeightPercentage = homeworkWeight,
+                        QuizWeightPercentage = quizWeight,
+                        FinalExamWeightPercentage = examWeight,
+
+                        HomeworkAverage = homeworkAverage,
+                        QuizAverage = quizAverage,
+                        ExamAverage = examAverage,
+
+                        TestGrades = new List<ArchivedTestGrade>()
+                    };
+
+                    foreach (var test in courseGrade.TestGrades)
+                    {
+                        archivedCourse.TestGrades.Add(new ArchivedTestGrade
+                        {
+                            Score = test.Score,
+                            Date = test.Date,
+                            GradeType = test.GradeType
+                        });
+                    }
+
+                    archivedStudent.CourseGrades.Add(archivedCourse);
+                }
+
+                archivedLearningPath.StudentGrades.Add(archivedStudent);
+            }
+
+            if (countedStudents > 0)
+            {
+                archivedLearningPath.AverageClassGrade = Math.Round(
+                    totalSemesterGrade / countedStudents,
+                    FcmsConstants.GRADE_ROUNDING_DIGIT);
+            }
+
+            _context.ArchivedLearningPathGrades.Add(archivedLearningPath);
+            _context.SaveChanges();
+        }
+
         #endregion
 
         #region Announcements

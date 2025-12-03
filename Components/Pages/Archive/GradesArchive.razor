@@ -100,6 +100,9 @@
                                         <button class="btn btn-sm btn-primary" @onclick="() => ShowArchiveDetails(student)">
                                             <i class="fa fa-eye"></i> View
                                         </button>
+                                        <button class="btn btn-sm btn-info" @onclick="() => ShowArchiveReportCard(student)">
+                                            <i class="fa fa-file-alt"></i> Report Card
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -122,6 +125,14 @@
                                    ArchivedStudent="selectedArchivedStudent"
                                    OnClose="CloseArchiveDetails" />
     }
+
+    @if (showArchiveReportCardModal)
+    {
+        <ArchivedStudentReportCardModal IsVisible="showArchiveReportCardModal"
+                                        ArchivedStudent="selectedArchivedReportCard"
+                                        OnClose="CloseArchiveReportCard" />
+    }
+
 </div>
 
 @code {
@@ -136,6 +147,8 @@
     private List<ArchivedStudentGrade> archivedStudents = new();
     private bool showArchiveModal = false;
     private ArchivedStudentGrade? selectedArchivedStudent;
+    private bool showArchiveReportCardModal = false;
+    private ArchivedStudentGrade? selectedArchivedReportCard;
 
     protected override void OnInitialized()
     {
@@ -205,5 +218,18 @@
         showArchiveModal = false;
         selectedArchivedStudent = null;
     }
+
+    private void ShowArchiveReportCard(ArchivedStudentGrade student)
+    {
+        selectedArchivedReportCard = student;
+        showArchiveReportCardModal = true;
+    }
+
+    private void CloseArchiveReportCard()
+    {
+        showArchiveReportCardModal = false;
+        selectedArchivedReportCard = null;
+    }
+
 }
 

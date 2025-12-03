@@ -247,8 +247,9 @@
             reportCard.IsFinalized = true;
             reportCard.DateFinalized = DateTime.Now;
             SchoolDataService.SaveStudentReportCard(reportCard);
+            SchoolDataService.ArchiveStudentReportCard(reportCard);
         }
-
+        SchoolDataService.ArchiveLearningPathGrades(LearningPath);
         isGradesFinalized = true;
         LoadAllSemesterGrades();
         StateHasChanged();
