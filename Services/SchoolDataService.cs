@@ -2638,6 +2638,21 @@ namespace FcmsPortalUI.Services
             _context.ArchivedLearningPathPayments.Add(archive);
             _context.SaveChanges();
         }
+
+        public ArchivedLearningPathGrade? GetArchivedLearningPathGrade(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
+        {
+            return _context.ArchivedLearningPathGrades
+                .AsNoTracking()
+                .Include(a => a.StudentGrades)
+                    .ThenInclude(sg => sg.CourseGrades)
+                        .ThenInclude(cg => cg.TestGrades)
+                .FirstOrDefault(a =>
+                    a.AcademicYear == academicYear &&
+                    a.EducationLevel == educationLevel &&
+                    a.ClassLevel == classLevel &&
+                    a.Semester == semester
+                );
+        }
         #endregion
 
         #region Announcements

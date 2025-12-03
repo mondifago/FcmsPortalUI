@@ -193,6 +193,7 @@ namespace FcmsPortalUI.Services
         List<string> GetArchivedGradesAcademicYears();
         LearningPath? GetLearningPathByFilter(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         List<string> GetGradeArchiveAcademicYears();
+        ArchivedLearningPathGrade? GetArchivedLearningPathGrade(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         #endregion
 
         #region Announcements

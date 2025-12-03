@@ -68,7 +68,7 @@
     </div>
 
     <!-- Students Table -->
-    @if (rankedStudents.Any())
+    @if (archivedStudents.Any())
     {
         <div class="card">
             <div class="card-header bg-info text-white">
@@ -86,20 +86,19 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var (student, grade, rank) in rankedStudents)
+                            @foreach (var student in archivedStudents)
                             {
                                 <tr>
-                                    <td>@Util.GetFullName(student.Person)</td>
-                                    <td>@grade.ToString("F2")%</td>
+                                    <td>@student.StudentName</td>
+                                    <td>@student.SemesterOverallGrade.ToString("F2")%</td>
                                     <td>
-                                        <span class="fw-bold @Util.GetRankColorClass(rank)">
-                                            @Util.GetOrdinalNumber(rank)
+                                        <span class="fw-bold @Util.GetRankColorClass(student.StudentRank)">
+                                            @Util.GetOrdinalNumber(student.StudentRank)
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary" @onclick="() => ShowReportCardDetails(student)">
-                                            <i class="fa fa-file-alt"></i> View
-                                            <i class="fa fa-file-alt"></i> Report Card
+                                        <button class="btn btn-sm btn-primary" @onclick="() => ShowArchiveDetails(student)">
+                                            <i class="fa fa-eye"></i> View
                                         </button>
                                     </td>
                                 </tr>
@@ -117,13 +116,12 @@
         </div>
     }
 
-    <StudentReportCardModal IsVisible="showReportCardModal"
-                            Student="selectedStudent"
-                            LearningPath="@GetSelectedLearningPath()"
-                            TeacherRemarks="@(selectedReportCard?.TeacherRemarks ?? string.Empty)"
-                            PrincipalRemarks="@(selectedReportCard?.PrincipalRemarks ?? string.Empty)"
-                            OnClose="CloseReportCardDetails"
-                            IsFinalized="true" />
+    @if (showArchiveModal)
+    {
+        <ArchivedStudentGradeModal IsVisible="showArchiveModal"
+                                   ArchivedStudent="selectedArchivedStudent"
+                                   OnClose="CloseArchiveDetails" />
+    }
 </div>
 
 @code {
@@ -133,12 +131,11 @@
     private string selectedAcademicYear = string.Empty;
     private List<string> availableAcademicYears = new();
     private List<ClassLevel> availableClassLevels = new();
-    private List<Student> filteredStudents = new();
     private bool isFiltered = false;
-    private bool showReportCardModal = false;
-    private Student? selectedStudent;
-    private StudentReportCard? selectedReportCard;
-    private List<(Student Student, double Grade, int Rank)> rankedStudents = new();
+    private ArchivedLearningPathGrade? selectedArchive;
+    private List<ArchivedStudentGrade> archivedStudents = new();
+    private bool showArchiveModal = false;
+    private ArchivedStudentGrade? selectedArchivedStudent;
 
     protected override void OnInitialized()
     {
@@ -150,25 +147,11 @@
         availableAcademicYears = SchoolDataService.GetGradeArchiveAcademicYears();
     }
 
-    private LearningPath? GetSelectedLearningPath()
-    {
-        if (!IsValidLearningPathSelected())
-            return null;
-
-        return SchoolDataService.GetLearningPathByFilter(
-            selectedAcademicYear,
-            selectedEducationLevel,
-            selectedClassLevel,
-            selectedSemester
-        );
-    }
-
     private void OnFiltersChanged()
     {
         if (selectedEducationLevel == EducationLevel.None)
-        {
             selectedClassLevel = ClassLevel.None;
-        }
+
         UpdateAvailableClassLevels();
         LoadGradeData();
     }
@@ -176,47 +159,30 @@
     private void UpdateAvailableClassLevels()
     {
         if (selectedEducationLevel != EducationLevel.None)
-        {
             availableClassLevels = LogicMethods.GetAvailableClassLevels(selectedEducationLevel);
-        }
         else
-        {
-            availableClassLevels.Clear();
-            selectedClassLevel = ClassLevel.None;
-        }
+            availableClassLevels = new();
     }
 
     private void LoadGradeData()
     {
-        rankedStudents.Clear();
+        archivedStudents.Clear();
         isFiltered = false;
 
         if (!IsValidLearningPathSelected())
-        {
             return;
-        }
 
-        var learningPath = SchoolDataService.GetLearningPathByFilter(
-            selectedAcademicYear,
-            selectedEducationLevel,
-            selectedClassLevel,
-            selectedSemester
-        );
+        selectedArchive = SchoolDataService.GetArchivedLearningPathGrade( selectedAcademicYear, selectedEducationLevel, selectedClassLevel, selectedSemester);
 
-        if (learningPath == null)
+        if (selectedArchive == null)
         {
             isFiltered = true;
             return;
         }
 
-        var rankedStudentsList = LogicMethods.RankStudentsBySemesterGrade(learningPath);
-
-        int rank = 1;
-        foreach (var (student, grade) in rankedStudentsList)
-        {
-            rankedStudents.Add((student, grade, rank));
-            rank++;
-        }
+        archivedStudents = selectedArchive.StudentGrades
+            .OrderBy(s => s.StudentRank)
+            .ToList();
 
         isFiltered = true;
     }
@@ -228,30 +194,16 @@
                selectedClassLevel != ClassLevel.None;
     }
 
-    private void ShowReportCardDetails(Student student)
+    private void ShowArchiveDetails(ArchivedStudentGrade student)
     {
-        selectedStudent = student;
-
-        var learningPath = SchoolDataService.GetLearningPathByFilter(
-            selectedAcademicYear,
-            selectedEducationLevel,
-            selectedClassLevel,
-            selectedSemester
-        );
-
-        if (learningPath != null)
-        {
-            selectedReportCard = SchoolDataService.GetStudentReportCard(student.Id, learningPath.Id);
-        }
-
-        showReportCardModal = true;
+        selectedArchivedStudent = student;
+        showArchiveModal = true;
     }
 
-    private void CloseReportCardDetails()
+    private void CloseArchiveDetails()
     {
-        showReportCardModal = false;
-        selectedStudent = null;
-        selectedReportCard = null;
+        showArchiveModal = false;
+        selectedArchivedStudent = null;
     }
 }
 
