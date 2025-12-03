@@ -4,6 +4,7 @@ using FcmsPortalUI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    partial class FcmsPortalUIContextModelSnapshot : ModelSnapshot
+    [Migration("20251203025427_AddGuardianInfoToArchivedStudentGrade")]
+    partial class AddGuardianInfoToArchivedStudentGrade
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -426,9 +429,6 @@ namespace FcmsPortalUI.Migrations
                     b.Property<double>("AttendanceRate")
                         .HasColumnType("double");
 
-                    b.Property<double>("FirstSemesterGrade")
-                        .HasColumnType("double");
-
                     b.Property<string>("GuardianEmail")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -454,14 +454,8 @@ namespace FcmsPortalUI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<double>("SecondSemesterGrade")
-                        .HasColumnType("double");
-
                     b.Property<double>("SemesterOverallGrade")
                         .HasColumnType("double");
-
-                    b.Property<int>("StudentAge")
-                        .HasColumnType("int");
 
                     b.Property<string>("StudentEmail")
                         .IsRequired()
@@ -476,9 +470,6 @@ namespace FcmsPortalUI.Migrations
 
                     b.Property<int>("StudentRank")
                         .HasColumnType("int");
-
-                    b.Property<double>("ThirdSemesterGrade")
-                        .HasColumnType("double");
 
                     b.Property<int>("TotalDays")
                         .HasColumnType("int");
