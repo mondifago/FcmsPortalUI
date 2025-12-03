@@ -1,0 +1,285 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Constants
+@using FcmsPortal
+@using FcmsPortalUI.Services
+@inject ISchoolDataService SchoolDataService
+@inject IJSRuntime JSRuntime
+
+@if (IsVisible && ArchivedStudent != null)
+{
+    <div class="modal fade show" style="display:block;" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa fa-file-alt"></i> Student Report Card
+                        <span class="badge bg-danger ms-2">Finalized</span>
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="Close"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body">
+                    <div class="report-card-container" id="reportCard">
+                        <!-- Header Section -->
+                        <div class="text-center mb-4">
+                            <div class="school-logo mb-2">
+                                @if (!string.IsNullOrEmpty(School?.LogoUrl))
+                                {
+                                    <img src="@School.LogoUrl" alt="School Logo" style="max-height: 80px;">
+                                }
+                                else
+                                {
+                                    <i class="fa fa-graduation-cap fa-3x text-primary"></i>
+                                }
+                            </div>
+                            <h3 class="mb-1">@School?.Name</h3>
+                            <h4 class="text-primary">Academic Report Card</h4>
+                            <hr class="w-50 mx-auto">
+
+                            <p class="mb-0">
+                                <strong>Academic Year:</strong> @ArchivedStudent.ArchivedLearningPathGrade?.AcademicYear
+                            </p>
+                            <p>
+                                <strong>Semester:</strong> @ArchivedStudent.ArchivedLearningPathGrade?.Semester
+                            </p>
+                        </div>
+
+                        <!-- Student Information -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Student Name:</strong> @ArchivedStudent.StudentName</p>
+                                        <p><strong>Student Email:</strong> @ArchivedStudent.StudentEmail</p>
+                                        <p><strong>Age:</strong> @ArchivedStudent.StudentAge years</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p>
+                                            <strong>Class:</strong>
+                                            @ArchivedStudent.ArchivedLearningPathGrade?.EducationLevel -
+                                            @ArchivedStudent.ArchivedLearningPathGrade?.ClassLevel
+                                        </p>
+                                        <p><strong>Guardian:</strong> @ArchivedStudent.GuardianName</p>
+                                        <p><strong>Guardian Email:</strong> @ArchivedStudent.GuardianEmail</p>
+                                        <p><strong>Guardian Phone:</strong> @ArchivedStudent.GuardianPhoneNumber</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Performance Table -->
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Course</th>
+                                        <th class="text-center">Homework<br /><small>(%)</small></th>
+                                        <th class="text-center">Quiz<br /><small>(%)</small></th>
+                                        <th class="text-center">Exam<br /><small>(%)</small></th>
+                                        <th class="text-center">Total</th>
+                                        <th class="text-center">Grade</th>
+                                        <th>Remark</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var course in ArchivedStudent.CourseGrades)
+                                    {
+                                        <tr>
+                                            <td>@course.Course</td>
+
+                                            <td class="text-center">@course.HomeworkAverage.ToString("F1")</td>
+                                            <td class="text-center">@course.QuizAverage.ToString("F1")</td>
+                                            <td class="text-center">@course.ExamAverage.ToString("F1")</td>
+
+                                            <td class="text-center">
+                                                <strong>@course.TotalGrade.ToString("F1")</strong>
+                                            </td>
+
+                                            <td class="text-center">@course.FinalGradeCode</td>
+
+                                            <td>@Util.GetGradeRemark(course.TotalGrade)</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Summary Statistics -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <p>
+                                            <strong>Overall Semester Grade:</strong>
+                                            <span class="text-primary fs-5">
+                                                @ArchivedStudent.SemesterOverallGrade.ToString("F1")%
+                                            </span>
+                                        </p>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <p>
+                                            <strong>Class Position:</strong>
+                                            <span class="text-primary fs-5">
+                                                @ArchivedStudent.StudentRank
+                                            </span>
+                                            out of @ArchivedStudent.ArchivedLearningPathGrade?.TotalStudentsInPath
+                                        </p>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <p>
+                                            <strong>Attendance Rate:</strong>
+                                            <span class="text-primary fs-5">
+                                                @ArchivedStudent.AttendanceRate.ToString("F0")%
+                                            </span>
+                                            <br />
+                                            <small>
+                                                Present: @ArchivedStudent.PresentDays /
+                                                @ArchivedStudent.TotalDays days
+                                            </small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Promotion Section (Third Semester Only) -->
+                        @if (ArchivedStudent.ArchivedLearningPathGrade?.Semester == Semester.Third)
+                        {
+                            <div class="card mb-4 border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">Promotion Summary</h6>
+                                </div>
+
+                                <div class="card-body">
+                                    <table class="table table-sm">
+                                        <tbody>
+                                            <tr>
+                                                <td>First Semester</td>
+                                                <td class="text-end">
+                                                    @ArchivedStudent.FirstSemesterGrade.ToString("F1")%
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Second Semester</td>
+                                                <td class="text-end">
+                                                    @ArchivedStudent.SecondSemesterGrade.ToString("F1")%
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Third Semester</td>
+                                                <td class="text-end">
+                                                    @ArchivedStudent.ThirdSemesterGrade.ToString("F1")%
+                                                </td>
+                                            </tr>
+
+                                            <tr class="table-primary">
+                                                <td><strong>PROMOTION GRADE</strong></td>
+                                                <td class="text-end">
+                                                    <strong>@ArchivedStudent.PromotionGrade.ToString("F1")%</strong>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <div class="text-center mt-3">
+                                        <h5 class="@(ArchivedStudent.IsPromoted ? "text-success" : "text-danger")">
+                                            <i class="fa @(ArchivedStudent.IsPromoted ? "fa-check-circle" : "fa-times-circle")"></i>
+                                            Promotion Status: @ArchivedStudent.PromotionStatus
+                                        </h5>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Remarks Section -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h6>Class Teacher's Remarks:</h6>
+                                <p class="ps-3">@ArchivedStudent.ArchivedReportCard?.TeacherRemarks</p>
+
+                                <h6>Principal's Remarks:</h6>
+                                <p class="ps-3">@ArchivedStudent.ArchivedReportCard?.PrincipalRemarks</p>
+                            </div>
+                        </div>
+
+                        <!-- Signature Section -->
+                        <div class="row mt-5 mb-3">
+                            <div class="col-md-4 text-center">
+                                <div class="signature-line"></div>
+                                <p class="mb-0">Class Teacher</p>
+                                <small>Signature</small>
+                            </div>
+
+                            <div class="col-md-4 text-center">
+                                <div class="signature-line"></div>
+                                <p class="mb-0">Principal</p>
+                                <small>Signature</small>
+                            </div>
+
+                            <div class="col-md-4 text-center">
+                                <div class="signature-line"></div>
+                                <p class="mb-0">Parent/Guardian</p>
+                                <small>Signature</small>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="text-center text-muted">
+                        <p>
+                            Date Issued:
+                            @(ArchivedStudent.ArchivedLearningPathGrade != null
+                                                        ? ArchivedStudent.ArchivedLearningPathGrade.ArchivedDate.ToString("MMMM dd, yyyy")
+                                                        : "N/A")
+                        </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FOOTER BUTTONS -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Close">
+                        <i class="fa fa-times"></i> Close
+                    </button>
+
+                    <button type="button" class="btn btn-primary" @onclick="PrintReportCard">
+                        <i class="fa fa-print"></i> Print
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public ArchivedStudentGrade? ArchivedStudent { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private School? School;
+
+    protected override void OnParametersSet()
+    {
+        School = SchoolDataService.GetSchoolBasicInfo();
+    }
+
+    private void PrintReportCard()
+    {
+        JSRuntime.InvokeVoidAsync("window.print");
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}
+
