@@ -1,0 +1,130 @@
+﻿@using FcmsPortal.Models
+@using FcmsPortal.Enums
+
+@if (IsVisible && ArchivedStudent != null)
+{
+    <div class="modal fade show" tabindex="-1" style="display:block;">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <!-- HEADER -->
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="fa fa-user-graduate me-2"></i>
+                        @ArchivedStudent.StudentName – Grade Breakdown
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="OnClose"></button>
+                </div>
+
+                <!-- BODY -->
+                <div class="modal-body">
+
+                    <!-- SUMMARY -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <strong>Overall Semester Grade:</strong>
+                            <div class="fs-4 text-primary fw-bold">
+                                @ArchivedStudent.SemesterOverallGrade.ToString("F2")%
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Ranking:</strong>
+                            <div class="fs-4 fw-bold @Util.GetRankColorClass(ArchivedStudent.StudentRank)">
+                                @Util.GetOrdinalNumber(ArchivedStudent.StudentRank)
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <strong>Attendance:</strong>
+                            <div>@ArchivedStudent.PresentDays / @ArchivedStudent.TotalDays days</div>
+                            <div class="text-info">@ArchivedStudent.AttendanceRate.ToString("F1")%</div>
+                        </div>
+                    </div>
+
+                    <!-- COURSE BREAKDOWN -->
+                    @foreach (var course in ArchivedStudent.CourseGrades)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0">@course.Course</h6>
+                            </div>
+
+                            <div class="card-body">
+
+                                <!-- COURSE STATS -->
+                                <div class="row mb-3">
+                                    <div class="col-md-3">
+                                        <strong>Total Grade:</strong>
+                                        <div>@course.TotalGrade.ToString("F2")%</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Final Grade Code:</strong>
+                                        <div class="fw-bold">@course.FinalGradeCode</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Exam Weight:</strong>
+                                        <div>@course.FinalExamWeightPercentage%</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Quiz Weight:</strong>
+                                        <div>@course.QuizWeightPercentage%</div>
+                                    </div>
+                                </div>
+
+                                <!-- TEST GRADE GROUPS -->
+                                @RenderTestGradeGroup("Exams", GradeType.FinalExam, course)
+                                @RenderTestGradeGroup("Quizzes", GradeType.Quiz, course)
+                                @RenderTestGradeGroup("Homeworks", GradeType.Homework, course)
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- FOOTER -->
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="OnClose">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public ArchivedStudentGrade? ArchivedStudent { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private RenderFragment RenderTestGradeGroup(string title, GradeType type, ArchivedCourseGrade course) => builder =>
+    {
+        var items = course.TestGrades.Where(t => t.GradeType == type).ToList();
+        if (!items.Any())
+            return;
+
+        builder.AddMarkupContent(0, $@"
+            <h6 class='mt-3'>{title}</h6>
+            <table class='table table-bordered table-sm'>
+                <thead>
+                    <tr>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+        ");
+
+        int seq = 100;
+        foreach (var t in items)
+        {
+            builder.OpenElement(seq++, "tr");
+
+            builder.AddContent(seq++, $"<td>{t.Score}</td>");
+            builder.AddContent(seq++, $"<td>{t.Date:dd MMM yyyy}</td>");
+
+            builder.CloseElement();
+        }
+
+        builder.AddMarkupContent(seq++, "</tbody></table>");
+    };
+}
+
