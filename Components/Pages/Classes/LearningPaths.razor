@@ -90,21 +90,31 @@ else
                                 </span>
                             </td>
                             <td>
-                                <div class="btn-group" role="group">
-                                    <a href="/learningpaths/details/@learningPath.Id" class="btn btn-sm btn-info">
-                                        <span class="fa fa-eye"></span> Details
-                                    </a>
-                                    @if (canManageLearningPaths)
-                                    {
-                                        <a href="/learningpath/edit/@learningPath.Id" class="btn btn-sm btn-warning">
-                                            <span class="fa fa-pencil"></span> Edit
+                                @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
+                                {   
+                                }
+                                else
+                                {
+                                    <div class="btn-group" role="group">
+                                        <a href="/learningpaths/details/@learningPath.Id" class="btn btn-sm btn-info">
+                                            <span class="fa fa-eye"></span> Details
                                         </a>
-                                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteConfirmation(learningPath)">
-                                            <span class="fa fa-trash"></span> Delete
-                                        </button>
-                                    }
-                                </div>
+                                        @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending && canManageLearningPaths)
+                                        {
+                                            <a href="/learningpath/edit/@learningPath.Id" class="btn btn-sm btn-warning">
+                                                <span class="fa fa-pencil"></span> Edit
+                                            </a>
+                                        }
+                                        @if (canManageLearningPaths)
+                                        {
+                                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteConfirmation(learningPath)">
+                                                <span class="fa fa-trash"></span> Delete
+                                            </button>
+                                        }
+                                    </div>
+                                }
                             </td>
+
                         </tr>
                     }
                 </tbody>
