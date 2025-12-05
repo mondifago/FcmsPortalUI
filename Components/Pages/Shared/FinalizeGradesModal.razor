@@ -1,8 +1,11 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortalUI.Services
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortal
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
+@inject NavigationManager NavigationManager
 
 <div class="modal fade @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -44,11 +47,11 @@
                                         <td>@student.Person.LastName, @student.Person.FirstName</td>
                                         @if (LearningPath.Semester == Semester.Third)
                                         {
-                                            
-                                                var grades = studentSemesterGrades.ContainsKey(student.Id)
-                                                ? studentSemesterGrades[student.Id]
-                                                : new List<double>();
-                                            
+
+                                            var grades = studentSemesterGrades.ContainsKey(student.Id)
+                                            ? studentSemesterGrades[student.Id]
+                                            : new List<double>();
+
                                             @for (int i = 0; i < 3; i++)
                                             {
                                                 <td class="text-center">
@@ -64,12 +67,10 @@
                                                     }
                                                 </td>
                                             }
-
-
                                             <td class="text-center bg-info bg-opacity-10">
                                                 <strong>
                                                     @{
-                                                        
+
                                                         var promotionGrade = grades.Any()
                                                         ? Math.Round(grades.Average(), 2)
                                                         : 0;
@@ -95,11 +96,45 @@
 
                                             @if (LearningPath.Semester == Semester.Third)
                                             {
-                                                <button class="btn btn-sm @(LogicMethods.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel) ? "btn-success" : "btn-warning")"
-                                                        @onclick="() => ProcessStudentPromotion(student)">
-                                                    <i class="fa @(LogicMethods.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel) ? "fa-graduation-cap" : "fa-arrow-up")"></i>
-                                                    @Util.GetPromotionButtonText(LearningPath.EducationLevel, LearningPath.ClassLevel)
-                                                </button>
+                                                    var grades = studentSemesterGrades.ContainsKey(student.Id)
+                                                    ? studentSemesterGrades[student.Id]
+                                                    : new List<double>();
+
+                                                    var promotionGrade = grades.Any()
+                                                    ? Math.Round(grades.Average(), 2)
+                                                    : 0;
+
+                                                    bool isLastClass = LogicMethods.IsLastClassInEducationLevel(
+                                                    LearningPath.EducationLevel, LearningPath.ClassLevel);
+
+                                                    bool passed = promotionGrade >= FcmsConstants.PASSING_GRADE;
+                                                
+                                                @if (isGradesFinalized && isLastClass)
+                                                {
+                                                    <AuthorizeView Roles="Developer,Principal">
+                                                        <Authorized>
+                                                            <button class="btn btn-sm btn-success"
+                                                                    @onclick="() => ProcessStudentPromotion(student)">
+                                                                <i class="fa fa-graduation-cap"></i> Graduate
+                                                            </button>
+                                                        </Authorized>
+                                                    </AuthorizeView>
+                                                }
+                                                @if (isGradesFinalized && !isLastClass && passed)
+                                                {
+                                                    <AuthorizeView Roles="Developer,Principal">
+                                                        <Authorized>
+                                                            <button class="btn btn-sm btn-warning"
+                                                                    @onclick="() => ProcessStudentPromotion(student)">
+                                                                <i class="fa fa-arrow-up"></i> Promote
+                                                            </button>
+                                                        </Authorized>
+                                                    </AuthorizeView>
+                                                }
+                                                @if (isGradesFinalized && !isLastClass && !passed)
+                                                {
+                                                    <span class="text-danger small">Failed</span>
+                                                }
                                             }
                                         </td>
                                     </tr>
@@ -119,9 +154,13 @@
                 </button>
                 @if (!isGradesFinalized)
                 {
-                    <button type="button" class="btn btn-primary" @onclick="() => showFinalizeConfirm = true">
-                        <i class="fa fa-check-circle"></i> Finalize All Grades
-                    </button>
+                    <AuthorizeView Roles="Developer,Principal">
+                        <Authorized>
+                            <button type="button" class="btn btn-primary" @onclick="() => showFinalizeConfirm = true">
+                                <i class="fa fa-check-circle"></i> Finalize All Grades
+                            </button>
+                        </Authorized>
+                    </AuthorizeView>
                 }
             </div>
         </div>
@@ -149,10 +188,12 @@
                         Are you sure you want to continue?
                     </p>
                 </div>
+
                 <div class="modal-footer">
                     <button class="btn btn-secondary" @onclick="CancelFinalize">Cancel</button>
                     <button class="btn btn-danger" @onclick="FinalizeAllGrades">Finalize</button>
                 </div>
+
             </div>
         </div>
     </div>
@@ -235,8 +276,7 @@
     private void FinalizeAllGrades()
     {
         showFinalizeConfirm = false;
-        //SchoolDataService.SaveFinalizedGrades(LearningPath);
-
+        SchoolDataService.SaveFinalizedGrades(LearningPath);
         SchoolDataService.ArchiveSchoolPayments();
         SchoolDataService.ArchiveLearningPathPayments(LearningPath);
         SchoolDataService.ArchiveStudentPayments(LearningPath);
