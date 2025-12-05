@@ -5,6 +5,7 @@
 @using FcmsPortal
 @using System.Globalization
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
 @inject IJSRuntime JSRuntime
 
 <div class="modal fade @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -197,10 +198,11 @@
                                 {
                                     <p class="ps-3">@TeacherRemarks</p>
                                 }
-                                else if (isTeacher || string.IsNullOrEmpty(TeacherRemarks))
+                                else if (isTeacher)
                                 {
-                                    <textarea class="form-control mb-3" @bind="TeacherRemarks" @bind:event="oninput"
-                                              @onchange="@(async (e) => await OnTeacherRemarksChanged(e.Value?.ToString() ?? ""))"
+                                    <textarea class="form-control mb-3"
+                                              value="@TeacherRemarks"
+                                              @oninput="OnTeacherInput"
                                               placeholder="Enter teacher remarks..." rows="3"></textarea>
                                 }
                                 else
@@ -215,8 +217,9 @@
                                 }
                                 else if (isPrincipal)
                                 {
-                                    <textarea class="form-control" @bind="PrincipalRemarks" @bind:event="oninput"
-                                              @onchange="@(async (e) => await OnPrincipalRemarksChanged(e.Value?.ToString() ?? ""))"
+                                    <textarea class="form-control mb-3"
+                                              value="@PrincipalRemarks"
+                                              @oninput="OnPrincipalInput"
                                               placeholder="Enter principal remarks..." rows="3"></textarea>
                                 }
                                 else
@@ -290,10 +293,10 @@
     private School? school;
     private Guardian? guardian;
     private bool isTeacher = false; 
-    private bool isPrincipal = true; 
+    private bool isPrincipal = false; 
     private List<double> semesterGrades = new();
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         school = SchoolDataService.GetSchoolBasicInfo();
 
@@ -334,6 +337,8 @@
                 var saved = SchoolDataService.SaveStudentReportCard(reportCard);
             }
         }
+        isTeacher = await PermissionService.IsInRoleAsync("Teacher");
+        isPrincipal = await PermissionService.IsInRoleAsync("Principal");
     }
 
     private double GetWeightedScore(CourseGrade? courseGrade, GradeType gradeType)
@@ -499,6 +504,21 @@
             await PrincipalRemarksChanged.InvokeAsync(newRemarks);
         }
     }
+
+    private async Task OnTeacherInput(ChangeEventArgs e)
+    {
+        var newText = e.Value?.ToString() ?? string.Empty;
+        TeacherRemarks = newText;
+        await OnTeacherRemarksChanged(newText);
+    }
+
+    private async Task OnPrincipalInput(ChangeEventArgs e)
+    {
+        var newText = e.Value?.ToString() ?? string.Empty;
+        PrincipalRemarks = newText;
+        await OnPrincipalRemarksChanged(newText);
+    }
+
 
     private void Close()
     {
