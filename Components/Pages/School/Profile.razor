@@ -1,0 +1,344 @@
+﻿@page "/profile"
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortalUI.Services
+@using FcmsPortalUI.Components.Pages.Shared
+@inject IPermissionService PermissionService
+@inject ISchoolDataService SchoolDataService
+@inject NavigationManager NavigationManager
+
+<PageTitle>My Profile</PageTitle>
+
+<div class="container mt-4">
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (currentPerson == null)
+    {
+        <div class="alert alert-danger">Unable to load profile.</div>
+    }
+    else
+    {
+        <!-- PROFILE HEADER -->
+        <div class="row mb-4">
+            <div class="col-md-4 d-flex justify-content-center">
+                <div class="card text-center w-100">
+                    <div class="card-body">
+
+                        @if (!string.IsNullOrEmpty(currentPerson.ProfilePictureUrl))
+                        {
+                            <img src="@currentPerson.ProfilePictureUrl"
+                                 class="img-fluid rounded-circle mb-3"
+                                 style="width:150px;height:150px;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+                                 style="width:150px;height:150px;border-radius:50%;font-size:50px;">
+                                @Util.GetInitials(currentPerson)
+                            </div>
+                        }
+
+                        <h3>@Util.GetFullName(currentPerson)</h3>
+                        @*<span class="badge bg-info">@userRole</span>*@
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <!-- PERSONAL INFORMATION -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Personal Information</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Email</h6>
+                                <p>@currentPerson.Email</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Phone</h6>
+                                <p>@currentPerson.PhoneNumber</p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Gender</h6>
+                                <p>@(currentPerson.Sex.ToString() ?? "N/A")</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <h6 class="text-muted">Enrollment Date</h6>
+                                <p>@currentPerson.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ADDRESS INFORMATION -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Address</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (currentPerson.Address != null)
+                        {
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="text-muted">Street</h6>
+                                    <p>@currentPerson.Address.Street</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <h6 class="text-muted">City</h6>
+                                    <p>@currentPerson.Address.City</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">State</h6>
+                                    <p>@currentPerson.Address.State</p>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">Postal Code</h6>
+                                    <p>@currentPerson.Address.PostalCode</p>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">Country</h6>
+                                    <p>@currentPerson.Address.Country</p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No address on file.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STUDENT REPORT CARDS -->
+        @if (studentProfile != null)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">My Report Cards</h5>
+                </div>
+                <div class="card-body">
+                    @if (!myReportCards.Any())
+                    {
+                        <p class="text-muted">No report cards available.</p>
+                    }
+                    else
+                    {
+                        @foreach (var rc in myReportCards.OrderByDescending(r => r.DateFinalized))
+                        {
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                <strong>@GetYearAndSemester(rc)</strong>
+
+                                <button class="btn btn-sm btn-primary"
+                                        @onclick="() => OpenReportCard(rc)">
+                                    View
+                                </button>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- GUARDIAN REPORT CARDS -->
+        @if (guardianProfile != null)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">My Children's Report Cards</h5>
+                </div>
+                <div class="card-body">
+
+                    @foreach (var ward in guardianProfile.Wards)
+                    {
+                        <h6 class="mt-3">@Util.GetFullName(ward.Person)</h6>
+
+                        var reports = guardianReports.ContainsKey(ward.Id)
+                        ? guardianReports[ward.Id]
+                        : new List<StudentReportCard>();
+
+                        if (!reports.Any())
+                        {
+                            <p class="text-muted">No report cards available.</p>
+                        }
+                        else
+                        {
+                            @foreach (var rc in reports.OrderByDescending(r => r.DateFinalized))
+                            {
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <span>@GetYearAndSemester(rc)</span>
+
+                                    <button class="btn btn-sm btn-primary"
+                                            @onclick="() => OpenReportCard(rc)">
+                                        View
+                                    </button>
+                                </div>
+                            }
+                        }
+                    }
+
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<StudentReportCardModal IsVisible="showReportCardModal"
+                        Student="selectedStudent"
+                        LearningPath="selectedLearningPath"
+                        TeacherRemarks="@selectedTeacherRemarks"
+                        PrincipalRemarks="@selectedPrincipalRemarks"
+                        IsFinalized="true"
+                        OnClose="CloseReportCardModal" />
+
+
+
+@code {
+
+    // The logged-in person
+    private Person? currentPerson;
+
+    // Role flags (matches PermissionService)
+    private bool isStudent = false;
+    private bool isGuardian = false;
+    private bool isStaff = false;
+    private bool isPrincipal = false;
+    private bool isDeveloper = false;
+
+    // Profiles mapped from SchoolDataService
+    private Student? studentProfile;
+    private Guardian? guardianProfile;
+    private Staff? staffProfile;
+
+    // Loading state
+    private bool isLoading = true;
+
+    // Student report cards (for logged-in student)
+    private List<StudentReportCard> myReportCards = new();
+
+    // Guardian report cards (key = wardId, value = list of ward report cards)
+    private Dictionary<int, List<StudentReportCard>> guardianReports = new();
+
+    // For showing a report card modal
+    private bool showReportCardModal = false;
+    private Student? selectedStudent;
+    private LearningPath? selectedLearningPath;
+    private string selectedTeacherRemarks = "";
+    private string selectedPrincipalRemarks = "";
+
+    // Profile photo or initials
+    private string? currentUserPhoto = null;       // null means use initials
+    private string currentUserInitials = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Load logged-in person
+        currentPerson = await PermissionService.GetCurrentPersonAsync();
+
+        if (currentPerson == null)
+        {
+            NavigationManager.NavigateTo("/Account/Login", true);
+            return;
+        }
+
+        // 2. Determine user roles
+        isStudent = await PermissionService.IsInRoleAsync("Student");
+        isGuardian = await PermissionService.IsInRoleAsync("Guardian");
+        isStaff = await PermissionService.IsInRoleAsync("Staff");
+        isPrincipal = await PermissionService.IsInRoleAsync("Principal");
+        isDeveloper = await PermissionService.IsInRoleAsync("Developer");
+
+        // 3. Student Profile + Student Report Cards
+        studentProfile = SchoolDataService.GetStudents()
+            .FirstOrDefault(s => s.PersonId == currentPerson.Id);
+
+        if (studentProfile != null)
+        {
+            myReportCards = SchoolDataService.GetStudentReportCards(studentProfile.Id);
+        }
+
+        // 4. Guardian Profile + Their Children's Report Cards
+        guardianProfile = SchoolDataService.GetGuardians()
+            .FirstOrDefault(g => g.PersonId == currentPerson.Id);
+
+        if (guardianProfile != null)
+        {
+            foreach (var ward in guardianProfile.Wards)
+            {
+                guardianReports[ward.Id] =
+                     SchoolDataService.GetStudentReportCards(ward.Id);
+            }
+        }
+
+        // 5. Staff Profile
+        staffProfile = SchoolDataService.GetStaff()
+            .FirstOrDefault(s => s.PersonId == currentPerson.Id);
+
+        // 6. Picture or Initials
+        if (!string.IsNullOrEmpty(currentPerson.ProfilePictureUrl))
+        {
+            currentUserPhoto = currentPerson.ProfilePictureUrl;
+        }
+        else
+        {
+            currentUserInitials = Util.GetInitials(currentPerson);
+        }
+
+        isLoading = false;
+    }
+
+
+
+
+    private void OpenReportCard(StudentReportCard rc)
+    {
+        var realCard = SchoolDataService.GetStudentReportCard(rc.StudentId, rc.LearningPathId);
+
+        if (realCard == null)
+            return; // Should never happen unless DB inconsistency
+
+        // Fetch student + learning path
+        selectedStudent = SchoolDataService.GetStudentById(realCard.StudentId);
+        selectedLearningPath = SchoolDataService.GetLearningPathById(realCard.LearningPathId);
+
+        // Update modal inputs based on the REAL card
+        selectedTeacherRemarks = realCard.TeacherRemarks;
+        selectedPrincipalRemarks = realCard.PrincipalRemarks;
+
+        showReportCardModal = true;
+    }
+
+    private string GetYearAndSemester(StudentReportCard rc)
+    {
+        var lp = SchoolDataService.GetLearningPathById(rc.LearningPathId);
+
+        if (lp == null)
+            return "Unknown Semester";
+
+        return $"{lp.AcademicYear} - {lp.Semester}";
+    }
+
+
+    private void CloseReportCardModal()
+    {
+        showReportCardModal = false;
+    }
+}

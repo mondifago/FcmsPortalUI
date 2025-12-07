@@ -165,6 +165,7 @@ namespace FcmsPortalUI.Services
 
         #region Student Report Cards
         StudentReportCard? GetStudentReportCard(int studentId, int learningPathId);
+        List<StudentReportCard> GetStudentReportCards(int studentId);
         List<StudentReportCard> GetStudentReportCardsForLearningPath(int learningPathId);
         StudentReportCard SaveStudentReportCard(StudentReportCard reportCard);
         void UpdateStudentReportCardRemarks(int studentId, int learningPathId, string? teacherRemarks = null, string? principalRemarks = null);
