@@ -1,7 +1,9 @@
 ﻿@using FcmsPortalUI.Components.Pages.School
 @using FcmsPortalUI.Services
+@using FcmsPortal.Models
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@inject IPermissionService PermissionService
 @inherits LayoutComponentBase
 
 <div class="layout-container">
@@ -26,7 +28,19 @@
                 {
                     <div class="top-row">
                         <div class="logo-container">
-                            <a href="/" class="home-link">FCMS</a>
+                            <a href="/" class="brand-link">
+                                <div class="brand-logo-circle">
+                                    @if (school != null && !string.IsNullOrEmpty(school.LogoUrl))
+                                    {
+                                        <img src="@school.LogoUrl" alt="School Logo" />
+                                    }
+                                    else
+                                    {
+                                        <span class="brand-logo-initials">F</span>
+                                    }
+                                </div>
+                                <span class="brand-text">FCMS</span>
+                            </a>
                         </div>
                         <button class="navbar-toggler" @onclick="ToggleNavMenu">
                             <i class="fas fa-bars"></i>
@@ -34,12 +48,53 @@
                         <div class="top-icons">
                             <input type="text" class="search-box" placeholder="Search...">
                             <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
+                            @if (canManageSchoolSettings)
+                            {
                             <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
                                 <i class="fas fa-cog"></i>
                             </button>
-                            <a href="/profile" class="icon-link"><i class="fas fa-user-circle"></i></a>
+                            }
+                            <a href="#" class="icon-link" @onclick="ToggleProfileMenu">
+                                <i class="fas fa-user-circle"></i>
+                            </a>
+
+                            @if (showProfileMenu)
+                            {
+                                <div class="profile-panel">
+                                    <div class="profile-header">
+                                        @if (!string.IsNullOrEmpty(currentUserPhoto))
+                                        {
+                                            <img src="@currentUserPhoto" class="profile-photo" />
+                                        }
+                                        else
+                                        {
+                                            <div class="profile-initials-circle">
+                                                @Util.GetInitials(currentPerson)
+                                            </div>
+                                        }
+
+                                        <div>
+                                            <div class="profile-name">@currentUserName</div>
+                                            <div class="profile-email">@currentUserEmail</div>
+
+                                            <a href="/profile" class="profile-link">My profile</a>
+                                            <a href="Account/Manage" class="profile-link">Account settings</a>
+                                        </div>
+                                    </div>
+
+                                    <hr />
+
+                                    <div class="flyout-signout-container">
+                                        <a href="/Logout" class="profile-signout">
+                                            Sign out
+                                        </a>
+                                    </div>
+
+                                </div>
+                            }
                         </div>
                     </div>
+
                     <div class="page">
                         <NavMenu @ref="navMenu" HasSchool="@hasSchool" />
                         <main>
@@ -56,16 +111,22 @@
                 {
                     <div class="top-row">
                         <div class="logo-container">
-                            <a href="/" class="home-link">FCMS</a>
+                            <a href="/" class="brand-link">
+                                <div class="brand-logo-circle">
+                                    @if (school != null && !string.IsNullOrEmpty(school.LogoUrl))
+                                    {
+                                        <img src="@school.LogoUrl" alt="School Logo" />
+                                    }
+                                    else
+                                    {
+                                        <span class="brand-logo-initials">F</span>
+                                    }
+                                </div>
+                                <span class="brand-text">FCMS</span>
+                            </a>
                         </div>
                     </div>
-                    <div class="page">
-                        <main style="margin-left: 0;">
-                            <article class="content px-4">
-                                @Body
-                            </article>
-                        </main>
-                    </div>
+
                 }
             </Authorized>
             <NotAuthorized>
@@ -77,28 +138,33 @@
 
 @code {
     private NavMenu? navMenu;
+    private School? school;
     private bool collapseNavMenu = true;
     private bool showSchoolSettings = false;
     private bool hasSchool = false;
     private bool hasPrincipal = false;
     private bool isLoading = true;
 
+    private bool showProfileMenu = false;
+    private bool canManageSchoolSettings = false;
+
+    private Person? currentPerson;
+    private string? currentUserName = "";
+    private string? currentUserEmail = "";
+    private string currentUserPhoto = "";
     private int renderCount = 0;
     private int initCount = 0;
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        initCount++;
-        Console.WriteLine($"[DEBUG] MainLayout OnInitialized called. Count: {initCount}");
+        currentPerson = await PermissionService.GetCurrentPersonAsync();
 
+        currentUserName = currentPerson != null ? $"{currentPerson.FirstName} {currentPerson.LastName}" : "User";
+        currentUserEmail = currentPerson?.Email ?? "";
+        if (!string.IsNullOrEmpty(currentPerson?.ProfilePictureUrl)) currentUserPhoto = currentPerson.ProfilePictureUrl;
+        canManageSchoolSettings = await PermissionService.IsInAnyRoleAsync("Developer", "Principal");
         InitializeApp(); 
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        renderCount++;
-        Console.WriteLine($"[DEBUG] MainLayout Render #{renderCount}. FirstRender={firstRender}");
     }
 
     private void InitializeApp()
@@ -120,6 +186,7 @@
 
         if (hasSchool)
         {
+            school = SchoolDataService.GetSchoolBasicInfo();
             hasPrincipal = SchoolDataService.HasPrincipal();
 
             if (!hasPrincipal)
@@ -146,13 +213,11 @@
     private void ShowSchoolSettings()
     {
         showSchoolSettings = true;
-        StateHasChanged();
     }
 
     private void CloseSchoolSettings()
     {
         showSchoolSettings = false;
-        StateHasChanged();
     }
 
     private void HandleSchoolSettingsSaved()
@@ -160,5 +225,10 @@
         FcmsPortalUI.Components.Pages.School.Home.TriggerSchoolDataRefresh();
         showSchoolSettings = false;
         StateHasChanged();
+    }
+
+    private void ToggleProfileMenu()
+    {
+        showProfileMenu = !showProfileMenu;
     }
 }
