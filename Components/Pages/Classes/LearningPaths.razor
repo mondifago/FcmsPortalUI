@@ -164,9 +164,6 @@ else
         isStudent = await PermissionService.IsInRoleAsync("Student");
 
         LoadLearningPaths();
-        LoadAvailableFilters();
-        InitializeWithCurrentAcademicPeriod();
-
         if (isGuardian)
         {
             var guardian = SchoolDataService.GetGuardians()
@@ -187,6 +184,8 @@ else
             if (student?.LearningPathId != null)
                 learningPaths = learningPaths.Where(lp => lp.Id == student.LearningPathId);
         }
+        LoadAvailableFilters();
+        InitializeWithCurrentAcademicPeriod();
     }
 
     public void LoadLearningPaths()

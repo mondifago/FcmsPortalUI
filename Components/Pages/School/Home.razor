@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
 @inject IPermissionService PermissionService
+@using FcmsPortalUI.Components.Pages.Shared
 @using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
@@ -108,34 +109,103 @@
                 <Authorized>
                     <div class="card shadow-sm">
                         <div class="card-body position-relative">
-                            <!-- View All Link - Top Right -->
-                            <a href="/student-dashboard" class="text-decoration-none position-absolute top-0 end-0 mt-2 me-3" style="font-size: 0.85rem;">
-                                View All <i class="fa fa-arrow-right ms-1"></i>
-                            </a>
 
                             <div class="row text-center">
                                 <!-- Today's Class Schedule -->
                                 <div class="col-md-4 border-end">
-                                    <i class="fa fa-chalkboard-teacher text-primary me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Today's Classes</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Mathematics at 9:00 AM</strong>
-                                    <span class="text-muted" style="font-size: 0.85rem;">5 classes scheduled</span>
+                                    <div class="text-center mb-2">
+                                        <i class="fa fa-chalkboard-teacher text-primary" style="font-size: 1.3rem;"></i>
+                                        <span class="text-muted small d-block mt-2">Today's Classes</span>
+                                    </div>
+                                    @if (todayStudentClasses.Any())
+                                    {
+                                        @foreach (var schedule in todayStudentClasses)
+                                        {
+                                            <div class="mb-1">
+                                                <strong style="font-size: 0.95rem;">@schedule.ClassSession?.Course</strong>
+                                                <span class="text-muted" style="font-size: 0.85rem;">at @schedule.DateTime.ToString("h:mm tt")</span>
+                                            </div>
+                                        }
+                                        @if (currentStudent?.LearningPathId > 0)
+                                        {
+                                            <a href="/learningpath/@currentStudent.LearningPathId/schedules?date=@DateTime.Today.ToString("yyyy-MM-dd")"
+                                               class="text-decoration-none" style="font-size: 0.85rem;">
+                                                View All <i class="fa fa-arrow-right ms-1"></i>
+                                            </a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                                            <em>No classes scheduled today.</em>
+                                        </p>
+                                    }
                                 </div>
 
                                 <!-- Pending Homework -->
                                 <div class="col-md-4 border-end">
-                                    <i class="fa fa-tasks text-warning me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Pending Homework</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">2 assignments due today</strong>
-                                    <span class="text-muted" style="font-size: 0.85rem;">Science & English</span>
+                                    <div class="text-center mb-2">
+                                        <i class="fa fa-tasks text-warning" style="font-size: 1.3rem;"></i>
+                                        <span class="text-muted small d-block mt-2">Pending Homework</span>
+                                    </div>
+                                    @if (pendingStudentHomework.Any())
+                                    {
+                                        @foreach (var homework in pendingStudentHomework)
+                                        {
+                                            <div class="mb-1 text-center">
+                                                <strong style="font-size: 0.95rem;">@homework.Title</strong>
+                                                <span class="text-muted d-block" style="font-size: 0.85rem;">
+                                                    Due: @homework.DueDate.ToString("MMM d, yyyy")
+                                                </span>
+                                            </div>
+                                        }
+                                        @if (currentStudent?.LearningPathId > 0)
+                                        {
+                                            <a href="/learningpath/@currentStudent.LearningPathId/schedules?date=@DateTime.Today.ToString("yyyy-MM-dd")"
+                                               class="text-decoration-none" style="font-size: 0.85rem;">
+                                                View All <i class="fa fa-arrow-right ms-1"></i>
+                                            </a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0 text-center" style="font-size: 0.85rem;">
+                                            <em>No pending homework.</em>
+                                        </p>
+                                    }
                                 </div>
 
-                                <!-- Recent Grades -->
+                                 <!-- Recent Grades -->
                                 <div class="col-md-4">
-                                    <i class="fa fa-award text-success me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">New Grades Available</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Math Quiz - 85%</strong>
-                                    <span class="text-muted" style="font-size: 0.85rem;">2 more results ready</span>
+                                    <div class="text-center mb-2">
+                                        <i class="fa fa-award text-success" style="font-size: 1.3rem;"></i>
+                                        <span class="text-muted small d-block mt-2">Recent Grades</span>
+                                    </div>
+                                    @if (recentStudentGrades.Any())
+                                    {
+                                        @foreach (var grade in recentStudentGrades)
+                                        {
+                                            <div class="mb-1 text-center">
+                                                <strong style="font-size: 0.95rem;">@grade.Course @grade.GradeType</strong>
+                                                <span class="text-muted" style="font-size: 0.85rem;">@grade.Score</span>
+                                            </div>
+                                        }
+                                        @if (currentStudent != null && studentLearningPath != null)
+                                        {
+                                            <div class="text-center mt-2">
+                                                <a href="javascript:void(0)" @onclick="ShowStudentGradeDetailsModal" 
+                                                   class="text-decoration-none" style="font-size: 0.85rem;">
+                                                    View All <i class="fa fa-arrow-right ms-1"></i>
+                                                </a>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0 text-center" style="font-size: 0.85rem;">
+                                            <em>No grades recorded yet.</em>
+                                        </p>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -326,6 +396,14 @@
             </div>
         </div>
     </div>
+    <!-- Student Grade Details Modal -->
+@if (currentStudent != null && studentLearningPath != null)
+{
+    <StudentGradeDetailsModal IsVisible="showStudentGradeDetailsModal"
+                              Student="currentStudent"
+                              LearningPath="studentLearningPath"
+                              OnClose="CloseStudentGradeDetailsModal" />
+}
 </div>
 
 @code {
@@ -350,6 +428,14 @@
     private static event Action? RefreshRequested;
     private static object refreshLock = new object();
 
+    // Student Dashboard Data
+    private Student? currentStudent;
+    private List<ScheduleEntry> todayStudentClasses = new();
+    private List<Homework> pendingStudentHomework = new();
+    private List<(string Course, GradeType GradeType, double Score)> recentStudentGrades = new();
+    private LearningPath? studentLearningPath;
+    private bool showStudentGradeDetailsModal = false;
+
     protected override async Task OnInitializedAsync()
     {
         //school = SchoolDataService.GetSchool();
@@ -363,6 +449,7 @@
         LoadAnnouncements();
         LoadRandomQuote();
         LoadUpcomingEvents();
+        await LoadStudentDashboardData();
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
@@ -435,6 +522,40 @@
     {
         currentDateTime = DateTime.Now;
         InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadStudentDashboardData()
+    {
+        var person = await PermissionService.GetCurrentPersonAsync();
+        if (person == null) return;
+
+        currentStudent = SchoolDataService.GetStudents()
+            .FirstOrDefault(s => s.PersonId == person.Id);
+
+        if (currentStudent != null)
+        {
+            todayStudentClasses = SchoolDataService.GetTodayClassSessionsForStudent(currentStudent.Id, 5);
+            pendingStudentHomework = SchoolDataService.GetPendingHomeworkForStudent(currentStudent.Id, 5);
+            recentStudentGrades = SchoolDataService.GetRecentGradesForStudent(currentStudent.Id, 5);
+        
+            if (currentStudent.LearningPathId > 0)
+            {
+                studentLearningPath = SchoolDataService.GetLearningPathForGradeManagement(currentStudent.LearningPathId ?? 0);
+            }
+        }
+    }
+
+    private void ShowStudentGradeDetailsModal()
+    {
+        if (currentStudent != null && studentLearningPath != null)
+        {
+            showStudentGradeDetailsModal = true;
+        }
+    }
+
+    private void CloseStudentGradeDetailsModal()
+    {
+        showStudentGradeDetailsModal = false;
     }
 
     public void Dispose()

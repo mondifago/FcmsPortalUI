@@ -614,6 +614,7 @@ namespace FcmsPortalUI.Services
                 .ThenInclude(s => s.CourseGrades)
                     .ThenInclude(cg => cg.TestGrades)
                         .ThenInclude(tg => tg.Teacher)
+                            .ThenInclude(t => t.Person)
             .Include(lp => lp.Students)
                 .ThenInclude(s => s.CourseGrades)
                     .ThenInclude(cg => cg.GradingConfiguration)
@@ -622,6 +623,7 @@ namespace FcmsPortalUI.Services
                 .ThenInclude(s => s.Person)
             .Include(lp => lp.AttendanceLog)
                 .ThenInclude(al => al.Teacher)
+                    .ThenInclude(t => t.Person)
             .Include(lp => lp.AttendanceLog)
                 .ThenInclude(al => al.PresentStudents)
             .Include(lp => lp.AttendanceLog)
@@ -650,6 +652,8 @@ namespace FcmsPortalUI.Services
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.CourseGrades)
                         .ThenInclude(cg => cg.TestGrades)
+                            .ThenInclude(tg => tg.Teacher)
+                                .ThenInclude(t => t.Person)
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.CourseGrades)
                         .ThenInclude(cg => cg.GradingConfiguration)
@@ -1243,6 +1247,28 @@ namespace FcmsPortalUI.Services
                 .AsNoTracking()
                 .ToList();
         }
+
+        public List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount = 5)
+        {
+            var student = _context.Students
+                .AsNoTracking()
+                .FirstOrDefault(s => s.Id == studentId);
+
+            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
+                return new List<ScheduleEntry>();
+
+            var today = DateTime.Today;
+
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Include(se => se.ClassSession)
+                .Where(se => se.LearningPathId == student.LearningPathId &&
+                             se.DateTime.Date == today &&
+                             se.ClassSession != null)
+                .OrderBy(se => se.DateTime)
+                .Take(maxCount)
+                .ToList();
+        }
         #endregion
 
         #region Class Sessions
@@ -1447,6 +1473,33 @@ namespace FcmsPortalUI.Services
 
                 _context.SaveChanges();
             }
+        }
+
+        public List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount = 5)
+        {
+            var student = _context.Students
+                .AsNoTracking()
+                .FirstOrDefault(s => s.Id == studentId);
+
+            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
+                return new List<Homework>();
+
+            var homeworkList = _context.ScheduleEntries
+                .AsNoTracking()
+                .Include(se => se.ClassSession)
+                    .ThenInclude(cs => cs.HomeworkDetails)
+                        .ThenInclude(h => h.Submissions)
+                .Where(se => se.LearningPathId == student.LearningPathId &&
+                             se.ClassSession != null &&
+                             se.ClassSession.HomeworkDetails != null)
+                .Select(se => se.ClassSession.HomeworkDetails)
+                .ToList();
+
+            return homeworkList
+                .Where(h => h != null && !h.Submissions.Any(s => s.StudentId == studentId))
+                .OrderBy(h => h.DueDate)
+                .Take(maxCount)
+                .ToList()!;
         }
         #endregion
 
@@ -2012,6 +2065,20 @@ namespace FcmsPortalUI.Services
             return semesterGrades;
         }
 
+        public List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount = 5)
+        {
+            return _context.TestGrades
+                .AsNoTracking()
+                .Include(tg => tg.CourseGrade)
+                .Where(tg => tg.CourseGrade != null && tg.CourseGrade.StudentId == studentId)
+                .OrderByDescending(tg => tg.Date)
+                .Take(maxCount)
+                .Select(tg => new ValueTuple<string, GradeType, double>(
+                    tg.CourseGrade!.Course,
+                    tg.GradeType,
+                    tg.Score))
+                .ToList();
+        }
         #endregion
 
         #region Curriculum

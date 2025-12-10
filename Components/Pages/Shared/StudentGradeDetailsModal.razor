@@ -158,7 +158,7 @@
                                                                             @grade.Score.ToString("F1")%
                                                                         </span>
                                                                     </td>
-                                                                    <td>@grade.Teacher?.Person.FirstName @grade.Teacher?.Person.LastName</td>
+                                                                    <td>@grade.Teacher?.Person?.FirstName @grade.Teacher?.Person?.LastName</td>
                                                                     <td>@grade.TeacherRemark</td>
                                                                 </tr>
                                                             }
