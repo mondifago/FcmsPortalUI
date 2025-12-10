@@ -50,47 +50,54 @@
                             <a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>
                             @if (canManageSchoolSettings)
                             {
-                            <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
-                                <i class="fas fa-cog"></i>
-                            </button>
+                                <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
+                                    <i class="fas fa-cog"></i>
+                                </button>
                             }
-                            <a href="#" class="icon-link" @onclick="ToggleProfileMenu">
-                                <i class="fas fa-user-circle"></i>
-                            </a>
 
+                            <div class="profile-menu-wrapper" @onclick:stopPropagation="true">
+                                <button class="icon-link profile-toggle-btn" @onclick="ToggleProfileMenu">
+                                    <i class="fas fa-user-circle"></i>
+                                </button>
+
+                                @if (showProfileMenu)
+                                {
+                                    <div class="profile-panel">
+                                        <div class="profile-header">
+                                            @if (!string.IsNullOrEmpty(currentUserPhoto))
+                                            {
+                                                <img src="@currentUserPhoto" class="profile-photo" />
+                                            }
+                                            else
+                                            {
+                                                <div class="profile-initials-circle">
+                                                    @Util.GetInitials(currentPerson)
+                                                </div>
+                                            }
+
+                                            <div>
+                                                <div class="profile-name">@currentUserName</div>
+                                                <div class="profile-email">@currentUserEmail</div>
+
+                                                <a href="/profile" class="profile-link">My profile</a>
+                                                <a href="Account/Manage" class="profile-link">Account settings</a>
+                                            </div>
+                                        </div>
+
+                                        <hr />
+
+                                        <div class="flyout-signout-container">
+                                            <a href="/Logout" class="profile-signout">
+                                                Sign out
+                                            </a>
+                                        </div>
+
+                                    </div>
+                                }
+                            </div>
                             @if (showProfileMenu)
                             {
-                                <div class="profile-panel">
-                                    <div class="profile-header">
-                                        @if (!string.IsNullOrEmpty(currentUserPhoto))
-                                        {
-                                            <img src="@currentUserPhoto" class="profile-photo" />
-                                        }
-                                        else
-                                        {
-                                            <div class="profile-initials-circle">
-                                                @Util.GetInitials(currentPerson)
-                                            </div>
-                                        }
-
-                                        <div>
-                                            <div class="profile-name">@currentUserName</div>
-                                            <div class="profile-email">@currentUserEmail</div>
-
-                                            <a href="/profile" class="profile-link">My profile</a>
-                                            <a href="Account/Manage" class="profile-link">Account settings</a>
-                                        </div>
-                                    </div>
-
-                                    <hr />
-
-                                    <div class="flyout-signout-container">
-                                        <a href="/Logout" class="profile-signout">
-                                            Sign out
-                                        </a>
-                                    </div>
-
-                                </div>
+                                <div class="profile-overlay" @onclick="CloseProfileMenu"></div>
                             }
                         </div>
                     </div>
@@ -164,7 +171,7 @@
         currentUserEmail = currentPerson?.Email ?? "";
         if (!string.IsNullOrEmpty(currentPerson?.ProfilePictureUrl)) currentUserPhoto = currentPerson.ProfilePictureUrl;
         canManageSchoolSettings = await PermissionService.IsInAnyRoleAsync("Developer", "Principal");
-        InitializeApp(); 
+        InitializeApp();
     }
 
     private void InitializeApp()
@@ -230,5 +237,10 @@
     private void ToggleProfileMenu()
     {
         showProfileMenu = !showProfileMenu;
+    }
+
+    private void CloseProfileMenu()
+    {
+        showProfileMenu = false;
     }
 }
