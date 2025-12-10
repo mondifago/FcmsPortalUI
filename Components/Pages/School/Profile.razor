@@ -46,7 +46,67 @@
                         }
 
                         <h3>@Util.GetFullName(currentPerson)</h3>
-                        @*<span class="badge bg-info">@userRole</span>*@
+
+                        @if (!string.IsNullOrEmpty(userRole))
+                        {
+                            <span class="badge bg-info">@userRole</span>
+                        }
+
+                        <!-- Role-specific details -->
+                        @if (isStudent && studentProfile != null)
+                        {
+                            <div class="mt-2">
+                                @if (studentProfile.Person.EducationLevel != EducationLevel.None && studentProfile.Person.ClassLevel != ClassLevel.None)
+                                {
+                                    <small class="text-muted d-block">@studentProfile.Person.EducationLevel - @studentProfile.Person.ClassLevel</small>
+                                }
+                                else
+                                {
+                                    <small class="text-muted d-block"><em>Inactive</em></small>
+                                }
+                            </div>
+                        }
+
+                        @if (staffProfile != null)
+                        {
+                            <div class="mt-2">
+                                @if (staffProfile.Person.EducationLevel != EducationLevel.None)
+                                {
+                                    <small class="text-muted d-block">@staffProfile.Person.EducationLevel</small>
+                                }
+                                @if (staffProfile.Person.ClassLevel != ClassLevel.None)
+                                {
+                                    <small class="text-muted d-block">@staffProfile.Person.ClassLevel</small>
+                                }
+                                @if (!string.IsNullOrEmpty(staffProfile.JobDescription))
+                                {
+                                    <small class="text-muted d-block">@staffProfile.JobDescription</small>
+                                }
+                            </div>
+                        }
+
+                        @if (isGuardian && guardianProfile != null && guardianProfile.Wards.Any())
+                        {
+                            <div class="mt-3">
+                                <small class="text-muted"><strong>Wards:</strong></small>
+                                @foreach (var ward in guardianProfile.Wards)
+                                {
+                                    <div class="ms-2">
+                                        <small class="d-block">
+                                            @Util.GetFullName(ward.Person) -
+                                            @if (ward.Person.EducationLevel != EducationLevel.None && ward.Person.ClassLevel != ClassLevel.None)
+                                            {
+                                                <span>@ward.Person.EducationLevel - @ward.Person.ClassLevel</span>
+                                            }
+                                            else
+                                            {
+                                                <em>Inactive</em>
+                                            }
+                                        </small>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -214,6 +274,7 @@
 
     // The logged-in person
     private Person? currentPerson;
+    private string userRole = "";
 
     // Role flags (matches PermissionService)
     private bool isStudent = false;
@@ -262,9 +323,18 @@
         // 2. Determine user roles
         isStudent = await PermissionService.IsInRoleAsync("Student");
         isGuardian = await PermissionService.IsInRoleAsync("Guardian");
-        isStaff = await PermissionService.IsInRoleAsync("Staff");
+        //isStaff = await PermissionService.IsInAnyRoleAsync("Staff", "Teacher", "Admin");
         isPrincipal = await PermissionService.IsInRoleAsync("Principal");
         isDeveloper = await PermissionService.IsInRoleAsync("Developer");
+
+        if (isDeveloper) userRole = "Developer";
+        else if (isPrincipal) userRole = "Principal";
+        else if (staffProfile != null) userRole = staffProfile.UserRole.ToString();
+        else if (await PermissionService.IsInRoleAsync("Admin")) userRole = "Admin";
+        else if (await PermissionService.IsInRoleAsync("Teacher")) userRole = "Teacher";
+        else if (await PermissionService.IsInRoleAsync("Staff")) userRole = "Staff";
+        else if (isGuardian) userRole = "Guardian";
+        else if (isStudent) userRole = "Student";
 
         // 3. Student Profile + Student Report Cards
         studentProfile = SchoolDataService.GetStudents()
