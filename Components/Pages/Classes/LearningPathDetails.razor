@@ -541,6 +541,12 @@
     private void SubmitForReview()
     {
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Review;
+        learningPath.SubmittedById = currentUserId;
+        learningPath.SubmittedByName = currentUser != null
+            ? $"{currentUser.FirstName} {currentUser.LastName}"
+            : "Unknown";
+        learningPath.DateSubmitted = DateTime.Now;
+
         SchoolDataService.UpdateLearningPath(learningPath);
     }
 

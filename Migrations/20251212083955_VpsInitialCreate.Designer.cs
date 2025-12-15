@@ -4,6 +4,7 @@ using FcmsPortalUI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    partial class FcmsPortalUIContextModelSnapshot : ModelSnapshot
+    [Migration("20251212083955_VpsInitialCreate")]
+    partial class VpsInitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1005,9 +1008,6 @@ namespace FcmsPortalUI.Migrations
                     b.Property<int>("ClassLevel")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("DateSubmitted")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int>("EducationLevel")
                         .HasColumnType("int");
 
@@ -1031,12 +1031,6 @@ namespace FcmsPortalUI.Migrations
 
                     b.Property<DateTime>("SemesterStartDate")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<int?>("SubmittedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SubmittedByName")
-                        .HasColumnType("longtext");
 
                     b.Property<string>("TemplateKey")
                         .HasMaxLength(100)

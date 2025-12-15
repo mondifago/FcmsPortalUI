@@ -756,6 +756,9 @@ namespace FcmsPortalUI.Services
                 existingLearningPath.IsTemplate = learningPath.IsTemplate;
                 existingLearningPath.TemplateKey = learningPath.TemplateKey;
                 existingLearningPath.Schedule = learningPath.Schedule;
+                existingLearningPath.SubmittedById = learningPath.SubmittedById;
+                existingLearningPath.SubmittedByName = learningPath.SubmittedByName;
+                existingLearningPath.DateSubmitted = learningPath.DateSubmitted;
 
                 _context.SaveChanges();
             }
