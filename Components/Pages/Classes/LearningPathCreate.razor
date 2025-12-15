@@ -151,8 +151,6 @@
         var currentEducationLevel = learningPath.EducationLevel;
         var currentClassLevel = learningPath.ClassLevel;
         var currentSemester = learningPath.Semester;
-        var currentStudents = learningPath.Students;
-        var currentStudentsWithAccess = learningPath.StudentsWithAccess;
         var currentAcademicYearStart = learningPath.AcademicYearStart;
 
         InitializeNewLearningPath();
@@ -160,8 +158,6 @@
         learningPath.EducationLevel = currentEducationLevel;
         learningPath.ClassLevel = currentClassLevel;
         learningPath.Semester = currentSemester;
-        learningPath.Students = currentStudents;
-        learningPath.StudentsWithAccess = currentStudentsWithAccess;
         learningPath.AcademicYearStart = currentAcademicYearStart;
 
         StateHasChanged();
@@ -186,10 +182,6 @@
     private void HandleValidSubmit(LearningPath submittedLearningPath)
     {
         SchoolDataService.AddLearningPath(submittedLearningPath);
-        foreach (var student in submittedLearningPath.Students)
-        {
-            SchoolDataService.SetStudentSchoolFees(student, submittedLearningPath.FeePerSemester);
-        }
         NavigateToList();
     }
 

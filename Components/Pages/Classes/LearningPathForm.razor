@@ -207,77 +207,6 @@
             </div>
         </div>
     }
-
-    @if (availableStudents != null && availableStudents.Any())
-    {
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Students</h5>
-                <p class="small text-muted mb-0">
-                    Select students to enroll in this learning path
-                </p>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-2">
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline-primary me-2"
-                                    @onclick="SelectAllStudents">
-                                Select All
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary"
-                                    @onclick="UnselectAllStudents">
-                                Unselect All
-                            </button>
-                        </div>
-                        <div>
-                            <span class="badge bg-info">@selectedStudentIds.Count selected</span>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped">
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;"></th>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Education Level</th>
-                                    <th>Class Level</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var student in availableStudents)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="form-check">
-                                                <input type="checkbox"
-                                                       class="form-check-input"
-                                                       checked="@IsStudentSelected(student.Id)"
-                                                       @onchange="(e) => ToggleStudentSelection(student.Id, (bool?)e.Value ?? false)" />
-                                            </div>
-                                        </td>
-                                        <td>@student.Id</td>
-                                        <td>@student.Person.FirstName @student.Person.LastName</td>
-                                        <td>@student.Person.EducationLevel</td>
-                                        <td>@student.Person.ClassLevel</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-    else if (LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
-    {
-        <div class="alert alert-info">
-            No students found for the selected Education Level and Class Level.
-        </div>
-    }
-
     <div class="mb-3">
         <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
         <button type="button" class="btn btn-secondary ms-2" @onclick="OnCancel">Cancel</button>
@@ -336,9 +265,7 @@
     [Parameter]
     public EventCallback OnClearTemplate { get; set; }
 
-    private List<Student> availableStudents = new List<Student>();
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
-    private HashSet<int> selectedStudentIds = new HashSet<int>();
     private ScheduleEntry? scheduleToEdit = null;
     private ScheduleEntry? scheduleToDelete = null;
     private EditContext? editContext;
@@ -348,16 +275,8 @@
     private bool showEditScheduleModal = false;
     private bool showDeleteConfirmation = false;
 
-
     protected override void OnInitialized()
     {
-
-        if (LearningPath.Students != null)
-        {
-            selectedStudentIds = new HashSet<int>(LearningPath.Students.Select(s => s.Id));
-        }
-
-        LoadAvailableStudents();
         LoadAvailableClassLevels();
 
         academicYearStartYear = LearningPath.AcademicYearStart.Year != 1 ?
@@ -365,14 +284,6 @@
 
         editContext = new EditContext(LearningPath);
         messageStore = new ValidationMessageStore(editContext);
-    }
-
-    private void LoadAvailableStudents()
-    {
-        if (LearningPath.EducationLevel != EducationLevel.None && LearningPath.ClassLevel != ClassLevel.None)
-        {
-            availableStudents = SchoolDataService.GetStudentsByLevel(LearningPath.EducationLevel, LearningPath.ClassLevel);
-        }
     }
 
     private void LoadAvailableClassLevels()
@@ -410,16 +321,12 @@
     private void OnEducationLevelChangedInternal()
     {
         LearningPath.ClassLevel = ClassLevel.None;
-        selectedStudentIds.Clear();
         LoadAvailableClassLevels();
-        LoadAvailableStudents();
         StateHasChanged();
     }
 
     private void OnClassLevelChangedInternal()
     {
-        selectedStudentIds.Clear();
-        LoadAvailableStudents();
         StateHasChanged();
     }
 
@@ -434,27 +341,6 @@
 
     private void OnFeePerSemesterChanged()
     {
-        StateHasChanged();
-    }
-
-    private bool IsStudentSelected(int studentId)
-    {
-        return selectedStudentIds.Contains(studentId);
-    }
-
-    private void ToggleStudentSelection(int studentId, object isChecked)
-    {
-        Util.ToggleItemSelection<Student>(studentId, isChecked, selectedStudentIds);
-    }
-
-    private void SelectAllStudents()
-    {
-        selectedStudentIds = new HashSet<int>(availableStudents.Select(s => s.Id));
-    }
-
-    private void UnselectAllStudents()
-    {
-        selectedStudentIds.Clear();
         StateHasChanged();
     }
 
@@ -553,14 +439,10 @@
             return;
         }
 
-        LearningPath.Students = availableStudents
-            .Where(s => selectedStudentIds.Contains(s.Id))
-            .ToList();
-
         LearningPath.AcademicYearStart = new DateTime(
             academicYearStartYear,
-        LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : FcmsConstants.SEMESTER_1_STARTMONTH,
-        LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : FcmsConstants.SEMESTER_1_STARTDAY
+            LearningPath.AcademicYearStart.Month != 0 ? LearningPath.AcademicYearStart.Month : FcmsConstants.SEMESTER_1_STARTMONTH,
+            LearningPath.AcademicYearStart.Day != 0 ? LearningPath.AcademicYearStart.Day : FcmsConstants.SEMESTER_1_STARTDAY
         );
 
         await OnSubmit.InvokeAsync(LearningPath);
