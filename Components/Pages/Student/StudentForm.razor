@@ -97,7 +97,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
-                    <InputSelect id="educationLevel" class="form-select" @bind-Value="Student.Person.EducationLevel" @bind-Value:after="OnEducationLevelChanged">
+                    <InputSelect id="educationLevel" class="form-select" @bind-Value="Student.Person.EducationLevel" @bind-Value:after="OnEducationLevelChanged" disabled="@IsInLearningPath">
                         <option value="@EducationLevel.None">-- Select Education Level --</option>
                         @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
                         {
@@ -108,7 +108,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
-                    <select id="classLevel" @bind="Student.Person.ClassLevel" class="form-select">
+                    <select id="classLevel" @bind="Student.Person.ClassLevel" class="form-select" disabled="@IsInLearningPath">
                         <option value="@ClassLevel.None">-- Select Class Level --</option>
                         @foreach (var level in availableClassLevels)
                         {
@@ -217,6 +217,7 @@
     private string oldProfilePictureUrl = "";
     private List<Guardian> guardians = new();
     private List<ClassLevel> availableClassLevels = new List<ClassLevel>();
+    private bool IsInLearningPath => Student.LearningPathId > 0;
 
     protected override void OnInitialized()
     {
