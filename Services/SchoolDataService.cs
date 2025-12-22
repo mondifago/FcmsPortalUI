@@ -1587,7 +1587,7 @@ namespace FcmsPortalUI.Services
             var folderName = Path.GetInvalidFileNameChars()
                 .Aggregate(category, (current, c) => current.Replace(c, '_'));
 
-            var targetFolder = Path.Combine(_environment.WebRootPath, folderName);
+            var targetFolder = UploadPathHelper.GetCategoryPath(_environment, folderName);
             if (!Directory.Exists(targetFolder))
             {
                 Directory.CreateDirectory(targetFolder);
@@ -1602,7 +1602,7 @@ namespace FcmsPortalUI.Services
                 await file.OpenReadStream(FcmsConstants.MAX_FILE_SIZE).CopyToAsync(stream);
             }
 
-            var publicUrl = $"/{folderName}/{uniqueFileName}";
+            var publicUrl = UploadPathHelper.GetPublicUrl(folderName, uniqueFileName);
 
             var attachment = new FileAttachment
             {
@@ -1623,7 +1623,7 @@ namespace FcmsPortalUI.Services
             if (attachment == null)
                 throw new ArgumentNullException(nameof(attachment));
 
-            var filePath = Path.Combine(_environment.WebRootPath, attachment.FilePath.TrimStart('/'));
+            var filePath = UploadPathHelper.GetPhysicalPath(_environment, attachment.FilePath);
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
