@@ -56,6 +56,8 @@ namespace FcmsPortalUI.Services
                                         Course = se.ClassSession.Course,
                                         Topic = se.ClassSession.Topic,
                                         TeacherRemarks = se.ClassSession.TeacherRemarks,
+                                        RemarksSubmittedByName = se.ClassSession.RemarksSubmittedByName,
+                                        RemarksSubmittedAt = se.ClassSession.RemarksSubmittedAt,
                                         Teacher = se.ClassSession.Teacher != null ? new Staff
                                         {
                                             Id = se.ClassSession.Teacher.Id,
@@ -1874,11 +1876,9 @@ namespace FcmsPortalUI.Services
         public List<GradesReport> GetGradesReports(string academicYear, string semester)
         {
             var school = _context.School
-                .Include(s => s.Students)
-                    .ThenInclude(st => st.CourseGrades)
-                        .ThenInclude(cg => cg.TestGrades)
+                .AsNoTracking()
                 .Include(s => s.LearningPaths)
-                    .ThenInclude(lp => lp.CourseGradingConfigurations)
+                    .ThenInclude(lp => lp.Students)
                 .FirstOrDefault();
 
             return LogicMethods.GetGradesReports(school, academicYear, semester);
