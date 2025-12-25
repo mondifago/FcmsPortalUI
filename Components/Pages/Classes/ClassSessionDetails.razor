@@ -574,6 +574,11 @@
 
     private void SaveRemarks()
     {
+        if (currentUser != null)
+        {
+            classSession.RemarksSubmittedByName = $"{currentUser.FirstName} {currentUser.LastName}";
+            classSession.RemarksSubmittedAt = DateTime.Now;
+        }
         SchoolDataService.UpdateClassSession(classSession);
         showRemarksEditor = false;
     }
