@@ -11,24 +11,32 @@
 
 <PageTitle>Profile</PageTitle>
 
-<h3>Profile</h3>
 <StatusMessage />
 
+<h5 class="mb-3"><i class="fa fa-user me-2 text-primary"></i>Profile Information</h5>
+<p class="text-muted small">Update your account profile information.</p>
+<hr />
+
 <div class="row">
-    <div class="col-xl-6">
+    <div class="col-md-6">
         <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <input type="text" value="@username" id="username" class="form-control" placeholder="Choose your username." disabled />
-                <label for="username" class="form-label">Username</label>
+
+            <div class="mb-3">
+                <label for="username" class="form-label grey-label">Username</label>
+                <input type="text" value="@username" id="username" class="form-control" disabled />
             </div>
-            <div class="form-floating mb-3">
+
+            <div class="mb-3">
+                <label for="Input.PhoneNumber" class="form-label grey-label">Phone number</label>
                 <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" class="form-control" placeholder="Enter your phone number" />
-                <label for="Input.PhoneNumber" class="form-label">Phone number</label>
                 <ValidationMessage For="() => Input.PhoneNumber" class="text-danger" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+
+            <button type="submit" class="btn btn-success">
+                <i class="fa fa-save me-1"></i>Save Changes
+            </button>
         </EditForm>
     </div>
 </div>
