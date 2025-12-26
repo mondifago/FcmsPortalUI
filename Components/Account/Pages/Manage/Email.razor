@@ -12,43 +12,52 @@
 @inject IdentityUserAccessor UserAccessor
 @inject NavigationManager NavigationManager
 
-<PageTitle>Manage email</PageTitle>
+<PageTitle>Manage Email</PageTitle>
 
-<h3>Manage email</h3>
+<StatusMessage Message="@message" />
 
-<StatusMessage Message="@message"/>
+<h5 class="mb-3"><i class="fa fa-envelope me-2 text-primary"></i>Manage Email</h5>
+<p class="text-muted small">Change or verify your email address.</p>
+<hr />
+
 <div class="row">
-    <div class="col-xl-6">
+    <div class="col-md-6">
         <form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post">
             <AntiforgeryToken />
         </form>
+
         <EditForm Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
-            @if (isEmailConfirmed)
-            {
-                <div class="form-floating mb-3 input-group">
-                    <input type="text" value="@email" id="email" class="form-control" placeholder="Enter your email" disabled />
-                    <div class="input-group-append">
-                        <span class="h-100 input-group-text text-success font-weight-bold">✓</span>
-                    </div>
-                    <label for="email" class="form-label">Email</label>
+
+            <div class="mb-3">
+                <label for="email" class="form-label grey-label">Current Email</label>
+                <div class="input-group">
+                    <input type="text" value="@email" id="email" class="form-control" disabled />
+                    @if (isEmailConfirmed)
+                    {
+                        <span class="input-group-text text-success">
+                            <i class="fa fa-check-circle"></i>
+                        </span>
+                    }
                 </div>
-            }
-            else
-            {
-                <div class="form-floating mb-3">
-                    <input type="text" value="@email" id="email" class="form-control" placeholder="Enter your email" disabled />
-                    <label for="email" class="form-label">Email</label>
-                    <button type="submit" class="btn btn-link" form="send-verification-form">Send verification email</button>
-                </div>
-            }
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.NewEmail" id="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter a new email" />
-                <label for="Input.NewEmail" class="form-label">New email</label>
+                @if (!isEmailConfirmed)
+                {
+                    <button type="submit" class="btn btn-link p-0 mt-1" form="send-verification-form">
+                        <small>Send verification email</small>
+                    </button>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label for="Input.NewEmail" class="form-label grey-label">New Email</label>
+                <InputText @bind-Value="Input.NewEmail" id="Input.NewEmail" class="form-control" autocomplete="email" placeholder="Enter new email address" />
                 <ValidationMessage For="() => Input.NewEmail" class="text-danger" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Change email</button>
+
+            <button type="submit" class="btn btn-success">
+                <i class="fa fa-save me-1"></i>Change Email
+            </button>
         </EditForm>
     </div>
 </div>

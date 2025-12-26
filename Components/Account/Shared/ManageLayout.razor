@@ -1,17 +1,24 @@
 ﻿@inherits LayoutComponentBase
 @layout FcmsPortalUI.Components.Layout.MainLayout
 
-<h1>Manage your account</h1>
-
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
+<div class="container-fluid py-3">
     <div class="row">
-        <div class="col-lg-3">
-            <ManageNavMenu />
+        <div class="col-lg-3 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0"><i class="fa fa-cog me-2"></i>Account Settings</h6>
+                </div>
+                <div class="card-body p-0">
+                    <ManageNavMenu />
+                </div>
+            </div>
         </div>
         <div class="col-lg-9">
-            @Body
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    @Body
+                </div>
+            </div>
         </div>
     </div>
 </div>

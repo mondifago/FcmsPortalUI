@@ -5,25 +5,37 @@
 
 <ul class="nav nav-pills flex-column">
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
+        <NavLink class="nav-link" href="Account/Manage" Match="NavLinkMatch.All">
+            <i class="fa fa-user me-2"></i>Profile
+        </NavLink>
     </li>
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/Email">Email</NavLink>
+        <NavLink class="nav-link" href="Account/Manage/Email">
+            <i class="fa fa-envelope me-2"></i>Email
+        </NavLink>
     </li>
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/ChangePassword">Password</NavLink>
+        <NavLink class="nav-link" href="Account/Manage/ChangePassword">
+            <i class="fa fa-key me-2"></i>Password
+        </NavLink>
     </li>
     @if (hasExternalLogins)
     {
         <li class="nav-item">
-            <NavLink class="nav-link" href="Account/Manage/ExternalLogins">External logins</NavLink>
+            <NavLink class="nav-link" href="Account/Manage/ExternalLogins">
+                <i class="fa fa-link me-2"></i>External logins
+            </NavLink>
         </li>
     }
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
+        <NavLink class="nav-link" href="Account/Manage/TwoFactorAuthentication">
+            <i class="fa fa-shield-alt me-2"></i>Two-factor authentication
+        </NavLink>
     </li>
     <li class="nav-item">
-        <NavLink class="nav-link" href="Account/Manage/PersonalData">Personal data</NavLink>
+        <NavLink class="nav-link" href="Account/Manage/PersonalData">
+            <i class="fa fa-database me-2"></i>Personal data
+        </NavLink>
     </li>
 </ul>
 
