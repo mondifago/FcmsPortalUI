@@ -5,21 +5,35 @@
 <PageTitle>Personal Data</PageTitle>
 
 <StatusMessage />
-<h3>Personal Data</h3>
 
-<div class="row">
+<h5 class="mb-3"><i class="fa fa-database me-2 text-primary"></i>Personal Data</h5>
+<p class="text-muted small">Download or delete your personal data.</p>
+<hr />
+
+<div class="row g-4">
     <div class="col-md-6">
-        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
-        <p>
-            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-        </p>
-        <form action="Account/Manage/DownloadPersonalData" method="post">
-            <AntiforgeryToken />
-            <button class="btn btn-primary" type="submit">Download</button>
-        </form>
-        <p>
-            <a href="Account/Manage/DeletePersonalData" class="btn btn-danger">Delete</a>
-        </p>
+        <div class="border rounded p-3 h-100">
+            <h6><i class="fa fa-download me-2 text-success"></i>Download Your Data</h6>
+            <p class="text-muted small mb-3">Get a copy of all personal information associated with your account.</p>
+            <form action="Account/Manage/DownloadPersonalData" method="post">
+                <AntiforgeryToken />
+                <button class="btn btn-success" type="submit">
+                    <i class="fa fa-file-download me-1"></i>Download
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="border border-danger rounded p-3 h-100 bg-danger bg-opacity-10">
+            <h6><i class="fa fa-trash-alt me-2 text-danger"></i>Delete Your Data</h6>
+            <p class="text-muted small mb-3">
+                <strong>Warning:</strong> This will permanently remove your account and cannot be recovered.
+            </p>
+            <a href="Account/Manage/DeletePersonalData" class="btn btn-outline-danger">
+                <i class="fa fa-user-times me-1"></i>Delete Account
+            </a>
+        </div>
     </div>
 </div>
 
