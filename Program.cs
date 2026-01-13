@@ -50,7 +50,11 @@ builder.Services.AddIdentityCore<Person>(options => options.SignIn.RequireConfir
                .AddSignInManager()
                .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<Person>, IdentityNoOpEmailSender>();
+
+builder.Services.AddScoped<IEmailSender<Person>, IdentityEmailSender>();
+
+
+
 builder.Services.AddAuthorization();
 
 // Blazor Auth 
@@ -103,10 +107,10 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseHttpsRedirection();
 
-app.UseAntiforgery();
-
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseAntiforgery();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
