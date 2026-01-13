@@ -82,7 +82,7 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label for="email" class="form-label">Email<span class="text-danger">*</span></label>
-                    <InputText id="email" class="form-control" @bind-Value="Student.Person.Email" />
+                    <InputText id="email" class="form-control" @bind-Value="Student.Person.Email" disabled="@IsEditMode" />
                     <ValidationMessage For="@(() => Student.Person.Email)" />
                 </div>
                 <div class="col-md-4 mb-3">
@@ -210,6 +210,9 @@
 
     [Parameter, EditorRequired]
     public EventCallback OnCancel { get; set; }
+
+    [Parameter]
+    public bool IsEditMode { get; set; } = false;
 
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
