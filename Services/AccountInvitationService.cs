@@ -47,6 +47,7 @@ namespace FcmsPortalUI.Services
         public async Task SendInvitationAsync(AccountInvitation invitation)
         {
             await _emailService.SendAccountInvitationAsync(
+
                 invitation.Email,
                 invitation.Token,
                 invitation.Role,
