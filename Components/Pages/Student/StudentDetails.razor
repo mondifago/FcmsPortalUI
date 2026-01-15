@@ -32,14 +32,20 @@
                         else
                         {
                             <button class="btn btn-danger me-2" @onclick="ShowRemoveConfirmation">
-                                 Remove from Learning Path
+                                Remove from Learning Path
                             </button>
                         }
                     </Authorized>
                 </AuthorizeView>
-                <a href="/students/edit/@Id" class="btn btn-warning">
-                    <i class="fa fa-pencil"></i> Edit
-                </a>
+
+                <AuthorizeView Roles="Developer,Principal,Admin">
+                    <Authorized>
+                        <a href="/students/edit/@Id" class="btn btn-warning">
+                            <i class="fa fa-pencil"></i> Edit
+                        </a>
+                    </Authorized>
+                </AuthorizeView>
+
                 <a href="/students" class="btn btn-secondary">
                     <i class="fa fa-arrow-left"></i> Back to List
                 </a>

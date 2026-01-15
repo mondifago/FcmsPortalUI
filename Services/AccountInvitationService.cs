@@ -44,10 +44,17 @@ namespace FcmsPortalUI.Services
             return invitation;
         }
 
-        public async Task SendInvitationAsync(AccountInvitation invitation)
+        private async Task SendInvitationAsync(AccountInvitation invitation)
         {
-            await _emailService.SendAccountInvitationAsync(
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
+            var person = await context.Persons.FirstOrDefaultAsync(p => p.Id == invitation.PersonId);
+
+            if (person == null)
+                throw new InvalidOperationException($"Person with ID {invitation.PersonId} not found.");
+
+            await _emailService.SendAccountInvitationAsync(
+                person,
                 invitation.Email,
                 invitation.Token,
                 invitation.Role,
