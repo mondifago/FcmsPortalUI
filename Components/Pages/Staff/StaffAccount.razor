@@ -29,9 +29,30 @@ else
             <p><strong>Role:</strong> @staff.UserRole</p>
             <p><strong>Date of Employment:</strong> @staff.DateOfEmployment.ToShortDateString()</p>
             <p>
-                <strong>Account Status:</strong>
-                @(staff.Person.EmailConfirmed ? "Confirmed" : "Not Confirmed")
+                <strong>Account Registration:</strong>
+                @if (staff.Person.EmailConfirmed)
+                {
+                    <span class="text-success">Complete</span>
+                }
+                else
+                {
+                    <span class="text-danger">Incomplete</span>
+                }
             </p>
+
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <strong>Account Status:</strong>
+                <div class="form-check form-switch mb-0">
+                    <input type="checkbox"
+                           id="isActive"
+                           class="form-check-input"
+                           checked="@staff.Person.IsActive"
+                           @onchange="ToggleAccountStatus" />
+                    <label class="form-check-label" for="isActive">
+                        @(staff.Person.IsActive ? "Active" : "Inactive")
+                    </label>
+                </div>
+            </div>
 
             <button class="btn btn-primary" @onclick="SendInvitation" disabled="@sending">
                 <i class="fa fa-envelope"></i>
@@ -113,6 +134,26 @@ else
         {
             invitations = await AccountInvitationService.GetInvitationsForPersonAsync(staff.PersonId);
         }
+    }
+
+    private void ToggleAccountStatus(ChangeEventArgs e)
+    {
+        if (staff == null) return;
+
+        var isActive = (bool)(e.Value ?? false);
+
+        if (isActive)
+        {
+            SchoolDataService.ActivatePerson(staff.Person);
+            message = "Account has been activated.";
+        }
+        else
+        {
+            SchoolDataService.DeactivatePerson(staff.Person);
+            message = "Account has been deactivated.";
+        }
+
+        staff.Person.IsActive = isActive;
     }
 
     private async Task SendInvitation()
