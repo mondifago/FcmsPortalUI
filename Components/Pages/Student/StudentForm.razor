@@ -144,13 +144,6 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                <div class="form-check form-switch">
-                    <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Student.Person.IsActive" />
-                    <label class="form-check-label" for="isActive">Active Status</label>
-                </div>
-            </div>
-
             <h4 class="mb-3">Address Information<span class="text-danger">*</span></h4>
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -194,13 +187,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public Student Student { get; set; } = new()
-    {
-        Person = new Person()
-        {
-            IsActive = true
-        }
-    };
+    public Student Student { get; set; } = null!;
 
     [Parameter]
     public string SubmitButtonText { get; set; } = "Save";
