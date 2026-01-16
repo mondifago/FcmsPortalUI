@@ -27,11 +27,30 @@ else
             <p><strong>Occupation:</strong> @guardian.Occupation</p>
             <p><strong>Relationship:</strong> @guardian.RelationshipToStudent</p>
             <p>
+                <strong>Account Registration:</strong>
+                @if (guardian.Person.EmailConfirmed)
+                {
+                    <span class="text-success">Complete</span>
+                }
+                else
+                {
+                    <span class="text-danger">Incomplete</span>
+                }
+            </p>
+
+            <div class="d-flex align-items-center gap-3 mb-3">
                 <strong>Account Status:</strong>
-                @(guardian.Person.EmailConfirmed
-                            ? "Confirmed"
-                            : "Not Confirmed")
-        </p>
+                <div class="form-check form-switch mb-0">
+                    <input type="checkbox"
+                           id="isActive"
+                           class="form-check-input"
+                           checked="@guardian.Person.IsActive"
+                           @onchange="ToggleAccountStatus" />
+                    <label class="form-check-label" for="isActive">
+                        @(guardian.Person.IsActive ? "Active" : "Inactive")
+                    </label>
+                </div>
+            </div>
 
             <button class="btn btn-primary" @onclick="SendInvitation" disabled="@sending">
                 <i class="fa fa-envelope"></i>
@@ -115,6 +134,26 @@ else
         }
     }
 
+    private void ToggleAccountStatus(ChangeEventArgs e)
+    {
+        if (guardian == null) return;
+
+        var isActive = (bool)(e.Value ?? false);
+
+        if (isActive)
+        {
+            SchoolDataService.ActivatePerson(guardian.Person);
+            message = "Account has been activated.";
+        }
+        else
+        {
+            SchoolDataService.DeactivatePerson(guardian.Person);
+            message = "Account has been deactivated.";
+        }
+
+        guardian.Person.IsActive = isActive;
+    }
+
     private async Task SendInvitation()
     {
         if (guardian == null || string.IsNullOrWhiteSpace(guardian.Person.Email))
@@ -133,13 +172,13 @@ else
             int.TryParse(user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var senderId);
 
             await AccountInvitationService.CreateInvitationAsync(
-                guardian.PersonId,          
+                guardian.PersonId,
                 guardian.Person.Email,
                 "Guardian",
                 senderId
             );
 
-            invitations = await AccountInvitationService.GetInvitationsForPersonAsync(guardian.PersonId); 
+            invitations = await AccountInvitationService.GetInvitationsForPersonAsync(guardian.PersonId);
             message = $"Invitation sent to {guardian.Person.Email} at {DateTime.Now:g}.";
         }
         catch (Exception ex)

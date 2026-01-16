@@ -33,8 +33,6 @@ builder.Services.AddPooledDbContextFactory<FcmsPortalUIContext>(ConfigureDbConte
 builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IDbContextFactory<FcmsPortalUIContext>>().CreateDbContext());
 
-
-
 // Authentication schemes
 builder.Services.AddAuthentication(options =>
 {
@@ -50,11 +48,7 @@ builder.Services.AddIdentityCore<Person>(options => options.SignIn.RequireConfir
                .AddSignInManager()
                .AddDefaultTokenProviders();
 
-
 builder.Services.AddScoped<IEmailSender<Person>, IdentityEmailSender>();
-
-
-
 builder.Services.AddAuthorization();
 
 // Blazor Auth 

@@ -43,8 +43,6 @@ namespace FcmsPortalUI.Services
         void RemoveStudentFromAllLearningPaths(Student student);
         bool DeleteStudent(int studentId);
         string? ValidateGuardianDeletion(int guardianId);
-        public void ActivateStudent(Student student);
-        void DeActivateStudent(Student student);
         List<Student> GetStudentsByLevel(EducationLevel educationLevel, ClassLevel classLevel);
         #endregion
 
@@ -228,5 +226,9 @@ namespace FcmsPortalUI.Services
 
         #endregion
 
+        #region Account Management
+        void ActivatePerson(Person person);
+        void DeactivatePerson(Person person);
+        #endregion
     }
 }

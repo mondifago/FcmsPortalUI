@@ -467,7 +467,6 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-
         public bool DeleteStudent(int studentId)
         {
             var student = _context.Students
@@ -489,24 +488,6 @@ namespace FcmsPortalUI.Services
 
             _context.SaveChanges();
             return true;
-        }
-
-        public void ActivateStudent(Student student)
-        {
-            if (student?.Person == null)
-                throw new ArgumentNullException(nameof(student), "Student and Person cannot be null.");
-
-            student.Person.IsActive = true;
-            _context.SaveChanges();
-        }
-
-        public void DeActivateStudent(Student student)
-        {
-            if (student?.Person == null)
-                throw new ArgumentNullException(nameof(student), "Student and Person cannot be null.");
-
-            student.Person.IsActive = false;
-            _context.SaveChanges();
         }
 
         public List<Student> GetStudentsByLevel(EducationLevel educationLevel, ClassLevel classLevel)
@@ -556,11 +537,11 @@ namespace FcmsPortalUI.Services
 
             if (feeAmount > 0)
             {
-                ActivateStudent(student);
+                ActivatePerson(student.Person);
             }
             else
             {
-                DeActivateStudent(student);
+                DeactivatePerson(student.Person);
             }
         }
 
@@ -3115,6 +3096,26 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault();
 
             return school?.CurrentAcademicPeriod;
+        }
+        #endregion
+
+        #region Account Management
+        public void ActivatePerson(Person person)
+        {
+            if (person == null)
+                throw new ArgumentNullException(nameof(person), "Person cannot be null.");
+
+            person.IsActive = true;
+            _context.SaveChanges();
+        }
+
+        public void DeactivatePerson(Person person)
+        {
+            if (person == null)
+                throw new ArgumentNullException(nameof(person), "Person cannot be null.");
+
+            person.IsActive = false;
+            _context.SaveChanges();
         }
         #endregion
     }

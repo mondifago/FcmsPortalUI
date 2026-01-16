@@ -101,12 +101,6 @@
                     <label for="dateOfEnrollment" class="form-label">Date of Enrollment<span class="text-danger">*</span></label>
                     <InputDate id="dateOfEnrollment" class="form-control" @bind-Value="enrollmentDate" />
                 </div>
-                <div class="col-md-6 mb-3">
-                    <div class="form-check form-switch mt-4">
-                        <InputCheckbox id="isActive" class="form-check-input" @bind-Value="Guardian.Person.IsActive" />
-                        <label class="form-check-label" for="isActive">Status</label>
-                    </div>
-                </div>
             </div>
 
             <h4 class="mb-3">Address Information<span class="text-danger">*</span></h4>
@@ -152,15 +146,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public Guardian Guardian { get; set; } = new()
-    {
-       Person = new Person()
-       {
-           IsActive = true,
-           Address = new Address()
-       },
-       Wards = new List<Student>()
-    };
+    public Guardian Guardian { get; set; } = null!;
 
     [Parameter]
     public string SubmitButtonText { get; set; } = "Save";
