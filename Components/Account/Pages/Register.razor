@@ -204,6 +204,9 @@
         // Auto-confirming invited email manually set because having received the email by user, email is confirmed
         user.EmailConfirmed = true;
 
+        // Activate account now that registration is complete
+        user.IsActive = true;
+
         // Ensure user security stamp exists
         if (string.IsNullOrEmpty(user.SecurityStamp))
             user.SecurityStamp = Guid.NewGuid().ToString();
