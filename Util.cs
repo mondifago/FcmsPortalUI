@@ -290,5 +290,10 @@ namespace FcmsPortalUI
         {
             return await originalFile.RequestImageFileAsync("image/jpeg", 400, 400);
         }
+
+        public static bool IsStudentEnrolled(Student student)
+        {
+            return student?.LearningPathId > 0;
+        }
     }
 }

@@ -46,7 +46,7 @@ else
                            class="form-check-input"
                            checked="@guardian.Person.IsActive"
                            @onchange="ToggleAccountStatus" />
-                    <label class="form-check-label" for="isActive">
+                    <label class="form-check-label @(guardian.Person.IsActive ? "text-success" : "text-danger")" for="isActive">
                         @(guardian.Person.IsActive ? "Active" : "Inactive")
                     </label>
                 </div>
@@ -56,11 +56,6 @@ else
                 <i class="fa fa-envelope"></i>
                 @(sending ? "Sending..." : "Send Account Invitation")
             </button>
-
-        @if (!string.IsNullOrEmpty(message))
-            {
-                <div class="alert alert-info mt-3">@message</div>
-            }
         </div>
     </div>
 
@@ -143,12 +138,10 @@ else
         if (isActive)
         {
             SchoolDataService.ActivatePerson(guardian.Person);
-            message = "Account has been activated.";
         }
         else
         {
             SchoolDataService.DeactivatePerson(guardian.Person);
-            message = "Account has been deactivated.";
         }
 
         guardian.Person.IsActive = isActive;

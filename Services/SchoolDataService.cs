@@ -534,15 +534,6 @@ namespace FcmsPortalUI.Services
                 student.Person.SchoolFees.TotalAmount = feeAmount;
             }
             _context.SaveChanges();
-
-            if (feeAmount > 0)
-            {
-                ActivatePerson(student.Person);
-            }
-            else
-            {
-                DeactivatePerson(student.Person);
-            }
         }
 
         public void RemoveStudentFromLearningPath(LearningPath learningPath, Student student)
@@ -567,8 +558,6 @@ namespace FcmsPortalUI.Services
             existingLearningPath.StudentsWithAccess.Remove(student);
 
             SetStudentSchoolFees(student, 0);
-            student.Person.IsActive = false;
-            UpdateStudent(student);
 
             _context.SaveChanges();
         }

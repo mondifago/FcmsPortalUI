@@ -104,6 +104,9 @@
                                 <span class="badge @(student.Person.IsActive ? "bg-success" : "bg-danger")">
                                     @(student.Person.IsActive ? "Active" : "Inactive")
                                 </span>
+                                <span class="badge @(Util.IsStudentEnrolled(student) ? "bg-success" : "bg-danger")">
+                                    @(Util.IsStudentEnrolled(student) ? "Enrolled" : "Not Enrolled")
+                                </span>
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
