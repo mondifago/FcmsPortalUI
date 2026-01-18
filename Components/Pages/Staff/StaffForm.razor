@@ -6,6 +6,7 @@
 @inject NavigationManager NavigationManager
 @inject ValidationService ValidationService
 @inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
 
 <EditForm EditContext="@editContext" OnSubmit="HandleSubmit">
     <DataAnnotationsValidator />
@@ -96,12 +97,7 @@
                     <label for="userRole" class="form-label">User Role<span class="text-danger">*</span></label>
                     <InputSelect id="userRole" class="form-select" @bind-Value="Staff.UserRole">
                         <option value="">-- Select Job Role --</option>
-                        @foreach (var role in Enum.GetValues(typeof(UserRole))
-                                                .Cast<UserRole>()
-                                                .Where(r => r != UserRole.None &&
-                                                r != UserRole.Student &&
-                                                r != UserRole.Guardian &&
-                                                r != UserRole.Developer))
+                        @foreach (var role in availableUserRoles)
                         {
                             <option value="@role">@role</option>
                         }
@@ -222,8 +218,14 @@
     private string oldProfilePictureUrl = "";
     private List<string> availableCourses { get; set; } = new();
 
-    protected override void OnInitialized()
+    private List<UserRole> availableUserRoles = new();
+    private bool canAssignPrincipal = false;
+
+    protected override async Task OnInitializedAsync()
     {
+        canAssignPrincipal = await PermissionService.IsInAnyRoleAsync("Developer", "Principal");
+        LoadAvailableUserRoles();
+
         if (Staff.Person.Address == null)
             Staff.Person.Address = new Address();
 
@@ -239,6 +241,23 @@
         availableCourses = CourseDefaults.GetCourseNames(Staff.Person.EducationLevel);
         editContext = new EditContext(Staff);
         messageStore = new ValidationMessageStore(editContext);
+    }
+
+    private void LoadAvailableUserRoles()
+    {
+        availableUserRoles = Enum.GetValues(typeof(UserRole))
+            .Cast<UserRole>()
+            .Where(r =>
+                r != UserRole.None &&
+                r != UserRole.Student &&
+                r != UserRole.Guardian &&
+                r != UserRole.Developer &&
+                (
+                    canAssignPrincipal ||
+                    (r != UserRole.Principal && r != UserRole.Admin)
+                )
+            )
+            .ToList();
     }
 
     private void HandleEducationLevelChange()

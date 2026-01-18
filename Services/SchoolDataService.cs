@@ -513,7 +513,7 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public bool DeleteStudent(int studentId)
+        public async Task<bool> DeleteStudentAsync(int studentId)
         {
             var student = _context.Students
                 .Include(s => s.Person)
@@ -524,6 +524,29 @@ namespace FcmsPortalUI.Services
                 return false;
             }
 
+            // Delete profile picture if exists
+            if (!string.IsNullOrEmpty(student.Person?.ProfilePictureUrl) &&
+                !student.Person.ProfilePictureUrl.StartsWith("data:"))
+            {
+                var attachment = new FileAttachment { FilePath = student.Person.ProfilePictureUrl };
+                await DeleteFileAsync(attachment);
+            }
+
+            // Remove from learning paths
+            var learningPaths = _context.LearningPaths
+                .Include(lp => lp.Students)
+                .Where(lp => lp.Students.Any(s => s.Id == studentId))
+                .ToList();
+
+            foreach (var lp in learningPaths)
+            {
+                var studentToRemove = lp.Students.FirstOrDefault(s => s.Id == studentId);
+                if (studentToRemove != null)
+                {
+                    lp.Students.Remove(studentToRemove);
+                }
+            }
+
             var person = student.Person;
 
             _context.Students.Remove(student);
@@ -532,7 +555,7 @@ namespace FcmsPortalUI.Services
                 _context.Persons.Remove(person);
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return true;
         }
 

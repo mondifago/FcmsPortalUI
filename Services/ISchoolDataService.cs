@@ -42,7 +42,7 @@ namespace FcmsPortalUI.Services
         Student? GetStudentById(int id);
         void UpdateStudent(Student student);
         void RemoveStudentFromAllLearningPaths(Student student);
-        bool DeleteStudent(int studentId);
+        Task<bool> DeleteStudentAsync(int studentId);
         string? ValidateGuardianDeletion(int guardianId);
         List<Student> GetStudentsByLevel(EducationLevel educationLevel, ClassLevel classLevel);
         #endregion
