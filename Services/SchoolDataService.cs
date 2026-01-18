@@ -251,6 +251,52 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
             return true;
         }
+
+        public string? ValidateStaffDeletion(int staffId)
+        {
+            var staff = _context.Staff
+                .Include(s => s.Person)
+                .FirstOrDefault(s => s.Id == staffId);
+
+            if (staff == null)
+            {
+                return "Staff not found.";
+            }
+
+            var currentPeriod = GetCurrentAcademicPeriod();
+            if (currentPeriod == null)
+            {
+                return null;
+            }
+
+            var assignedClassSessions = _context.LearningPaths
+                .AsNoTracking()
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                        .ThenInclude(cs => cs.Teacher)
+                .Where(lp => !lp.IsTemplate && lp.AcademicPeriodId == currentPeriod.Id)
+                .SelectMany(lp => lp.Schedule
+                    .Where(s => s.ClassSession != null && s.ClassSession.Teacher != null && s.ClassSession.Teacher.Id == staffId)
+                    .Select(s => new { LearningPath = lp, ClassSession = s.ClassSession }))
+                .ToList();
+
+            if (assignedClassSessions.Any())
+            {
+                var staffName = $"{staff.Person.FirstName} {staff.Person.LastName}";
+                var sessionCount = assignedClassSessions.Count;
+                var learningPathNames = assignedClassSessions
+                    .Select(x => $"{x.LearningPath.EducationLevel} - {x.LearningPath.ClassLevel}")
+                    .Distinct()
+                    .ToList();
+
+                var classNames = string.Join(", ", learningPathNames);
+
+                return $"Cannot delete {staffName}. This staff member is assigned to {sessionCount} class session(s) in the current semester ({currentPeriod.Semester} {currentPeriod.AcademicYear}) for: {classNames}. Please remove the staff from all assigned class sessions before deleting.";
+            }
+
+            return null;
+        }
+
         #endregion
 
         #region Guardians

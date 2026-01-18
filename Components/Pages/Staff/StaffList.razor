@@ -97,12 +97,19 @@
                         Message="Are you sure you want to delete this staff member?"
                         OnConfirm="ConfirmDelete"
                         OnCancel="CancelDelete" />
+
+    <ErrorDisplayModal IsVisible="showErrorModal"
+                       Title="Cannot Delete Staff"
+                       Message="@errorMessage"
+                       OnClose="CloseErrorModal" />
 </div>
 
 @code {
     private IEnumerable<Staff>? staffList;
     private int staffIdToDelete;
     private bool showDeleteConfirmation = false;
+    private bool showErrorModal = false;
+    private string errorMessage = "";
 
     protected override void OnInitialized()
     {
@@ -111,8 +118,27 @@
 
     private void DeleteStaff(int id)
     {
-        staffIdToDelete = id;
-        showDeleteConfirmation = true;
+        var validationError = SchoolDataService.ValidateStaffDeletion(id);
+
+        if (!string.IsNullOrEmpty(validationError))
+        {
+            errorMessage = validationError;
+            showErrorModal = true;
+            StateHasChanged();
+        }
+        else
+        {
+            staffIdToDelete = id;
+            showDeleteConfirmation = true;
+            StateHasChanged();
+        }
+    }
+
+    private void CloseErrorModal()
+    {
+        showErrorModal = false;
+        errorMessage = "";
+        StateHasChanged();
     }
 
     private void CancelDelete()

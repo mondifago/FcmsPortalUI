@@ -23,6 +23,7 @@ namespace FcmsPortalUI.Services
         List<Staff> GetTeachersByEducationLevel(EducationLevel educationLevel);
         void UpdateStaff(Staff staff);
         bool DeleteStaff(int staffId);
+        string? ValidateStaffDeletion(int staffId);
         #endregion
 
         #region Guardians
