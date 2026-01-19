@@ -263,6 +263,19 @@ namespace FcmsPortalUI.Services
                 return "Staff not found.";
             }
 
+            if (staff.UserRole == UserRole.Principal)
+            {
+                var principalCount = _context.Staff
+                    .Count(s => s.UserRole == UserRole.Principal &&
+                                s.Person.Email != "developer@fcms.system" &&
+                                s.Person.Email != "principal@fcms.system");
+
+                if (principalCount <= 1)
+                {
+                    return $"Cannot delete {staff.Person.FirstName} {staff.Person.LastName}. This is the only Principal account. At least one Principal must exist in the system.";
+                }
+            }
+
             var currentPeriod = GetCurrentAcademicPeriod();
             if (currentPeriod == null)
             {
