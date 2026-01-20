@@ -110,7 +110,10 @@
     private void LoadData()
     {
         availableCourses = CourseDefaults.GetCourseNames(EducationLevel);
-        availableTeachers = SchoolDataService.GetTeachersByEducationLevel(EducationLevel);
+        //availableTeachers = SchoolDataService.GetTeachersByEducationLevel(EducationLevel);
+        availableTeachers = SchoolDataService.GetStaff()
+            .Where(s => s.UserRole == UserRole.Teacher)
+            .ToList();
     }
 
     private void Close()
