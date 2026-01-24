@@ -91,12 +91,12 @@ namespace FcmsPortalUI.Components.Account
             }
 
             // Developer account credentials (from config)
-            var devEmail = config["InitialDeveloper:Email"] ?? "dev@temp.local";
-            var devPassword = config["InitialDeveloper:Password"] ?? "TempP@ssw0rd!";
+            var devEmail = config["InitialDeveloper:Email"];
+            var devPassword = config["InitialDeveloper:Password"];
 
             // Principal backup account credentials (from config)
-            var principalEmail = config["InitialPrincipalBackup:Email"] ?? "prince@temp.local";
-            var principalPassword = config["InitialPrincipalBackup:Password"] ?? "TempP@ssw0rd!";
+            var principalEmail = config["InitialPrincipalBackup:Email"];
+            var principalPassword = config["InitialPrincipalBackup:Password"];
 
             // If credentials are missing in production, **failsafe** 
             if (string.IsNullOrWhiteSpace(devEmail) || string.IsNullOrWhiteSpace(devPassword))

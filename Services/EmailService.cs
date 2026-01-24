@@ -20,7 +20,7 @@ namespace FcmsPortalUI.Services
             var smtpPort = int.Parse(smtpSection["Port"] ?? "25");
             var smtpUser = smtpSection["Username"];
             var smtpPass = smtpSection["Password"];
-            var smtpFrom = from ?? smtpSection["FromEmail"] ?? "noreply@fcms.com";
+            var smtpFrom = from ?? smtpSection["FromEmail"];
             var saveToFile = bool.TryParse(smtpSection["SaveToFile"], out var save) && save;
 
             var message = new MailMessage
