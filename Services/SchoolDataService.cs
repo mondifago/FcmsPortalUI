@@ -97,12 +97,13 @@ namespace FcmsPortalUI.Services
 
         public School? GetSchoolForSettings()
         {
-            var school = _context.School
+            using var context = _contextFactory.CreateDbContext();
+
+            return context.School
                 .Include(s => s.Address)
                 .FirstOrDefault();
-
-            return school;
         }
+
 
         public bool HasSchool()
         {
@@ -129,20 +130,36 @@ namespace FcmsPortalUI.Services
 
         public async Task UpdateSchoolAsync(School updatedSchool)
         {
-            var existingSchool = await _context.School
+            using var context = _contextFactory.CreateDbContext();
+
+            var existingSchool = await context.School
+                .Include(s => s.Address)
                 .FirstOrDefaultAsync();
 
-            if (existingSchool != null)
+            if (existingSchool == null)
+                return;
+
+            existingSchool.Name = updatedSchool.Name;
+            existingSchool.LogoUrl = updatedSchool.LogoUrl;
+            existingSchool.Email = updatedSchool.Email;
+            existingSchool.PhoneNumber = updatedSchool.PhoneNumber;
+            existingSchool.WebsiteUrl = updatedSchool.WebsiteUrl;
+
+            if (existingSchool.Address == null && updatedSchool.Address != null)
+                existingSchool.Address = new Address();
+
+            if (existingSchool.Address != null && updatedSchool.Address != null)
             {
-                existingSchool.Name = updatedSchool.Name;
-                existingSchool.LogoUrl = updatedSchool.LogoUrl;
-                existingSchool.Email = updatedSchool.Email;
-                existingSchool.PhoneNumber = updatedSchool.PhoneNumber;
-                existingSchool.WebsiteUrl = updatedSchool.WebsiteUrl;
-                existingSchool.Address = updatedSchool.Address;
-                await _context.SaveChangesAsync();
+                existingSchool.Address.Street = updatedSchool.Address.Street;
+                existingSchool.Address.City = updatedSchool.Address.City;
+                existingSchool.Address.State = updatedSchool.Address.State;
+                existingSchool.Address.PostalCode = updatedSchool.Address.PostalCode;
+                existingSchool.Address.Country = updatedSchool.Address.Country;
             }
+
+            await context.SaveChangesAsync();
         }
+
 
         public bool HasPrincipal()
         {
@@ -1040,15 +1057,20 @@ namespace FcmsPortalUI.Services
         #region Calendar & Scheduling
         public ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date)
         {
-            var targetDate = date.Date;
+            using var context = _contextFactory.CreateDbContext();
 
-            return _context.ScheduleEntries
+            var dayStart = date.Date;
+            var dayEnd = dayStart.AddDays(1);
+
+            return context.ScheduleEntries
                 .AsNoTracking()
-                .Where(e => e.DateTime.Date == targetDate &&
-                           (e.Event != null || e.Meeting != null))
+                .Where(e =>
+                    e.DateTime >= dayStart && e.DateTime < dayEnd &&
+                    (e.Event != null || e.Meeting != null))
                 .OrderByDescending(e => e.DateTime)
                 .FirstOrDefault();
         }
+
 
         public ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId)
         {
@@ -1666,8 +1688,9 @@ namespace FcmsPortalUI.Services
                 UploadDate = DateTime.Now
             };
 
-            _context.FileAttachments.Add(attachment);
-            await _context.SaveChangesAsync();
+            using var context = _contextFactory.CreateDbContext();
+            context.FileAttachments.Add(attachment);
+            await context.SaveChangesAsync();
 
             return attachment;
         }
@@ -3025,25 +3048,34 @@ namespace FcmsPortalUI.Services
         #region Announcements
         public List<Announcement> GetAllAnnouncements()
         {
-            return _context.Announcements
+            using var context = _contextFactory.CreateDbContext();
+
+            return context.Announcements
+                .AsNoTracking()
                 .Include(a => a.PostedBy)
                 .OrderByDescending(a => a.PostedAt)
                 .ToList();
         }
 
+
         public List<Announcement> GetActiveAnnouncements()
         {
+            using var context = _contextFactory.CreateDbContext();
+
             var today = DateTime.Today;
-            return _context.Announcements
+
+            return context.Announcements
                 .AsNoTracking()
                 .Where(a => a.StartDate <= today && a.EndDate >= today)
                 .OrderByDescending(a => a.PostedAt)
                 .ToList();
         }
 
+
         public Announcement CreateAnnouncement(Announcement announcement, int userId)
         {
-            var totalAnnouncements = _context.Announcements.Count();
+            using var context = _contextFactory.CreateDbContext();
+            var totalAnnouncements = context.Announcements.Count();
             if (totalAnnouncements >= 3)
                 throw new BusinessRuleException("You can only keep up to 3 active announcements. Please delete an existing one before adding a new announcement.");
 
@@ -3051,15 +3083,16 @@ namespace FcmsPortalUI.Services
             announcement.PostedAt = DateTime.Now;
             announcement.PostedById = userId;
 
-            _context.Announcements.Add(announcement);
-            _context.SaveChanges();
+            context.Announcements.Add(announcement);
+            context.SaveChanges();
 
             return announcement;
         }
 
         public Announcement UpdateAnnouncement(Announcement announcement)
         {
-            var existing = _context.Announcements.Find(announcement.Id);
+            using var context = _contextFactory.CreateDbContext();
+            var existing = context.Announcements.Find(announcement.Id);
             if (existing == null)
                 throw new InvalidOperationException("Announcement not found.");
 
@@ -3067,17 +3100,19 @@ namespace FcmsPortalUI.Services
             existing.StartDate = announcement.StartDate;
             existing.EndDate = announcement.EndDate;
 
-            _context.SaveChanges();
+            context.SaveChanges();
             return existing;
         }
 
         public void DeleteAnnouncement(int announcementId)
         {
-            var announcement = _context.Announcements.Find(announcementId);
+            using var context = _contextFactory.CreateDbContext();
+
+            var announcement = context.Announcements.Find(announcementId);
             if (announcement != null)
             {
-                _context.Announcements.Remove(announcement);
-                _context.SaveChanges();
+                context.Announcements.Remove(announcement);
+                context.SaveChanges();
             }
         }
         #endregion
@@ -3085,47 +3120,57 @@ namespace FcmsPortalUI.Services
         #region Quotes
         public List<Quote> GetAllQuotes()
         {
-            return _context.Quotes
+            using var context = _contextFactory.CreateDbContext();
+
+            return context.Quotes
+                .AsNoTracking()
                 .Include(q => q.AddedBy)
                 .OrderByDescending(q => q.DateAdded)
                 .ToList();
         }
 
+
         public Quote CreateQuote(Quote quote, int userId)
         {
-            var totalQuotes = _context.Quotes.Count();
+            using var context = _contextFactory.CreateDbContext();
+
+            var totalQuotes = context.Quotes.Count();
             if (totalQuotes >= 10)
                 throw new BusinessRuleException("You can only store up to 10 quotes. Please delete one before adding another.");
 
             quote.DateAdded = DateTime.Now;
             quote.AddedById = userId;
 
-            _context.Quotes.Add(quote);
-            _context.SaveChanges();
+            context.Quotes.Add(quote);
+            context.SaveChanges();
 
             return quote;
         }
 
         public Quote UpdateQuote(Quote quote)
         {
-            var existing = _context.Quotes.Find(quote.Id);
+            using var context = _contextFactory.CreateDbContext();
+
+            var existing = context.Quotes.Find(quote.Id);
             if (existing == null)
                 throw new InvalidOperationException("Quote not found.");
 
             existing.Text = quote.Text;
             existing.Author = quote.Author;
 
-            _context.SaveChanges();
+            context.SaveChanges();
             return existing;
         }
 
         public void DeleteQuote(int quoteId)
         {
-            var quote = _context.Quotes.Find(quoteId);
+            using var context = _contextFactory.CreateDbContext();
+
+            var quote = context.Quotes.Find(quoteId);
             if (quote != null)
             {
-                _context.Quotes.Remove(quote);
-                _context.SaveChanges();
+                context.Quotes.Remove(quote);
+                context.SaveChanges();
             }
         }
         #endregion
@@ -3134,40 +3179,36 @@ namespace FcmsPortalUI.Services
         public void SetSchoolAcademicPeriod(AcademicPeriod academicPeriod)
         {
             if (academicPeriod.SemesterStartDate >= academicPeriod.SemesterEndDate)
-            {
                 throw new BusinessRuleException("Semester start date must be before semester end date.");
-            }
 
-            if (academicPeriod.ExamsStartDate.HasValue)
-            {
-                if (academicPeriod.ExamsStartDate < academicPeriod.SemesterStartDate ||
-                    academicPeriod.ExamsStartDate > academicPeriod.SemesterEndDate)
-                {
-                    throw new BusinessRuleException("Exams start date must fall within the semester dates.");
-                }
-            }
+            if (academicPeriod.ExamsStartDate.HasValue &&
+                (academicPeriod.ExamsStartDate < academicPeriod.SemesterStartDate ||
+                 academicPeriod.ExamsStartDate > academicPeriod.SemesterEndDate))
+                throw new BusinessRuleException("Exams start date must fall within the semester dates.");
 
-            var school = _context.School.FirstOrDefault();
+            using var context = _contextFactory.CreateDbContext();
+
+            var school = context.School.FirstOrDefault();
             if (school == null)
                 throw new InvalidOperationException("No school found.");
 
-            // Create new period
-            _context.AcademicPeriods.Add(academicPeriod);
-            _context.SaveChanges();
-
-            // Set as current period
+            // Create new period + set current period
+            context.AcademicPeriods.Add(academicPeriod);
             school.CurrentAcademicPeriodId = academicPeriod.Id;
-            _context.SaveChanges();
+
+            context.SaveChanges();
         }
 
         public AcademicPeriod? GetCurrentAcademicPeriod()
         {
-            var school = _context.School
-                .Include(s => s.CurrentAcademicPeriod)
-                .FirstOrDefault();
+            using var context = _contextFactory.CreateDbContext();
 
-            return school?.CurrentAcademicPeriod;
+            return context.School
+                .AsNoTracking()
+                .Select(s => s.CurrentAcademicPeriod)
+                .FirstOrDefault();
         }
+
         #endregion
 
         #region Account Management

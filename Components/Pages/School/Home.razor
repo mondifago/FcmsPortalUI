@@ -10,6 +10,8 @@
 @using FcmsPortal
 @using Microsoft.AspNetCore.Authorization
 @rendermode InteractiveServer
+@implements IDisposable
+
 
 <div class="container-fluid py-4">
     <!-- Top Row -->
@@ -435,10 +437,16 @@
     private List<(string Course, GradeType GradeType, double Score)> recentStudentGrades = new();
     private LearningPath? studentLearningPath;
     private bool showStudentGradeDetailsModal = false;
+    private static int _refreshHit = 0;
 
     protected override async Task OnInitializedAsync()
     {
         //school = SchoolDataService.GetSchool();
+
+        lock (refreshLock)
+        {
+            RefreshRequested += HandleRefreshRequest;
+        }
 
         var person = await PermissionService.GetCurrentPersonAsync();
         if (person != null && !string.IsNullOrWhiteSpace(person.FirstName))
@@ -453,7 +461,7 @@
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    /*protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
@@ -462,7 +470,7 @@
                 RefreshRequested += HandleRefreshRequest;
             }
         }
-    }
+    }*/
 
     public static void TriggerSchoolDataRefresh()
     {
@@ -474,11 +482,13 @@
 
     private void HandleRefreshRequest()
     {
+        _refreshHit++;
+        Console.WriteLine($"HandleRefreshRequest hit: {_refreshHit}");
         LoadSemesterTimeline();
         LoadAnnouncements();
         LoadRandomQuote();
         LoadUpcomingEvents();
-        InvokeAsync(StateHasChanged);
+        //InvokeAsync(StateHasChanged);
     }
 
     private void LoadSemesterTimeline()
@@ -561,5 +571,11 @@
     public void Dispose()
     {
         timer?.Dispose();
+
+        lock (refreshLock)
+        {
+            RefreshRequested -= HandleRefreshRequest;
+        }
     }
+
 }

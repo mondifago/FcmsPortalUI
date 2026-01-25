@@ -117,10 +117,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var config = services.GetRequiredService<IConfiguration>();
 
-    // Seed roles once
     await RoleSeeder.EnsureRolesAsync(services);
-
-    // Seed Developer & Principal backup accounts (reads secrets from IConfiguration)
     await AccountSeeder.EnsureSpecialAccountsAsync(services, config, app.Environment.IsDevelopment());
 }
 app.MapAccountServices();

@@ -505,7 +505,10 @@
     private void LoadSchoolData()
     {
         school = SchoolDataService.GetSchoolForSettings();
-        logoUrl = school?.LogoUrl ?? "";
+        if (school != null && school.Address == null)
+            school.Address = new Address(); 
+
+        logoUrl = Util.GetLogoDisplayUrl(school?.LogoUrl ?? "");
 
         currentAcademicPeriod = SchoolDataService.GetCurrentAcademicPeriod();
 
@@ -559,43 +562,61 @@
 
     private async Task Close()
     {
-        school = null; // Reset for next time
+        school = null; 
         await OnClose.InvokeAsync();
     }
 
     private async Task HandleValidSubmit()
     {
-        if (school != null)
+        if (school == null) return;
+
+        try
         {
-            school.LogoUrl = logoUrl;
             await SchoolDataService.UpdateSchoolAsync(school);
             await OnSave.InvokeAsync();
             await Close();
         }
+        catch (Exception ex)
+        {
+            ExceptionHandlerService.HandleException(ex);
+            errorMessage = "An error occurred while saving school settings.";
+            showErrorModal = true;
+            StateHasChanged();
+        }
     }
+
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
     {
         var file = e.File;
-        if (file != null)
+        if (file == null) return;
+
+        try
         {
-            try
+            if (!Util.IsValidImageFile(file))
             {
-                // Convert to base64 for display
-                using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024); // 5MB limit
-                var buffer = new byte[file.Size];
-                await stream.ReadAsync(buffer);
-                var base64 = Convert.ToBase64String(buffer);
-                logoUrl = $"data:{file.ContentType};base64,{base64}";
-                StateHasChanged();
+                errorMessage = "Please select a valid image file.";
+                showErrorModal = true;
+                return;
             }
-            catch (Exception ex)
+
+            var resizedImageFile = await Util.ResizeImageForLogo(file);
+            var attachment = await SchoolDataService.UploadFileAsync(resizedImageFile, "SchoolLogos");
+
+            if (school != null)
             {
-                Console.WriteLine($"Error uploading file: {ex.Message}");
+                school.LogoUrl = attachment.FilePath;
             }
+            logoUrl = Util.GetLogoDisplayUrl(attachment.FilePath);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error uploading logo: {ex.Message}";
+            showErrorModal = true;
+            StateHasChanged();
         }
     }
-
 
     // Announcement Methods
     private void LoadAnnouncements()

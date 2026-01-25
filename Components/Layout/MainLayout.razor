@@ -177,7 +177,7 @@
     private void InitializeApp()
     {
         isLoading = true;
-        StateHasChanged();
+        //StateHasChanged();
 
         hasSchool = SchoolDataService.HasSchool();
 
@@ -231,7 +231,7 @@
     {
         FcmsPortalUI.Components.Pages.School.Home.TriggerSchoolDataRefresh();
         showSchoolSettings = false;
-        StateHasChanged();
+        //StateHasChanged();
     }
 
     private void ToggleProfileMenu()
