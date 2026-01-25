@@ -204,14 +204,14 @@ namespace FcmsPortalUI.Services
         #region Announcements
         List<Announcement> GetAllAnnouncements();
         List<Announcement> GetActiveAnnouncements();
-        Announcement CreateAnnouncement(Announcement announcement, int userId);
+        Announcement CreateAnnouncement(Announcement announcement);
         Announcement UpdateAnnouncement(Announcement announcement);
         void DeleteAnnouncement(int announcementId);
         #endregion
 
         #region Quotes
         List<Quote> GetAllQuotes();
-        Quote CreateQuote(Quote quote, int userId);
+        Quote CreateQuote(Quote quote);
         Quote UpdateQuote(Quote quote);
         void DeleteQuote(int quoteId);
         #endregion

@@ -3072,17 +3072,14 @@ namespace FcmsPortalUI.Services
         }
 
 
-        public Announcement CreateAnnouncement(Announcement announcement, int userId)
+        public Announcement CreateAnnouncement(Announcement announcement)
         {
             using var context = _contextFactory.CreateDbContext();
             var totalAnnouncements = context.Announcements.Count();
             if (totalAnnouncements >= 3)
                 throw new BusinessRuleException("You can only keep up to 3 active announcements. Please delete an existing one before adding a new announcement.");
 
-
             announcement.PostedAt = DateTime.Now;
-            announcement.PostedById = userId;
-
             context.Announcements.Add(announcement);
             context.SaveChanges();
 
@@ -3130,7 +3127,7 @@ namespace FcmsPortalUI.Services
         }
 
 
-        public Quote CreateQuote(Quote quote, int userId)
+        public Quote CreateQuote(Quote quote)
         {
             using var context = _contextFactory.CreateDbContext();
 
@@ -3139,8 +3136,6 @@ namespace FcmsPortalUI.Services
                 throw new BusinessRuleException("You can only store up to 10 quotes. Please delete one before adding another.");
 
             quote.DateAdded = DateTime.Now;
-            quote.AddedById = userId;
-
             context.Quotes.Add(quote);
             context.SaveChanges();
 

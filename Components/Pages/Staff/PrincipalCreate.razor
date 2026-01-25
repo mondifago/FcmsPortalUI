@@ -131,6 +131,11 @@
         {
             errorMessage = "";
 
+            if (staff.UserRole != UserRole.Principal)
+            {
+                throw new BusinessRuleException("The first account must be a Principal account.");
+            }
+
             // Validate password fields
             if (string.IsNullOrWhiteSpace(password))
             {

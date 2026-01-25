@@ -462,9 +462,6 @@
     private FcmsPortal.Models.School? school;
     private string logoUrl = "";
 
-    private Person? currentUser;
-    private int? currentUserId;
-
     private List<Announcement> announcements = new();
     private Announcement newAnnouncement = new();
     private Announcement editingAnnouncement = new();
@@ -487,19 +484,12 @@
     private DateTime semesterEndDate = DateTime.Now.AddMonths(3);
     private DateTime? examsStartDate = null;
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         if (IsVisible && school == null)
         {
-            await LoadCurrentUser();
             LoadSchoolData();
         }
-    }
-
-    private async Task LoadCurrentUser()
-    {
-        currentUserId = await PermissionService.GetCurrentUserIdAsync();
-        currentUser = await PermissionService.GetCurrentPersonAsync();
     }
 
     private void LoadSchoolData()
@@ -631,7 +621,7 @@
             if (string.IsNullOrWhiteSpace(newAnnouncement.Message))
                 return;
 
-            SchoolDataService.CreateAnnouncement(newAnnouncement, currentUserId!.Value);
+            SchoolDataService.CreateAnnouncement(newAnnouncement);
             newAnnouncement = new Announcement();
             LoadAnnouncements();
         }
@@ -700,7 +690,7 @@
             if (string.IsNullOrWhiteSpace(newQuote.Text) || string.IsNullOrWhiteSpace(newQuote.Author))
                 return;
 
-            SchoolDataService.CreateQuote(newQuote, currentUserId!.Value);
+            SchoolDataService.CreateQuote(newQuote);
             newQuote = new Quote();
             LoadQuotes();
         }

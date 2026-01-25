@@ -437,12 +437,9 @@
     private List<(string Course, GradeType GradeType, double Score)> recentStudentGrades = new();
     private LearningPath? studentLearningPath;
     private bool showStudentGradeDetailsModal = false;
-    private static int _refreshHit = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        //school = SchoolDataService.GetSchool();
-
         lock (refreshLock)
         {
             RefreshRequested += HandleRefreshRequest;
@@ -461,17 +458,6 @@
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
-    /*protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
-        {
-            lock (refreshLock)
-            {
-                RefreshRequested += HandleRefreshRequest;
-            }
-        }
-    }*/
-
     public static void TriggerSchoolDataRefresh()
     {
         lock (refreshLock)
@@ -482,13 +468,10 @@
 
     private void HandleRefreshRequest()
     {
-        _refreshHit++;
-        Console.WriteLine($"HandleRefreshRequest hit: {_refreshHit}");
         LoadSemesterTimeline();
         LoadAnnouncements();
         LoadRandomQuote();
         LoadUpcomingEvents();
-        //InvokeAsync(StateHasChanged);
     }
 
     private void LoadSemesterTimeline()

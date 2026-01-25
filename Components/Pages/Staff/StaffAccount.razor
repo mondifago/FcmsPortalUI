@@ -58,6 +58,12 @@ else
                 <i class="fa fa-envelope"></i>
                 @(sending ? "Sending..." : "Send Account Invitation")
             </button>
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert @(message.StartsWith("Error") ? "alert-danger" : "alert-info") mt-3">
+                    @message
+                </div>
+            }
         </div>
     </div>
 
@@ -140,10 +146,12 @@ else
         if (isActive)
         {
             SchoolDataService.ActivatePerson(staff.Person);
+            message = "Account has been activated.";
         }
         else
         {
             SchoolDataService.DeactivatePerson(staff.Person);
+            message = "Account has been deactivated.";
         }
 
         staff.Person.IsActive = isActive;
