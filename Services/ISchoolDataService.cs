@@ -88,7 +88,7 @@ namespace FcmsPortalUI.Services
         bool UpdateGeneralCalendarScheduleEntry(ScheduleEntry scheduleEntry);
         bool DeleteGeneralCalendarScheduleEntry(int scheduleEntryId);
         List<ScheduleEntry> GetAllSchedules();
-        List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount = 5);
+        List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount);
         #endregion
 
         #region Class Sessions
@@ -104,7 +104,7 @@ namespace FcmsPortalUI.Services
         HomeworkSubmission? GetHomeworkSubmissionById(int id);
         HomeworkSubmission? AddHomeworkSubmission(HomeworkSubmission submission);
         void UpdateHomeworkSubmission(HomeworkSubmission submission);
-        List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount = 5);
+        List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount);
         #endregion
 
         #region Discussions
@@ -148,7 +148,7 @@ namespace FcmsPortalUI.Services
                 int learningPathId);
         void SaveFinalizedGrades(LearningPath learningPath);
         public List<double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
-        List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount = 5);
+        List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);
         #endregion
 
         #region Curriculum

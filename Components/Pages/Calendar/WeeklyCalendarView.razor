@@ -1,5 +1,6 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using System.Globalization
 
 <div class="card mb-4">
@@ -21,7 +22,7 @@
                 <thead>
                     <tr>
                         <th style="width: 60px;">Time</th>
-                        @for (int day = 0; day < 7; day++)
+                        @for (int day = 0; day < FcmsConstants.DAYS_IN_WEEK; day++)
                         {
                             var date = StartOfWeek.AddDays(day);
                             <th class="text-center @(IsToday(date) ? "bg-info-subtle" : "")">
@@ -32,13 +33,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (int hour = 7; hour < 19; hour++)
+                    @for (int hour = FcmsConstants.SCHOOL_DAY_START_HOUR; hour < FcmsConstants.SCHOOL_DAY_END_HOUR; hour++)
                     {
                         <tr style="height: 80px;">
                             <td class="text-center align-middle">
-                                @(hour > 12 ? (hour - 12) : hour):00 @(hour >= 12 ? "PM" : "AM")
+                                @(hour > FcmsConstants.NOON_HOUR ? (hour - FcmsConstants.NOON_HOUR) : hour):00 @(hour >= FcmsConstants.NOON_HOUR ? "PM" : "AM")
                             </td>
-                            @for (int day = 0; day < 7; day++)
+                            @for (int day = 0; day < FcmsConstants.DAYS_IN_WEEK; day++)
                             {
                                 var date = StartOfWeek.AddDays(day);
                                 var startTime = new DateTime(date.Year, date.Month, date.Day, hour, 0, 0);
@@ -49,7 +50,7 @@
                                     @onclick="() => OnDateSelected.InvokeAsync(date)">
                                     @if (events.Any())
                                     {
-                                        @foreach (var evt in events.Take(3))
+                                        @foreach (var evt in events.Take(FcmsConstants.MAX_CALENDAR_EVENTS_PER_SLOT))
                                         {
                                             <div class="calendar-event-weekly @Util.GetScheduleTypeColor(evt)">
                                                 <div class="small text-truncate">
@@ -57,10 +58,10 @@
                                                 </div>
                                             </div>
                                         }
-                                        @if (events.Count > 3)
+                                        @if (events.Count > FcmsConstants.MAX_CALENDAR_EVENTS_PER_SLOT)
                                         {
                                             <div class="text-center small">
-                                                <span class="badge bg-secondary">+@(events.Count - 3) more</span>
+                                                <span class="badge bg-secondary">+@(events.Count - FcmsConstants.MAX_CALENDAR_EVENTS_PER_SLOT) more</span>
                                             </div>
                                         }
                                     }
@@ -84,13 +85,13 @@
 
     private void PreviousWeek()
     {
-        CurrentDate = CurrentDate.AddDays(-7);
+        CurrentDate = CurrentDate.AddDays(-FcmsConstants.DAYS_IN_WEEK);
         CurrentDateChanged.InvokeAsync(CurrentDate);
     }
 
     private void NextWeek()
     {
-        CurrentDate = CurrentDate.AddDays(7);
+        CurrentDate = CurrentDate.AddDays(FcmsConstants.DAYS_IN_WEEK);
         CurrentDateChanged.InvokeAsync(CurrentDate);
     }
 

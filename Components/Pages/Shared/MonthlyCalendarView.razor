@@ -1,5 +1,6 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortal
 @using System.Globalization
 
@@ -31,12 +32,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (int week = 0; week < 6; week++)
+                    @for (int week = 0; week < FcmsConstants.MAX_WEEKS_IN_MONTH_VIEW; week++)
                     {
                         <tr style="height: 100px;">
-                            @for (int day = 0; day < 7; day++)
+                            @for (int day = 0; day < FcmsConstants.DAYS_IN_WEEK; day++)
                             {
-                                int displayDay = week * 7 + day - FirstDayOfMonth + 1;
+                                int displayDay = week * FcmsConstants.DAYS_IN_WEEK + day - FirstDayOfMonth + 1;
                                 bool isCurrentMonth = displayDay > 0 && displayDay <= DaysInMonth;
                                 var date = new DateTime(CurrentDate.Year, CurrentDate.Month, isCurrentMonth ? displayDay : 1);
                                 var sessionsOnDay = isCurrentMonth ? GetSchedulesForDate(date) : new List<ScheduleEntry>();

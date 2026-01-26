@@ -1269,29 +1269,20 @@ namespace FcmsPortalUI.Services
 
         public bool UpdateGeneralCalendarScheduleEntry(ScheduleEntry scheduleEntry)
         {
-            var school = _context.School
-                .Include(s => s.SchoolCalendar)
-                    .ThenInclude(c => c.ScheduleEntries)
-                .FirstOrDefault();
+            using var context = _contextFactory.CreateDbContext();
 
-            if (school?.SchoolCalendar == null)
+            var existing = context.ScheduleEntries
+                .FirstOrDefault(se => se.Id == scheduleEntry.Id);
+
+            if (existing == null)
                 return false;
 
-            foreach (var calendar in school.SchoolCalendar)
-            {
-                if (calendar.ScheduleEntries != null)
-                {
-                    var existingIndex = calendar.ScheduleEntries.FindIndex(s => s.Id == scheduleEntry.Id);
-                    if (existingIndex >= 0)
-                    {
-                        calendar.ScheduleEntries[existingIndex] = scheduleEntry;
-                        _context.SaveChanges();
-                        return true;
-                    }
-                }
-            }
-            return false;
+            context.Entry(existing).CurrentValues.SetValues(scheduleEntry);
+
+            context.SaveChanges();
+            return true;
         }
+
 
         public bool DeleteGeneralCalendarScheduleEntry(int scheduleEntryId)
         {
@@ -1327,8 +1318,10 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount = 5)
+        public List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount)
         {
+            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
+
             var student = _context.Students
                 .AsNoTracking()
                 .FirstOrDefault(s => s.Id == studentId);
@@ -1383,7 +1376,6 @@ namespace FcmsPortalUI.Services
 
             return true;
         }
-
 
         #endregion
 
@@ -1554,8 +1546,10 @@ namespace FcmsPortalUI.Services
             }
         }
 
-        public List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount = 5)
+        public List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount)
         {
+            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
+
             var student = _context.Students
                 .AsNoTracking()
                 .FirstOrDefault(s => s.Id == studentId);
@@ -2143,8 +2137,10 @@ namespace FcmsPortalUI.Services
             return semesterGrades;
         }
 
-        public List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount = 5)
+        public List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount)
         {
+            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
+
             return _context.TestGrades
                 .AsNoTracking()
                 .Include(tg => tg.CourseGrade)
@@ -3076,8 +3072,8 @@ namespace FcmsPortalUI.Services
         {
             using var context = _contextFactory.CreateDbContext();
             var totalAnnouncements = context.Announcements.Count();
-            if (totalAnnouncements >= 3)
-                throw new BusinessRuleException("You can only keep up to 3 active announcements. Please delete an existing one before adding a new announcement.");
+            if (totalAnnouncements >= FcmsConstants.MAX_ANNOUNCEMENTS_COUNT)
+                throw new BusinessRuleException($"You can only keep up to {FcmsConstants.MAX_ANNOUNCEMENTS_COUNT} active announcements. Please delete an existing one before adding a new announcement.");
 
             announcement.PostedAt = DateTime.Now;
             context.Announcements.Add(announcement);
@@ -3132,8 +3128,8 @@ namespace FcmsPortalUI.Services
             using var context = _contextFactory.CreateDbContext();
 
             var totalQuotes = context.Quotes.Count();
-            if (totalQuotes >= 10)
-                throw new BusinessRuleException("You can only store up to 10 quotes. Please delete one before adding another.");
+            if (totalQuotes >= FcmsConstants.MAX_QUOTES_COUNT)
+                throw new BusinessRuleException($"You can only store up to {FcmsConstants.MAX_QUOTES_COUNT} quotes. Please delete one before adding another.");
 
             quote.DateAdded = DateTime.Now;
             context.Quotes.Add(quote);

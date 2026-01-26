@@ -1,6 +1,7 @@
 ﻿@using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortal
 @using FcmsPortalUI.Components.Pages.Classes
 @inject ValidationService ValidationService
@@ -187,8 +188,8 @@
     private ScheduleEntry scheduleEntry = new ScheduleEntry();
     private ScheduleType scheduleType = ScheduleType.Event;
     private DateTime scheduleDate = DateTime.Today;
-    private int durationMinutes = 60;
-    private string startTimeString = "09:00";
+    private int durationMinutes = FcmsConstants.DEFAULT_CLASS_DURATION_MINUTES;
+    private string startTimeString = $"{FcmsConstants.DEFAULT_SCHEDULE_START_HOUR:D2}:00";
     private bool dateIsLocked = false;
     private bool showClassSessionModal = false;
 
@@ -231,17 +232,17 @@
     {
         scheduleEntry = new ScheduleEntry
         {
-            DateTime = DateTime.Today.AddHours(8),
-            Duration = TimeSpan.FromMinutes(60),
+            DateTime = DateTime.Today.AddHours(FcmsConstants.DEFAULT_SCHEDULE_START_HOUR),
+            Duration = TimeSpan.FromMinutes(FcmsConstants.DEFAULT_CLASS_DURATION_MINUTES),
             IsRecurring = false,
             RecurrenceInterval = 1,
-            EndDate = DateTime.Today.AddMonths(3),
+            EndDate = DateTime.Today.AddMonths(FcmsConstants.DEFAULT_RECURRENCE_END_MONTHS),
             Venue = ""
         };
 
         scheduleDate = scheduleEntry.DateTime.Date;
         startTimeString = scheduleEntry.DateTime.ToString("HH:mm");
-        durationMinutes = 60;
+        durationMinutes = FcmsConstants.DEFAULT_CLASS_DURATION_MINUTES;
     }
 
     private void OnScheduleTypeChanged()

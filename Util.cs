@@ -205,11 +205,11 @@ namespace FcmsPortalUI
 
         public static string GetGradeRemark(double grade)
         {
-            if (grade >= 90) return "Excellent";
-            if (grade >= 80) return "Very Good";
-            if (grade >= 70) return "Good";
-            if (grade >= 60) return "Average";
-            if (grade >= 50) return "Fair";
+            if (grade >= FcmsConstants.EXCELLENT_GRADE_MIN) return "Excellent";
+            if (grade >= FcmsConstants.VERY_GOOD_GRADE_MIN) return "Very Good";
+            if (grade >= FcmsConstants.GOOD_GRADE_MIN) return "Good";
+            if (grade >= FcmsConstants.AVERAGE_GRADE_MIN) return "Average";
+            if (grade >= FcmsConstants.FAIR_GRADE_MIN) return "Fair";
             return "Needs Improvement";
         }
 
@@ -231,9 +231,9 @@ namespace FcmsPortalUI
 
             return (number % 10) switch
             {
-                1 => $"{number}st",
-                2 => $"{number}nd",
-                3 => $"{number}rd",
+                FcmsConstants.FIRST_PLACE => $"{number}st",
+                FcmsConstants.SECOND_PLACE => $"{number}nd",
+                FcmsConstants.THIRD_PLACE => $"{number}rd",
                 _ => $"{number}th"
             };
         }
@@ -242,9 +242,9 @@ namespace FcmsPortalUI
         {
             return rank switch
             {
-                1 => "text-warning",
-                2 => "text-secondary",
-                3 => "text-danger",
+                FcmsConstants.FIRST_PLACE => "text-warning",
+                FcmsConstants.SECOND_PLACE => "text-secondary",
+                FcmsConstants.THIRD_PLACE => "text-danger",
                 _ => "text-muted"
             };
         }
