@@ -299,19 +299,19 @@
             <div class="card mb-3 border-0" style="border-left: 3px solid #17a2b8 !important; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
                 <div class="card-header bg-white border-0 pt-3">
                     <h6 class="mb-0 text-info fw-semibold">
-                        <i class="fa fa-calendar-alt me-2"></i>Academic Year & Semester
+                        <i class="fa fa-calendar-alt me-2"></i>Academic Year & Term
                     </h6>
                 </div>
                 <div class="card-body pt-2 pb-3">
                     @if (!string.IsNullOrEmpty(currentAcademicYear))
                     {
                         <p class="mb-1 text-muted" style="font-size: 0.875rem;">
-                            <strong>Current:</strong> @currentAcademicYear - @currentSemester Semester
+                            <strong>Current:</strong> @currentAcademicYear - @currentSemester.ToTermDisplay()
                         </p>
                         @if (semesterStartDate.HasValue)
                         {
                             <p class="mb-1 text-muted" style="font-size: 0.875rem;">
-                                <strong>Semester Start:</strong> @semesterStartDate.Value.ToString("MMM dd, yyyy")
+                                <strong>Term Start:</strong> @semesterStartDate.Value.ToString("MMM dd, yyyy")
                             </p>
                         }
                         @if (examsStartDate.HasValue)
@@ -323,14 +323,14 @@
                         @if (semesterEndDate.HasValue)
                         {
                             <p class="mb-0 text-muted" style="font-size: 0.875rem;">
-                                <strong>Semester Ends:</strong> @semesterEndDate.Value.ToString("MMM dd, yyyy")
+                                <strong>Term Ends:</strong> @semesterEndDate.Value.ToString("MMM dd, yyyy")
                             </p>
                         }
                     }
                     else
                     {
                         <p class="mb-0 text-muted" style="font-size: 0.875rem;">
-                            <em>No active semester information available.</em>
+                            <em>No active term information available.</em>
                         </p>
                     }
                 </div>

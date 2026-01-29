@@ -42,12 +42,12 @@
             </select>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Semester</label>
+            <label class="form-label">Term</label>
             <select class="form-select" @bind="selectedSemester" @bind:after="OnSemesterChanged" disabled="@(selectedClassLevel == ClassLevel.None)">
-                <option value="">-- Select Semester (optional) --</option>
+                <option value="">-- Select  Term (optional) --</option>
                 @foreach (var semester in Enum.GetValues(typeof(Semester)).Cast<Semester>())
                 {
-                    <option value="@semester">@semester</option>
+                    <option value="@semester">@semester.ToTermDisplay()</option>
                 }
             </select>
         </div>
@@ -60,7 +60,7 @@
         <div class="row mb-4">
             <div class="col-6">
                 <h5>Academic Year: @filteredCurriculum.First().AcademicYear</h5>
-                <h5>Semester: @(selectedSemester?.ToString() ?? "All Semesters")</h5>
+                <h5>Term: @(selectedSemester?.ToTermDisplay() ?? "All Terms")</h5>
             </div>
             <div class="col-6 text-end">
                 <h5>Education Level: @selectedEducationLevel</h5>
@@ -76,7 +76,7 @@
             {
                 @if (!selectedSemester.HasValue || semester.Semester == selectedSemester)
                 {
-                    <h5 class="text-primary mb-3">@semester.Semester Semester</h5>
+                    <h5 class="text-primary mb-3">@semester.Semester.ToTermDisplay()</h5>
                     
                     @foreach (var session in semester.ClassSessions)
                     {

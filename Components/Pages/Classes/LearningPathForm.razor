@@ -55,7 +55,7 @@
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label for="semester" class="form-label">Semester<span class="text-danger">*</span></label>
+                    <label for="semester" class="form-label">Term<span class="text-danger">*</span></label>
                     <InputSelect id="semester" @bind-Value="LearningPath.Semester" @bind-Value:after="NotifySemesterChanged" class="form-select">
                         @foreach (var semester in Enum.GetValues(typeof(Semester)))
                         {
@@ -67,12 +67,12 @@
 
             <div class="row mb-3">
                 <div class="col-md-4">
-                    <label for="semesterStartDate" class="form-label">Semester Start Date<span class="text-danger">*</span></label>
+                    <label for="semesterStartDate" class="form-label">Term Start Date<span class="text-danger">*</span></label>
                     <InputDate id="semesterStartDate" @bind-Value="LearningPath.SemesterStartDate" class="form-control" />
                     <ValidationMessage For="@(() => LearningPath.SemesterStartDate)" />
                 </div>
                 <div class="col-md-4">
-                    <label for="semesterEndDate" class="form-label">Semester End Date<span class="text-danger">*</span></label>
+                    <label for="semesterEndDate" class="form-label">Term End Date<span class="text-danger">*</span></label>
                     <InputDate id="semesterEndDate" @bind-Value="LearningPath.SemesterEndDate" class="form-control" />
                     <ValidationMessage For="@(() => LearningPath.SemesterEndDate)" />
                 </div>
@@ -84,21 +84,11 @@
             </div>
 
             <div class="mb-3">
-                <label for="feePerSemester" class="form-label">Fee Per Semester (₦)<span class="text-danger">*</span></label>
+                <label for="feePerSemester" class="form-label">Fee Per Term (₦)<span class="text-danger">*</span></label>
                 <InputNumber id="feePerSemester" @bind-Value="LearningPath.FeePerSemester" @bind-Value:after="OnFeePerSemesterChanged" class="form-control" />
                 <small class="form-text text-muted">
                     Fee: @LearningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))
                 </small>
-            </div>
-
-            <div class="mb-3">
-                <label for="approvalStatus" class="form-label">Approval Status</label>
-                <InputSelect id="approvalStatus" @bind-Value="LearningPath.ApprovalStatus" class="form-select">
-                    @foreach (var status in Enum.GetValues(typeof(PrincipalApprovalStatus)))
-                    {
-                        <option value="@status">@status</option>
-                    }
-                </InputSelect>
             </div>
         </div>
     </div>

@@ -1283,31 +1283,22 @@ namespace FcmsPortalUI.Services
             return true;
         }
 
-
         public bool DeleteGeneralCalendarScheduleEntry(int scheduleEntryId)
         {
-            var school = _context.School
-                .Include(s => s.SchoolCalendar)
-                    .ThenInclude(c => c.ScheduleEntries)
-                .FirstOrDefault();
+            var scheduleEntry = _context.ScheduleEntries
+                .FirstOrDefault(s => s.Id == scheduleEntryId);
 
-            if (school?.SchoolCalendar == null)
+            if (scheduleEntry == null)
                 return false;
 
-            foreach (var calendar in school.SchoolCalendar)
+            if (scheduleEntry.LearningPathId.HasValue && scheduleEntry.ClassSession != null)
             {
-                if (calendar.ScheduleEntries != null)
-                {
-                    var scheduleToRemove = calendar.ScheduleEntries.FirstOrDefault(s => s.Id == scheduleEntryId);
-                    if (scheduleToRemove != null)
-                    {
-                        calendar.ScheduleEntries.Remove(scheduleToRemove);
-                        _context.SaveChanges();
-                        return true;
-                    }
-                }
+                return false;
             }
-            return false;
+
+            _context.ScheduleEntries.Remove(scheduleEntry);
+            _context.SaveChanges();
+            return true;
         }
 
         public List<ScheduleEntry> GetAllSchedules()
@@ -2451,11 +2442,6 @@ namespace FcmsPortalUI.Services
             _archivedStudents.Add(student);
             _context.Students.Update(student);
             _context.SaveChanges();
-            // TODO: 
-            // 1. Create an Archive database table
-            // 2. Move student data to archive table
-            // 4. Send graduation notification
-            // 5. Update school statistics
         }
 
         public List<Student> GetArchivedStudents()
@@ -2483,6 +2469,15 @@ namespace FcmsPortalUI.Services
 
         public void ArchiveStudentPayments(LearningPath learningPath)
         {
+            var studentIds = learningPath.Students.Select(s => s.Id).ToList();
+            var studentsWithFees = _context.Students
+                .Include(s => s.Person)
+                    .ThenInclude(p => p.SchoolFees)
+                        .ThenInclude(sf => sf.Payments)
+                .Include(s => s.LearningPath)
+                .Where(s => studentIds.Contains(s.Id))
+                .ToList();
+
             foreach (var student in learningPath.Students)
             {
                 var paymentReport = LogicMethods.GenerateStudentPaymentReportEntry(student);

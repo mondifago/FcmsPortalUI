@@ -19,7 +19,7 @@
             <div class="modal-body">
                 @if (LearningPath != null)
                 {
-                    <h6 class="text-muted mb-3">@LearningPath.AcademicYear @LearningPath.Semester Semester</h6>
+                    <h6 class="text-muted mb-3">@LearningPath.AcademicYear @LearningPath.Semester.ToTermDisplay()</h6>
 
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -28,14 +28,14 @@
                                     <th>Student Name</th>
                                     @if (LearningPath.Semester == Semester.Third)
                                     {
-                                        <th class="text-center">1st Semester</th>
-                                        <th class="text-center">2nd Semester</th>
-                                        <th class="text-center">3rd Semester</th>
+                                        <th class="text-center">1st Term</th>
+                                        <th class="text-center">2nd Term</th>
+                                        <th class="text-center">3rd Term</th>
                                         <th class="text-center bg-info text-white">Promotion Grade</th>
                                     }
                                     else
                                     {
-                                        <th class="text-center">Overall Semester Grade</th>
+                                        <th class="text-center">Overall Term Grade</th>
                                     }
                                     <th class="text-center">Actions</th>
                                 </tr>
@@ -222,7 +222,7 @@
     private bool isGradesFinalized = false;
     private Dictionary<int, List<double>> studentSemesterGrades = new();
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
         CheckGradesFinalizationStatus();
         if (LearningPath != null && LearningPath.Semester == Semester.Third)

@@ -53,9 +53,9 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Semester</label>
+                    <label class="form-label">Term</label>
                     <select @bind="selectedSemester" @bind:after="OnFiltersChanged" class="form-select">
-                        <option value="">Select Semester</option>
+                        <option value="">Select Term</option>
                         @foreach (var semester in Enum.GetValues<Semester>())
                         {
                             <option value="@semester">@semester</option>
@@ -81,7 +81,7 @@
             <div class="col-md-3">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="card-title">Semester Start</h5>
+                        <h5 class="card-title">Term Start</h5>
                         <h6 class="text-success">@semesterStartDate.ToString("MMM d, yyyy")</h6>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
             <div class="col-md-3">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="card-title">Semester End</h5>
+                        <h5 class="card-title">Term End</h5>
                         <h6 class="text-warning">@semesterEndDate.ToString("MMM d, yyyy")</h6>
                     </div>
                 </div>

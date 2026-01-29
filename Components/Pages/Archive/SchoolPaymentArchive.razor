@@ -44,7 +44,7 @@
 
                 <!-- Semester -->
                 <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Semester</label>
+                    <label class="form-label fw-bold">Term</label>
                     <select class="form-select"
                             @bind="selectedSemester"
                             @bind:after="LoadArchive">
@@ -63,7 +63,7 @@
     <!-- NO DATA MESSAGE -->
     @if (summary == null)
     {
-        <p class="text-muted">Select an Academic Year and Semester to view archived school payment data.</p>
+        <p class="text-muted">Select an Academic Year and Term to view archived school payment data.</p>
     }
     else
     {

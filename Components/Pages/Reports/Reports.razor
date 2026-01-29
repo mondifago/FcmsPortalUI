@@ -36,9 +36,9 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="semester" class="form-label">Semester:</label>
+                    <label for="semester" class="form-label">Term:</label>
                     <select class="form-select" id="semester" @bind="selectedSemester" @bind:after="OnFiltersChanged">
-                        <option value="">Select Semester</option>
+                        <option value="">Select Term</option>
                         @if (!string.IsNullOrEmpty(selectedAcademicYear))
                         {
                             @foreach (var semester in availableSemesters)
@@ -89,7 +89,7 @@
                                         }
                                         <button class="btn btn-sm btn-outline-success"
                                                 @onclick="() => ViewSemesterAttendance(learningPath.Id)">
-                                            <i class="fa fa-chart-line me-1"></i> Semester View
+                                            <i class="fa fa-chart-line me-1"></i> Term View
                                         </button>
                                     </td>
                                 </tr>
@@ -113,7 +113,7 @@
                             }
                             else
                             {
-                                <span>No attendance records found for @selectedDate.ToString("MMMM dd, yyyy") in @selectedAcademicYear @selectedSemester semester.</span>
+                                <span>No attendance records found for @selectedDate.ToString("MMMM dd, yyyy") in @selectedAcademicYear @selectedSemester.ToTermDisplay()</span>
                             }
                         </p>
                     </div>
@@ -123,7 +123,7 @@
                     <div class="text-center py-4">
                         <i class="fa fa-filter fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">Select filters to view attendance</h5>
-                        <p class="text-muted">Please select Academic Year and Semester to continue.</p>
+                        <p class="text-muted">Please select Academic Year and Term to continue.</p>
                     </div>
                 }
             }
@@ -153,9 +153,9 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="sessionSemester" class="form-label">Semester:</label>
+                    <label for="sessionSemester" class="form-label">Term:</label>
                     <select class="form-select" id="sessionSemester" @bind="selectedSemester" @bind:after="OnSessionFiltersChanged">
-                        <option value="">Select Semester</option>
+                        <option value="">Select Term</option>
                         @if (!string.IsNullOrEmpty(selectedAcademicYear))
                         {
                             @foreach (var semester in availableSemesters)
@@ -219,7 +219,7 @@
                             }
                             else
                             {
-                                <span>No class session reports found for @selectedDate.ToString("MMMM dd, yyyy") in @selectedAcademicYear @selectedSemester semester.</span>
+                                <span>No class session reports found for @selectedDate.ToString("MMMM dd, yyyy") in @selectedAcademicYear @selectedSemester.ToTermDisplay().</span>
                             }
                         </p>
                     </div>
@@ -230,7 +230,7 @@
                 <div class="text-center py-4">
                     <i class="fa fa-filter fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">Select filters to view class session reports</h5>
-                    <p class="text-muted">Please select Academic Year and Semester to continue.</p>
+                    <p class="text-muted">Please select Academic Year and Term to continue.</p>
                 </div>
             }
         </div>
@@ -256,9 +256,9 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="gradesSemester" class="form-label">Semester:</label>
+                    <label for="gradesSemester" class="form-label">Term:</label>
                     <select class="form-select" id="gradesSemester" @bind="selectedSemester" @bind:after="OnGradesFiltersChanged">
-                        <option value="">Select Semester</option>
+                        <option value="">Select Term</option>
                         @if (!string.IsNullOrEmpty(selectedAcademicYear))
                         {
                             @foreach (var semester in availableSemesters)
@@ -316,7 +316,7 @@
                         <i class="fa fa-chart-bar fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No grades reports found</h5>
                         <p class="text-muted">
-                            <span>No grades reports found for @selectedAcademicYear @selectedSemester semester.</span>
+                            <span>No grades reports found for @selectedAcademicYear @selectedSemester.ToTermDisplay().</span>
                         </p>
                     </div>
                 }
@@ -326,7 +326,7 @@
                 <div class="text-center py-4">
                     <i class="fa fa-filter fa-3x text-muted mb-3"></i>
                     <h5 class="text-muted">Select filters to view grades reports</h5>
-                    <p class="text-muted">Please select Academic Year and Semester to continue.</p>
+                    <p class="text-muted">Please select Academic Year and Term to continue.</p>
                 </div>
             }
         </div>

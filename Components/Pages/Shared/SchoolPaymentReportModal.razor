@@ -23,11 +23,11 @@
                             <div>
                                 <p><strong>School:</strong> @SchoolName</p>
                                 <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>
-                                <p><strong>Semester:</strong> @reportData.Semester</p>
+                                <p><strong>Term:</strong> @reportData.Semester.ToTermDisplay()</p>
                             </div>
                             <div>
-                                <p><strong>Semester Start:</strong> @reportData.SemesterStartDate.ToString("yyyy-MM-dd")</p>
-                                <p><strong>Semester End:</strong> @reportData.SemesterEndDate.ToString("yyyy-MM-dd")</p>
+                                <p><strong>Term Start:</strong> @reportData.SemesterStartDate.ToString("yyyy-MM-dd")</p>
+                                <p><strong>Term End:</strong> @reportData.SemesterEndDate.ToString("yyyy-MM-dd")</p>
                                 <p><strong>Total Students:</strong> @reportData.TotalStudents</p>
                             </div>
                         </div>

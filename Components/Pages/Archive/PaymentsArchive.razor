@@ -53,9 +53,9 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Semester</label>
+                    <label class="form-label">Term</label>
                     <select @bind="selectedSemester" @bind:after="OnFiltersChanged" class="form-select">
-                        <option value="">Select Semester</option>
+                        <option value="">Select Term</option>
                         @foreach (var semester in Enum.GetValues<Semester>())
                         {
                             <option value="@semester">@semester</option>
@@ -194,8 +194,8 @@
                                 <strong>@selectedStudentForDetails.AcademicYear</strong>
                             </div>
                             <div class="col-md-4">
-                                <small class="text-muted d-block">Semester</small>
-                                <strong>@selectedStudentForDetails.Semester</strong>
+                                <small class="text-muted d-block">Term</small>
+                                <strong>@selectedStudentForDetails.Semester.ToTermDisplay()</strong>
                             </div>
                             <div class="col-md-4">
                                 <small class="text-muted d-block">Learning Path</small>
@@ -261,7 +261,7 @@
                         <div class="text-center py-5">
                             <i class="fa fa-money-bill-wave fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">No Payment Records</h5>
-                            <p class="text-muted">No payment instances found for this student.</p>
+                            <p class="text-muted">No payment records found for this student.</p>
                         </div>
                     }
                 </div>

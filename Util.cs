@@ -295,5 +295,28 @@ namespace FcmsPortalUI
         {
             return student?.LearningPathId > 0;
         }
+
+        public static string ToTermDisplay(this Semester semester)
+        {
+            return semester switch
+            {
+                Semester.First => "First Term",
+                Semester.Second => "Second Term",
+                Semester.Third => "Third Term",
+                _ => semester.ToString()
+            };
+        }
+
+        public static string ToTermDisplay(this string semesterString)
+        {
+            if (string.IsNullOrEmpty(semesterString))
+                return string.Empty;
+
+            if (Enum.TryParse<Semester>(semesterString, out var semester))
+            {
+                return semester.ToTermDisplay();
+            }
+            return semesterString;
+        }
     }
 }

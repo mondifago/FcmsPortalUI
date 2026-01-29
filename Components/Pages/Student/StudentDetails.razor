@@ -293,7 +293,7 @@
                                 @foreach (var lp in availableLearningPaths)
                                 {
                                     <option value="@lp.Id">
-                                        @lp.EducationLevel - @lp.ClassLevel (@lp.AcademicYear) Semester @lp.Semester
+                                        @lp.EducationLevel - @lp.ClassLevel (@lp.AcademicYear) Semester @lp.Semester.ToTermDisplay()
                                     </option>
                                 }
                             </select>
@@ -332,7 +332,7 @@
                         <div class="alert alert-info">
                             <strong>Current Learning Path:</strong><br />
                             @student.LearningPath.EducationLevel - @student.LearningPath.ClassLevel
-                            (@student.LearningPath.AcademicYear) Semester @((int)student.LearningPath.Semester)
+                            (@student.LearningPath.AcademicYear) @student.LearningPath.Semester.ToTermDisplay())
                         </div>
                     }
 

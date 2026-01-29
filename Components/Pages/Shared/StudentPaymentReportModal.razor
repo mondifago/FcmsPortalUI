@@ -32,7 +32,7 @@
                                 </div>
                                 <div>
                                     <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>
-                                    <p><strong>Semester:</strong> @reportData.Semester</p>
+                                    <p><strong>Term:</strong> @reportData.Semester.ToTermDisplay()</p>
                                     <p><strong>Total Fees:</strong> @reportData.TotalFees.ToString("C", new CultureInfo("en-NG"))</p>
                                     <p><strong>Total Paid:</strong> @reportData.TotalPaid.ToString("C", new CultureInfo("en-NG"))</p>
                                     <p><strong>Balance:</strong> @reportData.OutstandingBalance.ToString("C", new CultureInfo("en-NG"))</p>

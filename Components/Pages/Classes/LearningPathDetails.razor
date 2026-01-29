@@ -66,26 +66,11 @@
                                     <dt class="col-sm-5">Class Level:</dt>
                                     <dd class="col-sm-7">@learningPath.ClassLevel</dd>
 
-                                    <dt class="col-sm-5">Semester:</dt>
+                                    <dt class="col-sm-5">Term:</dt>
                                     <dd class="col-sm-7">@learningPath.Semester</dd>
-
-                                    <dt class="col-sm-5">Semester Start:</dt>
-                                    <dd class="col-sm-7">@learningPath.SemesterStartDate.ToString("MMM d, yyyy")</dd>
-                                </dl>
-                            </div>
-                            <div class="col-md-6">
-                                <dl class="row">
-                                    <dt class="col-sm-5">Academic Year:</dt>
-                                    <dd class="col-sm-7">@learningPath.AcademicYear</dd>
 
                                     <dt class="col-sm-5">Fee:</dt>
                                     <dd class="col-sm-7">@learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</dd>
-
-                                    <dt class="col-sm-5">Semester End:</dt>
-                                    <dd class="col-sm-7">@learningPath.SemesterEndDate.ToString("MMM d, yyyy")</dd>
-
-                                    <dt class="col-sm-5">Exams Start:</dt>
-                                    <dd class="col-sm-7">@learningPath.ExamsStartDate.ToString("MMM d, yyyy")</dd>
 
                                     <dt class="col-sm-5">Approval Status:</dt>
                                     <dd class="col-sm-7">
@@ -93,6 +78,21 @@
                                             @learningPath.ApprovalStatus
                                         </span>
                                     </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">Academic Year:</dt>
+                                    <dd class="col-sm-7">@learningPath.AcademicYear</dd>
+
+                                    <dt class="col-sm-5">Term Start:</dt>
+                                    <dd class="col-sm-7">@learningPath.SemesterStartDate.ToString("MMM d, yyyy")</dd>
+
+                                    <dt class="col-sm-5">Term End:</dt>
+                                    <dd class="col-sm-7">@learningPath.SemesterEndDate.ToString("MMM d, yyyy")</dd>
+
+                                    <dt class="col-sm-5">Exams Start:</dt>
+                                    <dd class="col-sm-7">@learningPath.ExamsStartDate.ToString("MMM d, yyyy")</dd>
                                 </dl>
                             </div>
                         </div>

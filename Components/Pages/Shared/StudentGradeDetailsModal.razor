@@ -31,11 +31,11 @@
                                 <div class="col-md-6">
                                     <p><strong>Student ID:</strong> @Student.Id</p>
                                     <p><strong>Learning Path:</strong> @Util.GetLearningPathName(LearningPath)</p>
-                                    <p><strong>Semester:</strong> @LearningPath.Semester</p>
+                                    <p><strong>Term:</strong> @LearningPath.Semester.ToTermDisplay()</p>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="text-center">
-                                        <h4 class="text-primary">Semester Overall Grade</h4>
+                                        <h4 class="text-primary">Term Overall Grade</h4>
                                         <h2 class="text-success">@GetSemesterOverallGrade().ToString("F2")%</h2>
                                         @{
                                             var rank = GetStudentRank();

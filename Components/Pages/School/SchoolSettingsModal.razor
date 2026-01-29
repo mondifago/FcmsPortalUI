@@ -148,7 +148,7 @@
                                     </div>
 
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Semester</label>
+                                        <label class="form-label">Term</label>
                                         <select @bind="selectedSemester" class="form-select">
                                             @foreach (var semester in Enum.GetValues(typeof(Semester)))
                                             {
@@ -160,12 +160,12 @@
 
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Semester Start Date</label>
+                                        <label class="form-label">Term Start Date</label>
                                         <input type="date" @bind="semesterStartDate" class="form-control" />
                                     </div>
 
                                     <div class="col-md-6 mb-3">
-                                        <label class="form-label">Semester End Date</label>
+                                        <label class="form-label">Term End Date</label>
                                         <input type="date" @bind="semesterEndDate" class="form-control" />
                                     </div>
                                 </div>

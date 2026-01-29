@@ -34,7 +34,7 @@ else
                     {
                         <div class="mb-3">
                             <p><strong>Academic Year:</strong> @student.LearningPath.AcademicYear</p>
-                            <p><strong>Semester:</strong> @student.LearningPath.Semester</p>
+                            <p><strong>Term:</strong> @student.LearningPath.Semester.ToTermDisplay()</p>
                         </div>
                     }
 
@@ -198,8 +198,8 @@ else
                         <dt>Class Level:</dt>
                         <dd>@selectedPayment.ClassLevel</dd>
 
-                        <dt class="col-sm-4">Semester:</dt>
-                        <dd class="col-sm-8">@selectedPayment.Semester</dd>
+                        <dt class="col-sm-4">Term:</dt>
+                        <dd class="col-sm-8">@selectedPayment.Semester.ToTermDisplay()</dd>
                     </dl>
                 </div>
                 <div class="modal-footer">

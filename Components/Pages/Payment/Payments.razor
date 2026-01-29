@@ -22,7 +22,7 @@
                     <h5><i class="fa fa-calendar-alt me-2"></i>Current Academic Period</h5>
                     <p class="mb-0">
                         <strong>Academic Year:</strong> @currentPeriod.AcademicYearStart.Year - @(currentPeriod.AcademicYearStart.Year + 1)<br />
-                        <strong>Semester:</strong> @currentPeriod.Semester Semester
+                        <strong>Term:</strong> @currentPeriod.Semester.ToTermDisplay()
                     </p>
                 </div>
                 <div class="col-md-6 text-end">

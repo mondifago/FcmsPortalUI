@@ -44,7 +44,7 @@
                                 <strong>Academic Year:</strong> @ArchivedStudent.ArchivedLearningPathGrade?.AcademicYear
                             </p>
                             <p>
-                                <strong>Semester:</strong> @ArchivedStudent.ArchivedLearningPathGrade?.Semester
+                                <strong>Term:</strong> @ArchivedStudent.ArchivedLearningPathGrade?.Semester.ToTermDisplay()
                             </p>
                         </div>
 
@@ -115,7 +115,7 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <p>
-                                            <strong>Overall Semester Grade:</strong>
+                                            <strong>Overall Term Grade:</strong>
                                             <span class="text-primary fs-5">
                                                 @ArchivedStudent.SemesterOverallGrade.ToString("F1")%
                                             </span>
@@ -161,19 +161,19 @@
                                     <table class="table table-sm">
                                         <tbody>
                                             <tr>
-                                                <td>First Semester</td>
+                                                <td>First Term</td>
                                                 <td class="text-end">
                                                     @ArchivedStudent.FirstSemesterGrade.ToString("F1")%
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>Second Semester</td>
+                                                <td>Second Term</td>
                                                 <td class="text-end">
                                                     @ArchivedStudent.SecondSemesterGrade.ToString("F1")%
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <td>Third Semester</td>
+                                                <td>Third Term</td>
                                                 <td class="text-end">
                                                     @ArchivedStudent.ThirdSemesterGrade.ToString("F1")%
                                                 </td>
