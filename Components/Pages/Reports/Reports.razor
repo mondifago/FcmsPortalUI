@@ -451,6 +451,7 @@
         if (selectedLearningPath != null)
         {
             semesterAttendanceReport = LogicMethods.GenerateSemesterAttendanceReport(selectedLearningPath);
+            semesterAttendanceReport.LearningPathName = Util.GetLearningPathName(selectedLearningPath);
             showSemesterAttendanceModal = true;
         }
     }
@@ -499,9 +500,10 @@
 
             foreach (var schedule in scheduleEntries)
             {
-                var report = LogicMethods.CreateClassSessionReport(schedule, learningPath);
+                var report = LogicMethods.CreateClassSessionReport(schedule);
                 if (report != null)
-                    filteredSessionReports.Add(report);
+                    report.LearningPathName = Util.GetLearningPathName(learningPath);
+                filteredSessionReports.Add(report);
             }
         }
 
@@ -524,7 +526,18 @@
         if (string.IsNullOrEmpty(selectedAcademicYear) || string.IsNullOrEmpty(selectedSemester))
             return;
 
-        var reports = SchoolDataService.GetGradesReports(selectedAcademicYear, selectedSemester);
+        var learningPaths = SchoolDataService.GetSubmittedLearningPaths(selectedAcademicYear, selectedSemester);
+
+        var reports = learningPaths.Select(lp => new GradesReport
+        {
+            LearningPathId = lp.Id,
+            LearningPathName = Util.GetLearningPathName(lp),
+            DateSubmitted = lp.DateSubmitted ?? DateTime.Now,
+            SubmittedBy = lp.SubmittedByName ?? "Unknown",
+            NumberOfStudents = lp.Students?.Count ?? 0,
+            Status = lp.ApprovalStatus
+        }).OrderByDescending(r => r.DateSubmitted).ToList();
+
         filteredGradesReports.AddRange(reports);
     }
 

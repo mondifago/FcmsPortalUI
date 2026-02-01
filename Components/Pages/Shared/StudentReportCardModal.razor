@@ -27,7 +27,7 @@
                     <div class="report-card-container" id="reportCard">
                         <!-- Header Section -->
                         <div class="text-center mb-4">
-                            <div class="school-logo mb-2">
+                            <div class="school-logo mb-2 d-inline-block">
                                 @if (!string.IsNullOrEmpty(school?.LogoUrl))
                                 {
                                     <img src="@school.LogoUrl" alt="School Logo" style="max-height: 80px;">
@@ -54,7 +54,7 @@
                                         <p><strong>Age:</strong> @Student.Person.Age years</p>
                                     </div>
                                     <div class="col-md-6">
-                                        <p><strong>Class:</strong> @LearningPath.EducationLevel - @LearningPath.ClassLevel</p>
+                                        <p><strong>Class:</strong> @LearningPath.EducationLevel.ToDisplayName() - @LearningPath.ClassLevel.ToDisplayName()</p>
                                         <p><strong>Guardian:</strong> @(guardian != null ? Util.GetFullName(guardian.Person) : "N/A")</p>
                                         <p><strong>Guardian Email:</strong> @(guardian != null ? guardian.Person.Email : "N/A")</p>
                                         <p><strong>Guardian Phone:</strong> @(guardian != null ? guardian?.Person.PhoneNumber : "N/A")</p>

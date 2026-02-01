@@ -224,7 +224,7 @@
                             <tr>
                                 <td>
                                     <a href="/learningpaths/details/@learningPath.Id">
-                                        @learningPath.EducationLevel - @learningPath.ClassLevel
+                                        @learningPath.EducationLevel.ToDisplayName() - @learningPath.ClassLevel.ToDisplayName()
                                     </a>
                                 </td>
                                 <td>@paymentSummary.StudentCount</td>

@@ -99,9 +99,9 @@
                     <label for="educationLevel" class="form-label">Education Level<span class="text-danger">*</span></label>
                     <InputSelect id="educationLevel" class="form-select" @bind-Value="Student.Person.EducationLevel" @bind-Value:after="OnEducationLevelChanged" disabled="@IsInLearningPath">
                         <option value="@EducationLevel.None">-- Select Education Level --</option>
-                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)))
+                        @foreach (var level in Enum.GetValues(typeof(EducationLevel)).Cast<EducationLevel>())
                         {
-                            <option value="@level">@level</option>
+                            <option value="@level">@level.ToDisplayName()</option>
                         }
                     </InputSelect>
                     <ValidationMessage For="@(() => Student.Person.EducationLevel)" />
@@ -112,7 +112,7 @@
                         <option value="@ClassLevel.None">-- Select Class Level --</option>
                         @foreach (var level in availableClassLevels)
                         {
-                            <option value="@level">@level</option>
+                            <option value="@level">@level.ToDisplayName()</option>
                         }
                     </select>
                     <ValidationMessage For="@(() => Student.Person.ClassLevel)" />

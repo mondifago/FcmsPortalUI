@@ -27,7 +27,7 @@
                                 <div>
                                     <p>
                                         <strong>Learning Path:</strong> @(ArchiveEntry != null
-                                                                            ? ArchiveEntry.LearningPathName
+                                                                            ? $"{ArchiveEntry.EducationLevel.ToDisplayName()} - {ArchiveEntry.ClassLevel.ToDisplayName()} ({ArchiveEntry.AcademicYear} {ArchiveEntry.Semester.ToTermDisplay()})"
                                                                             : Util.GetLearningPathName(LearningPath))
                                 </p>
                                     <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>

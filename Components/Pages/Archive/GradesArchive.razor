@@ -39,7 +39,7 @@
                         <option value="@EducationLevel.None">Select Education Level</option>
                         @foreach (var level in Enum.GetValues<EducationLevel>().Where(e => e != EducationLevel.None))
                         {
-                            <option value="@level">@level</option>
+                            <option value="@level">@level.ToDisplayName()</option>
                         }
                     </select>
                 </div>
@@ -49,7 +49,7 @@
                         <option value="">Select Class Level</option>
                         @foreach (var level in availableClassLevels)
                         {
-                            <option value="@level">@level</option>
+                            <option value="@level">@level.ToDisplayName()</option>
                         }
                     </select>
                 </div>

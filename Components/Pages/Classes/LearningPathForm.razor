@@ -26,7 +26,7 @@
                                                 .Cast<EducationLevel>()
                                                 .Where(l => l != EducationLevel.None))
                         {
-                            <option value="@level">@level</option>
+                            <option value="@level">@level.ToDisplayName()</option>
                         }
                     </InputSelect>
                     <ValidationMessage For="@(() => LearningPath.EducationLevel)" />
@@ -37,7 +37,7 @@
                         <option value="@ClassLevel.None">-- Select Class Level --</option>
                         @foreach (var level in availableClassLevels)
                         {
-                            <option value="@level">@level</option>
+                            <option value="@level">@level.ToDisplayName()</option>
                         }
                     </select>
                     <ValidationMessage For="@(() => LearningPath.ClassLevel)" />

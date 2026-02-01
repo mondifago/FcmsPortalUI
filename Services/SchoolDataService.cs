@@ -1933,15 +1933,26 @@ namespace FcmsPortalUI.Services
             return allCourses.Except(configuredCourses).ToList();
         }
 
-        public List<GradesReport> GetGradesReports(string academicYear, string semester)
+        public List<LearningPath> GetSubmittedLearningPaths(string academicYear, string semester)
         {
-            var school = _context.School
-                .AsNoTracking()
-                .Include(s => s.LearningPaths)
-                    .ThenInclude(lp => lp.Students)
-                .FirstOrDefault();
+            if (string.IsNullOrEmpty(academicYear) || string.IsNullOrEmpty(semester))
+                return new List<LearningPath>();
 
-            return LogicMethods.GetGradesReports(school, academicYear, semester);
+            var yearParts = academicYear.Split('-');
+            if (yearParts.Length != 2 || !int.TryParse(yearParts[0], out int startYear))
+                return new List<LearningPath>();
+
+            if (!Enum.TryParse<Semester>(semester, out var semesterEnum))
+                return new List<LearningPath>();
+
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Include(lp => lp.Students)
+                .Where(lp => lp.AcademicYearStart.Year == startYear &&
+                             lp.Semester == semesterEnum && !lp.IsTemplate &&
+                             (lp.ApprovalStatus == PrincipalApprovalStatus.Review ||
+                              lp.ApprovalStatus == PrincipalApprovalStatus.Approved))
+                .ToList();
         }
 
         public void SaveTestGrade(TestGrade testGrade)
@@ -2820,7 +2831,7 @@ namespace FcmsPortalUI.Services
                 );
 
             if (archivedPath == null)
-                return; // Should never happen if ArchiveLearningPathGrades ran correctly
+                return;
 
             var archivedStudent = archivedPath.StudentGrades
                 .FirstOrDefault(s => s.StudentId == reportCard.StudentId);
@@ -2883,7 +2894,7 @@ namespace FcmsPortalUI.Services
             var archivedLearningPath = new ArchivedLearningPathGrade
             {
                 LearningPathId = dbLearningPath.Id,
-                LearningPathName = LogicMethods.GetLearningPathDisplayName(dbLearningPath),
+                LearningPathName = Util.GetLearningPathName(dbLearningPath),
                 AcademicYear = dbLearningPath.AcademicYear,
                 EducationLevel = dbLearningPath.EducationLevel,
                 ClassLevel = dbLearningPath.ClassLevel,
@@ -2903,7 +2914,6 @@ namespace FcmsPortalUI.Services
                 // Semester overall & rank
                 if (!rankLookup.TryGetValue(student.Id, out var rankInfo))
                 {
-                    // Fallback if for some reason student is missing in the rank list
                     var fallbackGrade = LogicMethods.CalculateSemesterOverallGrade(student, dbLearningPath);
                     rankInfo = (0, fallbackGrade);
                 }
@@ -2923,7 +2933,7 @@ namespace FcmsPortalUI.Services
                     : 0;
 
                 bool isPromoted = promotionGrade >= FcmsConstants.PASSING_GRADE;
-                string promotionStatus = LogicMethods.GetPromotionStatusForArchive(dbLearningPath, isPromoted);
+                string promotionStatus = Util.GetPromotionStatusForArchive(dbLearningPath, isPromoted);
 
                 // Attendance snapshot
                 var (presentDays, totalDays, attendanceRate) =

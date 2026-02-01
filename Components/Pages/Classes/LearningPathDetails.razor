@@ -61,13 +61,13 @@
                             <div class="col-md-6">
                                 <dl class="row">
                                     <dt class="col-sm-5">Education Level:</dt>
-                                    <dd class="col-sm-7">@learningPath.EducationLevel</dd>
+                                    <dd class="col-sm-7">@learningPath.EducationLevel.ToDisplayName()</dd>
 
                                     <dt class="col-sm-5">Class Level:</dt>
-                                    <dd class="col-sm-7">@learningPath.ClassLevel</dd>
+                                    <dd class="col-sm-7">@learningPath.ClassLevel.ToDisplayName()</dd>
 
                                     <dt class="col-sm-5">Term:</dt>
-                                    <dd class="col-sm-7">@learningPath.Semester</dd>
+                                    <dd class="col-sm-7">@learningPath.Semester.ToTermDisplay()</dd>
 
                                     <dt class="col-sm-5">Fee:</dt>
                                     <dd class="col-sm-7">@learningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</dd>

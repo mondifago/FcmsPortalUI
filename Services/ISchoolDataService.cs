@@ -134,18 +134,11 @@ namespace FcmsPortalUI.Services
         CourseGradingConfiguration? GetCourseGradingConfiguration(int learningPathId, string courseName);
         List<CourseGradingConfiguration> GetAllCourseGradingConfigurations(int learningPathId);
         List<string> GetCoursesWithoutGradingConfiguration(int learningPathId);
-        List<GradesReport> GetGradesReports(string academicYear, string semester);
+        List<LearningPath> GetSubmittedLearningPaths(string academicYear, string semester);
         void SaveTestGrade(TestGrade testGrade);
-        void AddTestGrade(int studentId, string course, double score, GradeType gradeType,
-                  int teacherId, string teacherRemark, int learningPathId);
+        void AddTestGrade(int studentId, string course, double score, GradeType gradeType, int teacherId, string teacherRemark, int learningPathId);
         int GetGradeCountByType(int learningPathId, string course, GradeType gradeType);
-        Task<TestGrade> AddHomeworkSubmissionGradeAsync(
-                int studentId,
-                string course,
-                double score,
-                int teacherId,
-                string teacherRemark,
-                int learningPathId);
+        Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId);
         void SaveFinalizedGrades(LearningPath learningPath);
         public List<double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
         List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);

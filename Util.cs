@@ -20,7 +20,7 @@ namespace FcmsPortalUI
         public static string GetLearningPathName(LearningPath learningPath)
         {
             if (learningPath == null) return "-";
-            return $"{learningPath.EducationLevel} - {learningPath.ClassLevel} ({learningPath.AcademicYear} {learningPath.Semester})";
+            return $"{learningPath.EducationLevel.ToDisplayName()} - {learningPath.ClassLevel.ToDisplayName()} ({learningPath.AcademicYear} {learningPath.Semester.ToTermDisplay()})";
         }
 
         public static string GetApprovalStatusBadgeClass(PrincipalApprovalStatus status)
@@ -190,6 +190,26 @@ namespace FcmsPortalUI
             return ("Paid", "bg-success");
         }
 
+        public static string GetPromotionStatusForArchive(LearningPath learningPath, bool isPromoted)
+        {
+            if (!isPromoted)
+                return "NOT PROMOTED";
+
+            if (LogicMethods.IsLastClassInEducationLevel(learningPath.EducationLevel, learningPath.ClassLevel))
+                return "GRADUATED";
+
+            var (nextEducation, nextClass) = LogicMethods.GetNextEducationLevelAndClass(
+                learningPath.EducationLevel, learningPath.ClassLevel);
+
+            if (nextEducation.HasValue && nextEducation != learningPath.EducationLevel)
+            {
+                return $"PROMOTED to {nextEducation.Value.ToDisplayName()} {nextClass.Value.ToDisplayName()}";
+            }
+
+            var nextClassLevel = LogicMethods.GetNextClassLevel(learningPath.EducationLevel, learningPath.ClassLevel);
+            return $"PROMOTED to {learningPath.EducationLevel.ToDisplayName()} {nextClassLevel.Value.ToDisplayName()}";
+        }
+
         public static string GetGradeCode(double totalGrade)
         {
             return totalGrade switch
@@ -317,6 +337,44 @@ namespace FcmsPortalUI
                 return semester.ToTermDisplay();
             }
             return semesterString;
+        }
+
+        public static string ToDisplayName(this ClassLevel classLevel)
+        {
+            return classLevel switch
+            {
+                ClassLevel.KG_Daycare => "Day Care",
+                ClassLevel.KG_PlayGroup => "Play Group",
+                ClassLevel.KG_PreNursery => "Pre-Nursery",
+                ClassLevel.KG_Nursery => "Nursery",
+                ClassLevel.PRI_1 => "Primary 1",
+                ClassLevel.PRI_2 => "Primary 2",
+                ClassLevel.PRI_3 => "Primary 3",
+                ClassLevel.PRI_4 => "Primary 4",
+                ClassLevel.PRI_5 => "Primary 5",
+                ClassLevel.PRI_6 => "Primary 6",
+                ClassLevel.JC_1 => "JSS 1",
+                ClassLevel.JC_2 => "JSS 2",
+                ClassLevel.JC_3 => "JSS 3",
+                ClassLevel.SC_1 => "SSS 1",
+                ClassLevel.SC_2 => "SSS 2",
+                ClassLevel.SC_3 => "SSS 3",
+                ClassLevel.None => "",
+                _ => classLevel.ToString()
+            };
+        }
+
+        public static string ToDisplayName(this EducationLevel educationLevel)
+        {
+            return educationLevel switch
+            {
+                EducationLevel.Kindergarten => "Kindergarten",
+                EducationLevel.Primary => "Primary School",
+                EducationLevel.JuniorCollege => "Junior College",
+                EducationLevel.SeniorCollege => "Senior College",
+                EducationLevel.None => "",
+                _ => educationLevel.ToString()
+            };
         }
     }
 }

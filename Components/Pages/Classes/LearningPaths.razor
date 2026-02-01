@@ -37,7 +37,7 @@
                     <option value="">Select Term</option>
                     @foreach (var semester in Enum.GetValues(typeof(Semester)).Cast<Semester>())
                     {
-                        <option value="@semester">@semester.ToTermDisplay()</option>
+                        <option value="@semester">@semester</option>
                     }
                 </select>
             </div>
@@ -80,9 +80,9 @@ else
                     {
                         <tr>
                             <td>@learningPath.Id</td>
-                            <td>@learningPath.EducationLevel</td>
-                            <td>@learningPath.ClassLevel</td>
-                            <td>@learningPath.Semester</td>
+                            <td>@learningPath.EducationLevel.ToDisplayName()</td>
+                            <td>@learningPath.ClassLevel.ToDisplayName()</td>
+                            <td>@learningPath.Semester.ToTermDisplay()</td>
                             <td>@learningPath.AcademicYear</td>
                             <td>
                                 <span class="@Util.GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">

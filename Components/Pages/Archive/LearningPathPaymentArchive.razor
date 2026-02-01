@@ -90,7 +90,7 @@
                             @foreach (var lp in filteredPayments)
                             {
                                 <tr>
-                                    <td>@lp.EducationLevel - @lp.ClassLevel</td>
+                                    <td>@lp.EducationLevel.ToDisplayName() - @lp.ClassLevel.ToDisplayName()</td>
                                     <td>@lp.TotalStudentsInPath</td>
                                     <td>@lp.FeePerStudent.ToString("C", new CultureInfo("en-NG"))</td>
                                     <td>@lp.LearningPathExpectedRevenue.ToString("C", new CultureInfo("en-NG"))</td>

@@ -12,7 +12,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fa fa-graduation-cap"></i> Finalize Grades - @LearningPath?.EducationLevel @LearningPath?.ClassLevel
+                    <i class="fa fa-graduation-cap"></i> Finalize Grades - @LearningPath?.EducationLevel.ToDisplayName() @LearningPath?.ClassLevel.ToDisplayName()
                 </h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>

@@ -96,7 +96,7 @@
                                             @Util.GetFullName(ward.Person) -
                                             @if (ward.Person.EducationLevel != EducationLevel.None && ward.Person.ClassLevel != ClassLevel.None)
                                             {
-                                                <span>@ward.Person.EducationLevel - @ward.Person.ClassLevel</span>
+                                                <span>@ward.Person.EducationLevel.ToDisplayName() - @ward.Person.ClassLevel.ToDisplayName()</span>
                                             }
                                             else
                                             {

@@ -34,7 +34,7 @@
                         <option value="">Select Education Level</option>
                         @foreach (var level in Enum.GetValues(typeof(EducationLevel)).Cast<EducationLevel>().Where(e => e != EducationLevel.None))
                         {
-                            <option value="@level">@level</option>
+                            <option value="@level">@level.ToDisplayName()</option>
                         }
                     </select>
                 </div>
@@ -46,7 +46,7 @@
                         <option value="">Select Class Level</option>
                         @foreach (var level in availableClassLevelsForFilter)
                         {
-                            <option value="@level">@level</option>
+                            <option value="@level">@level.ToDisplayName()</option>
                         }
                     </select>
                 </div>
@@ -98,8 +98,8 @@
                             </td>
                             <td>@Util.GetFullName(student.Person)</td>
                             <td>@student.Person.Age</td>
-                            <td>@student.Person.EducationLevel</td>
-                            <td>@student.Person.ClassLevel</td>
+                            <td>@student.Person.EducationLevel.ToDisplayName()</td>
+                            <td>@student.Person.ClassLevel.ToDisplayName()</td>
                             <td>
                                 <span class="badge @(student.Person.IsActive ? "bg-success" : "bg-danger")">
                                     @(student.Person.IsActive ? "Active" : "Inactive")
