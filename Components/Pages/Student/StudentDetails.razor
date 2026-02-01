@@ -58,7 +58,7 @@
                     <div class="card-body text-center">
                         <ProfileThumbnailDetail Person="student.Person" />
 
-                        <p class="text-muted">@student.Person.ClassLevel</p>
+                        <p class="text-muted">@student.Person.ClassLevel.ToDisplayName()</p>
                     </div>
                 </div>
 
@@ -91,6 +91,10 @@
                         <div class="card mt-4">
                             <div class="card-header">
                                 <h5 class="mb-0">Payment Information</h5>
+                                @if (student.LearningPath != null)
+                                {
+                                    <small class="text-muted">@Util.GetLearningPathName(student.LearningPath)</small>
+                                }
                             </div>
                             <div class="card-body">
                                 @if (student.Person.SchoolFees != null && student.Person.SchoolFees.TotalAmount > 0)
@@ -184,11 +188,11 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <h6 class="text-muted">Education Level</h6>
-                                <p>@student.Person.EducationLevel</p>
+                                <p>@student.Person.EducationLevel.ToDisplayName()</p>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <h6 class="text-muted">Class Level</h6>
-                                <p>@student.Person.ClassLevel</p>
+                                <p>@student.Person.ClassLevel.ToDisplayName()</p>
                             </div>
                         </div>
                         <div class="row">
