@@ -905,6 +905,7 @@ main {
 /* Print-specific styles for testimonial */
 @media print {
     /* Hide print button and navigation in testimonial */
+   
     .d-print-none {
         display: none !important;
     }
@@ -1152,4 +1153,3 @@ main {
     .profile-signout:hover {
         text-decoration: underline;
     }
-

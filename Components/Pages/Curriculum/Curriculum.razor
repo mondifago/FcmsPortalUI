@@ -10,118 +10,166 @@
 
 <PageTitle>School Curriculum</PageTitle>
 
-<div class="container-fluid mt-3">
-    <div class="row mb-4">
-        <div class="col">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2>School Curriculum</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">School Curriculum</h2>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Education Level</label>
+                <InputSelect class="form-select"
+                             @bind-Value="selectedEducationLevel"
+                             @bind-Value:after="OnEducationLevelChanged">
+                    <option value="@EducationLevel.None">-- Select Education Level --</option>
+                    @foreach (var level in Enum.GetValues(typeof(EducationLevel))
+                                        .Cast<EducationLevel>()
+                                        .Where(l => l != EducationLevel.None))
+                    {
+                        <option value="@level">@level.ToDisplayName()</option>
+                    }
+                </InputSelect>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Class Level</label>
+                <select class="form-select"
+                        @bind="selectedClassLevel"
+                        @bind:after="OnClassLevelChanged"
+                        disabled="@(selectedEducationLevel == EducationLevel.None)">
+                    <option value="@ClassLevel.None">-- Select Class Level --</option>
+                    @foreach (var level in availableClassLevels)
+                    {
+                        <option value="@level">@level.ToDisplayName()</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Term</label>
+                <select class="form-select"
+                        @bind="selectedSemester"
+                        @bind:after="OnSemesterChanged"
+                        disabled="@(selectedClassLevel == ClassLevel.None)">
+                    <option value="">-- Select Term (optional) --</option>
+                    @foreach (var semester in Enum.GetValues(typeof(Semester)).Cast<Semester>())
+                    {
+                        <option value="@semester">@semester.ToTermDisplay()</option>
+                    }
+                </select>
             </div>
         </div>
     </div>
-
-    <!-- Filters -->
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <label class="form-label">Education Level</label>
-            <InputSelect class="form-select" @bind-Value="selectedEducationLevel" @bind-Value:after="OnEducationLevelChanged">
-                <option value="@EducationLevel.None">-- Select Education Level --</option>
-                @foreach (var level in Enum.GetValues(typeof(EducationLevel)).Cast<EducationLevel>().Where(l => l != EducationLevel.None))
-                {
-                    <option value="@level">@level.ToDisplayName()</option>
-                }
-            </InputSelect>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Class Level</label>
-            <select class="form-select" @bind="selectedClassLevel" @bind:after="OnClassLevelChanged" disabled="@(selectedEducationLevel == EducationLevel.None)">
-                <option value="@ClassLevel.None">-- Select Class Level --</option>
-                @foreach (var level in availableClassLevels)
-                {
-                    <option value="@level">@level.ToDisplayName()</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-4">
-            <label class="form-label">Term</label>
-            <select class="form-select" @bind="selectedSemester" @bind:after="OnSemesterChanged" disabled="@(selectedClassLevel == ClassLevel.None)">
-                <option value="">-- Select  Term (optional) --</option>
-                @foreach (var semester in Enum.GetValues(typeof(Semester)).Cast<Semester>())
-                {
-                    <option value="@semester">@semester</option>
-                }
-            </select>
-        </div>
-    </div>
+</div>
 
 <!-- Curriculum Display -->
 @if (filteredCurriculum.Any())
 {
-    <div class="curriculum-print">
-        <div class="row mb-4">
-            <div class="col-6">
-                <h5>Academic Year: @filteredCurriculum.First().AcademicYear</h5>
-                <h5>Term: @(selectedSemester?.ToTermDisplay() ?? "All Terms")</h5>
+    <div class="card curriculum-print shadow-sm">
+        <div class="card-body">
+
+            <!-- Summary strip -->
+            <div class="p-3 rounded bg-light border mb-4">
+                <div class="row g-2 small">
+                    <div class="col-md-6">
+                        <dl class="row mb-0">
+                            <dt class="col-3 fw-semibold">Academic Year</dt>
+                            <dd class="col-9 mb-1">@filteredCurriculum.First().AcademicYear</dd>
+
+                            <dt class="col-3 fw-semibold">Term</dt>
+                            <dd class="col-9 mb-0">
+                                @(selectedSemester?.ToTermDisplay() ?? "All Terms")
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <div class="col-md-6">
+                        <dl class="row mb-0">
+                            <dt class="col-3 fw-semibold">Education Level</dt>
+                            <dd class="col-9 mb-1">@selectedEducationLevel.ToDisplayName()</dd>
+
+                            <dt class="col-3 fw-semibold">Class Level</dt>
+                            <dd class="col-9 mb-0">@selectedClassLevel.ToDisplayName()</dd>
+                        </dl>
+                    </div>
+                </div>
             </div>
-            <div class="col-6 text-end">
-                <h5>Education Level: @selectedEducationLevel.ToDisplayName()</h5>
-                <h5>Class Level: @selectedClassLevel.ToDisplayName()</h5>
-            </div>
-        </div>
-        
-        <hr />
-        
-        @foreach (var curriculum in filteredCurriculum)
-        {
-            @foreach (var semester in curriculum.Semesters)
+
+            @foreach (var curriculum in filteredCurriculum)
             {
-                @if (!selectedSemester.HasValue || semester.Semester == selectedSemester)
+                @foreach (var semester in curriculum.Semesters)
                 {
-                    <h5 class="text-primary mb-3">@semester.Semester.ToTermDisplay()</h5>
-                    
-                    @foreach (var session in semester.ClassSessions)
+                    @if (!selectedSemester.HasValue || semester.Semester == selectedSemester)
                     {
-                        <div class="curriculum-session mb-5">
-                            <div class="row">
-                                <div class="col-8">
-                                    <p class="fw-bold mb-1">Course: @session.Course</p>
-                                    <p class="fw-bold mb-1">Topic: @session.Topic</p>
-                                    <p class="mb-1">Description: @session.Description</p>
-                                </div>
-                                    @{
-                                        var schedule = GetScheduleForSession(session.Id);
-                                        var duration = schedule?.Duration.TotalMinutes.ToString("0") ?? "N/A";
-                                    }
-                                <div class="col-4 text-end">
-                                    <p class="fw-bold">Class Duration: @duration min</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-3">
-                                <p class="fw-bold">Lesson Plan</p>
-                                <div class="lesson-plan-box">
-                                    @if (string.IsNullOrEmpty(session.LessonPlan))
-                                    {
-                                        <p class="text-muted text-center py-5">No lesson plan available</p>
-                                    }
-                                    else
-                                    {
-                                        @((MarkupString)session.LessonPlan)
-                                    }
-                                </div>
-                            </div>
-                            
-                            <hr class="mt-4" />
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="text-primary mb-0">@semester.Semester.ToTermDisplay()</h5>
+                            <h5 class="text-primary mb-0">Class Sessions: @semester.ClassSessions.Count</h5>
                         </div>
+
+                        @foreach (var session in semester.ClassSessions)
+                        {
+                            <div class="p-3 rounded bg-light border mb-4">
+                                <div class="card-body bg-light">
+
+                                    <div class="row g-2">
+                                        <div class="col-md-8">
+                                            <dl class="row mb-0 small">
+                                                <dt class="col-3 fw-semibold">Course</dt>
+                                                <dd class="col-9 mb-1">@session.Course</dd>
+
+                                                <dt class="col-3 fw-semibold">Topic</dt>
+                                                <dd class="col-9 mb-1">@session.Topic</dd>
+
+                                                <dt class="col-3 fw-semibold">Description</dt>
+                                                <dd class="col-9 mb-0">@session.Description</dd>
+                                            </dl>
+                                        </div>
+
+                                        @{
+                                            var schedule = GetScheduleForSession(session.Id);
+                                            var duration = schedule?.Duration.TotalMinutes.ToString("0") ?? "N/A";
+                                        }
+
+                                        <div class="col-md-4 text-md-end">
+                                            <span class="badge bg-info text-dark">
+                                                <i class="fa fa-clock me-1"></i> @duration min
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <div class="fw-semibold mb-2">Lesson Plan</div>
+
+                                        <div class="lesson-plan-box p-3 rounded border bg-white">
+                                            @if (string.IsNullOrEmpty(session.LessonPlan))
+                                            {
+                                                <div class="text-muted text-center py-4">
+                                                    <i class="fa fa-file-alt me-2"></i> No lesson plan available
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @((MarkupString)session.LessonPlan)
+                                            }
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        }
                     }
                 }
             }
-        }
-    </div>
-    
-    <div class="d-print-none mt-4">
-        <button class="btn btn-primary" @onclick="PrintCurriculum">
-            <i class="fa fa-print me-2"></i> Print Curriculum
-        </button>
+        </div>
+
+        <div class="card-footer bg-white d-print-none">
+            <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-primary" @onclick="PrintCurriculum">
+                    <i class="fa fa-print me-2"></i> Print Curriculum
+                </button>
+            </div>
+        </div>
     </div>
 }
 else if (selectedClassLevel != ClassLevel.None)
@@ -130,7 +178,7 @@ else if (selectedClassLevel != ClassLevel.None)
         <i class="fa fa-info-circle me-2"></i> No curriculum found for the selected combination.
     </div>
 }
-</div>
+
 
 
 @code {
