@@ -2104,7 +2104,7 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public List<double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel)
+        public Dictionary<Semester, double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel)
         {
             var student = _context.Students
                 .AsNoTracking()
@@ -2112,7 +2112,7 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(s => s.Id == studentId);
 
             if (student == null)
-                return new List<double>();
+                return new Dictionary<Semester, double>();
 
             var learningPathIds = student.CourseGrades
                 .Where(cg => cg.LearningPathId > 0)
@@ -2128,12 +2128,12 @@ namespace FcmsPortalUI.Services
                 .OrderBy(lp => lp.Semester)
                 .ToList();
 
-            var semesterGrades = new List<double>();
+            var semesterGrades = new Dictionary<Semester, double>();
 
             foreach (var learningPath in learningPaths)
             {
                 var grade = LogicMethods.CalculateSemesterOverallGrade(student, learningPath);
-                semesterGrades.Add(grade);
+                semesterGrades[learningPath.Semester] = grade;
             }
 
             return semesterGrades;
@@ -2824,7 +2824,7 @@ namespace FcmsPortalUI.Services
                     .ThenInclude(sg => sg.CourseGrades)
                 .FirstOrDefault(a =>
                     a.LearningPathId == reportCard.LearningPathId &&
-                    a.AcademicYear == reportCard.LearningPath.AcademicYearStart.Year + "/" + (reportCard.LearningPath.AcademicYearStart.Year + 1) &&
+                    a.AcademicYear == reportCard.LearningPath.AcademicYearStart.Year + "-" + (reportCard.LearningPath.AcademicYearStart.Year + 1) &&
                     a.EducationLevel == reportCard.LearningPath.EducationLevel &&
                     a.ClassLevel == reportCard.LearningPath.ClassLevel &&
                     a.Semester == reportCard.LearningPath.Semester
@@ -2924,15 +2924,14 @@ namespace FcmsPortalUI.Services
                     dbLearningPath.EducationLevel,
                     dbLearningPath.ClassLevel);
 
-                double firstSemesterGrade = semesterGrades.Count > 0 ? semesterGrades[0] : 0;
-                double secondSemesterGrade = semesterGrades.Count > 1 ? semesterGrades[1] : 0;
-                double thirdSemesterGrade = semesterGrades.Count > 2 ? semesterGrades[2] : 0;
+                double firstSemesterGrade = semesterGrades.GetValueOrDefault(Semester.First, 0);
+                double secondSemesterGrade = semesterGrades.GetValueOrDefault(Semester.Second, 0);
+                double thirdSemesterGrade = semesterGrades.GetValueOrDefault(Semester.Third, 0);
 
-                double promotionGrade = semesterGrades.Any()
-                    ? Math.Round(semesterGrades.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT)
-                    : 0;
+                double promotionGrade = semesterGrades.Any() ? Math.Round(semesterGrades.Values.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT) : 0;
 
                 bool isPromoted = promotionGrade >= FcmsConstants.PASSING_GRADE;
+
                 string promotionStatus = Util.GetPromotionStatusForArchive(dbLearningPath, isPromoted);
 
                 // Attendance snapshot
@@ -2993,7 +2992,7 @@ namespace FcmsPortalUI.Services
                         .Where(t => t.GradeType == GradeType.Quiz)
                         .ToList();
                     var examTests = courseGrade.TestGrades
-                        .Where(t => t.GradeType == GradeType.FinalExam)
+                        .Where(t => t.GradeType == GradeType.Exam)
                         .ToList();
 
                     double homeworkAverage = homeworkTests.Any() ? homeworkTests.Average(t => t.Score) : 0;

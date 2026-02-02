@@ -116,7 +116,7 @@
                                                         <h4 class="text-danger">
                                                             @course.ExamAverage.ToString("F1")
                                                         </h4>
-                                                        <small class="text-muted">@course.TestGrades.Count(t => t.GradeType == GradeType.FinalExam) exams</small>
+                                                        <small class="text-muted">@course.TestGrades.Count(t => t.GradeType == GradeType.Exam) exams</small>
                                                         <br />
                                                         <small class="text-success"><strong>Achieved:</strong> @((course.ExamAverage * course.FinalExamWeightPercentage / 100).ToString("F1"))%</small>
                                                         <br />

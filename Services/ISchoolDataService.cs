@@ -140,7 +140,7 @@ namespace FcmsPortalUI.Services
         int GetGradeCountByType(int learningPathId, string course, GradeType gradeType);
         Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId);
         void SaveFinalizedGrades(LearningPath learningPath);
-        public List<double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
+        Dictionary<Semester, double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
         List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);
         #endregion
 

@@ -98,7 +98,7 @@
                                             <td>@course</td>
                                             <td class="text-center">@GetWeightedScore(courseGrade, GradeType.Homework).ToString("F1")</td>
                                             <td class="text-center">@GetWeightedScore(courseGrade, GradeType.Quiz).ToString("F1")</td>
-                                            <td class="text-center">@GetWeightedScore(courseGrade, GradeType.FinalExam).ToString("F1")</td>
+                                            <td class="text-center">@GetWeightedScore(courseGrade, GradeType.Exam).ToString("F1")</td>
                                             <td class="text-center"><strong>@(courseGrade?.TotalGrade.ToString("F1") ?? "0.0")</strong></td>
                                             <td class="text-center">@Util.GetGradeCode(courseGrade?.TotalGrade ?? 0)</td>
                                             <td>@Util.GetGradeRemark(courseGrade?.TotalGrade ?? 0)</td>
@@ -127,7 +127,7 @@
                                     <div class="col-md-4">
                                         <p>
                                             <strong>Attendance Rate:</strong>
-                                            <span class="text-primary fs-5">@GetAttendanceRate().ToString("F0")%</span>
+                                            <span class="text-primary fs-5">@LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath).ToString("F1")%</span>
                                             @{
                                                 var (present, total, rate) = GetAttendanceDetails();
                                             }
@@ -152,17 +152,14 @@
                                 <div class="card-body">
                                     <table class="table table-sm">
                                         <tbody>
-                                            @{
-                                                var semesterNames = new[] { "First Term", "Second Term", "Third Term" };
-                                            }
-                                            @for (int i = 0; i < 3; i++)
+                                            @foreach (var sem in new[] { Semester.First, Semester.Second, Semester.Third })
                                             {
                                                 <tr>
-                                                    <td>@semesterNames[i]</td>
+                                                    <td>@sem.ToTermDisplay()</td>
                                                     <td class="text-end">
-                                                        @if (i < semesterGrades.Count)
+                                                        @if (semesterGrades.TryGetValue(sem, out var semGrade))
                                                         {
-                                                            <span>@semesterGrades[i].ToString("F1")%</span>
+                                                            <span>@semGrade.ToString("F1")%</span>
                                                         }
                                                         else
                                                         {
@@ -274,8 +271,8 @@
     </div>
 </div>
 
-@if (IsVisible)
-{
+@if (LearningPath.Semester == Semester.Third)
+                        {
     <div class="modal-backdrop fade show"></div>
 }
 
@@ -294,7 +291,7 @@
     private Guardian? guardian;
     private bool isTeacher = false; 
     private bool isPrincipal = false; 
-    private List<double> semesterGrades = new();
+    private Dictionary<Semester, double> semesterGrades = new();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -350,7 +347,7 @@
         {
             GradeType.Homework => config.HomeworkWeightPercentage,
             GradeType.Quiz => config.QuizWeightPercentage,
-            GradeType.FinalExam => config.FinalExamWeightPercentage,
+            GradeType.Exam => config.FinalExamWeightPercentage,
             _ => 0
         };
 
@@ -440,7 +437,7 @@
         if (semesterGrades == null || !semesterGrades.Any())
             return 0;
 
-        return Math.Round(semesterGrades.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT);
+        return Math.Round(semesterGrades.Values.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT);
     }
 
     private bool IsPromoted()

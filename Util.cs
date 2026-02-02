@@ -275,7 +275,7 @@ namespace FcmsPortalUI
             {
                 GradeType.Homework => "HW",
                 GradeType.Quiz => "Quiz",
-                GradeType.FinalExam => "Exam",
+                GradeType.Exam => "Exam",
                 _ => gradeType.ToString()
             };
         }

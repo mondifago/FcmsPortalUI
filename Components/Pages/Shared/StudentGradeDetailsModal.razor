@@ -117,11 +117,11 @@
                                                     <div class="card">
                                                         <div class="card-body text-center">
                                                             <h6 class="card-title text-muted">Exam</h6>
-                                                            <h4 class="text-danger">@GetGradeAverage(courseGrade, GradeType.FinalExam)</h4>
-                                                            <small class="text-muted">@GetGradeCount(courseGrade, GradeType.FinalExam) exams</small>
+                                                            <h4 class="text-danger">@GetGradeAverage(courseGrade, GradeType.Exam)</h4>
+                                                            <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Exam) exams</small>
                                                             @if (config != null)
                                                             {
-                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.FinalExam, config.FinalExamWeightPercentage).ToString("F1")%</strong></small>
+                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Exam, config.FinalExamWeightPercentage).ToString("F1")%</strong></small>
                                                                 <small class="text-muted">Weight: @config.FinalExamWeightPercentage%</small>
                                                             }
                                                         </div>

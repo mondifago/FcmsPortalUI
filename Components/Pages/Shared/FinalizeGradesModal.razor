@@ -50,15 +50,15 @@
 
                                             var grades = studentSemesterGrades.ContainsKey(student.Id)
                                             ? studentSemesterGrades[student.Id]
-                                            : new List<double>();
+                                            : new Dictionary<Semester, double>();
 
-                                            @for (int i = 0; i < 3; i++)
+                                            @foreach (var sem in new[] { Semester.First, Semester.Second, Semester.Third })
                                             {
                                                 <td class="text-center">
-                                                    @if (i < grades.Count)
+                                                    @if (grades.TryGetValue(sem, out var semGrade))
                                                     {
-                                                        <span class="badge bg-@Util.GetGradeColorClass(grades[i])">
-                                                            @grades[i].ToString("F1")%
+                                                        <span class="badge bg-@Util.GetGradeColorClass(semGrade)">
+                                                            @semGrade.ToString("F1")%
                                                         </span>
                                                     }
                                                     else
@@ -72,7 +72,7 @@
                                                     @{
 
                                                         var promotionGrade = grades.Any()
-                                                        ? Math.Round(grades.Average(), 2)
+                                                        ? Math.Round(grades.Values.Average(), 2)
                                                         : 0;
                                                     }
                                                     @promotionGrade.ToString("F1")%
@@ -96,19 +96,19 @@
 
                                             @if (LearningPath.Semester == Semester.Third)
                                             {
-                                                    var grades = studentSemesterGrades.ContainsKey(student.Id)
-                                                    ? studentSemesterGrades[student.Id]
-                                                    : new List<double>();
+                                                var grades = studentSemesterGrades.ContainsKey(student.Id)
+                                                ? studentSemesterGrades[student.Id]
+                                                : new Dictionary<Semester, double>();
 
-                                                    var promotionGrade = grades.Any()
-                                                    ? Math.Round(grades.Average(), 2)
-                                                    : 0;
+                                                var promotionGrade = grades.Any()
+                                                ? Math.Round(grades.Values.Average(), 2)
+                                                : 0;
 
-                                                    bool isLastClass = LogicMethods.IsLastClassInEducationLevel(
-                                                    LearningPath.EducationLevel, LearningPath.ClassLevel);
+                                                bool isLastClass = LogicMethods.IsLastClassInEducationLevel(
+                                                LearningPath.EducationLevel, LearningPath.ClassLevel);
 
-                                                    bool passed = promotionGrade >= FcmsConstants.PASSING_GRADE;
-                                                
+                                                bool passed = promotionGrade >= FcmsConstants.PASSING_GRADE;
+
                                                 @if (isGradesFinalized && isLastClass)
                                                 {
                                                     <AuthorizeView Roles="Developer,Principal">
@@ -220,7 +220,7 @@
     private bool showReportCardModal = false;
     private bool showFinalizeConfirm = false;
     private bool isGradesFinalized = false;
-    private Dictionary<int, List<double>> studentSemesterGrades = new();
+    private Dictionary<int, Dictionary<Semester, double>> studentSemesterGrades = new();
 
     protected override void OnParametersSet()
     {
@@ -281,7 +281,10 @@
         SchoolDataService.ArchiveLearningPathPayments(LearningPath);
         SchoolDataService.ArchiveStudentPayments(LearningPath);
         SchoolDataService.ArchiveStudentAttendance(LearningPath);
+        SchoolDataService.ArchiveLearningPathGrades(LearningPath);
+
         var reportCards = SchoolDataService.GetStudentReportCardsForLearningPath(LearningPath.Id);
+
         foreach (var reportCard in reportCards)
         {
             reportCard.IsFinalized = true;
@@ -289,7 +292,7 @@
             SchoolDataService.SaveStudentReportCard(reportCard);
             SchoolDataService.ArchiveStudentReportCard(reportCard);
         }
-        SchoolDataService.ArchiveLearningPathGrades(LearningPath);
+
         isGradesFinalized = true;
         LoadAllSemesterGrades();
         StateHasChanged();
