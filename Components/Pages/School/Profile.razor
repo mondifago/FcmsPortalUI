@@ -152,35 +152,36 @@
                     <div class="card-body">
                         @if (currentPerson.Address != null)
                         {
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted">Street</h6>
-                                    <p>@currentPerson.Address.Street</p>
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <h6 class="text-muted mb-1">Street</h6>
+                                    <p class="mb-0">@currentPerson.Address.Street</p>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted">City</h6>
-                                    <p>@currentPerson.Address.City</p>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <h6 class="text-muted">State</h6>
-                                    <p>@currentPerson.Address.State</p>
+                                <div class="col-md-4">
+                                    <h6 class="text-muted mb-1">City</h6>
+                                    <p class="mb-0">@currentPerson.Address.City</p>
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <h6 class="text-muted">Postal Code</h6>
-                                    <p>@currentPerson.Address.PostalCode</p>
+
+                                <div class="col-md-4">
+                                    <h6 class="text-muted mb-1">State</h6>
+                                    <p class="mb-0">@currentPerson.Address.State</p>
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <h6 class="text-muted">Country</h6>
-                                    <p>@currentPerson.Address.Country</p>
+
+                                <div class="col-md-4">
+                                    <h6 class="text-muted mb-1">Postal Code</h6>
+                                    <p class="mb-0">@currentPerson.Address.PostalCode</p>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <h6 class="text-muted mb-1">Country</h6>
+                                    <p class="mb-0">@currentPerson.Address.Country</p>
                                 </div>
                             </div>
                         }
                         else
                         {
-                            <p class="text-muted">No address on file.</p>
+                            <p class="text-muted mb-0">No address on file.</p>
                         }
                     </div>
                 </div>
