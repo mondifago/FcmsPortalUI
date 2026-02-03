@@ -93,7 +93,7 @@
                                     <td>
                                         @if (schedule.ClassSession != null && canSeeCourseLink)
                                         {
-                                            <a href="/classsession/details/@schedule.ClassSession.Id">
+                                            <a href="/classsession/details/@schedule.ClassSession.Id?returnUrl=@Uri.EscapeDataString(NavigationManager.Uri)">
                                                 @(schedule.ClassSession.Course ?? "N/A")
                                             </a>
                                         }

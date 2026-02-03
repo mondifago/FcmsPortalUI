@@ -370,8 +370,8 @@
                                                 </td>
                                                 <td>@student.Id</td>
                                                 <td>@student.Person.FirstName @student.Person.LastName</td>
-                                                <td>@student.Person.EducationLevel</td>
-                                                <td>@student.Person.ClassLevel</td>
+                                                <td>@student.Person.EducationLevel.ToDisplayName()</td>
+                                                <td>@student.Person.ClassLevel.ToDisplayName()</td>
                                             </tr>
                                         }
                                     </tbody>

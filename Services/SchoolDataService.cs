@@ -3187,10 +3187,9 @@ namespace FcmsPortalUI.Services
             if (school == null)
                 throw new InvalidOperationException("No school found.");
 
-            // Create new period + set current period
+            // Create new period and set current period
             context.AcademicPeriods.Add(academicPeriod);
-            school.CurrentAcademicPeriodId = academicPeriod.Id;
-
+            school.CurrentAcademicPeriod = academicPeriod;
             context.SaveChanges();
         }
 
