@@ -5,136 +5,131 @@
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 
-<div class="card mb-3">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">
-            <i class="fas fa-comments me-2"></i>Discussion Thread
-        </h5>
-    </div>
-    <div class="card-body">
-        @if (AllThreads == null)
+
+<div class="card-body">
+    @if (AllThreads == null)
+    {
+        <p>Loading discussion threads...</p>
+    }
+    else
+    {
+        <!-- New Post Form -->
+        @if (AllowReplies)
         {
-            <p>Loading discussion threads...</p>
+            <div class="mb-4 border rounded p-3 bg-light">
+                <EditForm Model="newFirstPost" OnValidSubmit="@HandleAddFirstPost">
+                    <div class="mb-3">
+                        <InputTextArea class="form-control" @bind-Value="newFirstPost.Comment" rows="3" placeholder="Start a new discussion..." />
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Post
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
         }
-        else
+
+        <!-- List of All Discussion Threads -->
+        @if (AllThreads != null && AllThreads.Any())
         {
-            <!-- New Post Form -->
-            @if (AllowReplies)
-            {
-                <div class="mb-4 border rounded p-3 bg-light">
-                    <EditForm Model="newFirstPost" OnValidSubmit="@HandleAddFirstPost">
-                        <div class="mb-3">
-                            <InputTextArea class="form-control" @bind-Value="newFirstPost.Comment" rows="3" placeholder="Start a new discussion..." />
-                        </div>
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-1"></i>Post
-                            </button>
-                        </div>
-                    </EditForm>
-                </div>
-            }
-
-            <!-- List of All Discussion Threads -->
-            @if (AllThreads != null && AllThreads.Any())
-            {
-                <div class="discussion-threads-container">
-                    @foreach (var thread in AllThreads.OrderByDescending(t => t.CreatedAt))
-                    {
-                        <div class="discussion-thread mb-4 border-bottom pb-3">
-                            <!-- First Post with Author -->
-                            <div class="d-flex mb-2">
-                                <div class="me-3">
-                                    <ProfileThumbnailList Person="thread.FirstPost.Author" />
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <strong>@Util.GetFullName(thread.FirstPost.Author)</strong>
-                                            <small class="text-muted ms-2">(@thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
-                                        </div>
-                                    </div>
-                                    <p class="mt-2 mb-1">@thread.FirstPost.Comment</p>
+            <div class="discussion-threads-container">
+                @foreach (var thread in AllThreads.OrderByDescending(t => t.CreatedAt))
+                {
+                    <div class="discussion-thread mb-4 border-bottom pb-3">
+                        <!-- First Post with Author -->
+                        <div class="d-flex mb-2">
+                            <div class="me-3">
+                                <ProfileThumbnailList Person="thread.FirstPost.Author" />
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => ToggleReplyForm(thread.Id)">
-                                            <i class="fas fa-reply me-1"></i>Reply
-                                        </button>
-
-                                        @if (thread.Replies.Count > 2 && !expandedThreads.Contains(thread.Id))
-                                        {
-                                            <button class="btn btn-sm btn-link mt-2" @onclick="() => ExpandThread(thread.Id)">
-                                                View all @thread.Replies.Count replies
-                                            </button>
-                                        }
+                                        <strong>@Util.GetFullName(thread.FirstPost.Author)</strong>
+                                        <small class="text-muted ms-2">(@thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
                                     </div>
+                                </div>
+                                <p class="mt-2 mb-1">@thread.FirstPost.Comment</p>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => ToggleReplyForm(thread.Id)">
+                                        <i class="fas fa-reply me-1"></i>Reply
+                                    </button>
+
+                                    @if (thread.Replies.Count > 2 && !expandedThreads.Contains(thread.Id))
+                                    {
+                                        <button class="btn btn-sm btn-link mt-2" @onclick="() => ExpandThread(thread.Id)">
+                                            View all @thread.Replies.Count replies
+                                        </button>
+                                    }
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Reply Form (conditionally displayed) -->
-                            @if (replyingToThreadId == thread.Id)
+                        <!-- Reply Form (conditionally displayed) -->
+                        @if (replyingToThreadId == thread.Id)
+                        {
+                            <div class="ms-5 mb-3 mt-3 border rounded p-3 bg-light">
+                                <EditForm Model="newReply" OnValidSubmit="() => HandleAddReply(thread)">
+                                    <div class="mb-2">
+                                        <InputTextArea class="form-control" @bind-Value="newReply.Comment" rows="2" placeholder="Write your reply..." />
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary me-2" @onclick="CancelReply">Cancel</button>
+                                        <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                                    </div>
+                                </EditForm>
+                            </div>
+                        }
+
+                        <!-- Replies Section -->
+                        <div class="replies-container ms-5">
+                            @{
+                                var replies = thread.Replies.OrderByDescending(r => r.CreatedAt).ToList();
+                                var displayReplies = expandedThreads.Contains(thread.Id)
+                                ? replies
+                                : replies.Take(2).ToList();
+                            }
+
+                            @foreach (var reply in displayReplies)
                             {
-                                <div class="ms-5 mb-3 mt-3 border rounded p-3 bg-light">
-                                    <EditForm Model="newReply" OnValidSubmit="() => HandleAddReply(thread)">
-                                        <div class="mb-2">
-                                            <InputTextArea class="form-control" @bind-Value="newReply.Comment" rows="2" placeholder="Write your reply..." />
+                                <div class="reply-item d-flex mt-3">
+                                    <div class="me-3">
+                                        <ProfileThumbnailList Person="reply.Author" />
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>@Util.GetFullName(reply.Author)</strong>
+                                                <small class="text-muted ms-2">(@reply.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
+                                            </div>
                                         </div>
-                                        <div class="d-flex justify-content-end">
-                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" @onclick="CancelReply">Cancel</button>
-                                            <button type="submit" class="btn btn-sm btn-primary">Reply</button>
-                                        </div>
-                                    </EditForm>
+                                        <p class="mb-0 mt-1">@reply.Comment</p>
+                                    </div>
                                 </div>
                             }
 
-                            <!-- Replies Section -->
-                            <div class="replies-container ms-5">
-                                @{
-                                    var replies = thread.Replies.OrderByDescending(r => r.CreatedAt).ToList();
-                                    var displayReplies = expandedThreads.Contains(thread.Id)
-                                    ? replies
-                                    : replies.Take(2).ToList();
-                                }
-
-                                @foreach (var reply in displayReplies)
-                                {
-                                    <div class="reply-item d-flex mt-3">
-                                        <div class="me-3">
-                                            <ProfileThumbnailList Person="reply.Author" />
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <strong>@Util.GetFullName(reply.Author)</strong>
-                                                    <small class="text-muted ms-2">(@reply.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
-                                                </div>
-                                            </div>
-                                            <p class="mb-0 mt-1">@reply.Comment</p>
-                                        </div>
-                                    </div>
-                                }
-
-                                @if (thread.Replies.Any() && expandedThreads.Contains(thread.Id))
-                                {
-                                    <div class="text-center mt-2">
-                                        <button class="btn btn-sm btn-link" @onclick="() => CollapseThread(thread.Id)">
-                                            Show fewer replies
-                                        </button>
-                                    </div>
-                                }
-                            </div>
+                            @if (thread.Replies.Any() && expandedThreads.Contains(thread.Id))
+                            {
+                                <div class="text-center mt-2">
+                                    <button class="btn btn-sm btn-link" @onclick="() => CollapseThread(thread.Id)">
+                                        Show fewer replies
+                                    </button>
+                                </div>
+                            }
                         </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>No discussions yet. Start a new one!
-                </div>
-            }
+                    </div>
+                }
+            </div>
         }
-    </div>
+        else
+        {
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No discussions yet. Start a new one!
+            </div>
+        }
+    }
 </div>
+
 
 @code {
     [Parameter] public List<DiscussionThread>? AllThreads { get; set; }
@@ -144,7 +139,7 @@
 
     private FirstPost newFirstPost = new();
     private Reply newReply = new();
-    private string newFirstPostComment = string.Empty; 
+    private string newFirstPostComment = string.Empty;
     private int replyingToThreadId = 0;
     private HashSet<int> expandedThreads = new HashSet<int>();
 

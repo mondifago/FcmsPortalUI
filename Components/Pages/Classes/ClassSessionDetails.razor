@@ -13,7 +13,7 @@
     <div class="row mb-3">
         <div class="col">
             <div class="d-flex justify-content-between align-items-center">
-                <h2>Class Session Details</h2>
+                <h2>Class Session</h2>
                 <div>
                     <button class="btn btn-secondary" @onclick="GoBack">
                         <i class="fa fa-arrow-left"></i> Back
@@ -365,7 +365,7 @@
                 <!-- Discussion Section -->
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Class Discussion</h4>
+                        <h4 class="mb-0"><i class="fas fa-comments me-2"></i>Class Discussion</h4>
                     </div>
                     <div class="card-body">
                         <DiscussionThreadComponent AllThreads="classSession.DiscussionThreads ?? new List<DiscussionThread>()"
@@ -388,20 +388,21 @@
                         {
                             <p class="text-muted">No students in this class.</p>
                         }
+
                         @if (enrolledStudents.Any() && (relatedLearningPath?.AttendanceLog == null || !relatedLearningPath.AttendanceLog.Any()))
                         {
                             <p class="text-muted">Attendance not yet taken for this class.</p>
                         }
+
                         @if (enrolledStudents.Any() && relatedLearningPath?.AttendanceLog != null && relatedLearningPath.AttendanceLog.Any())
                         {
+                            var sessionAttendance = relatedLearningPath.AttendanceLog.FirstOrDefault();
+
                             <div class="list-group">
                                 @foreach (var student in enrolledStudents)
                                 {
-                                    var todaysAttendance = relatedLearningPath.AttendanceLog
-                                    .FirstOrDefault(log => log.TimeStamp.Date == DateTime.Today);
-
-                                    bool isPresent = todaysAttendance?.PresentStudents?.Any(s => s.Id == student.Id) == true;
-                                    bool isAbsent = todaysAttendance?.AbsentStudents?.Any(s => s.Id == student.Id) == true;
+                                    bool isPresent = sessionAttendance?.PresentStudents?.Any(s => s.Id == student.Id) == true;
+                                    bool isAbsent = sessionAttendance?.AbsentStudents?.Any(s => s.Id == student.Id) == true;
 
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
@@ -487,7 +488,7 @@
     private List<Student> enrolledStudents = new List<Student>();
     private Staff currentTeacher = new();
     private Student currentStudent = new();
-    private Homework selectedHomework = new();
+    private Homework? selectedHomework;
     private HomeworkSubmission existingSubmission = new();
     private HomeworkSubmission selectedSubmission = new();
     private HomeworkSubmission submissionToGrade = new();
@@ -540,7 +541,7 @@
 
     private void LoadEnrolledStudents()
     {
-        relatedLearningPath = SchoolDataService.GetLearningPathByClassSessionId(classSession.Id) ?? new LearningPath();
+        relatedLearningPath = SchoolDataService.GetLearningPathWithAttendanceByClassSessionId(classSession.Id, scheduleEntry.DateTime) ?? new LearningPath();
         enrolledStudents = relatedLearningPath.Students?.ToList() ?? new List<Student>();
     }
 
@@ -677,7 +678,7 @@
 
     private void CreateNewHomework()
     {
-        selectedHomework = new Homework();
+        selectedHomework = null;
         showHomeworkModal = true;
     }
 
@@ -759,7 +760,6 @@
 
         SchoolDataService.UpdateHomework(classSession.HomeworkDetails);
         showGradingModal = false;
-        //showSubmissionsListModal = false;
     }
 
     private void ViewMyGrade()

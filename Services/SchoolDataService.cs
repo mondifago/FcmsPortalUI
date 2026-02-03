@@ -771,15 +771,33 @@ namespace FcmsPortalUI.Services
                 .ToDictionary(se => se.Id, se => se.LearningPath);
         }
 
-        public LearningPath? GetLearningPathByClassSessionId(int classSessionId)
+        public LearningPath? GetLearningPathWithAttendanceByClassSessionId(int classSessionId, DateTime sessionDate)
         {
+            var targetDate = sessionDate.Date;
+
             var scheduleEntry = _context.ScheduleEntries
+                .AsNoTracking()
                 .Include(se => se.LearningPath)
                     .ThenInclude(lp => lp.Students)
                         .ThenInclude(s => s.Person)
+                .Include(se => se.LearningPath)
+                    .ThenInclude(lp => lp.AttendanceLog.Where(al => al.TimeStamp.Date == targetDate))
+                        .ThenInclude(al => al.PresentStudents)
+                .Include(se => se.LearningPath)
+                    .ThenInclude(lp => lp.AttendanceLog.Where(al => al.TimeStamp.Date == targetDate))
+                        .ThenInclude(al => al.AbsentStudents)
                 .FirstOrDefault(se => se.ClassSessionId == classSessionId);
 
             return scheduleEntry?.LearningPath;
+        }
+
+        public int? GetLearningPathIdByClassSessionId(int classSessionId)
+        {
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Where(se => se.ClassSessionId == classSessionId)
+                .Select(se => se.LearningPathId)
+                .FirstOrDefault();
         }
 
         public bool DeleteLearningPath(int id)

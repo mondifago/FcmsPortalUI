@@ -165,11 +165,11 @@
         var course = Submission.Homework?.ClassSession?.Course;
         if (!string.IsNullOrEmpty(course))
         {
-            var learningPath = Submission.Homework?.ClassSession?.Id != null
-                ? SchoolDataService.GetLearningPathByClassSessionId(Submission.Homework.ClassSession.Id)
+            var learningPathId = Submission.Homework?.ClassSession?.Id != null
+                ? SchoolDataService.GetLearningPathIdByClassSessionId(Submission.Homework.ClassSession.Id)
                 : null;
 
-            if (learningPath != null)
+            if (learningPathId.HasValue)
             {
                 var savedGrade = await SchoolDataService.AddHomeworkSubmissionGradeAsync(
                     Submission.Student.Id,
@@ -177,7 +177,7 @@
                     finalScoreRounded,
                     CurrentTeacher.Id,
                     testGrade.TeacherRemark,
-                    learningPath.Id
+                    learningPathId.Value
                 );
 
                 Submission.HomeworkGrade = savedGrade;

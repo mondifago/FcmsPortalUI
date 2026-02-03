@@ -59,7 +59,8 @@ namespace FcmsPortalUI.Services
         LearningPath? GetLearningPathForSchedules(int id);
         LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId);
         Dictionary<int, LearningPath?> GetLearningPathsByScheduleEntries(List<int> scheduleEntryIds);
-        LearningPath? GetLearningPathByClassSessionId(int classSessionId);
+        LearningPath? GetLearningPathWithAttendanceByClassSessionId(int classSessionId, DateTime sessionDate);
+        int? GetLearningPathIdByClassSessionId(int classSessionId);
         void UpdateLearningPath(LearningPath learningPath);
         bool DeleteLearningPath(int id);
         void AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd);

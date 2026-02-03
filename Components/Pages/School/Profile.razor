@@ -58,7 +58,7 @@
                             <div class="mt-2">
                                 @if (studentProfile.Person.EducationLevel != EducationLevel.None && studentProfile.Person.ClassLevel != ClassLevel.None)
                                 {
-                                    <small class="text-muted d-block">@studentProfile.Person.EducationLevel - @studentProfile.Person.ClassLevel</small>
+                                    <small class="text-muted d-block">@studentProfile.Person.EducationLevel.ToDisplayName() - @studentProfile.Person.ClassLevel.ToDisplayName()</small>
                                 }
                                 else
                                 {
@@ -72,11 +72,11 @@
                             <div class="mt-2">
                                 @if (staffProfile.Person.EducationLevel != EducationLevel.None)
                                 {
-                                    <small class="text-muted d-block">@staffProfile.Person.EducationLevel</small>
+                                    <small class="text-muted d-block">@staffProfile.Person.EducationLevel.ToDisplayName()</small>
                                 }
                                 @if (staffProfile.Person.ClassLevel != ClassLevel.None)
                                 {
-                                    <small class="text-muted d-block">@staffProfile.Person.ClassLevel</small>
+                                    <small class="text-muted d-block">@staffProfile.Person.ClassLevel.ToDisplayName()</small>
                                 }
                                 @if (!string.IsNullOrEmpty(staffProfile.JobDescription))
                                 {
