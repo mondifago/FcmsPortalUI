@@ -883,7 +883,12 @@ namespace FcmsPortalUI.Services
                     student.LearningPath = existingLearningPath;
                 }
 
-                if (student.Person.SchoolFees.TotalPaid >= existingLearningPath.FeePerSemester * FcmsConstants.PAYMENT_THRESHOLD_FACTOR &&
+                // Get payments only for THIS learning path
+                var paymentsForThisLearningPath = student.Person.SchoolFees.Payments
+                    .Where(p => p.LearningPathId == existingLearningPath.Id)
+                    .Sum(p => p.Amount);
+
+                if (paymentsForThisLearningPath >= existingLearningPath.FeePerSemester * FcmsConstants.PAYMENT_THRESHOLD_FACTOR &&
                     !existingLearningPath.StudentsWithAccess.Any(s => s.Id == student.Id))
                 {
                     existingLearningPath.StudentsWithAccess.Add(student);
@@ -928,7 +933,12 @@ namespace FcmsPortalUI.Services
                         student.LearningPath = existingLearningPath;
                     }
 
-                    if (student.Person.SchoolFees.TotalPaid >= existingLearningPath.FeePerSemester * FcmsConstants.PAYMENT_THRESHOLD_FACTOR &&
+                    // Get payments only for THIS learning path
+                    var paymentsForThisLearningPath = student.Person.SchoolFees.Payments
+                        .Where(p => p.LearningPathId == existingLearningPath.Id)
+                        .Sum(p => p.Amount);
+
+                    if (paymentsForThisLearningPath >= existingLearningPath.FeePerSemester * FcmsConstants.PAYMENT_THRESHOLD_FACTOR &&
                         !existingLearningPath.StudentsWithAccess.Any(s => s.Id == student.Id))
                     {
                         existingLearningPath.StudentsWithAccess.Add(student);

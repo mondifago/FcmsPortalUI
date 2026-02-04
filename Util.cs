@@ -165,12 +165,15 @@ namespace FcmsPortalUI
             return "Add Session";
         }
 
-        public static (string Text, string CssClass) GetPaymentStatus(Student student)
+        public static (string Text, string CssClass) GetPaymentStatus(Student student, int learningPathId)
         {
             var schoolFees = student?.Person?.SchoolFees;
-            double totalPaid = schoolFees?.Payments.Sum(p => p.Amount) ?? 0;
             double totalDue = schoolFees?.TotalAmount ?? 0;
             double threshold = totalDue * FcmsConstants.PAYMENT_THRESHOLD_FACTOR;
+
+            double totalPaid = schoolFees?.Payments
+                .Where(p => p.LearningPathId == learningPathId)
+                .Sum(p => p.Amount) ?? 0;
 
             if (totalPaid == 0)
             {

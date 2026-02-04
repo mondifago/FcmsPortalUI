@@ -170,7 +170,7 @@
                                                     </a>
                                                 </div>
                                                 @{
-                                                    var (statusText, badgeClass) = Util.GetPaymentStatus(student);
+                                                    var (statusText, badgeClass) = Util.GetPaymentStatus(student, learningPath.Id);
                                                 }
                                                 <span class="badge @badgeClass">@statusText</span>
                                             </div>
