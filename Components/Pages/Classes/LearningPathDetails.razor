@@ -142,6 +142,26 @@
                                      ScheduleTypeLabel="Class"
                                      ScheduleTypesLabel="Classes" />
 
+
+                @if (showDailyView && selectedDateForDailyView.HasValue)
+                {
+                    <div class="mt-4">
+                        <DailyScheduleList Title="Schedule for"
+                                           SelectedDate="selectedDateForDailyView.Value"
+                                           Schedules="GetSchedulesForDailyView()"
+                                           FilterByType="selectedScheduleTypeForDailyView"
+                                           IsGeneralCalendar="false"
+                                           OnView="ViewScheduleDetails" />
+                    </div>
+                }
+
+                @if (showScheduleDetailsModal && selectedScheduleForDetails != null)
+                {
+                    <ScheduleDetailsModal IsVisible="showScheduleDetailsModal"
+                                          ScheduleEntry="selectedScheduleForDetails"
+                                          OnClose="CloseScheduleDetailsModal" />
+                }
+
             </div>
 
             <div class="col-md-4">
@@ -460,6 +480,12 @@
     private Person? currentUser;
     private int? currentUserId;
 
+    private bool showDailyView = false;
+    private DateTime? selectedDateForDailyView = null;
+    private ScheduleType? selectedScheduleTypeForDailyView = null;
+    private ScheduleEntry? selectedScheduleForDetails = null;
+    private bool showScheduleDetailsModal = false;
+
     protected override async Task OnInitializedAsync()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
@@ -583,7 +609,33 @@
         if (data.type == ScheduleType.ClassSession)
         {
             NavigateToScheduleList(data.date);
+            return;
         }
+        // For Events and Meetings, show inline
+        selectedDateForDailyView = data.date;
+        selectedScheduleTypeForDailyView = data.type;
+        showDailyView = true;
+        StateHasChanged();
+    }
+
+    private List<ScheduleEntry> GetSchedulesForDailyView()
+    {
+        if (!selectedDateForDailyView.HasValue)
+            return new List<ScheduleEntry>();
+
+        return GetSessionsForDate(selectedDateForDailyView.Value);
+    }
+
+    private void ViewScheduleDetails(ScheduleEntry schedule)
+    {
+        selectedScheduleForDetails = schedule;
+        showScheduleDetailsModal = true;
+    }
+
+    private void CloseScheduleDetailsModal()
+    {
+        showScheduleDetailsModal = false;
+        selectedScheduleForDetails = null;
     }
 
     private void ShowScheduleCreateModal()

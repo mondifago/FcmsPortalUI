@@ -144,7 +144,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
-                @if (ScheduleEntry?.ClassSession == null)
+                @if (ScheduleEntry?.ClassSession == null && OnEdit.HasDelegate)
                 {
                     <button type="button" class="btn btn-warning" @onclick="Edit">Edit</button>
                 }
