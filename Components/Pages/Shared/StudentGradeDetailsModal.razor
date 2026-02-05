@@ -58,125 +58,130 @@
                             <h6 class="mb-0"><i class="fa fa-books"></i> Course Breakdown</h6>
                         </div>
                         <div class="card-body">
-                            @foreach (var course in GetStudentCourses())
+                            @if (!GetStudentCourses().Any())
                             {
-                                var courseGrade = GetCourseGrade(course);
-                                var config = GetCourseConfig(course);
-
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <div class="row align-items-center">
-                                            <div class="col">
-                                                <h6 class="mb-0">@course</h6>
-                                            </div>
-                                            <div class="col-auto">
-                                                <span class="badge bg-@Util.GetGradeColorClass(courseGrade?.TotalGrade ?? 0) fs-6">
-                                                    @(courseGrade?.TotalGrade.ToString("F1") ?? "0.0")%
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        @if (courseGrade != null && courseGrade.TestGrades.Any())
-                                        {
-                                            <div class="row">
-                                                <!-- Homework Section -->
-                                                <div class="col-md-4">
-                                                    <div class="card">
-                                                        <div class="card-body text-center">
-                                                            <h6 class="card-title text-muted">Homework</h6>
-                                                            <h4 class="text-primary">@GetGradeAverage(courseGrade, GradeType.Homework)</h4>
-                                                            <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Homework) assignments</small>
-                                                            @if (config != null)
-                                                            {
-                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Homework, config.HomeworkWeightPercentage).ToString("F1")%</strong></small>
-                                                                <small class="text-muted">Weight: @config.HomeworkWeightPercentage%</small>
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Quiz Section -->
-                                                <div class="col-md-4">
-                                                    <div class="card">
-                                                        <div class="card-body text-center">
-                                                            <h6 class="card-title text-muted">Quiz</h6>
-                                                            <h4 class="text-warning">@GetGradeAverage(courseGrade, GradeType.Quiz)</h4>
-                                                            <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Quiz) quizzes</small>
-                                                            @if (config != null)
-                                                            {
-                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Quiz, config.QuizWeightPercentage).ToString("F1")%</strong></small>
-                                                                <small class="text-muted">Weight: @config.QuizWeightPercentage%</small>
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Exam Section -->
-                                                <div class="col-md-4">
-                                                    <div class="card">
-                                                        <div class="card-body text-center">
-                                                            <h6 class="card-title text-muted">Exam</h6>
-                                                            <h4 class="text-danger">@GetGradeAverage(courseGrade, GradeType.Exam)</h4>
-                                                            <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Exam) exams</small>
-                                                            @if (config != null)
-                                                            {
-                                                                <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Exam, config.FinalExamWeightPercentage).ToString("F1")%</strong></small>
-                                                                <small class="text-muted">Weight: @config.FinalExamWeightPercentage%</small>
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Individual Grade Details -->
-                                            <div class="mt-3">
-                                                <h6>Grade Details</h6>
-                                                <div class="table-responsive">
-                                                    <table class="table table-sm table-striped">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Date</th>
-                                                                <th>Type</th>
-                                                                <th>Score</th>
-                                                                <th>Teacher</th>
-                                                                <th>Remarks</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach (var grade in courseGrade.TestGrades.OrderByDescending(g => g.Date))
-                                                            {
-                                                                <tr>
-                                                                    <td>@grade.Date.ToString("MMM dd, yyyy")</td>
-                                                                    <td>
-                                                                        <span class="badge bg-secondary">
-                                                                            @Util.GetGradeTypeName(grade.GradeType)
-                                                                        </span>
-                                                                    </td>
-                                                                    <td>
-                                                                        <span class="fw-bold @Util.GetGradeColorClass(grade.Score, useTextPrefix: true)">
-                                                                            @grade.Score.ToString("F1")%
-                                                                        </span>
-                                                                    </td>
-                                                                    <td>@grade.Teacher?.Person?.FirstName @grade.Teacher?.Person?.LastName</td>
-                                                                    <td>@grade.TeacherRemark</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div class="alert alert-info">
-                                                <i class="fa fa-info-circle"></i>
-                                                No grades recorded for this course yet.
-                                            </div>
-                                        }
-                                    </div>
+                                <div class="alert alert-info">
+                                    <i class="fa fa-info-circle"></i>
+                                    No grades have been recorded for this student yet.
                                 </div>
                             }
+                            else
+                            {
+                                @foreach (var course in GetStudentCourses())
+                                {
+                                    var courseGrade = GetCourseGrade(course);
+                                    var config = GetCourseConfig(course);
+
+                                    <div class="card mb-3">
+                                        <div class="card-header">
+                                            <div class="row align-items-center">
+                                                <div class="col">
+                                                    <h6 class="mb-0">@course</h6>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <span class="badge bg-@Util.GetGradeColorClass(courseGrade?.TotalGrade ?? 0) fs-6">
+                                                        @(courseGrade?.TotalGrade.ToString("F1") ?? "0.0")%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            @if (courseGrade != null && courseGrade.TestGrades.Any())
+                                            {
+                                                <div class="row">
+                                                    <!-- Homework Section -->
+                                                    <div class="col-md-4">
+                                                        <div class="card">
+                                                            <div class="card-body text-center">
+                                                                <h6 class="card-title text-muted">Homework</h6>
+                                                                <h4 class="text-primary">@GetGradeAverage(courseGrade, GradeType.Homework)</h4>
+                                                                <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Homework) assignments</small>
+                                                                @if (config != null)
+                                                                {
+                                                                    <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Homework, config.HomeworkWeightPercentage).ToString("F1")%</strong></small>
+                                                                    <small class="text-muted">Weight: @config.HomeworkWeightPercentage%</small>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Quiz Section -->
+                                                    <div class="col-md-4">
+                                                        <div class="card">
+                                                            <div class="card-body text-center">
+                                                                <h6 class="card-title text-muted">Quiz</h6>
+                                                                <h4 class="text-warning">@GetGradeAverage(courseGrade, GradeType.Quiz)</h4>
+                                                                <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Quiz) quizzes</small>
+                                                                @if (config != null)
+                                                                {
+                                                                    <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Quiz, config.QuizWeightPercentage).ToString("F1")%</strong></small>
+                                                                    <small class="text-muted">Weight: @config.QuizWeightPercentage%</small>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Exam Section -->
+                                                    <div class="col-md-4">
+                                                        <div class="card">
+                                                            <div class="card-body text-center">
+                                                                <h6 class="card-title text-muted">Exam</h6>
+                                                                <h4 class="text-danger">@GetGradeAverage(courseGrade, GradeType.Exam)</h4>
+                                                                <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Exam) exams</small>
+                                                                @if (config != null)
+                                                                {
+                                                                    <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Exam, config.FinalExamWeightPercentage).ToString("F1")%</strong></small>
+                                                                    <small class="text-muted">Weight: @config.FinalExamWeightPercentage%</small>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Individual Grade Details -->
+                                                <div class="mt-3">
+                                                    <h6>Grade Details</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-striped">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Date</th>
+                                                                    <th>Type</th>
+                                                                    <th>Score</th>
+                                                                    <th>Teacher</th>
+                                                                    <th>Remarks</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach (var grade in courseGrade.TestGrades.OrderByDescending(g => g.Date))
+                                                                {
+                                                                    <tr>
+                                                                        <td>@grade.Date.ToString("MMM dd, yyyy")</td>
+                                                                        <td>
+                                                                            <span class="badge bg-secondary">
+                                                                                @Util.GetGradeTypeName(grade.GradeType)
+                                                                            </span>
+                                                                        </td>
+                                                                        <td>
+                                                                            <span class="fw-bold @Util.GetGradeColorClass(grade.Score, useTextPrefix: true)">
+                                                                                @grade.Score.ToString("F1")%
+                                                                            </span>
+                                                                        </td>
+                                                                        <td>@grade.Teacher?.Person?.FirstName @grade.Teacher?.Person?.LastName</td>
+                                                                        <td>@grade.TeacherRemark</td>
+                                                                    </tr>
+                                                                }
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                        </div>
+                                    </div>
+                                }
+                            }
+
                         </div>
                     </div>
 
@@ -242,7 +247,13 @@
 
     private List<string> GetStudentCourses()
     {
-        return CourseDefaults.GetCourseNames(LearningPath.EducationLevel);
+        if (Student?.CourseGrades == null || LearningPath == null)
+            return new List<string>();
+
+        return Student.CourseGrades
+            .Where(cg => cg.LearningPathId == LearningPath.Id && cg.TestGrades.Any())
+            .Select(cg => cg.Course)
+            .ToList();
     }
 
     private CourseGrade? GetCourseGrade(string course)

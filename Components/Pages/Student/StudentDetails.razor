@@ -106,12 +106,15 @@
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <h6 class="text-muted">Total Amount Paid</h6>
-                                            <p class="text-success fs-5">₦@student.Person.SchoolFees.TotalPaid.ToString("N2")</p>
+                                            <p class="text-success fs-5">₦@SchoolDataService.GetTotalPaidForLearningPath(student.Person.SchoolFees.Id, student.LearningPath?.Id ?? 0).ToString("N2")</p>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <h6 class="text-muted">Balance</h6>
-                                            <p class="@(student.Person.SchoolFees.Balance > 0 ? "text-danger" : "text-success") fs-5">
-                                                ₦@student.Person.SchoolFees.Balance.ToString("N2")
+                                            @{
+                                                var balance = SchoolDataService.GetBalanceForLearningPath(student.Person.SchoolFees.Id, student.LearningPath?.Id ?? 0, student.Person.SchoolFees.TotalAmount);
+                                            }
+                                            <p class="@(balance > 0 ? "text-danger" : "text-success") fs-5">
+                                                ₦@balance.ToString("N2")
                                             </p>
                                         </div>
                                     </div>

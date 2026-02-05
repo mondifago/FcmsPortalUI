@@ -150,9 +150,6 @@
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="btn btn-success btn-sm mt-2" @onclick="AddNewSchedule">
-                    <i class="fa fa-plus"></i> Add Schedule
-                </button>
             </div>
         </div>
     }
@@ -344,11 +341,6 @@
     {
         scheduleToDelete = schedule;
         showDeleteConfirmation = true;
-    }
-
-    private void AddNewSchedule()
-    {
-        showCreateScheduleModal = true;
     }
 
     private void HandleScheduleCreated(ScheduleEntry newSchedule)

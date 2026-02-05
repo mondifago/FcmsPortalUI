@@ -119,9 +119,9 @@
 
     protected override void OnParametersSet()
     {
-        if (IsVisible && Student != null)
+        if (IsVisible && Student != null && Student.LearningPath != null)
         {
-            reportData = LogicMethods.GenerateStudentPaymentReportEntry(Student);
+            reportData = LogicMethods.GenerateStudentPaymentReportEntry(Student, Student.LearningPath.Id);
         }
     }
 

@@ -128,6 +128,9 @@ namespace FcmsPortalUI.Services
         Payment PrepareNewPayment(Student student);
         SchoolFees? GetSchoolFees(int id);
         Student? GetStudentBySchoolFeesId(int schoolFeesId);
+        List<Payment> GetPaymentsForLearningPath(int schoolFeesId, int learningPathId);
+        double GetTotalPaidForLearningPath(int schoolFeesId, int learningPathId);
+        double GetBalanceForLearningPath(int schoolFeesId, int learningPathId, double totalAmount);
         #endregion
 
         #region Grading

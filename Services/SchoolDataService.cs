@@ -1867,6 +1867,34 @@ namespace FcmsPortalUI.Services
             return schoolFees;
         }
 
+        public List<Payment> GetPaymentsForLearningPath(int schoolFeesId, int learningPathId)
+        {
+            var schoolFees = GetSchoolFees(schoolFeesId);
+            if (schoolFees?.Payments == null)
+                return new List<Payment>();
+
+            return schoolFees.Payments
+                .Where(p => p.LearningPathId == learningPathId)
+                .OrderByDescending(p => p.Date)
+                .ToList();
+        }
+
+        public double GetTotalPaidForLearningPath(int schoolFeesId, int learningPathId)
+        {
+            var schoolFees = GetSchoolFees(schoolFeesId);
+            if (schoolFees?.Payments == null)
+                return 0;
+
+            return schoolFees.Payments
+                .Where(p => p.LearningPathId == learningPathId)
+                .Sum(p => p.Amount);
+        }
+
+        public double GetBalanceForLearningPath(int schoolFeesId, int learningPathId, double totalAmount)
+        {
+            return totalAmount - GetTotalPaidForLearningPath(schoolFeesId, learningPathId);
+        }
+
         public Student? GetStudentBySchoolFeesId(int schoolFeesId)
         {
             return _context.Students
@@ -2188,7 +2216,19 @@ namespace FcmsPortalUI.Services
         #region Curriculum
         public List<Curriculum> GetFullCurriculum()
         {
-            var learningPaths = GetAllLearningPaths().ToList();
+            var currentPeriod = GetCurrentAcademicPeriod();
+            if (currentPeriod == null)
+                return new List<Curriculum>();
+
+            var learningPaths = _context.LearningPaths
+                .AsNoTracking()
+                .Include(lp => lp.Schedule)
+                    .ThenInclude(s => s.ClassSession)
+                .Where(lp => !lp.IsTemplate &&
+                             lp.AcademicYearStart.Year == currentPeriod.AcademicYearStart.Year &&
+                             lp.Semester == currentPeriod.Semester)
+                .ToList();
+
             return LogicMethods.GenerateCurriculumFromLearningPaths(learningPaths);
         }
 
@@ -2519,7 +2559,7 @@ namespace FcmsPortalUI.Services
 
             foreach (var student in learningPath.Students)
             {
-                var paymentReport = LogicMethods.GenerateStudentPaymentReportEntry(student);
+                var paymentReport = LogicMethods.GenerateStudentPaymentReportEntry(student, learningPath.Id);
 
                 var archivedPayment = new ArchivedStudentPayment
                 {
@@ -2754,6 +2794,7 @@ namespace FcmsPortalUI.Services
                 .ToList();
 
             var summary = LogicMethods.CalculateSchoolPaymentSummary(learningPaths);
+            var learningPathIds = learningPaths.Select(lp => lp.Id).ToHashSet();
 
             var archive = new ArchivedSchoolPaymentSummary
             {
@@ -2771,12 +2812,8 @@ namespace FcmsPortalUI.Services
                 TotalOutstandingBalance = summary.TotalOutstanding,
                 SchoolWidePaymentCompletionRate = summary.PaymentCompletionRate,
                 SchoolWideTimelyCompletionRate = summary.TimelyCompletionRate,
-
-                AverageStudentPaymentCompletionRateInSchool =
-                LogicMethods.CalculateAveragePaymentCompletionRate(allStudents),
-
-                AverageStudentTimelyCompletionRateInSchool =
-                LogicMethods.CalculateAverageTimelyCompletionRate(allStudents)
+                AverageStudentPaymentCompletionRateInSchool = LogicMethods.CalculateAveragePaymentCompletionRate(allStudents, learningPathIds),
+                AverageStudentTimelyCompletionRateInSchool = LogicMethods.CalculateAverageTimelyCompletionRate(allStudents, learningPathIds)
             };
 
             _context.ArchivedSchoolPaymentSummaries.Add(archive);
@@ -2801,8 +2838,9 @@ namespace FcmsPortalUI.Services
             var studentsInPath = lp.Students.ToList();
 
             var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp);
-            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(studentsInPath);
-            var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(studentsInPath);
+            var learningPathIds = new HashSet<int> { lp.Id };
+            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(studentsInPath, learningPathIds);
+            var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(studentsInPath, learningPathIds);
 
             var archive = new ArchivedLearningPathPayment
             {

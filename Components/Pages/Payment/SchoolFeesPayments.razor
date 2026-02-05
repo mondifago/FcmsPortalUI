@@ -58,12 +58,15 @@ else
                         </div>
                         <div class="col-md-4">
                             <p class="fw-bold">Total Paid:</p>
-                            <p class="fs-5 text-success">@schoolFees.TotalPaid.ToString("C", new CultureInfo("en-NG"))</p>
+                            <p class="fs-5 text-success">@SchoolDataService.GetTotalPaidForLearningPath(schoolFees.Id, student.LearningPath?.Id ?? 0).ToString("C", new CultureInfo("en-NG"))</p>
                         </div>
                         <div class="col-md-4">
                             <p class="fw-bold">Balance:</p>
-                            <p class="fs-5 @(schoolFees.Balance > 0 ? "text-danger" : "text-success")">
-                                @schoolFees.Balance.ToString("C", new CultureInfo("en-NG"))
+                            @{
+                                var balance = SchoolDataService.GetBalanceForLearningPath(schoolFees.Id, student.LearningPath?.Id ?? 0, schoolFees.TotalAmount);
+                            }
+                            <p class="fs-5 @(balance > 0 ? "text-danger" : "text-success")">
+                                @balance.ToString("C", new CultureInfo("en-NG"))
                             </p>
                         </div>
                     </div>
@@ -123,9 +126,12 @@ else
                     <h5 class="card-title mb-0">Payment History</h5>
                 </div>
                 <div class="card-body">
-                    @if (schoolFees.Payments.Count == 0)
+                    @{
+                        var paymentsForPeriod = SchoolDataService.GetPaymentsForLearningPath(schoolFees.Id, student.LearningPath?.Id ?? 0);
+                    }
+                    @if (!paymentsForPeriod.Any())
                     {
-                        <p>No payments recorded.</p>
+                        <p>No payments recorded for this academic period.</p>
                     }
                     else
                     {
@@ -141,7 +147,7 @@ else
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var payment in schoolFees.Payments)
+                                    @foreach (var payment in paymentsForPeriod)
                                     {
                                         <tr>
                                             <td>@payment.Amount.ToString("C", new CultureInfo("en-NG"))</td>
