@@ -1282,7 +1282,6 @@ main {
 }
 
 .sidebar-half {
-    padding: 0.8rem;
     flex: 1 1 0;
     min-height: 0;
 }
@@ -1306,7 +1305,7 @@ main {
 .sidebar-item {
     background-color: #fdf6f0;
     border-radius: 12px;
-    padding: 0.35rem 0.7rem;
+    padding: 0.55rem 0.7rem;
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
@@ -1350,4 +1349,89 @@ main {
 .sidebar-item em {
     color: #9a8578;
     font-size: 0.78rem;
+}
+
+
+/* ===== HORIZONTAL BAR CARDS ===== */
+.hbar-container {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.hbar-card {
+    flex: 1;
+    background-color: #f0d5c4;
+    border-radius: 16px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 180px;
+}
+
+.hbar-card-title {
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #5a3e2b;
+    margin-bottom: 0.4rem;
+    padding-left: 0.25rem;
+}
+
+    .hbar-card-title i {
+        color: #3b82c4;
+        font-size: 0.95rem;
+    }
+
+.hbar-card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.hbar-item {
+    background-color: #fdf6f0;
+    border-radius: 12px;
+    padding: 0.45rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.hbar-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: #4a3728;
+    line-height: 1.4;
+}
+
+.hbar-row-icon {
+    color: #3b82c4;
+    font-size: 0.7rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.hbar-row strong {
+    color: #3a2a1d;
+}
+
+.hbar-view-all {
+    text-align: right;
+    padding-top: 0.3rem;
+}
+
+    .hbar-view-all a {
+        font-size: 0.75rem;
+        color: #3b82c4;
+    }
+
+@media (max-width: 640.98px) {
+    .hbar-container {
+        flex-direction: column;
+    }
 }

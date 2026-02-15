@@ -98,106 +98,121 @@
             <!-- Horizontal Info Bar - Student View -->
             <AuthorizeView Roles="Developer,Student">
                 <Authorized>
-                    <div class="card shadow-sm">
-                        <div class="card-body position-relative">
-
-                            <div class="row text-center">
-                                <!-- Today's Class Schedule -->
-                                <div class="col-md-4 border-end">
-                                    <div class="text-center mb-2">
-                                        <i class="fa fa-chalkboard-teacher text-primary" style="font-size: 1.3rem;"></i>
-                                        <span class="text-muted small d-block mt-2">Today's Classes</span>
-                                    </div>
+                    <div class="hbar-container">
+                        <!-- Today's Classes -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-chalkboard-teacher me-2"></i>Today's Classes
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
                                     @if (todayStudentClasses.Any())
                                     {
                                         @foreach (var schedule in todayStudentClasses)
                                         {
-                                            <div class="mb-1">
-                                                <strong style="font-size: 0.95rem;">@schedule.ClassSession?.Course</strong>
-                                                <span class="text-muted" style="font-size: 0.85rem;">at @schedule.DateTime.ToString("h:mm tt")</span>
+                                            <div class="hbar-row">
+                                                <i class="fa fa-book-open hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@schedule.ClassSession?.Course</strong>
+                                                    at @schedule.DateTime.ToString("h:mm tt")
+                                                </span>
                                             </div>
-                                        }
-                                        @if (currentStudent?.LearningPathId > 0)
-                                        {
-                                            <a href="/learningpath/@currentStudent.LearningPathId/schedules?date=@DateTime.Today.ToString("yyyy-MM-dd")"
-                                               class="text-decoration-none" style="font-size: 0.85rem;">
-                                                View All <i class="fa fa-arrow-right ms-1"></i>
-                                            </a>
                                         }
                                     }
                                     else
                                     {
-                                        <p class="text-muted mb-0" style="font-size: 0.85rem;">
-                                            <em>No classes scheduled today.</em>
-                                        </p>
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No classes today.</em>
+                                        </div>
                                     }
                                 </div>
-
-                                <!-- Pending Homework -->
-                                <div class="col-md-4 border-end">
-                                    <div class="text-center mb-2">
-                                        <i class="fa fa-tasks text-warning" style="font-size: 1.3rem;"></i>
-                                        <span class="text-muted small d-block mt-2">Pending Homework</span>
+                                @if (currentStudent?.LearningPathId > 0)
+                                {
+                                    <div class="hbar-view-all">
+                                        <a href="/learningpath/@currentStudent.LearningPathId/schedules?date=@DateTime.Today.ToString("yyyy-MM-dd")"
+                                           class="text-decoration-none">
+                                            View All <i class="fa fa-arrow-right ms-1"></i>
+                                        </a>
                                     </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Pending Homework -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-clipboard-check me-2"></i>Pending Homework
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
                                     @if (pendingStudentHomework.Any())
                                     {
                                         @foreach (var homework in pendingStudentHomework)
                                         {
-                                            <div class="mb-1 text-center">
-                                                <strong style="font-size: 0.95rem;">@homework.Title</strong>
-                                                <span class="text-muted d-block" style="font-size: 0.85rem;">
-                                                    Due: @homework.DueDate.ToString("MMM d, yyyy")
+                                            <div class="hbar-row">
+                                                <i class="fa fa-pen-to-square hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@homework.Title</strong>
+                                                    — Due: @homework.DueDate.ToString("MMM d")
                                                 </span>
                                             </div>
-                                        }
-                                        @if (currentStudent?.LearningPathId > 0)
-                                        {
-                                            <a href="/learningpath/@currentStudent.LearningPathId/schedules?date=@DateTime.Today.ToString("yyyy-MM-dd")"
-                                               class="text-decoration-none" style="font-size: 0.85rem;">
-                                                View All <i class="fa fa-arrow-right ms-1"></i>
-                                            </a>
                                         }
                                     }
                                     else
                                     {
-                                        <p class="text-muted mb-0 text-center" style="font-size: 0.85rem;">
-                                            <em>No pending homework.</em>
-                                        </p>
+                                        <div class="hbar-row">
+                                            <em class="text-muted">All caught up!</em>
+                                        </div>
                                     }
                                 </div>
-
-                                <!-- Recent Grades -->
-                                <div class="col-md-4">
-                                    <div class="text-center mb-2">
-                                        <i class="fa fa-award text-success" style="font-size: 1.3rem;"></i>
-                                        <span class="text-muted small d-block mt-2">Recent Grades</span>
+                                @if (currentStudent?.LearningPathId > 0)
+                                {
+                                    <div class="hbar-view-all">
+                                        <a href="/learningpath/@currentStudent.LearningPathId/schedules?date=@DateTime.Today.ToString("yyyy-MM-dd")"
+                                           class="text-decoration-none">
+                                            View All <i class="fa fa-arrow-right ms-1"></i>
+                                        </a>
                                     </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Recent Grades -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-star me-2"></i>Recent Grades
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
                                     @if (recentStudentGrades.Any())
                                     {
                                         @foreach (var grade in recentStudentGrades)
                                         {
-                                            <div class="mb-1 text-center">
-                                                <strong style="font-size: 0.95rem;">@grade.Course @grade.GradeType</strong>
-                                                <span class="text-muted" style="font-size: 0.85rem;">@grade.Score</span>
-                                            </div>
-                                        }
-                                        @if (currentStudent != null && studentLearningPath != null)
-                                        {
-                                            <div class="text-center mt-2">
-                                                <a href="javascript:void(0)" @onclick="ShowStudentGradeDetailsModal"
-                                                   class="text-decoration-none" style="font-size: 0.85rem;">
-                                                    View All <i class="fa fa-arrow-right ms-1"></i>
-                                                </a>
+                                            <div class="hbar-row">
+                                                <i class="fa fa-trophy hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@grade.Course</strong>
+                                                    @grade.GradeType — @grade.Score
+                                                </span>
                                             </div>
                                         }
                                     }
                                     else
                                     {
-                                        <p class="text-muted mb-0 text-center" style="font-size: 0.85rem;">
-                                            <em>No grades recorded yet.</em>
-                                        </p>
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No grades yet.</em>
+                                        </div>
                                     }
                                 </div>
+                                @if (currentStudent != null && studentLearningPath != null)
+                                {
+                                    <div class="hbar-view-all">
+                                        <a href="javascript:void(0)" @onclick="ShowStudentGradeDetailsModal"
+                                           class="text-decoration-none">
+                                            View All <i class="fa fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
@@ -288,7 +303,7 @@
                 <!-- Academic Year & Term -->
                 <div class="sidebar-card sidebar-academic">
                     <h6 class="sidebar-card-title">
-                        <i class="fa fa-graduation-cap me-2"></i>Academic Year & Term
+                        <i class="fa fa-graduation-cap me-2"></i>Academic Year
                     </h6>
                     <div class="sidebar-card-body">
                         @if (!string.IsNullOrEmpty(currentAcademicYear))
@@ -325,22 +340,27 @@
                         <i class="fa fa-bell me-2"></i>Announcements
                     </h6>
                     <div class="sidebar-card-body">
-                        <div class="sidebar-item">
-                            @if (announcements != null && announcements.Any())
+                        @if (announcements != null && announcements.Any())
+                        {
+                            @foreach (var announcement in announcements.Take(2))
                             {
-                                @foreach (var announcement in announcements)
-                                {
-                                    <div class="sidebar-item">
-                                        <i class="fa fa-circle sidebar-item-bullet text-danger"></i>
-                                        <div><small>@announcement.Message</small></div>
-                                    </div>
-                                }
+                                <div class="sidebar-item">
+                                    <i class="fa fa-circle sidebar-item-bullet text-danger"></i>
+                                    <div>@announcement.Message</div>
+                                </div>
                             }
-                            else
+                            @if (announcements.Count < 2)
                             {
-                                <div class="text-muted"><em>No Announcements for now!</em></div>
+                                <div class="sidebar-item sidebar-item-empty"></div>
                             }
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="sidebar-item">
+                                <div class="text-muted"><em>All clear for now!</em></div>
+                            </div>
+                            <div class="sidebar-item sidebar-item-empty"></div>
+                        }
                     </div>
                 </div>
 
