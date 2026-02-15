@@ -1083,23 +1083,6 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Calendar & Scheduling
-        public ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date)
-        {
-            using var context = _contextFactory.CreateDbContext();
-
-            var dayStart = date.Date;
-            var dayEnd = dayStart.AddDays(1);
-
-            return context.ScheduleEntries
-                .AsNoTracking()
-                .Where(e =>
-                    e.DateTime >= dayStart && e.DateTime < dayEnd &&
-                    (e.Event != null || e.Meeting != null))
-                .OrderByDescending(e => e.DateTime)
-                .FirstOrDefault();
-        }
-
-
         public ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId)
         {
             return _context.ScheduleEntries
@@ -1336,30 +1319,6 @@ namespace FcmsPortalUI.Services
                 .AsNoTracking()
                 .ToList();
         }
-
-        public List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount)
-        {
-            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
-
-            var student = _context.Students
-                .AsNoTracking()
-                .FirstOrDefault(s => s.Id == studentId);
-
-            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
-                return new List<ScheduleEntry>();
-
-            var today = DateTime.Today;
-
-            return _context.ScheduleEntries
-                .AsNoTracking()
-                .Include(se => se.ClassSession)
-                .Where(se => se.LearningPathId == student.LearningPathId &&
-                             se.DateTime.Date == today &&
-                             se.ClassSession != null)
-                .OrderBy(se => se.DateTime)
-                .Take(maxCount)
-                .ToList();
-        }
         #endregion
 
         #region Class Sessions
@@ -1563,35 +1522,6 @@ namespace FcmsPortalUI.Services
 
                 _context.SaveChanges();
             }
-        }
-
-        public List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount)
-        {
-            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
-
-            var student = _context.Students
-                .AsNoTracking()
-                .FirstOrDefault(s => s.Id == studentId);
-
-            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
-                return new List<Homework>();
-
-            var homeworkList = _context.ScheduleEntries
-                .AsNoTracking()
-                .Include(se => se.ClassSession)
-                    .ThenInclude(cs => cs.HomeworkDetails)
-                        .ThenInclude(h => h.Submissions)
-                .Where(se => se.LearningPathId == student.LearningPathId &&
-                             se.ClassSession != null &&
-                             se.ClassSession.HomeworkDetails != null)
-                .Select(se => se.ClassSession.HomeworkDetails)
-                .ToList();
-
-            return homeworkList
-                .Where(h => h != null && !h.Submissions.Any(s => s.StudentId == studentId))
-                .OrderBy(h => h.DueDate)
-                .Take(maxCount)
-                .ToList()!;
         }
         #endregion
 
@@ -2195,22 +2125,7 @@ namespace FcmsPortalUI.Services
             return semesterGrades;
         }
 
-        public List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount)
-        {
-            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
 
-            return _context.TestGrades
-                .AsNoTracking()
-                .Include(tg => tg.CourseGrade)
-                .Where(tg => tg.CourseGrade != null && tg.CourseGrade.StudentId == studentId)
-                .OrderByDescending(tg => tg.Date)
-                .Take(maxCount)
-                .Select(tg => new ValueTuple<string, GradeType, double>(
-                    tg.CourseGrade!.Course,
-                    tg.GradeType,
-                    tg.Score))
-                .ToList();
-        }
         #endregion
 
         #region Curriculum
@@ -3290,5 +3205,96 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
         #endregion
+
+        #region Dashboard
+        public ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var dayStart = date.Date;
+            var dayEnd = dayStart.AddDays(1);
+
+            return context.ScheduleEntries
+                .AsNoTracking()
+                .Where(e =>
+                    e.DateTime >= dayStart && e.DateTime < dayEnd &&
+                    (e.Event != null || e.Meeting != null))
+                .OrderByDescending(e => e.DateTime)
+                .FirstOrDefault();
+        }
+
+        public List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount)
+        {
+            var student = _context.Students
+                .AsNoTracking()
+                .FirstOrDefault(s => s.Id == studentId);
+
+            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
+                return new List<ScheduleEntry>();
+
+            var today = DateTime.Today;
+
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Include(se => se.ClassSession)
+                .Where(se => se.LearningPathId == student.LearningPathId &&
+                             se.DateTime.Date == today &&
+                             se.ClassSession != null)
+                .OrderBy(se => se.DateTime)
+                .Take(maxCount)
+                .ToList();
+        }
+
+        public List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount)
+        {
+            var student = _context.Students
+                .AsNoTracking()
+                .FirstOrDefault(s => s.Id == studentId);
+
+            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
+                return new List<Homework>();
+
+            var homeworkList = _context.ScheduleEntries
+                .AsNoTracking()
+                .Include(se => se.ClassSession)
+                    .ThenInclude(cs => cs.HomeworkDetails)
+                        .ThenInclude(h => h.Submissions)
+                .Where(se => se.LearningPathId == student.LearningPathId &&
+                             se.ClassSession != null &&
+                             se.ClassSession.HomeworkDetails != null)
+                .Select(se => se.ClassSession.HomeworkDetails)
+                .ToList();
+
+            return homeworkList
+                .Where(h => h != null && !h.Submissions.Any(s => s.StudentId == studentId))
+                .OrderBy(h => h.DueDate)
+                .Take(maxCount)
+                .ToList()!;
+        }
+
+        public List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount)
+        {
+            var student = _context.Students
+                .AsNoTracking()
+                .FirstOrDefault(s => s.Id == studentId);
+
+            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
+                return new List<(string, GradeType, double)>();
+
+            return _context.TestGrades
+                .AsNoTracking()
+                .Include(tg => tg.CourseGrade)
+                .Where(tg => tg.CourseGrade != null &&
+                             tg.CourseGrade.StudentId == studentId &&
+                             tg.CourseGrade.LearningPathId == student.LearningPathId)
+                .OrderByDescending(tg => tg.Date)
+                .Take(maxCount)
+                .Select(tg => new ValueTuple<string, GradeType, double>(
+                    tg.CourseGrade!.Course,
+                    tg.GradeType,
+                    tg.Score))
+                .ToList();
+        }
+        #endregion 
     }
 }

@@ -103,11 +103,11 @@ main {
 
 /* FCMS text with rounded style */
 .brand-text {
-    font-family: "Segoe UI";
-    font-weight: 700;
+    font-family: "Arial Rounded MT";
+    font-weight: 900;
     font-size: 1.6rem;
-    letter-spacing: 0.06em;
-    color: #ff0000; /* Adjust depending on header background */
+    letter-spacing: 0.00em;
+    color: #ff0000; 
 }
 
 /* Top icons (search and icons) */
@@ -258,9 +258,9 @@ main {
 
 /* School components */
 .school-logo-container {
-    position: relative;
+    /*position: relative;*/
     display: flex;
-    flex-direction: column;
+    /*flex-direction: column;*/
     align-items: center;
 }
 
@@ -273,19 +273,19 @@ main {
 }
 
 .school-logo {
-    width: 100px;
+    /*width: 100px;
     height: 100px;
-    border-radius: 50%;
+    border-radius: 50%;*/
     object-fit: cover;
 }
 
 .placeholder-icon {
-    font-size: 80px;
+    /*font-size: 80px;*/
     color: #ccc;
 }
 
 .school-name {
-    color: #ff0000;
+    /*color: #ff0000;*/
     margin-top: 10px;
 }
 
@@ -294,10 +294,10 @@ main {
     display: none;
 }
 
-/* Utility classes */
-.hidden {
+/* Utility classes 
+    .hidden {
     display: none;
-}
+}*/
 
 /* Modal styles */
 .modal.show {
@@ -354,7 +354,7 @@ main {
     padding: 10px;
 }
 .school-logo {
-    max-height: 80px;
+    /*max-height: 80px;*/
     max-width: 100%;
     object-fit: contain;
 }
@@ -403,11 +403,11 @@ main {
     display: none;
 }
 
-/* Centering the text below the logo */
+/* Centering the text below the logo 
 .text-muted {
     display: block;
     margin-top: 5px;
-}
+}*/
 
 .calendar-table th, .calendar-table td {
     text-align: center;
@@ -961,6 +961,7 @@ main {
 }
 
 .login-content {
+    font-family: 'Ink Free', sans-serif;
     max-width: 400px;
     width: 100%;
     text-align: center;
@@ -1153,3 +1154,200 @@ main {
     .profile-signout:hover {
         text-decoration: underline;
     }
+
+
+/* Welcome Banner */
+.welcome-banner {
+    background-color: #f0d5c4;
+    border-radius: 16px;
+    padding: 2rem 2rem;
+    margin-top: -2.0rem;
+    position: relative;
+    overflow: hidden;
+}
+
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -20px;
+        width: 180px;
+        height: 180px;
+        background-color: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+    }
+
+    .welcome-banner::after {
+        content: '';
+        position: absolute;
+        bottom: -40px;
+        right: 60px;
+        width: 120px;
+        height: 120px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+.welcome-banner-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 5.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.welcome-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.welcome-title {
+    font-family: 'Ink Free', sans-serif;
+    font-weight: 600;
+    font-size: 3.0rem;
+    color: #c0392b;
+}
+
+.welcome-name {
+    color: #27ae60;
+}
+
+.welcome-quote {
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: #5a3e2b;
+    max-width: 600px;
+    line-height: 1.5;
+}
+
+.welcome-quote-author {
+    font-weight: 600;
+    font-style: normal;
+    font-size: 0.75rem;
+}
+
+.welcome-date {
+    text-align: right;
+    font-size: 0.85rem;
+    color: #5a3e2b;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.welcome-time {
+    font-family: 'Arial Rounded MT', 'Comic Sans', cursive;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #c0392b;
+}
+
+@media (max-width: 640.98px) {
+    .welcome-banner-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+
+    .welcome-date {
+        text-align: center;
+    }
+
+    .welcome-quote {
+        max-width: 100%;
+    }
+}
+
+/* ===== HOME PAGE SIDEBAR ===== */
+.sidebar-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 16.5rem);
+    gap: 0.5rem;
+}
+
+.sidebar-card {
+    background-color: #f0d5c4;
+    border-radius: 16px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-academic {
+    flex: 0 0 auto;
+}
+
+.sidebar-half {
+    padding: 0.8rem;
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.sidebar-card-title {
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #5a3e2b;
+    margin-bottom: 0.5rem;
+    padding-left: 0.25rem;
+}
+
+.sidebar-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+}
+
+.sidebar-item {
+    background-color: #fdf6f0;
+    border-radius: 12px;
+    padding: 0.35rem 0.7rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #4a3728;
+    flex: 1;
+    line-height: 1.4;
+}
+    .sidebar-item > div > div {
+        margin-bottom: 0.25rem;
+    }
+
+
+.sidebar-item-empty {
+    visibility: hidden;
+}
+
+.sidebar-item-icon {
+    color: #3b82c4;
+    font-size: 0.95rem;
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+
+.sidebar-item-bullet {
+    font-size: 0.45rem;
+    margin-top: 0.4rem;
+    flex-shrink: 0;
+}
+
+.sidebar-item strong {
+    font-size: 1rem;
+    color: #3a2a1d;
+}
+
+.sidebar-item small {
+    font-size: 0.72rem;
+    color: #7a6455;
+}
+
+.sidebar-item em {
+    color: #9a8578;
+    font-size: 0.78rem;
+}

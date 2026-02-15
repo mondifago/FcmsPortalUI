@@ -76,7 +76,6 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Calendar & Scheduling
-        ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date);
         ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId);
         ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
         IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules();
@@ -89,7 +88,6 @@ namespace FcmsPortalUI.Services
         bool UpdateGeneralCalendarScheduleEntry(ScheduleEntry scheduleEntry);
         bool DeleteGeneralCalendarScheduleEntry(int scheduleEntryId);
         List<ScheduleEntry> GetAllSchedules();
-        List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount);
         #endregion
 
         #region Class Sessions
@@ -105,7 +103,6 @@ namespace FcmsPortalUI.Services
         HomeworkSubmission? GetHomeworkSubmissionById(int id);
         HomeworkSubmission? AddHomeworkSubmission(HomeworkSubmission submission);
         void UpdateHomeworkSubmission(HomeworkSubmission submission);
-        List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount);
         #endregion
 
         #region Discussions
@@ -145,7 +142,6 @@ namespace FcmsPortalUI.Services
         Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId);
         void SaveFinalizedGrades(LearningPath learningPath);
         Dictionary<Semester, double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
-        List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);
         #endregion
 
         #region Curriculum
@@ -227,6 +223,13 @@ namespace FcmsPortalUI.Services
         #region Account Management
         void ActivatePerson(Person person);
         void DeactivatePerson(Person person);
+        #endregion
+
+        #region Dashboard
+        ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date);
+        List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount);
+        List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount);
+        List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);
         #endregion
     }
 }
