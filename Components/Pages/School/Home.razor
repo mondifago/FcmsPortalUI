@@ -129,7 +129,7 @@
                                 @if (currentStudent?.LearningPathId > 0)
                                 {
                                     <div class="hbar-view-all">
-                                        <a href="/learningpath/@currentStudent.LearningPathId/schedules?date=@DateTime.Today.ToString("yyyy-MM-dd")"
+                                        <a href="/learningpath/@currentStudent.LearningPathId/schedules/@DateTime.Today.ToString("yyyy-MM-dd")"
                                            class="text-decoration-none">
                                             View All <i class="fa fa-arrow-right ms-1"></i>
                                         </a>
@@ -168,7 +168,7 @@
                                 @if (currentStudent?.LearningPathId > 0)
                                 {
                                     <div class="hbar-view-all">
-                                        <a href="/learningpath/@currentStudent.LearningPathId/schedules?date=@DateTime.Today.ToString("yyyy-MM-dd")"
+                                        <a href="/learningpath/@currentStudent.LearningPathId/schedules/@DateTime.Today.ToString("yyyy-MM-dd")"
                                            class="text-decoration-none">
                                             View All <i class="fa fa-arrow-right ms-1"></i>
                                         </a>
@@ -262,33 +262,107 @@
             <!-- Horizontal Info Bar - Admin/Principal/Developer View -->
             <AuthorizeView Roles="Developer,Principal,Admin">
                 <Authorized>
-                    <div class="card shadow-sm">
-                        <div class="card-body position-relative">
-                            <!-- View All Link - Top Right -->
-                            <a href="/reports" class="text-decoration-none position-absolute top-0 end-0 mt-2 me-3" style="font-size: 0.85rem;">
-                                View All <i class="fa fa-arrow-right ms-1"></i>
-                            </a>
-
-                            <div class="row text-center">
-                                <!-- Attendance Report -->
-                                <div class="col-md-4 border-end">
-                                    <i class="fa fa-user-check text-primary me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Attendance Report</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Posted today at 9:00 AM</strong>
+                    <div class="hbar-container">
+                        <!-- Attendance Reports -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-clipboard-user me-2"></i>Attendance Reports
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
+                                    @if (todayAttendanceReports.Any())
+                                    {
+                                        @foreach (var report in todayAttendanceReports)
+                                        {
+                                            <div class="hbar-row">
+                                                <i class="fa fa-check-circle hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@report.LearningPathName</strong>
+                                                    at @report.Timestamp.ToString("h:mm tt")
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No attendance taken today.</em>
+                                        </div>
+                                    }
                                 </div>
-
-                                <!-- Teachers Remark Report -->
-                                <div class="col-md-4 border-end">
-                                    <i class="fa fa-comments text-success me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Teachers Remark</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Posted today at 10:30 AM</strong>
+                                <div class="hbar-view-all">
+                                    <a href="/reports" class="text-decoration-none">
+                                        View All <i class="fa fa-arrow-right ms-1"></i>
+                                    </a>
                                 </div>
+                            </div>
+                        </div>
 
-                                <!-- Learning Path Report -->
-                                <div class="col-md-4">
-                                    <i class="fa fa-chart-line text-info me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Learning Path Report</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Posted today at 2:15 PM</strong>
+                        <!-- Teacher Remarks -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-comment-dots me-2"></i>Teacher Remarks
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
+                                    @if (todayTeacherRemarks.Any())
+                                    {
+                                        @foreach (var remark in todayTeacherRemarks)
+                                        {
+                                            <div class="hbar-row">
+                                                <i class="fa fa-chalkboard hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@remark.Course</strong> — <small>at @remark.Timestamp.ToString("h:mm tt")</small>
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No remarks submitted today.</em>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="hbar-view-all">
+                                    <a href="/reports" class="text-decoration-none">
+                                        View All <i class="fa fa-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submitted Learning Paths -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-paper-plane me-2"></i>Submitted Learning Paths
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
+                                    @if (recentSubmittedLearningPaths.Any())
+                                    {
+                                        @foreach (var lp in recentSubmittedLearningPaths)
+                                        {
+                                            <div class="hbar-row">
+                                                <i class="fa fa-file-circle-check hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@lp.LearningPathName</strong>
+                                                    <br /><small>@lp.DateSubmitted.ToString("MMM d, h:mm tt")</small>
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No recent submissions.</em>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="hbar-view-all">
+                                    <a href="/reports" class="text-decoration-none">
+                                        View All <i class="fa fa-arrow-right ms-1"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -296,7 +370,6 @@
                 </Authorized>
             </AuthorizeView>
         </div>
-
         <!-- Right Sidebar -->
         <div class="col-lg-3">
             <div class="sidebar-container">
@@ -445,6 +518,11 @@
     private LearningPath? studentLearningPath;
     private bool showStudentGradeDetailsModal = false;
 
+    // Admin/Principal Dashboard Data
+    private List<(string LearningPathName, DateTime Timestamp)> todayAttendanceReports = new();
+    private List<(string Course, string Topic, DateTime Timestamp)> todayTeacherRemarks = new();
+    private List<(string LearningPathName, DateTime DateSubmitted)> recentSubmittedLearningPaths = new();
+
     protected override async Task OnInitializedAsync()
     {
         lock (refreshLock)
@@ -461,6 +539,7 @@
         LoadAnnouncements();
         LoadRandomQuote();
         LoadUpcomingEvents();
+        await LoadAdminDashboardData();
         await LoadStudentDashboardData();
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
@@ -543,6 +622,16 @@
                 studentLearningPath = SchoolDataService.GetLearningPathForGradeManagement(currentStudent.LearningPathId ?? 0);
             }
         }
+    }
+
+    private async Task LoadAdminDashboardData()
+    {
+        if (!await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin"))
+            return;
+
+        todayAttendanceReports = SchoolDataService.GetTodayAttendanceReports(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
+        todayTeacherRemarks = SchoolDataService.GetTodayTeacherRemarks(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
+        recentSubmittedLearningPaths = SchoolDataService.GetRecentlySubmittedLearningPaths(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
     }
 
     private void ShowStudentGradeDetailsModal()

@@ -230,6 +230,9 @@ namespace FcmsPortalUI.Services
         List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount);
         List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount);
         List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);
+        List<(string LearningPathName, DateTime Timestamp)> GetTodayAttendanceReports(int maxCount);
+        List<(string Course, string Topic, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount);
+        List<(string LearningPathName, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount);
         #endregion
     }
 }

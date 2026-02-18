@@ -3295,6 +3295,83 @@ namespace FcmsPortalUI.Services
                     tg.Score))
                 .ToList();
         }
+
+        public List<(string LearningPathName, DateTime Timestamp)> GetTodayAttendanceReports(int maxCount)
+        {
+            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
+
+            var academicPeriod = GetCurrentAcademicPeriod();
+            if (academicPeriod == null)
+                return new List<(string, DateTime)>();
+
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
+            return _context.DailyAttendanceLogEntries
+                .AsNoTracking()
+                .Include(log => log.LearningPath)
+                .Where(log => log.TimeStamp >= today &&
+                              log.TimeStamp < tomorrow &&
+                              log.LearningPath.AcademicPeriodId == academicPeriod.Id)
+                .OrderByDescending(log => log.TimeStamp)
+                .Take(maxCount)
+                .Select(log => new ValueTuple<string, DateTime>(
+                    log.LearningPath.EducationLevel.ToDisplayName() + " " + log.LearningPath.ClassLevel.ToDisplayName(),
+                    log.TimeStamp))
+                .ToList();
+        }
+
+        public List<(string Course, string Topic, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount)
+        {
+            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
+
+            var academicPeriod = GetCurrentAcademicPeriod();
+            if (academicPeriod == null)
+                return new List<(string, string, DateTime)>();
+
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Include(se => se.ClassSession)
+                .Where(se => se.LearningPathId.HasValue &&
+                             se.ClassSession != null &&
+                             !string.IsNullOrEmpty(se.ClassSession.TeacherRemarks) &&
+                             se.ClassSession.RemarksSubmittedAt.HasValue &&
+                             se.ClassSession.RemarksSubmittedAt.Value >= today &&
+                             se.ClassSession.RemarksSubmittedAt.Value < tomorrow)
+                .OrderByDescending(se => se.ClassSession.RemarksSubmittedAt)
+                .Take(maxCount)
+                .Select(se => new ValueTuple<string, string, DateTime>(
+                    se.ClassSession.Course,
+                    se.ClassSession.Topic,
+                    se.ClassSession.RemarksSubmittedAt!.Value))
+                .ToList();
+        }
+
+        public List<(string LearningPathName, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount)
+        {
+            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
+
+            var academicPeriod = GetCurrentAcademicPeriod();
+            if (academicPeriod == null)
+                return new List<(string, DateTime)>();
+
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Where(lp => !lp.IsTemplate &&
+                             lp.AcademicPeriodId == academicPeriod.Id &&
+                             lp.DateSubmitted.HasValue &&
+                             (lp.ApprovalStatus == PrincipalApprovalStatus.Review ||
+                              lp.ApprovalStatus == PrincipalApprovalStatus.Approved))
+                .OrderByDescending(lp => lp.DateSubmitted)
+                .Take(maxCount)
+                .Select(lp => new ValueTuple<string, DateTime>(
+                    lp.EducationLevel.ToDisplayName() + " " + lp.ClassLevel.ToDisplayName(),
+                    lp.DateSubmitted!.Value))
+                .ToList();
+        }
         #endregion 
     }
 }
