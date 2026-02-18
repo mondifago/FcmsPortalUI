@@ -961,7 +961,6 @@ main {
 }
 
 .login-content {
-    font-family: 'Ink Free', sans-serif;
     max-width: 400px;
     width: 100%;
     text-align: center;
@@ -975,6 +974,7 @@ main {
 }
 
 .school-name-display {
+    font-family: 'Ink Free', sans-serif;
     color: #ff0000;
     font-size: 1.5rem;
     font-weight: 600;

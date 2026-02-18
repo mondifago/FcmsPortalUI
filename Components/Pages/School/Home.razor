@@ -42,27 +42,6 @@
         <!-- Left Main Content -->
         <div class="col-lg-9">
 
-
-            <!-- Horizontal Info Bar - Staff View -->
-            <AuthorizeView Roles="Developer,Staff">
-                <Authorized>
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="row text-center align-items-center">
-                                <!-- Quick Links or General Info -->
-                                <div class="col-md-12">
-                                    <i class="fa fa-briefcase text-info me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted">
-                                        Your work schedule and duties can be found in the
-                                        <a href="/staff-resources" class="text-decoration-none">Staff Resources</a> section.
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </Authorized>
-            </AuthorizeView>
-
             <!-- Horizontal Info Bar - Teacher View -->
             <AuthorizeView Roles="Developer,Teacher">
                 <Authorized>
@@ -829,7 +808,7 @@
 
     private async Task LoadAdminDashboardData()
     {
-        if (!await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin"))
+        if (!await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Staff"))
             return;
 
         staffCount = SchoolDataService.GetStaffCount();
