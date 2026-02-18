@@ -66,29 +66,83 @@
             <!-- Horizontal Info Bar - Teacher View -->
             <AuthorizeView Roles="Developer,Teacher">
                 <Authorized>
-                    <div class="card shadow-sm">
-                        <div class="card-body position-relative">
-                            <!-- View All Link - Top Right -->
-                            <a href="/teacher-dashboard" class="text-decoration-none position-absolute top-0 end-0 mt-2 me-3" style="font-size: 0.85rem;">
-                                View All <i class="fa fa-arrow-right ms-1"></i>
-                            </a>
-
-                            <div class="row text-center">
-                                <!-- Today's Class Schedule -->
-                                <div class="col-md-6 border-end">
-                                    <i class="fa fa-chalkboard-teacher text-primary me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Today's Classes</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Mathematics - Grade 10A at 9:00 AM</strong>
-                                    <span class="text-muted" style="font-size: 0.85rem;">4 classes scheduled today</span>
+                    <div class="hbar-container">
+                        <!-- Today's Classes -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-chalkboard-teacher me-2"></i>My Classes Today
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
+                                    @if (todayTeacherClasses.Any())
+                                    {
+                                        @foreach (var schedule in todayTeacherClasses)
+                                        {
+                                            <div class="hbar-row">
+                                                <i class="fa fa-book-open hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@schedule.ClassSession?.Course</strong>
+                                                    at @schedule.DateTime.ToString("h:mm tt")
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No classes today.</em>
+                                        </div>
+                                    }
                                 </div>
+                                @if (todayTeacherClasses.Any() && todayTeacherClasses.First().LearningPathId > 0)
+                                {
+                                    <div class="hbar-view-all">
+                                        <a href="/learningpath/@todayTeacherClasses.First().LearningPathId/schedules/@DateTime.Today.ToString("yyyy-MM-dd")"
+                                           class="text-decoration-none">
+                                            View All <i class="fa fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
 
-                                <!-- Submitted Homework -->
-                                <div class="col-md-6">
-                                    <i class="fa fa-file-alt text-success me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Homework Submissions</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">15 new submissions</strong>
-                                    <span class="text-muted" style="font-size: 0.85rem;">Pending review from 3 classes</span>
+                        <!-- Homework Submitted -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-clipboard-check me-2"></i>Homework Submitted
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
+                                    @if (recentHomeworkSubmissions.Any())
+                                    {
+                                        @foreach (var sub in recentHomeworkSubmissions)
+                                        {
+                                            <div class="hbar-row">
+                                                <i class="fa fa-pen-to-square hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@sub.StudentName</strong>
+                                                    — @sub.Course
+                                                    <br /><small>@sub.SubmittedDate.ToString("MMM d, h:mm tt")</small>
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No submissions yet.</em>
+                                        </div>
+                                    }
                                 </div>
+                                @if (todayTeacherClasses.Any() && todayTeacherClasses.First().LearningPathId > 0)
+                                {
+                                    <div class="hbar-view-all">
+                                        <a href="/learningpath/@todayTeacherClasses.First().LearningPathId/schedules/@DateTime.Today.ToString("yyyy-MM-dd")"
+                                           class="text-decoration-none">
+                                            View All <i class="fa fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
@@ -665,6 +719,11 @@
     private Student? selectedWardForGrades;
     private LearningPath? selectedWardLearningPath;
 
+    // Teacher Dashboard Data
+    private Staff? currentTeacher;
+    private List<ScheduleEntry> todayTeacherClasses = new();
+    private List<(string Course, string StudentName, DateTime SubmittedDate)> recentHomeworkSubmissions = new();
+
     protected override async Task OnInitializedAsync()
     {
         lock (refreshLock)
@@ -684,6 +743,7 @@
         await LoadAdminDashboardData();
         await LoadStudentDashboardData();
         await LoadGuardianDashboardData();
+        await LoadTeacherDashboardData();
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
@@ -841,6 +901,20 @@
         showGuardianGradeDetailsModal = false;
         selectedWardForGrades = null;
         selectedWardLearningPath = null;
+    }
+
+    private async Task LoadTeacherDashboardData()
+    {
+        var person = await PermissionService.GetCurrentPersonAsync();
+        if (person == null) return;
+
+        currentTeacher = SchoolDataService.GetStaff()
+            .FirstOrDefault(s => s.PersonId == person.Id);
+
+        if (currentTeacher == null) return;
+
+        todayTeacherClasses = SchoolDataService.GetTodayClassSessionsForTeacher(currentTeacher.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
+        recentHomeworkSubmissions = SchoolDataService.GetRecentHomeworkSubmissionsForTeacher(currentTeacher.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
     }
 
     public void Dispose()

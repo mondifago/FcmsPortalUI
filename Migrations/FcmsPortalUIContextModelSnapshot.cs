@@ -989,7 +989,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("HomeworkSubmission");
+                    b.ToTable("HomeworkSubmissions");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.LearningPath", b =>

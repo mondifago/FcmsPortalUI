@@ -3402,6 +3402,55 @@ namespace FcmsPortalUI.Services
                              !lp.IsTemplate &&
                              lp.ApprovalStatus == PrincipalApprovalStatus.Pending);
         }
+
+        public List<ScheduleEntry> GetTodayClassSessionsForTeacher(int teacherId, int maxCount)
+        {
+            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
+
+            var academicPeriod = GetCurrentAcademicPeriod();
+            if (academicPeriod == null)
+                return new List<ScheduleEntry>();
+
+            var today = DateTime.Today;
+
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Include(se => se.ClassSession)
+                .Where(se => se.LearningPathId.HasValue &&
+                             se.ClassSession != null &&
+                             se.ClassSession.TeacherId == teacherId &&
+                             se.DateTime.Date == today)
+                .OrderBy(se => se.DateTime)
+                .Take(maxCount)
+                .ToList();
+        }
+
+        public List<(string Course, string StudentName, DateTime SubmittedDate)> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount)
+        {
+            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
+
+            var academicPeriod = GetCurrentAcademicPeriod();
+            if (academicPeriod == null)
+                return new List<(string, string, DateTime)>();
+
+            return _context.HomeworkSubmissions
+                .AsNoTracking()
+                .Include(hs => hs.Student)
+                    .ThenInclude(s => s.Person)
+                .Include(hs => hs.Homework)
+                    .ThenInclude(h => h.ClassSession)
+                .Where(hs => hs.Homework != null &&
+                             hs.Homework.ClassSession != null &&
+                             hs.Homework.ClassSession.TeacherId == teacherId &&
+                             hs.Student != null)
+                .OrderByDescending(hs => hs.SubmissionDate)
+                .Take(maxCount)
+                .Select(hs => new ValueTuple<string, string, DateTime>(
+                    hs.Homework.ClassSession.Course,
+                    hs.Student.Person.FirstName + " " + hs.Student.Person.LastName,
+                    hs.SubmissionDate))
+                .ToList();
+        }
         #endregion 
     }
 }

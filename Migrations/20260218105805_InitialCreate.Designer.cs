@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20251203034134_AddStudentAgeAndAllSemesterGradesToArchiveGrade")]
-    partial class AddStudentAgeAndAllSemesterGradesToArchiveGrade
+    [Migration("20260218105805_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -673,6 +673,13 @@ namespace FcmsPortalUI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime?>("RemarksSubmittedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("RemarksSubmittedByName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<int>("TeacherId")
                         .HasColumnType("int");
 
@@ -985,7 +992,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("HomeworkSubmission");
+                    b.ToTable("HomeworkSubmissions");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.LearningPath", b =>
@@ -1007,6 +1014,9 @@ namespace FcmsPortalUI.Migrations
 
                     b.Property<int>("ClassLevel")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("DateSubmitted")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("EducationLevel")
                         .HasColumnType("int");
@@ -1031,6 +1041,12 @@ namespace FcmsPortalUI.Migrations
 
                     b.Property<DateTime>("SemesterStartDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("SubmittedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubmittedByName")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("TemplateKey")
                         .HasMaxLength(100)

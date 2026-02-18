@@ -58,6 +58,32 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ArchivedLearningPathGrades",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    LearningPathId = table.Column<int>(type: "int", nullable: false),
+                    LearningPathName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AcademicYear = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EducationLevel = table.Column<int>(type: "int", nullable: false),
+                    ClassLevel = table.Column<int>(type: "int", nullable: false),
+                    Semester = table.Column<int>(type: "int", nullable: false),
+                    SemesterStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    SemesterEndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    TotalStudentsInPath = table.Column<int>(type: "int", nullable: false),
+                    AverageClassGrade = table.Column<double>(type: "double", nullable: false),
+                    ArchivedDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArchivedLearningPathGrades", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ArchivedLearningPathPayments",
                 columns: table => new
                 {
@@ -583,6 +609,10 @@ namespace FcmsPortalUI.Migrations
                     SemesterEndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     ExamsStartDate = table.Column<DateTime>(type: "date", nullable: false),
                     FeePerSemester = table.Column<double>(type: "double", nullable: false),
+                    SubmittedById = table.Column<int>(type: "int", nullable: true),
+                    SubmittedByName = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DateSubmitted = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     ApprovalStatus = table.Column<int>(type: "int", nullable: false),
                     IsTemplate = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     TemplateKey = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
@@ -752,7 +782,10 @@ namespace FcmsPortalUI.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TeacherId = table.Column<int>(type: "int", nullable: false),
                     TeacherRemarks = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RemarksSubmittedByName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RemarksSubmittedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1116,6 +1149,56 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ArchivedStudentGrades",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ArchivedLearningPathGradeId = table.Column<int>(type: "int", nullable: false),
+                    StudentId = table.Column<int>(type: "int", nullable: false),
+                    StudentName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    StudentAge = table.Column<int>(type: "int", nullable: false),
+                    StudentEmail = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    GuardianName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    GuardianEmail = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    GuardianPhoneNumber = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SemesterOverallGrade = table.Column<double>(type: "double", nullable: false),
+                    StudentRank = table.Column<int>(type: "int", nullable: false),
+                    PromotionGrade = table.Column<double>(type: "double", nullable: false),
+                    PresentDays = table.Column<int>(type: "int", nullable: false),
+                    TotalDays = table.Column<int>(type: "int", nullable: false),
+                    AttendanceRate = table.Column<double>(type: "double", nullable: false),
+                    IsPromoted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    PromotionStatus = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FirstSemesterGrade = table.Column<double>(type: "double", nullable: false),
+                    SecondSemesterGrade = table.Column<double>(type: "double", nullable: false),
+                    ThirdSemesterGrade = table.Column<double>(type: "double", nullable: false),
+                    ArchivedReportCardId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArchivedStudentGrades", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ArchivedStudentGrades_ArchivedLearningPathGrades_ArchivedLea~",
+                        column: x => x.ArchivedLearningPathGradeId,
+                        principalTable: "ArchivedLearningPathGrades",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ArchivedStudentGrades_StudentReportCards_ArchivedReportCardId",
+                        column: x => x.ArchivedReportCardId,
+                        principalTable: "StudentReportCards",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "FirstPosts",
                 columns: table => new
                 {
@@ -1176,7 +1259,7 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "HomeworkSubmission",
+                name: "HomeworkSubmissions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -1193,24 +1276,78 @@ namespace FcmsPortalUI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HomeworkSubmission", x => x.Id);
+                    table.PrimaryKey("PK_HomeworkSubmissions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_HomeworkSubmission_Homework_HomeworkId",
+                        name: "FK_HomeworkSubmissions_Homework_HomeworkId",
                         column: x => x.HomeworkId,
                         principalTable: "Homework",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_HomeworkSubmission_Students_StudentId",
+                        name: "FK_HomeworkSubmissions_Students_StudentId",
                         column: x => x.StudentId,
                         principalTable: "Students",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_HomeworkSubmission_TestGrades_HomeworkGradeId",
+                        name: "FK_HomeworkSubmissions_TestGrades_HomeworkGradeId",
                         column: x => x.HomeworkGradeId,
                         principalTable: "TestGrades",
                         principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ArchivedCourseGrades",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ArchivedStudentGradeId = table.Column<int>(type: "int", nullable: false),
+                    Course = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TotalGrade = table.Column<double>(type: "double", nullable: false),
+                    FinalGradeCode = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    HomeworkWeightPercentage = table.Column<double>(type: "double", nullable: false),
+                    QuizWeightPercentage = table.Column<double>(type: "double", nullable: false),
+                    FinalExamWeightPercentage = table.Column<double>(type: "double", nullable: false),
+                    HomeworkAverage = table.Column<double>(type: "double", nullable: false),
+                    QuizAverage = table.Column<double>(type: "double", nullable: false),
+                    ExamAverage = table.Column<double>(type: "double", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArchivedCourseGrades", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ArchivedCourseGrades_ArchivedStudentGrades_ArchivedStudentGr~",
+                        column: x => x.ArchivedStudentGradeId,
+                        principalTable: "ArchivedStudentGrades",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ArchivedTestGrades",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ArchivedCourseGradeId = table.Column<int>(type: "int", nullable: false),
+                    Score = table.Column<double>(type: "double", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    GradeType = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ArchivedTestGrades", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ArchivedTestGrades_ArchivedCourseGrades_ArchivedCourseGradeId",
+                        column: x => x.ArchivedCourseGradeId,
+                        principalTable: "ArchivedCourseGrades",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -1220,9 +1357,29 @@ namespace FcmsPortalUI.Migrations
                 column: "PostedById");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ArchivedCourseGrades_ArchivedStudentGradeId",
+                table: "ArchivedCourseGrades",
+                column: "ArchivedStudentGradeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ArchivedPaymentDetails_ArchivedStudentPaymentId",
                 table: "ArchivedPaymentDetails",
                 column: "ArchivedStudentPaymentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ArchivedStudentGrades_ArchivedLearningPathGradeId",
+                table: "ArchivedStudentGrades",
+                column: "ArchivedLearningPathGradeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ArchivedStudentGrades_ArchivedReportCardId",
+                table: "ArchivedStudentGrades",
+                column: "ArchivedReportCardId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ArchivedTestGrades_ArchivedCourseGradeId",
+                table: "ArchivedTestGrades",
+                column: "ArchivedCourseGradeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -1349,18 +1506,18 @@ namespace FcmsPortalUI.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_HomeworkSubmission_HomeworkGradeId",
-                table: "HomeworkSubmission",
+                name: "IX_HomeworkSubmissions_HomeworkGradeId",
+                table: "HomeworkSubmissions",
                 column: "HomeworkGradeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HomeworkSubmission_HomeworkId",
-                table: "HomeworkSubmission",
+                name: "IX_HomeworkSubmissions_HomeworkId",
+                table: "HomeworkSubmissions",
                 column: "HomeworkId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_HomeworkSubmission_StudentId",
-                table: "HomeworkSubmission",
+                name: "IX_HomeworkSubmissions_StudentId",
+                table: "HomeworkSubmissions",
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
@@ -1500,6 +1657,9 @@ namespace FcmsPortalUI.Migrations
                 name: "ArchivedSchoolPaymentSummaries");
 
             migrationBuilder.DropTable(
+                name: "ArchivedTestGrades");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
             migrationBuilder.DropTable(
@@ -1530,7 +1690,7 @@ namespace FcmsPortalUI.Migrations
                 name: "FirstPosts");
 
             migrationBuilder.DropTable(
-                name: "HomeworkSubmission");
+                name: "HomeworkSubmissions");
 
             migrationBuilder.DropTable(
                 name: "LearningPathStudentsWithAccess");
@@ -1548,10 +1708,10 @@ namespace FcmsPortalUI.Migrations
                 name: "ScheduleEntries");
 
             migrationBuilder.DropTable(
-                name: "StudentReportCards");
+                name: "ArchivedStudentPayments");
 
             migrationBuilder.DropTable(
-                name: "ArchivedStudentPayments");
+                name: "ArchivedCourseGrades");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -1575,19 +1735,28 @@ namespace FcmsPortalUI.Migrations
                 name: "CalendarModel");
 
             migrationBuilder.DropTable(
+                name: "ArchivedStudentGrades");
+
+            migrationBuilder.DropTable(
                 name: "CourseGrades");
 
             migrationBuilder.DropTable(
                 name: "ClassSessions");
 
             migrationBuilder.DropTable(
+                name: "ArchivedLearningPathGrades");
+
+            migrationBuilder.DropTable(
+                name: "StudentReportCards");
+
+            migrationBuilder.DropTable(
                 name: "CourseGradingConfiguration");
 
             migrationBuilder.DropTable(
-                name: "Students");
+                name: "Staff");
 
             migrationBuilder.DropTable(
-                name: "Staff");
+                name: "Students");
 
             migrationBuilder.DropTable(
                 name: "Guardians");
