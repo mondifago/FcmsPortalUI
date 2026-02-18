@@ -76,6 +76,7 @@
 
                         <StaffForm Staff="@principalStaff"
                                    SubmitButtonText="Create Principal Account"
+                                   AllowedRoles="@(new List<UserRole> { UserRole.Principal })"
                                    OnSubmit="CreatePrincipal"
                                    OnCancel="Cancel" />
                     }

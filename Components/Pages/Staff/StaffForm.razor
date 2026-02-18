@@ -212,6 +212,9 @@
     [Parameter]
     public bool IsEditMode { get; set; } = false;
 
+    [Parameter]
+    public List<UserRole>? AllowedRoles { get; set; }
+
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
     private string profilePictureUrl = "";
@@ -245,6 +248,12 @@
 
     private void LoadAvailableUserRoles()
     {
+        if (AllowedRoles != null)
+        {
+            availableUserRoles = AllowedRoles;
+            return;
+        }
+
         availableUserRoles = Enum.GetValues(typeof(UserRole))
             .Cast<UserRole>()
             .Where(r =>
