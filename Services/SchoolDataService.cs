@@ -474,6 +474,7 @@ namespace FcmsPortalUI.Services
                 .Include(s => s.LearningPath)
                 .Include(s => s.Guardian)
                     .ThenInclude(g => g.Person)
+                    .Where(s => !s.Person.IsArchived)
                 .ToList();
         }
 
@@ -2432,6 +2433,7 @@ namespace FcmsPortalUI.Services
             }
 
             student.Person.IsArchived = true;
+            student.Person.IsActive = false;
             student.ArchivedDate = DateTime.Now;
             _archivedStudents.Add(student);
             _context.Students.Update(student);
@@ -3371,6 +3373,34 @@ namespace FcmsPortalUI.Services
                     lp.EducationLevel.ToDisplayName() + " " + lp.ClassLevel.ToDisplayName(),
                     lp.DateSubmitted!.Value))
                 .ToList();
+        }
+
+        public int GetStaffCount()
+        {
+            return _context.Staff.AsNoTracking().Count();
+        }
+
+        public int GetStudentCount()
+        {
+            return _context.Students.AsNoTracking()
+                .Include(s => s.Person)
+                .Count(s => !s.Person.IsArchived);
+        }
+
+        public int GetGuardianCount()
+        {
+            return _context.Guardians.AsNoTracking().Count();
+        }
+
+        public int GetActiveClassCount()
+        {
+            var academicPeriod = GetCurrentAcademicPeriod();
+            if (academicPeriod == null) return 0;
+
+            return _context.LearningPaths.AsNoTracking()
+                .Count(lp => lp.AcademicPeriodId == academicPeriod.Id &&
+                             !lp.IsTemplate &&
+                             lp.ApprovalStatus == PrincipalApprovalStatus.Pending);
         }
         #endregion 
     }

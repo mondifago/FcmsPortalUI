@@ -1435,3 +1435,49 @@ main {
         flex-direction: column;
     }
 }
+
+/* ===== COUNT CARDS ===== */
+.count-card {
+    flex: 1;
+    background-color: #f0d5c4;
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 100px;
+}
+
+.count-card-icon {
+    font-size: 1.6rem;
+    color: #5a3e2b;
+    flex-shrink: 0;
+}
+
+.count-card-divider {
+    width: 2px;
+    height: 40px;
+    background-color: #5a3e2b;
+    opacity: 0.3;
+    border-radius: 1px;
+    flex-shrink: 0;
+}
+
+.count-card-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.count-card-label {
+    font-size: 0.8rem;
+    color: #5a3e2b;
+    font-weight: 500;
+}
+
+.count-card-value {
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #5a3e2b;
+    line-height: 1.2;
+}

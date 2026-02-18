@@ -233,6 +233,10 @@ namespace FcmsPortalUI.Services
         List<(string LearningPathName, DateTime Timestamp)> GetTodayAttendanceReports(int maxCount);
         List<(string Course, string Topic, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount);
         List<(string LearningPathName, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount);
+        int GetStaffCount();
+        int GetStudentCount();
+        int GetGuardianCount();
+        int GetActiveClassCount();
         #endregion
     }
 }

@@ -222,37 +222,157 @@
             <!-- Horizontal Info Bar - Guardian View -->
             <AuthorizeView Roles="Developer,Guardian">
                 <Authorized>
-                    <div class="card shadow-sm">
-                        <div class="card-body position-relative">
-                            <!-- View All Link - Top Right -->
-                            <a href="/student-dashboard" class="text-decoration-none position-absolute top-0 end-0 mt-2 me-3" style="font-size: 0.85rem;">
-                                View All <i class="fa fa-arrow-right ms-1"></i>
-                            </a>
-
-                            <div class="row text-center">
-                                <!-- Today's Class Schedule -->
-                                <div class="col-md-4 border-end">
-                                    <i class="fa fa-chalkboard-teacher text-primary me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Ward's Today's Classes</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Mathematics at 9:00 AM</strong>
-                                    <span class="text-muted" style="font-size: 0.85rem;">5 classes scheduled</span>
+                    <div class="hbar-container">
+                        <!-- Ward's Today's Classes -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-chalkboard-teacher me-2"></i>Ward's Classes Today
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
+                                    @if (wardTodayClasses.Any())
+                                    {
+                                        @foreach (var item in wardTodayClasses)
+                                        {
+                                            <div class="hbar-row">
+                                                <i class="fa fa-book-open hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@item.WardName:</strong>
+                                                    @item.Schedule.ClassSession?.Course
+                                                    at @item.Schedule.DateTime.ToString("h:mm tt")
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No classes today.</em>
+                                        </div>
+                                    }
                                 </div>
+                            </div>
+                        </div>
 
-                                <!-- Pending Homework -->
-                                <div class="col-md-4 border-end">
-                                    <i class="fa fa-tasks text-warning me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Ward's Pending Homework</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">2 assignments due today</strong>
-                                    <span class="text-muted" style="font-size: 0.85rem;">Science & English</span>
+                        <!-- Ward's Pending Homework -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-clipboard-check me-2"></i>Ward's Pending Homework
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
+                                    @if (wardPendingHomework.Any())
+                                    {
+                                        @foreach (var item in wardPendingHomework)
+                                        {
+                                            <div class="hbar-row">
+                                                <i class="fa fa-pen-to-square hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@item.WardName:</strong>
+                                                    @item.Homework.Title
+                                                    — Due: @item.Homework.DueDate.ToString("MMM d")
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="hbar-row">
+                                            <em class="text-muted">All caught up!</em>
+                                        </div>
+                                    }
                                 </div>
+                            </div>
+                        </div>
 
-                                <!-- Recent Grades -->
-                                <div class="col-md-4">
-                                    <i class="fa fa-award text-success me-2" style="font-size: 1.3rem;"></i>
-                                    <span class="text-muted small d-block mt-2">Ward's New Grades Available</span>
-                                    <strong class="d-block mt-1" style="font-size: 0.95rem;">Math Quiz - 85%</strong>
-                                    <span class="text-muted" style="font-size: 0.85rem;">2 more results ready</span>
+                        <!-- Ward's Recent Grades -->
+                        <div class="hbar-card">
+                            <h6 class="hbar-card-title">
+                                <i class="fa fa-star me-2"></i>Ward's Recent Grades
+                            </h6>
+                            <div class="hbar-card-body">
+                                <div class="hbar-item">
+                                    @if (wardRecentGrades.Any())
+                                    {
+                                        @foreach (var grade in wardRecentGrades)
+                                        {
+                                            <div class="hbar-row">
+                                                <i class="fa fa-trophy hbar-row-icon"></i>
+                                                <span>
+                                                    <strong>@grade.WardName:</strong>
+                                                    @grade.Course @grade.GradeType — @grade.Score
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="hbar-row">
+                                            <em class="text-muted">No grades yet.</em>
+                                        </div>
+                                    }
                                 </div>
+                                @if (currentGuardian?.Wards != null && currentGuardian.Wards.Any())
+                                {
+                                    <div class="hbar-view-all">
+                                        <a href="javascript:void(0)"
+                                           @onclick="() => ShowWardGradeDetailsModal(currentGuardian.Wards.First())"
+                                           class="text-decoration-none">
+                                            View All <i class="fa fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <!-- Count Cards - Admin/Principal/Developer View -->
+            <AuthorizeView Roles="Developer,Principal,Admin">
+                <Authorized>
+                    <div class="hbar-container">
+                        <div class="count-card">
+                            <div class="count-card-icon">
+                                <i class="fa fa-user-tie"></i>
+                            </div>
+                            <div class="count-card-divider"></div>
+                            <div class="count-card-info">
+                                <span class="count-card-label">Staff</span>
+                                <span class="count-card-value">@staffCount</span>
+                            </div>
+                        </div>
+
+                        <div class="count-card">
+                            <div class="count-card-icon">
+                                <i class="fa fa-user-graduate"></i>
+                            </div>
+                            <div class="count-card-divider"></div>
+                            <div class="count-card-info">
+                                <span class="count-card-label">Students</span>
+                                <span class="count-card-value">@studentCount</span>
+                            </div>
+                        </div>
+
+                        <div class="count-card">
+                            <div class="count-card-icon">
+                                <i class="fa fa-users"></i>
+                            </div>
+                            <div class="count-card-divider"></div>
+                            <div class="count-card-info">
+                                <span class="count-card-label">Guardians</span>
+                                <span class="count-card-value">@guardianCount</span>
+                            </div>
+                        </div>
+
+                        <div class="count-card">
+                            <div class="count-card-icon">
+                                <i class="fa fa-chalkboard"></i>
+                            </div>
+                            <div class="count-card-divider"></div>
+                            <div class="count-card-info">
+                                <span class="count-card-label">Classes</span>
+                                <span class="count-card-value">@classCount</span>
                             </div>
                         </div>
                     </div>
@@ -486,6 +606,15 @@
                                   LearningPath="studentLearningPath"
                                   OnClose="CloseStudentGradeDetailsModal" />
     }
+
+    <!-- Guardian Ward Grade Details Modal -->
+    @if (selectedWardForGrades != null && selectedWardLearningPath != null)
+    {
+        <StudentGradeDetailsModal IsVisible="showGuardianGradeDetailsModal"
+                                  Student="selectedWardForGrades"
+                                  LearningPath="selectedWardLearningPath"
+                                  OnClose="CloseGuardianGradeDetailsModal" />
+    }
 </div>
 
 @code {
@@ -522,6 +651,19 @@
     private List<(string LearningPathName, DateTime Timestamp)> todayAttendanceReports = new();
     private List<(string Course, string Topic, DateTime Timestamp)> todayTeacherRemarks = new();
     private List<(string LearningPathName, DateTime DateSubmitted)> recentSubmittedLearningPaths = new();
+    private int staffCount;
+    private int studentCount;
+    private int guardianCount;
+    private int classCount;
+
+    // Guardian Dashboard Data
+    private Guardian? currentGuardian;
+    private List<(string WardName, ScheduleEntry Schedule)> wardTodayClasses = new();
+    private List<(string WardName, Homework Homework)> wardPendingHomework = new();
+    private List<(string WardName, string Course, GradeType GradeType, double Score)> wardRecentGrades = new();
+    private bool showGuardianGradeDetailsModal = false;
+    private Student? selectedWardForGrades;
+    private LearningPath? selectedWardLearningPath;
 
     protected override async Task OnInitializedAsync()
     {
@@ -541,6 +683,7 @@
         LoadUpcomingEvents();
         await LoadAdminDashboardData();
         await LoadStudentDashboardData();
+        await LoadGuardianDashboardData();
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
@@ -629,6 +772,10 @@
         if (!await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin"))
             return;
 
+        staffCount = SchoolDataService.GetStaffCount();
+        studentCount = SchoolDataService.GetStudentCount();
+        guardianCount = SchoolDataService.GetGuardianCount();
+        classCount = SchoolDataService.GetActiveClassCount();
         todayAttendanceReports = SchoolDataService.GetTodayAttendanceReports(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
         todayTeacherRemarks = SchoolDataService.GetTodayTeacherRemarks(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
         recentSubmittedLearningPaths = SchoolDataService.GetRecentlySubmittedLearningPaths(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
@@ -645,6 +792,55 @@
     private void CloseStudentGradeDetailsModal()
     {
         showStudentGradeDetailsModal = false;
+    }
+
+    private async Task LoadGuardianDashboardData()
+    {
+        var person = await PermissionService.GetCurrentPersonAsync();
+        if (person == null) return;
+
+        currentGuardian = SchoolDataService.GetGuardians()
+            .FirstOrDefault(g => g.PersonId == person.Id);
+
+        if (currentGuardian == null || currentGuardian.Wards == null) return;
+
+        foreach (var ward in currentGuardian.Wards)
+        {
+            var wardName = ward.Person.FirstName;
+
+            var classes = SchoolDataService.GetTodayClassSessionsForStudent(ward.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
+            foreach (var c in classes)
+                wardTodayClasses.Add((wardName, c));
+
+            var homework = SchoolDataService.GetPendingHomeworkForStudent(ward.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
+            foreach (var h in homework)
+                wardPendingHomework.Add((wardName, h));
+
+            var grades = SchoolDataService.GetRecentGradesForStudent(ward.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
+            foreach (var g in grades)
+                wardRecentGrades.Add((wardName, g.Course, g.GradeType, g.Score));
+        }
+
+        wardTodayClasses = wardTodayClasses.Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT).ToList();
+        wardPendingHomework = wardPendingHomework.Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT).ToList();
+        wardRecentGrades = wardRecentGrades.Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT).ToList();
+    }
+
+    private void ShowWardGradeDetailsModal(Student ward)
+    {
+        selectedWardForGrades = ward;
+        if (ward.LearningPathId > 0)
+        {
+            selectedWardLearningPath = SchoolDataService.GetLearningPathForGradeManagement(ward.LearningPathId ?? 0);
+            showGuardianGradeDetailsModal = true;
+        }
+    }
+
+    private void CloseGuardianGradeDetailsModal()
+    {
+        showGuardianGradeDetailsModal = false;
+        selectedWardForGrades = null;
+        selectedWardLearningPath = null;
     }
 
     public void Dispose()
