@@ -379,5 +379,47 @@ namespace FcmsPortalUI
                 _ => educationLevel.ToString()
             };
         }
+
+        public static string? GetYouTubeEmbedUrl(string? url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return null;
+
+            string? videoId = null;
+
+            if (url.Contains("youtu.be/"))
+            {
+                var uri = new Uri(url);
+                videoId = uri.AbsolutePath.TrimStart('/').Split('?')[0];
+            }
+
+            if (url.Contains("youtube.com/watch"))
+            {
+                var uri = new Uri(url);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                videoId = query["v"];
+            }
+
+            if (url.Contains("youtube.com/embed/"))
+            {
+                var uri = new Uri(url);
+                videoId = uri.AbsolutePath.Replace("/embed/", "").Split('?')[0];
+            }
+
+            if (string.IsNullOrEmpty(videoId))
+                return null;
+
+            return $"https://www.youtube.com/embed/{videoId}";
+        }
+
+        public static bool IsValidYouTubeUrl(string? url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return false;
+
+            return url.Contains("youtube.com/watch") ||
+                   url.Contains("youtu.be/") ||
+                   url.Contains("youtube.com/embed/");
+        }
     }
 }
