@@ -214,20 +214,27 @@
                                         {
                                             <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center @(selectedPdfUrl == material.FilePath && !isVideoSelected ? "active" : "")"
                                                     @onclick="() => SelectMaterial(material)">
-                                                <div>
+
+                                                <div class="text-truncate" style="max-width: 250px;" title="@material.FileName">
                                                     <i class="@Util.GetFileIcon(material.FileName) me-2"></i>
                                                     @material.FileName
-                                                    <small class="text-muted ms-2">(@Util.FormatFileSize(material.FileSize))</small>
                                                 </div>
-                                                <div>
+
+                                                <div class="d-flex gap-1 flex-shrink-0">
+                                                    @if (IsPdfFile(material.FileName))
+                                                    {
+                                                        <span class="btn btn-sm @(selectedPdfUrl == material.FilePath && !isVideoSelected ? "btn-success" : "btn-outline-secondary")">
+                                                            <i class="fa fa-eye"></i> @(selectedPdfUrl == material.FilePath && !isVideoSelected ? "Viewing" : "View")
+                                                        </span>
+                                                    }
                                                     <a href="@material.FilePath" target="_blank" class="btn btn-sm btn-outline-primary me-2" @onclick:stopPropagation>
                                                         <i class="fa fa-download"></i>
                                                     </a>
-                                                    @if (IsPdfFile(material.FileName))
+                                                    @if (canManageClassSession)
                                                     {
-                                                        <span class="btn btn-sm @(selectedPdfUrl == material.FilePath && !isVideoSelected ? "btn-light" : "btn-outline-secondary")">
-                                                            <i class="fa fa-eye"></i> @(selectedPdfUrl == material.FilePath && !isVideoSelected ? "Viewing" : "View")
-                                                        </span>
+                                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveMaterial(material)" @onclick:stopPropagation title="Delete">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
                                                     }
                                                 </div>
                                             </button>
@@ -715,6 +722,16 @@
     private bool IsPdfFile(string fileName)
     {
         return !string.IsNullOrEmpty(fileName) && fileName.ToLower().EndsWith(".pdf");
+    }
+
+    private async Task RemoveMaterial(FileAttachment material)
+    {
+        classSession.StudyMaterials.Remove(material);
+        await SchoolDataService.DeleteFileAsync(material);
+        SchoolDataService.UpdateClassSession(classSession);
+
+        if (selectedPdfUrl == material.FilePath)
+            selectedPdfUrl = classSession.StudyMaterials.FirstOrDefault(m => IsPdfFile(m.FileName))?.FilePath;
     }
 
     private void SaveLessonPlan()

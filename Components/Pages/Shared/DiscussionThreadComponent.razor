@@ -158,8 +158,6 @@
         newFirstPost = new FirstPost();
     }
 
-
-
     private async Task HandleAddReply(DiscussionThread thread)
     {
         if (CurrentUser == null || string.IsNullOrWhiteSpace(newReply.Comment))

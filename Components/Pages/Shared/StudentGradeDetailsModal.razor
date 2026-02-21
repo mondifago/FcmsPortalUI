@@ -29,7 +29,7 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Student ID:</strong> @Student.Id</p>
+                                    <p><strong>Student Name:</strong> @Util.GetFullName(Student.Person)</p>
                                     <p><strong>Learning Path:</strong> @Util.GetLearningPathName(LearningPath)</p>
                                     <p><strong>Term:</strong> @LearningPath.Semester.ToTermDisplay()</p>
                                 </div>
@@ -94,12 +94,12 @@
                                                         <div class="card">
                                                             <div class="card-body text-center">
                                                                 <h6 class="card-title text-muted">Homework</h6>
-                                                                <h4 class="text-primary">@GetGradeAverage(courseGrade, GradeType.Homework)</h4>
-                                                                <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Homework) assignments</small>
+                                                                <h5 class="text-primary">@GetGradeAverage(courseGrade, GradeType.Homework)</h5>
+                                                                <small class="text-muted d-block">@GetGradeCount(courseGrade, GradeType.Homework) assignments</small>
                                                                 @if (config != null)
                                                                 {
-                                                                    <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Homework, config.HomeworkWeightPercentage).ToString("F1")%</strong></small>
-                                                                    <small class="text-muted">Weight: @config.HomeworkWeightPercentage%</small>
+                                                                    <small class="text-success d-block"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Homework, config.HomeworkWeightPercentage).ToString("F1")%</strong></small>
+                                                                    <small class="text-muted d-block">Weight: @config.HomeworkWeightPercentage%</small>
                                                                 }
                                                             </div>
                                                         </div>
@@ -110,12 +110,12 @@
                                                         <div class="card">
                                                             <div class="card-body text-center">
                                                                 <h6 class="card-title text-muted">Quiz</h6>
-                                                                <h4 class="text-warning">@GetGradeAverage(courseGrade, GradeType.Quiz)</h4>
-                                                                <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Quiz) quizzes</small>
+                                                                <h5 class="text-warning">@GetGradeAverage(courseGrade, GradeType.Quiz)</h5>
+                                                                <small class="text-muted d-block">@GetGradeCount(courseGrade, GradeType.Quiz) quizzes</small>
                                                                 @if (config != null)
                                                                 {
-                                                                    <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Quiz, config.QuizWeightPercentage).ToString("F1")%</strong></small>
-                                                                    <small class="text-muted">Weight: @config.QuizWeightPercentage%</small>
+                                                                    <small class="text-success d-block"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Quiz, config.QuizWeightPercentage).ToString("F1")%</strong></small>
+                                                                    <small class="text-muted d-block">Weight: @config.QuizWeightPercentage%</small>
                                                                 }
                                                             </div>
                                                         </div>
@@ -126,12 +126,12 @@
                                                         <div class="card">
                                                             <div class="card-body text-center">
                                                                 <h6 class="card-title text-muted">Exam</h6>
-                                                                <h4 class="text-danger">@GetGradeAverage(courseGrade, GradeType.Exam)</h4>
-                                                                <small class="text-muted">@GetGradeCount(courseGrade, GradeType.Exam) exams</small>
+                                                                <h5 class="text-danger">@GetGradeAverage(courseGrade, GradeType.Exam)</h5>
+                                                                <small class="text-muted d-block">@GetGradeCount(courseGrade, GradeType.Exam) exams</small>
                                                                 @if (config != null)
                                                                 {
-                                                                    <small class="text-success"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Exam, config.FinalExamWeightPercentage).ToString("F1")%</strong></small>
-                                                                    <small class="text-muted">Weight: @config.FinalExamWeightPercentage%</small>
+                                                                    <small class="text-success d-block"><strong>Achieved: @GetWeightedContribution(courseGrade, GradeType.Exam, config.FinalExamWeightPercentage).ToString("F1")%</strong></small>
+                                                                    <small class="text-muted d-block">Weight: @config.FinalExamWeightPercentage%</small>
                                                                 }
                                                             </div>
                                                         </div>

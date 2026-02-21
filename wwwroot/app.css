@@ -21,6 +21,11 @@ a, .btn-link {
     box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
+.list-group-item.active {
+    background-color: #adb5bd;
+    border-color: #adb5bd;
+}
+
 /* Layout container */
 .layout-container {
     display: flex;
