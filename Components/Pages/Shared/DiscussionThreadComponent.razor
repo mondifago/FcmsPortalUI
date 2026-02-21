@@ -19,7 +19,9 @@
             <div class="mb-4 border rounded p-3 bg-light">
                 <EditForm Model="newFirstPost" OnValidSubmit="@HandleAddFirstPost">
                     <div class="mb-3">
-                        <InputTextArea class="form-control" @bind-Value="newFirstPost.Comment" rows="3" placeholder="Start a new discussion..." />
+                        <CharacterCountTextArea @bind-Value="newFirstPost.Comment"
+                                                Rows="3"
+                                                Placeholder="Start a new discussion..." />
                     </div>
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">
@@ -71,7 +73,9 @@
                             <div class="ms-5 mb-3 mt-3 border rounded p-3 bg-light">
                                 <EditForm Model="newReply" OnValidSubmit="() => HandleAddReply(thread)">
                                     <div class="mb-2">
-                                        <InputTextArea class="form-control" @bind-Value="newReply.Comment" rows="2" placeholder="Write your reply..." />
+                                        <CharacterCountTextArea @bind-Value="newReply.Comment"
+                                                                Rows="2"
+                                                                Placeholder="Write your reply..." />
                                     </div>
                                     <div class="d-flex justify-content-end">
                                         <button type="button" class="btn btn-sm btn-outline-secondary me-2" @onclick="CancelReply">Cancel</button>
@@ -145,7 +149,7 @@
 
     private async Task HandleAddFirstPost()
     {
-        if (CurrentUser == null) return;
+        if (CurrentUser == null || string.IsNullOrWhiteSpace(newFirstPost.Comment)) return;
 
         var firstPost = new FirstPost
         {

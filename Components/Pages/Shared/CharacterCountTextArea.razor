@@ -1,0 +1,98 @@
+﻿@using FcmsPortal.Constants
+
+<div class="character-count-textarea-container">
+    <div class="position-relative">
+        <textarea class="form-control @AdditionalCssClass"
+                  rows="@Rows"
+                  maxlength="@MaxLength"
+                  placeholder="@Placeholder"
+                  @oninput="HandleInput"
+                  value="@Value">
+        </textarea>
+
+        @if (ShowEmojiPicker)
+        {
+            <button type="button"
+                    class="btn btn-sm btn-link position-absolute emoji-toggle-btn"
+                    @onclick="ToggleEmojiPanel"
+                    @onclick:preventDefault
+                    title="Insert emoji">
+                <i class="fa fa-smile"></i>
+            </button>
+        }
+    </div>
+
+    @if (isEmojiPanelOpen)
+    {
+        <div class="emoji-panel border rounded shadow-sm bg-white p-2 mt-1">
+            @foreach (var emoji in emojiSet)
+            {
+                <span class="emoji-item" role="button" @onclick="() => InsertEmoji(emoji)" title="@emoji">
+                    @emoji
+                </span>
+            }
+        </div>
+    }
+
+    <div class="d-flex justify-content-end mt-1">
+        <small class="@GetCounterCssClass()">
+            @RemainingCharacters / @MaxLength remaining
+        </small>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public int MaxLength { get; set; } = FcmsConstants.MAX_DISCUSSION_COMMENT_LENGTH;
+    [Parameter] public int Rows { get; set; } = 3;
+    [Parameter] public string Placeholder { get; set; } = string.Empty;
+    [Parameter] public string AdditionalCssClass { get; set; } = string.Empty;
+    [Parameter] public bool ShowEmojiPicker { get; set; } = true;
+
+    private bool isEmojiPanelOpen = false;
+
+    private int RemainingCharacters => MaxLength - (Value?.Length ?? 0);
+
+    private readonly string[] emojiSet = new[]
+    {
+        "👍", "👏", "🎉", "✅", "❌", "❓", "🤔",
+        "😊", "😂", "😢", "😮", "🙏", "💡", "📚",
+        "✏️", "📝", "⭐", "🔥", "💪", "👀"
+    };
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        var newValue = e.Value?.ToString() ?? string.Empty;
+
+        if (newValue.Length > MaxLength)
+        {
+            newValue = newValue[..MaxLength];
+        }
+
+        Value = newValue;
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private async Task InsertEmoji(string emoji)
+    {
+        if (Value.Length + emoji.Length > MaxLength) return;
+
+        Value += emoji;
+        await ValueChanged.InvokeAsync(Value);
+        isEmojiPanelOpen = false;
+    }
+
+    private void ToggleEmojiPanel()
+    {
+        isEmojiPanelOpen = !isEmojiPanelOpen;
+    }
+
+    private string GetCounterCssClass()
+    {
+        if (RemainingCharacters <= 0) return "text-danger fw-bold";
+        if (RemainingCharacters <= 50) return "text-danger";
+        if (RemainingCharacters <= 100) return "text-warning";
+        return "text-muted";
+    }
+}

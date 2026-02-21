@@ -1486,3 +1486,40 @@ main {
     color: #5a3e2b;
     line-height: 1.2;
 }
+
+/* CharacterCountTextArea */
+.character-count-textarea-container .emoji-toggle-btn {
+    bottom: 8px;
+    right: 8px;
+    color: #6c757d;
+    font-size: 1.1rem;
+    padding: 2px 6px;
+    z-index: 1;
+}
+
+    .character-count-textarea-container .emoji-toggle-btn:hover {
+        color: #f0ad4e;
+    }
+
+.emoji-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+}
+
+.emoji-item {
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: background-color 0.15s;
+}
+
+    .emoji-item:hover {
+        background-color: #f0f0f0;
+    }
+
+.character-count-textarea-container textarea {
+    padding-right: 40px;
+}
