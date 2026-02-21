@@ -555,6 +555,20 @@ namespace FcmsPortalUI.Services
                 return false;
             }
 
+            // Block deletion if student is enrolled in any active learning path
+            var activeLearningPath = _context.LearningPaths
+                .AsNoTracking()
+                .Where(lp => !lp.IsTemplate && lp.ApprovalStatus != PrincipalApprovalStatus.Approved)
+                .FirstOrDefault(lp => lp.Students.Any(s => s.Id == studentId));
+
+            if (activeLearningPath != null)
+            {
+                throw new BusinessRuleException(
+                    $"Cannot delete a student enrolled in an active learning path " +
+                    $"({activeLearningPath.ClassLevel} - {activeLearningPath.Semester}). " +
+                    "Please wait until the semester is finalized and approved.");
+            }
+
             // Delete profile picture if exists
             if (!string.IsNullOrEmpty(student.Person?.ProfilePictureUrl) &&
                 !student.Person.ProfilePictureUrl.StartsWith("data:"))
@@ -563,24 +577,9 @@ namespace FcmsPortalUI.Services
                 await DeleteFileAsync(attachment);
             }
 
-            // Remove from learning paths
-            var learningPaths = _context.LearningPaths
-                .Include(lp => lp.Students)
-                .Where(lp => lp.Students.Any(s => s.Id == studentId))
-                .ToList();
-
-            foreach (var lp in learningPaths)
-            {
-                var studentToRemove = lp.Students.FirstOrDefault(s => s.Id == studentId);
-                if (studentToRemove != null)
-                {
-                    lp.Students.Remove(studentToRemove);
-                }
-            }
-
             var person = student.Person;
-
             _context.Students.Remove(student);
+
             if (person != null)
             {
                 _context.Persons.Remove(person);

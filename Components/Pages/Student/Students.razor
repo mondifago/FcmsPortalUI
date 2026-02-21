@@ -136,6 +136,10 @@
             </table>
         </div>
     }
+    <ErrorDisplayModal IsVisible="showErrorModal"
+                       Title="Delete Error"
+                       Message="@errorMessage"
+                       OnClose="CloseErrorModal" />
 
     <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
                         Title="Confirm Delete"
@@ -159,6 +163,9 @@
     private string selectedEducationLevel = "";
     private string selectedClassLevel = "";
     private bool filtersApplied = false;
+    private bool showErrorModal = false;
+    private string errorMessage = "";
+
 
     protected override void OnInitialized()
     {
@@ -243,13 +250,30 @@
 
     private async Task ConfirmDelete()
     {
-        var result = await SchoolDataService.DeleteStudentAsync(studentIdToDelete);
-        if (result)
+        try
         {
-            students = SchoolDataService.GetStudents();
-            FilterStudents();
+            var result = await SchoolDataService.DeleteStudentAsync(studentIdToDelete);
+            if (result)
+            {
+                students = SchoolDataService.GetStudents();
+                FilterStudents();
+            }
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+        }
+        finally
+        {
             showDeleteConfirmation = false;
             StateHasChanged();
         }
+    }
+
+    private void CloseErrorModal()
+    {
+        showErrorModal = false;
+        errorMessage = "";
     }
 }
