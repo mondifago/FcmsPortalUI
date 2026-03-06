@@ -10,7 +10,7 @@
             <div class="modal-header">
                 <h5 class="modal-title d-flex align-items-center">
                     <i class="fa fa-user-graduate text-primary me-2"></i>
-                    @ArchivedStudent?.StudentName – Grade Breakdown (Archived)
+                    @ArchivedStudent?.StudentName – Grade Report (Archived)
                 </h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
@@ -27,10 +27,9 @@
                             <div class="row">
 
                                 <div class="col-md-6">
-                                    <p><strong>Student Email:</strong> @ArchivedStudent.StudentEmail</p>
-                                    <p><strong>Guardian:</strong> @ArchivedStudent.GuardianName</p>
-                                    <p><strong>Guardian Email:</strong> @ArchivedStudent.GuardianEmail</p>
-                                    <p><strong>Guardian Phone:</strong> @ArchivedStudent.GuardianPhoneNumber</p>
+                                    <p><strong>Student Name:</strong> @ArchivedStudent.StudentName</p>
+                                    <p><strong>Learning Path:</strong> @ArchivedStudent.ArchivedLearningPathGrade?.LearningPathName</p>
+                                    <p><strong>Term:</strong> @ArchivedStudent.ArchivedLearningPathGrade?.Semester.ToTermDisplay()</p>
                                 </div>
 
                                 <div class="col-md-6 text-center">
@@ -78,7 +77,7 @@
                                         <div class="row text-center">
 
                                             <div class="col-md-4">
-                                                <div class="card border-0">
+                                                <div class="card">
                                                     <div class="card-body">
                                                         <h6 class="text-muted">Homework</h6>
                                                         <h4 class="text-primary">
@@ -94,7 +93,7 @@
                                             </div>
 
                                             <div class="col-md-4">
-                                                <div class="card border-0">
+                                                <div class="card">
                                                     <div class="card-body">
                                                         <h6 class="text-muted">Quiz</h6>
                                                         <h4 class="text-warning">
@@ -110,7 +109,7 @@
                                             </div>
 
                                             <div class="col-md-4">
-                                                <div class="card border-0">
+                                                <div class="card">
                                                     <div class="card-body">
                                                         <h6 class="text-muted">Exam</h6>
                                                         <h4 class="text-danger">
@@ -128,7 +127,7 @@
                                         </div>
 
                                         <div class="mt-3">
-                                            <h6 class="text-muted">Grade Details</h6>
+                                            <h6>Grade Details</h6>
                                             <div class="table-responsive">
                                                 <table class="table table-sm table-striped">
                                                     <thead>
@@ -136,13 +135,15 @@
                                                             <th>Date</th>
                                                             <th>Type</th>
                                                             <th>Score</th>
+                                                            <th>Teacher</th>
+                                                            <th>Remarks</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         @foreach (var grade in course.TestGrades.OrderByDescending(g => g.Date))
                                                         {
                                                             <tr>
-                                                                <td>@grade.Date.ToString("dd MMM yyyy")</td>
+                                                                <td>@grade.Date.ToString("MMM dd, yyyy")</td>
                                                                 <td>
                                                                     <span class="badge bg-secondary">
                                                                         @Util.GetGradeTypeName(grade.GradeType)
@@ -150,9 +151,11 @@
                                                                 </td>
                                                                 <td>
                                                                     <span class="fw-bold @Util.GetGradeColorClass(grade.Score, useTextPrefix: true)">
-                                                                        @grade.Score
+                                                                        @grade.Score.ToString("F1")%
                                                                     </span>
                                                                 </td>
+                                                                <td>@grade.TeacherName</td>
+                                                                <td>@grade.TeacherRemark</td>
                                                             </tr>
                                                         }
                                                     </tbody>
@@ -163,6 +166,50 @@
                                     </div>
                                 </div>
                             }
+                        </div>
+                    </div>
+
+                    <!-- Summary Statistics -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fa fa-chart-bar"></i> Performance Summary</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h6 class="text-muted">Total Courses</h6>
+                                        <h4>@ArchivedStudent.CourseGrades.Count</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h6 class="text-muted">Position in Class</h6>
+                                        <h4>@(ArchivedStudent.StudentRank > 0 ? Util.GetOrdinalNumber(ArchivedStudent.StudentRank) : "N/A")</h4>
+                                        <h6 class="text-muted">out of @ArchivedStudent.ArchivedLearningPathGrade?.TotalStudentsInPath</h6>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        @{
+                                            var highest = ArchivedStudent.CourseGrades.OrderByDescending(c => c.TotalGrade).FirstOrDefault();
+                                        }
+                                        <h6 class="text-muted">Highest Course</h6>
+                                        <h4 class="text-success">@(highest?.TotalGrade.ToString("F1") ?? "0.0")%</h4>
+                                        <small class="text-muted">@(highest?.Course ?? "N/A")</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        @{
+                                            var lowest = ArchivedStudent.CourseGrades.Where(c => c.TotalGrade > 0).OrderBy(c => c.TotalGrade).FirstOrDefault();
+                                        }
+                                        <h6 class="text-muted">Lowest Course</h6>
+                                        <h4 class="text-danger">@(lowest?.TotalGrade.ToString("F1") ?? "0.0")%</h4>
+                                        <small class="text-muted">@(lowest?.Course ?? "N/A")</small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

@@ -112,38 +112,20 @@
                         <!-- Summary Statistics -->
                         <div class="card mb-4">
                             <div class="card-body">
-                                <div class="row">
+                                <div class="row text-center">
                                     <div class="col-md-4">
-                                        <p>
-                                            <strong>Overall Term Grade:</strong>
-                                            <span class="text-primary fs-5">
-                                                @ArchivedStudent.SemesterOverallGrade.ToString("F1")%
-                                            </span>
-                                        </p>
+                                        <h6 class="text-muted mb-1">Overall Term Grade</h6>
+                                        <h6 class="text-primary">@ArchivedStudent.SemesterOverallGrade.ToString("F1")%</h6>
                                     </div>
-
                                     <div class="col-md-4">
-                                        <p>
-                                            <strong>Class Position:</strong>
-                                            <span class="text-primary fs-5">
-                                                @ArchivedStudent.StudentRank
-                                            </span>
-                                            out of @ArchivedStudent.ArchivedLearningPathGrade?.TotalStudentsInPath
-                                        </p>
+                                        <h6 class="text-muted mb-1">Class Position</h6>
+                                        <h6 class="text-primary">@ArchivedStudent.StudentRank out of @ArchivedStudent.ArchivedLearningPathGrade?.TotalStudentsInPath</h6>
                                     </div>
-
                                     <div class="col-md-4">
-                                        <p>
-                                            <strong>Attendance Rate:</strong>
-                                            <span class="text-primary fs-5">
-                                                @ArchivedStudent.AttendanceRate.ToString("F0")%
-                                            </span>
-                                            <br />
-                                            <small>
-                                                Present: @ArchivedStudent.PresentDays /
-                                                @ArchivedStudent.TotalDays days
-                                            </small>
-                                        </p>
+                                        <h6 class="text-muted mb-1">Attendance Rate</h6>
+                                        <h6 class="text-primary">
+                                            Present: @ArchivedStudent.PresentDays / @ArchivedStudent.TotalDays days (@ArchivedStudent.AttendanceRate.ToString("F0")%)
+                                        </h6>
                                     </div>
                                 </div>
                             </div>

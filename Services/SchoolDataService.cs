@@ -2791,6 +2791,8 @@ namespace FcmsPortalUI.Services
                 .Include(a => a.StudentGrades)
                     .ThenInclude(sg => sg.CourseGrades)
                         .ThenInclude(cg => cg.TestGrades)
+                .Include(a => a.StudentGrades)
+                    .ThenInclude(sg => sg.ArchivedReportCard)
                 .FirstOrDefault(a =>
                     a.AcademicYear == academicYear &&
                     a.EducationLevel == educationLevel &&
@@ -3004,7 +3006,11 @@ namespace FcmsPortalUI.Services
                         {
                             Score = test.Score,
                             Date = test.Date,
-                            GradeType = test.GradeType
+                            GradeType = test.GradeType,
+                            TeacherName = test.Teacher?.Person != null
+                                    ? Util.GetFullName(test.Teacher.Person)
+                                    : string.Empty,
+                            TeacherRemark = test.TeacherRemark
                         });
                     }
 

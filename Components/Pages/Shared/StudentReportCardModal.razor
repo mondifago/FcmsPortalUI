@@ -111,32 +111,23 @@
                         <!-- Summary Statistics -->
                         <div class="card mb-4">
                             <div class="card-body">
-                                <div class="row">
+                                <div class="row text-center">
                                     <div class="col-md-4">
-                                        <p>
-                                            <strong>Overall Semester Grade:</strong>
-                                            <span class="text-primary fs-5">@LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath).ToString("F1")%</span>
-                                        </p>
+                                        <h6 class="text-muted mb-1">Overall Semester Grade</h6>
+                                        <h6 class="text-primary">@LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath).ToString("F1")%</h6>
                                     </div>
                                     <div class="col-md-4">
-                                        <p>
-                                            <strong>Class Position:</strong>
-                                            <span class="text-primary fs-5">@GetStudentRank() out of @LearningPath.Students.Count</span>
-                                        </p>
+                                        <h6 class="text-muted mb-1">Class Position</h6>
+                                        <h6 class="text-primary">@GetStudentRank() out of @LearningPath.Students.Count</h6>
                                     </div>
                                     <div class="col-md-4">
-                                        <p>
-                                            <strong>Attendance Rate:</strong>
-                                            <span class="text-primary fs-5">@LogicMethods.CalculateSemesterOverallGrade(Student, LearningPath).ToString("F1")%</span>
-                                            @{
-                                                var (present, total, rate) = GetAttendanceDetails();
-                                            }
-                                        <small>
-                                            @(total == 0
-                                                                                        ? "No records"
-                                                                                        : $"Present: {present}/{total} days ({rate.ToString("F0")}%)")
-                                        </small>
-                                        </p>
+                                        @{
+                                            var (present, total, rate) = GetAttendanceDetails();
+                                        }
+                                        <h6 class="text-muted mb-1">Attendance Rate</h6>
+                                        <h6 class="text-primary">
+                                            @(total == 0 ? "N/A" : $"Present: {present}/{total} days ({rate:F0}%)")
+                                        </h6>
                                     </div>
                                 </div>
                             </div>
