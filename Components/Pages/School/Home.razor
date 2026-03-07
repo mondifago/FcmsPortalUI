@@ -61,8 +61,10 @@
                                                 <i class="fa fa-book-open hbar-row-icon"></i>
                                                 <span>
                                                     <strong>@schedule.ClassSession?.Course</strong>
+                                                    <small>(@(schedule.LearningPath?.ClassLevel.ToDisplayName()))</small>
                                                     at @schedule.DateTime.ToString("h:mm tt")
                                                 </span>
+
                                             </div>
                                         }
                                     }
@@ -100,6 +102,10 @@
                                                 <i class="fa fa-pen-to-square hbar-row-icon"></i>
                                                 <span>
                                                     <strong>@sub.StudentName</strong>
+                                                    @if (!string.IsNullOrEmpty(sub.ClassLevelName) && Enum.TryParse<ClassLevel>(sub.ClassLevelName, out var cl))
+                                                    {
+                                                        <small>(@cl.ToDisplayName())</small>
+                                                    }
                                                     — @sub.Course
                                                     <br /><small>@sub.SubmittedDate.ToString("MMM d, h:mm tt")</small>
                                                 </span>
@@ -431,7 +437,7 @@
                                                 <i class="fa fa-check-circle hbar-row-icon"></i>
                                                 <span>
                                                     <strong>@report.LearningPathName</strong>
-                                                    at @report.Timestamp.ToString("h:mm tt")
+                                                    — @report.Timestamp.ToString("MMM d, h:mm tt")
                                                 </span>
                                             </div>
                                         }
@@ -465,7 +471,9 @@
                                             <div class="hbar-row">
                                                 <i class="fa fa-chalkboard hbar-row-icon"></i>
                                                 <span>
-                                                    <strong>@remark.Course</strong> — <small>at @remark.Timestamp.ToString("h:mm tt")</small>
+                                                    <strong>@remark.Course</strong>
+                                                    <small>(@remark.ClassLevelName)</small>
+                                                    — <small>@remark.Timestamp.ToString("MMM d, h:mm tt")</small>
                                                 </span>
                                             </div>
                                         }
@@ -497,10 +505,11 @@
                                         @foreach (var lp in recentSubmittedLearningPaths)
                                         {
                                             <div class="hbar-row">
-                                                <i class="fa fa-file-circle-check hbar-row-icon"></i>
+                                                <i class="fa fa-check-circle hbar-row-icon"></i>
                                                 <span>
-                                                    <strong>@lp.LearningPathName</strong>
-                                                    <br /><small>@lp.DateSubmitted.ToString("MMM d, h:mm tt")</small>
+                                                    <strong>@lp.ClassLevelName</strong>
+                                                    — @lp.AcademicYear, @lp.Term,
+                                                    <small>@lp.DateSubmitted.ToString("MMM d, h:mm tt")</small>
                                                 </span>
                                             </div>
                                         }
@@ -682,8 +691,8 @@
 
     // Admin/Principal Dashboard Data
     private List<(string LearningPathName, DateTime Timestamp)> todayAttendanceReports = new();
-    private List<(string Course, string Topic, DateTime Timestamp)> todayTeacherRemarks = new();
-    private List<(string LearningPathName, DateTime DateSubmitted)> recentSubmittedLearningPaths = new();
+    private List<(string Course, string ClassLevelName, DateTime Timestamp)> todayTeacherRemarks = new();
+    private List<(string ClassLevelName, string AcademicYear, string Term, DateTime DateSubmitted)> recentSubmittedLearningPaths = new();
     private int staffCount;
     private int studentCount;
     private int guardianCount;
@@ -701,7 +710,7 @@
     // Teacher Dashboard Data
     private Staff? currentTeacher;
     private List<ScheduleEntry> todayTeacherClasses = new();
-    private List<(string Course, string StudentName, DateTime SubmittedDate)> recentHomeworkSubmissions = new();
+    private List<(string Course, string StudentName, string ClassLevelName, DateTime SubmittedDate)> recentHomeworkSubmissions = new();
 
     protected override async Task OnInitializedAsync()
     {

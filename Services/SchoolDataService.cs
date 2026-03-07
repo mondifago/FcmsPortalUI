@@ -3328,7 +3328,7 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public List<(string Course, string Topic, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount)
+        public List<(string Course, string ClassLevelName, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount)
         {
             maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
 
@@ -3350,20 +3350,27 @@ namespace FcmsPortalUI.Services
                              se.ClassSession.RemarksSubmittedAt.Value < tomorrow)
                 .OrderByDescending(se => se.ClassSession.RemarksSubmittedAt)
                 .Take(maxCount)
-                .Select(se => new ValueTuple<string, string, DateTime>(
+                .Select(se => new
+                {
                     se.ClassSession.Course,
-                    se.ClassSession.Topic,
-                    se.ClassSession.RemarksSubmittedAt!.Value))
+                    se.LearningPath.ClassLevel,
+                    Timestamp = se.ClassSession.RemarksSubmittedAt!.Value
+                })
+                .ToList()
+                .Select(x => new ValueTuple<string, string, DateTime>(
+                    x.Course,
+                    x.ClassLevel.ToDisplayName(),
+                    x.Timestamp))
                 .ToList();
         }
 
-        public List<(string LearningPathName, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount)
+        public List<(string ClassLevelName, string AcademicYear, string Term, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount)
         {
             maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
 
             var academicPeriod = GetCurrentAcademicPeriod();
             if (academicPeriod == null)
-                return new List<(string, DateTime)>();
+                return new List<(string, string, string, DateTime)>();
 
             return _context.LearningPaths
                 .AsNoTracking()
@@ -3374,9 +3381,19 @@ namespace FcmsPortalUI.Services
                               lp.ApprovalStatus == PrincipalApprovalStatus.Approved))
                 .OrderByDescending(lp => lp.DateSubmitted)
                 .Take(maxCount)
-                .Select(lp => new ValueTuple<string, DateTime>(
-                    lp.EducationLevel.ToDisplayName() + " " + lp.ClassLevel.ToDisplayName(),
-                    lp.DateSubmitted!.Value))
+                .Select(lp => new
+                {
+                    lp.ClassLevel,
+                    lp.AcademicYearStart,
+                    lp.Semester,
+                    DateSubmitted = lp.DateSubmitted!.Value
+                })
+                .ToList()
+                .Select(lp => new ValueTuple<string, string, string, DateTime>(
+                    lp.ClassLevel.ToDisplayName(),
+                    $"{lp.AcademicYearStart.Year}-{lp.AcademicYearStart.Year + 1}",
+                    lp.Semester.ToTermDisplay(),
+                    lp.DateSubmitted))
                 .ToList();
         }
 
@@ -3421,6 +3438,7 @@ namespace FcmsPortalUI.Services
             return _context.ScheduleEntries
                 .AsNoTracking()
                 .Include(se => se.ClassSession)
+                 .Include(se => se.LearningPath)
                 .Where(se => se.LearningPathId.HasValue &&
                              se.ClassSession != null &&
                              se.ClassSession.TeacherId == teacherId &&
@@ -3430,18 +3448,20 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public List<(string Course, string StudentName, DateTime SubmittedDate)> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount)
+        public List<(string Course, string StudentName, string ClassLevelName, DateTime SubmittedDate)> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount)
         {
             maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
 
             var academicPeriod = GetCurrentAcademicPeriod();
             if (academicPeriod == null)
-                return new List<(string, string, DateTime)>();
+                return new List<(string, string, string, DateTime)>();
 
             return _context.HomeworkSubmissions
                 .AsNoTracking()
                 .Include(hs => hs.Student)
                     .ThenInclude(s => s.Person)
+                .Include(hs => hs.Student)
+                    .ThenInclude(s => s.LearningPath)
                 .Include(hs => hs.Homework)
                     .ThenInclude(h => h.ClassSession)
                 .Where(hs => hs.Homework != null &&
@@ -3450,9 +3470,10 @@ namespace FcmsPortalUI.Services
                              hs.Student != null)
                 .OrderByDescending(hs => hs.SubmissionDate)
                 .Take(maxCount)
-                .Select(hs => new ValueTuple<string, string, DateTime>(
+                .Select(hs => new ValueTuple<string, string, string, DateTime>(
                     hs.Homework.ClassSession.Course,
                     hs.Student.Person.FirstName + " " + hs.Student.Person.LastName,
+                    hs.Student.LearningPath != null ? hs.Student.LearningPath.ClassLevel.ToString() : "",
                     hs.SubmissionDate))
                 .ToList();
         }

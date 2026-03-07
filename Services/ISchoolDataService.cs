@@ -231,14 +231,14 @@ namespace FcmsPortalUI.Services
         List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount);
         List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);
         List<(string LearningPathName, DateTime Timestamp)> GetTodayAttendanceReports(int maxCount);
-        List<(string Course, string Topic, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount);
-        List<(string LearningPathName, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount);
+        List<(string Course, string ClassLevelName, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount);
+        List<(string ClassLevelName, string AcademicYear, string Term, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount);
         int GetStaffCount();
         int GetStudentCount();
         int GetGuardianCount();
         int GetActiveClassCount();
         List<ScheduleEntry> GetTodayClassSessionsForTeacher(int teacherId, int maxCount);
-        List<(string Course, string StudentName, DateTime SubmittedDate)> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount);
+        List<(string Course, string StudentName, string ClassLevelName, DateTime SubmittedDate)> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount);
         #endregion
     }
 }
