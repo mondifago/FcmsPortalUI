@@ -56,19 +56,40 @@ The application is designed with a strong emphasis on reliability, scalability, 
 
 ---
 
+## Tech Stack
+
+- **Frontend:** Blazor Server
+- **Backend:** .NET (ASP.NET Core)
+- **Database:** MySQL
+- **ORM:** Entity Framework Core
+- **Authentication:** ASP.NET Identity
+- **Email:** SMTP-based service
+- **logging:** Serilog
+- **CI/CD:**Docker**
+- **Hosting:** VPS with reverse proxy
+
+---
+
 ## Architecture
 
-Fcmsportal is built using a **Blazor Server architecture** with a strong emphasis on **separation of concerns**.
+Fcmsportal is built using a **Blazor Server** with a strong emphasis on **separation of concerns**.
 
-### Key Principles
-
-- Business logic is centralized in services (`ISchoolDataService`)
-- UI logic is kept minimal and contained within Razor components
-- No direct data manipulation in UI components
-- Clean layering between:
-  - UI (Blazor)
-  - Services (Business Logic)
-  - Data Access (EF Core)
+- Domain: 
+   - `Class Model` ([FcmsPortal](https://github.com/mondifago/FcmsPortal))
+- Business Logic:
+  - `LogicMethods`
+- Application:
+  - `ISchoolDataService`
+  - `IPermissionService`
+  - `IEmailService`
+  - `IAccountInvitationService`
+  - `IEmailNotificationService`
+  - `ExceptionHandlerService`
+  - `ValidationService`
+- Data Infrastructure:
+  - `FcmsPortalUIContext`
+- UI:
+  - Blazor Server
 
 ### Backend
 
@@ -203,18 +224,6 @@ The application is deployed to a **Virtual Private Server (VPS)** with:
 - Email verification system
 - Anti-forgery protection
 - Secure password reset and confirmation flows
-
----
-
-## Tech Stack
-
-- **Frontend:** Blazor Server
-- **Backend:** .NET (ASP.NET Core)
-- **Database:** MySQL
-- **ORM:** Entity Framework Core
-- **Authentication:** ASP.NET Identity
-- **Email:** SMTP-based service
-- **Hosting:** VPS with reverse proxy
 
 ---
 
