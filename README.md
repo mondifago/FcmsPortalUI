@@ -65,7 +65,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - **Authentication:** ASP.NET Identity
 - **Email:** SMTP-based service
 - **logging:** Serilog
-- **CI/CD:**Docker
+- **CI/CD:** Docker
 - **Hosting:** VPS with reverse proxy
 
 ---
@@ -97,16 +97,24 @@ Fcmsportal is built using a **Blazor Server** with a strong emphasis on **separa
 
 The system revolves around core entities such as:
 
+- `School`
+- `AcademicPeriod`
+- `Person`
 - `Student`
 - `Staff`
 - `Guardian`
 - `ClassSession`
+- `ScheduleEntry`
 - `LearningPath`
+- `CourseDefaults`
+- `Curriculum`
 - `Attendance`
 - `Payment`
 - `Grades`
+- `AccountInvitation`
+- `Archives`
 
-Relationships are designed to reflect real-world school structures, with dynamic associations rather than rigid schemas where necessary.
+Relationships are designed to reflect future champion school structure, with dynamic, responsive and cognitive associations rather than rigid schemas.
 
 ---
 
