@@ -50,9 +50,9 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - Grading and report card generation
 - Payment and financial tracking system
 - Dynamic curriculum generation (no static curriculum storage)
-- Discussion threads for academic collaboration
+- Interactive class session platform that enhances collaboration between students, guardians and teachers
 - Email-based account invitation system
-- Role-based dashboards and access control
+- Role-based access control
 
 ---
 
@@ -87,8 +87,9 @@ The system revolves around core entities such as:
 - `Guardian`
 - `ClassSession`
 - `LearningPath`
-- `DiscussionThread`
+- `Attendance`
 - `Payment`
+- `Grades`
 
 Relationships are designed to reflect real-world school structures, with dynamic associations rather than rigid schemas where necessary.
 
