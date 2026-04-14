@@ -4,9 +4,9 @@ Fcmsportal is a comprehensive school management web application designed to hand
 
 The system is composed of modular components including **class session management**, **scheduling**, **attendance tracking**, **grading**, **payment processing**, **dynamic curriculum generation**, **reporting**, **adaptive academic period management**, and a **structured semester transition process**.
 
-Built on the .NET framework, the portal serves principals, administrators, teachers, staff, students, and guardians through a robust role-based access control system powered by .NET Identity. Secure account provisioning via email invitation enhances identity verification, helping to protect against unauthorized access and ensuring data integrity. 
+Built on the .NET framework, the portal distinguishes users through a robust role-based access control system, and a secured account provisioning system via email invitation which enhances identity verification. 
 
-The application is designed with a strong emphasis on reliability, scalability, and maintainability, following clean architecture principles and clear separation of concerns. It is backed by a MySQL database using Entity Framework Core and is deployed to production, secured with SSL and a reverse proxy.
+The application is designed with a strong emphasis on reliability, scalability, and maintainability, following clean architecture principles and clear separation of concerns. It is already deployed to production and secured with SSL and a reverse proxy.
 
 
 ---
