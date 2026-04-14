@@ -15,6 +15,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 
 - [Goals](#goals)
 - [Core Features](#core-features)
+- [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Data Model Overview](#data-model-overview)
 - [Modules](#modules)
@@ -24,7 +25,6 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - [Reporting](#reporting)
 - [Deployment](#deployment)
 - [Security](#security)
-- [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Setup & Installation](#setup--installation)
 - [Roadmap](#roadmap)
@@ -65,7 +65,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - **Authentication:** ASP.NET Identity
 - **Email:** SMTP-based service
 - **logging:** Serilog
-- **CI/CD:**Docker**
+- **CI/CD:**Docker
 - **Hosting:** VPS with reverse proxy
 
 ---
@@ -75,7 +75,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 Fcmsportal is built using a **Blazor Server** with a strong emphasis on **separation of concerns**.
 
 - Domain: 
-   - `Class Model` ([FcmsPortal](https://github.com/mondifago/FcmsPortal))
+   - `Class Model`  ([FcmsPortal](https://github.com/mondifago/FcmsPortal))
 - Business Logic:
   - `LogicMethods`
 - Application:
@@ -90,12 +90,6 @@ Fcmsportal is built using a **Blazor Server** with a strong emphasis on **separa
   - `FcmsPortalUIContext`
 - UI:
   - Blazor Server
-
-### Backend
-
-- Entity Framework Core with MySQL
-- Scoped services for domain logic
-- Identity system integrated into the same DbContext
 
 ---
 
