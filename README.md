@@ -33,6 +33,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - [Authentication & Authorization](#authentication--authorization)
 - [Application Services](#application-services)
 - [Deployment](#deployment)
+- [CI/CD](#ci/cd)
 - [Logging & Monitoring](#logging--monitoring)
 - [Roadmap](#roadmap)
 - [Acknowledgement](#acknowledgement)
