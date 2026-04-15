@@ -18,7 +18,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Data Model Overview](#data-model-overview)
-- [Modules](#modules)
+- [Design & Planning](#design--planning)
 - [Authentication & Authorization](#authentication--authorization)
 - [Payment System](#payment-system)
 - [Curriculum System](#curriculum-system)
@@ -114,27 +114,18 @@ Relationships are designed to reflect future champion school structure, with dyn
 
 ---
 
-## Modules
+## Design & Planning
 
-### Academic Management
-- Class sessions
-- Lesson planning
-- Homework and submissions
-- Semester transitions
+Before implementation, the system was thoroughly designed to define:
 
-### User Management
-- Students
-- Staff
-- Guardians
+- Core domain models
+- Relationships between entities
+- Functional modules and responsibilities
+- Testing of system-wide interactions and workflows
 
-### Communication
-- Discussion threads
-- Notifications (email-based)
+This planning phase ensured a clean, scalable architecture and reduced technical debt during development.
 
-### Finance
-- Payment tracking
-- Fee assignment
-- Access control based on payment status
+📄 View the full design document: [System Design & Planning](https://docs.google.com/document/d/135yFhGdzWKA6NaqIRQNLMLLHV-wnmvP2DCmF0vR9j3U/edit?pli=1&tab=t.0)
 
 ---
 
