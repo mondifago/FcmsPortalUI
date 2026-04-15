@@ -13,7 +13,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 
 ## Table of Contents
 
-- [Goals](#goals)
+- [Goal](#goal)
 - [Core Features](#core-features)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
@@ -34,7 +34,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 
 ## Goal
 
-- To build a unified school management system where each operational component functions as a modular, scalable and maintainable unit, yet works together seamlessly as a cohesive, intelligent system with shared contextual awareness.
+To build a unified school management system where each operational component functions as a modular, scalable and maintainable unit, yet works together seamlessly as a cohesive, intelligent system with shared contextual awareness.
 
 ---
 
