@@ -22,6 +22,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - [Setup & Installation](#setup--installation)
 - [Enrolment](#enrolment)
 - [Payment System](#payment-system)
+- [Attendance System](#attendance-system)
 - [Course Structure](#course-structure)
 - [Calendar & Scheduling System](#calendar--scheduling-system)
 - [Class Session & Collaboration](#class-session--collaboration)
