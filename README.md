@@ -32,13 +32,9 @@ The application is designed with a strong emphasis on reliability, scalability, 
 
 ---
 
-## Goals
+## Goal
 
-- Provide a centralized system for managing school operations
-- Digitize academic workflows from enrollment to graduation
-- Ensure secure and role-based access to data
-- Support real-time academic tracking and reporting
-- Maintain clean architecture and scalability for future expansion
+- To build a unified school management system where each operational component functions as a modular, scalable and maintainable unit, yet works together seamlessly as a cohesive, intelligent system with shared contextual awareness.
 
 ---
 
