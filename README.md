@@ -19,7 +19,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - [Architecture](#architecture)
 - [Data Model Overview](#data-model-overview)
 - [Design & Planning](#design--planning)
-- [Setup & Installation](#setup--installation)
+- [Initial Setup](#initial-setup)
 - [Enrolment](#enrolment)
 - [Payment System](#payment-system)
 - [Attendance System](#attendance-system)
@@ -137,6 +137,61 @@ This planning phase ensured a clean, scalable architecture and reduced technical
 
 ---
 
+## Initial Setup
+
+
+---
+
+## Enrolment
+
+
+---
+
+## Payment System
+
+
+---
+
+## Attendance System
+
+
+---
+
+## Course Structure
+
+
+---
+
+## Calendar & Scheduling System
+
+
+---
+
+## Class Session & Collaboration
+
+
+---
+
+## Curriculum
+
+
+---
+
+## Grading System
+
+
+---
+
+## Reporting
+
+
+---
+
+## Archiving
+
+
+---
+
 ## Authentication & Authorization
 
 - Built using **.NET Identity**
@@ -159,47 +214,8 @@ This planning phase ensured a clean, scalable architecture and reduced technical
 
 ---
 
-## Payment System
+## Application Services
 
-The payment system is tightly integrated with academic access control.
-
-### Features
-
-- Assign fees to students
-- Track payments
-- Determine access eligibility based on payment thresholds
-- Generate payment reports
-
-### Design Principle
-
-All payment logic is handled within the service layer — never in the UI.
-
----
-
-## Curriculum System
-
-Unlike traditional systems, fcmsportal:
-
-- **Does NOT store curriculum in the database**
-- Generates curriculum dynamically from:
-  - Lesson plans
-  - Ongoing class sessions
-
-This ensures:
-- Real-time accuracy
-- No redundancy
-- Flexible academic structure
-
----
-
-## Reporting
-
-- Student academic reports
-- Payment reports
-- Attendance summaries
-- Ranking and performance insights
-
-Reports are generated dynamically based on current system state.
 
 ---
 
@@ -214,14 +230,18 @@ The application is deployed to a **Virtual Private Server (VPS)** with:
 
 ---
 
-## Security
-
-- ASP.NET Identity for authentication
-- Role-based authorization
-- Email verification system
-- Anti-forgery protection
-- Secure password reset and confirmation flows
+## CI/CD
 
 ---
 
-## Project Structure
+## Logging & Monitoring
+
+---
+
+## Roadmap
+
+---
+
+## Acknowledgement
+
+---
