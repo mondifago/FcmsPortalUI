@@ -156,7 +156,7 @@ On first access to the application at [fcmsportal.com](https://fcmsportal.com), 
 
 ### Roles
 - **Principal:** Full administrative control, grade finalization, access to all reports and analytics 
-- **Admin:** School operations — enrollment, staff management, scheduling
+- **Admin:** School operations — enrolment, staff management, scheduling
 - **Teacher:** Class sessions management, grading, attendance, learning path management
 - **Staff:** General staff with calendar and announcement access
 - **Student:** Access class sessions resources, accesses dedicated class schedules, submit homework, participate in discussions
