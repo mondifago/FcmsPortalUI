@@ -20,6 +20,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - [Data Model Overview](#data-model-overview)
 - [Design & Planning](#design--planning)
 - [Initial Setup](#initial-setup)
+- [User Management](#user-management)
 - [Enrolment](#enrolment)
 - [Payment System](#payment-system)
 - [Attendance System](#attendance-system)
@@ -148,6 +149,23 @@ On first access to the application at [fcmsportal.com](https://fcmsportal.com), 
 - Configure the academic period
 
 > ⚠️ The academic period configuration is critical, as it determines the structure and behavior of all subsequent academic activities.
+
+---
+
+## User Management
+
+### Roles
+- Principal
+- Admin
+- Teacher
+- Staff
+- Guardian
+- Student
+
+### Rules
+- Only Principal and Admin can create users
+- Each role has defined authorization levels
+- Students must be linked to a Guardian
 
 ---
 
