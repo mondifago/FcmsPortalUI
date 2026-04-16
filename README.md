@@ -212,6 +212,17 @@ The payment system manages all student-related financial transactions and integr
 
 ## Attendance System
 
+The attendance system tracks and evaluates student attendance based on the configured academic period (term start and end dates).
+
+### Key Features
+
+- Attendance is recorded once per day for each Learning Path
+- Submitted attendance is immediately available in the reporting system
+- Access to attendance reports is restricted to Principal and Admin roles
+- Supports both:
+  - Daily attendance reports
+  - Term-based attendance summaries
+- At the end of each term, individual student attendance rates are included in their report cards
 
 ---
 
