@@ -228,7 +228,11 @@ The attendance system tracks and evaluates student attendance based on the confi
 
 ## Course Structure
 
-
+- Courses are standardized across each Education Level, meaning all class levels within the same education level share an identical course set.
+- Each Learning Path automatically inherits its courses based on its assigned education level. 
+- At the beginning of each term, the Teacher is required to configure the assessment weight distribution for each course. 
+- These weightings determine how assessments contribute to the final grade calculation for that term.
+  
 ---
 
 ## Calendar & Scheduling System
