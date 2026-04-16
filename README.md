@@ -171,6 +171,21 @@ On first access to the application at [fcmsportal.com](https://fcmsportal.com), 
 
 ## Enrolment
 
+The enrolment process defines how students are assigned to structured academic units known as Learning Paths.
+
+- Learning Paths must first be created. Each Learning Path represents a unique combination of:
+  - Education Level
+  - Class Level
+  - Academic Year
+  - Term
+  - Associated school fees
+
+- This combination is strictly unique and cannot be duplicated within the system
+
+- When a student is enrolled in a Learning Path, the student:
+  - is assigned the corresponding academic structure
+  - becomes liable for the associated school fees
+  - gains access to all academic resources within that Learning Path
 
 ---
 
