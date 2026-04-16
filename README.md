@@ -33,7 +33,7 @@ The application is designed with a strong emphasis on reliability, scalability, 
 - [Authentication & Authorization](#authentication--authorization)
 - [Application Services](#application-services)
 - [Deployment](#deployment)
-- [CI/CD](#ci/cd)
+- [CI/CD](#cicd)
 - [Logging & Monitoring](#logging--monitoring)
 - [Roadmap](#roadmap)
 - [Acknowledgement](#acknowledgement)
@@ -133,12 +133,21 @@ Before implementation, the system was thoroughly designed to define:
 
 This planning phase ensured a clean, scalable architecture and reduced technical debt during development.
 
-📄 View the full design document: [System Design & Planning](https://docs.google.com/document/d/135yFhGdzWKA6NaqIRQNLMLLHV-wnmvP2DCmF0vR9j3U/edit?pli=1&tab=t.0)
+View the full design document: [System Design & Planning](https://docs.google.com/document/d/135yFhGdzWKA6NaqIRQNLMLLHV-wnmvP2DCmF0vR9j3U/edit?pli=1&tab=t.0)
 
 ---
 
 ## Initial Setup
 
+On first access to the application at [fcmsportal.com](https://fcmsportal.com), an initialization wizard guides the setup process:
+
+- Create the school profile, including basic details and logo
+- Create the Principal entity and corresponding account
+- At this stage, only the Principal account can be created, with the highest level of authorization
+- Complete the setup wizard to initialize the application
+- Configure the academic period
+
+> ⚠️ The academic period configuration is critical, as it determines the structure and behavior of all subsequent academic activities.
 
 ---
 
