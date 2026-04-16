@@ -80,7 +80,7 @@ To build a unified school management system where each operational component fun
 Fcmsportal is built using a **Blazor Server** with a strong emphasis on **separation of concerns**.
 
 - Domain: 
-   - `Class Model`  ([FcmsPortal](https://github.com/mondifago/FcmsPortal))
+   - Class Models  ([FcmsPortal](https://github.com/mondifago/FcmsPortal))
 - Business Logic:
   - `LogicMethods`
 - Application:
