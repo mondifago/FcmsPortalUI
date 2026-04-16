@@ -148,7 +148,7 @@ On first access to the application at [fcmsportal.com](https://fcmsportal.com), 
 - Complete the setup wizard to initialize the application
 - Configure the academic period
 
-> ⚠️ The academic period configuration is critical, as it determines the structure and behavior of all subsequent academic activities.
+> The academic period configuration is critical, as it determines the structure and behavior of all subsequent academic activities.
 
 ---
 
