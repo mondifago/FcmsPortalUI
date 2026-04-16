@@ -155,12 +155,12 @@ On first access to the application at [fcmsportal.com](https://fcmsportal.com), 
 ## User Management
 
 ### Roles
-- Principal
-- Admin
-- Teacher
-- Staff
-- Guardian
-- Student
+- **Principal:** Full administrative control, grade finalization, access to all reports and analytics 
+- **Admin:** School operations — enrollment, staff management, scheduling
+- **Teacher:** Class sessions management, grading, attendance, learning path management
+- **Staff:** General staff with calendar and announcement access
+- **Student:** Access class sessions resources, accesses dedicated class schedules, submit homework, participate in discussions
+- **Guardian:** Monitor ward's academics activities, accesses ward's attendance, payments and grade reports
 
 ### Rules
 - Only Principal and Admin can create users
