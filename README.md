@@ -191,6 +191,22 @@ The enrolment process defines how students are assigned to structured academic u
 
 ## Payment System
 
+The payment system manages all student-related financial transactions and integrates directly with academic access and reporting.
+
+### Key Features
+
+- Payments are managed within each student’s profile
+- All transactions are tracked in real-time and reflected in the school-wide payment dashboard
+- Supports multiple payment methods:
+  - Online payments (via external APIs for debit/credit cards)
+  - Bank transfers
+  - Cash payments
+- Automated payment reminders are sent via email, mobile app, and SMS
+- Invoices and receipts are generated and delivered to parents/guardians and students
+- Real-time payment reports are available, including:
+  - Individual student transactions
+  - Learning Path financial summaries
+  - School-wide KPIs and financial insights
 
 ---
 
