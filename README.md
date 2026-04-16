@@ -237,6 +237,19 @@ The attendance system tracks and evaluates student attendance based on the confi
 
 ## Calendar & Scheduling System
 
+The scheduling system provides a centralized and structured approach to managing all school activities across different contexts.
+
+### Key Features
+
+- A centralized calendar aggregates all scheduled items across the system, forming the school-wide calendar
+- Schedules can represent one of the following:
+  - Events
+  - Meetings
+  - Class sessions
+- Each Learning Path maintains its own dedicated calendar:
+  - Only class session schedules are allowed within Learning Path calendars
+  - This forms the class timetable for that Learning Path
+- All class sessions, along with events and meetings, are synchronized to the centralized calendar
 
 ---
 
