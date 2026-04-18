@@ -255,11 +255,35 @@ The scheduling system provides a centralized and structured approach to managing
 
 ## Class Session & Collaboration
 
+A Class Session is the smallest unit of the learning model. It represents the complete set of activities involved in delivering a specific topic within a course.
+
+When creating a Class Session, the following information is defined:
+
+- Course and topic being taught
+- Target Learning Path (class)
+- Scheduled date, time, and duration
+- Venue
+- Assigned teacher responsible for the session
+
+### Class Session Components
+
+Each Class Session is supported by a set of integrated resources:
+
+- Basic session information
+- List of students expected to attend
+- Study materials (including embedded YouTube videos)
+- Lesson plan
+- Homework and assignments
+- Discussion/chat section for interaction
+- Teacher’s remarks for post-session reporting and evaluation
 
 ---
 
 ## Curriculum
 
+The curriculum in fcmsportal is dynamically generated rather than statically defined.
+
+It is derived from the aggregation of lesson plans across all Class Sessions. As Class Sessions are created and their lesson plans are completed, the system progressively builds the curriculum in real time.
 
 ---
 
