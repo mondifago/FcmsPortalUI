@@ -281,7 +281,7 @@ Each Class Session is supported by a set of integrated resources:
 
 ## Curriculum
 
-The curriculum in fcmsportal is dynamically generated rather than statically defined.
+The curriculum in fcmsportal is dynamically generated.
 
 It is derived from the aggregation of lesson plans across all Class Sessions. As Class Sessions are created and their lesson plans are completed, the system progressively builds the curriculum in real time.
 
@@ -289,6 +289,23 @@ It is derived from the aggregation of lesson plans across all Class Sessions. As
 
 ## Grading System
 
+The grading system manages continuous assessment and final evaluation of student performance across all courses within a semester, then 
+
+### Key Features
+
+- Teachers record grades for:
+  - Homework (homework grades can both be entered manually or automatically via the homework section of class session platform)
+  - Quizzes
+  - Examinations
+- Each course supports configurable weight distribution
+- As grades are entered in each instance, the system automatically computes in real-time:
+  - Weighted course totals (based on configured course weight for individual courses)
+  - Overall term grades
+  - Class rankings
+- overall term grade is cumulated from First term through Third term to determine the promotion grade
+- Detailed grade reports include:
+  - Per-course performance breakdown, with individual assessment scores (every grade score is accessible and trackable)
+  - Report cards are automatically compiled and posted on each student's profile during term transition
 
 ---
 
