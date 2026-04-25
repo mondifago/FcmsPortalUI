@@ -311,6 +311,17 @@ The grading system manages continuous assessment and final evaluation of student
 
 ## Reporting
 
+Reports are dynamically generated from live system data, ensuring accuracy, consistency, and up-to-date information at all times.
+
+### Key Features
+
+- Centralized reporting interface for:
+  - Attendance reports
+  - Class session reports
+  - Completed Learning Path summaries
+- Real-time financial analytics:
+  - Payment activity and trends
+  - School-wide financial KPIs for decision-making
 
 ---
 
