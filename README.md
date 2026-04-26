@@ -367,6 +367,41 @@ On transition of concluded learning paths, the system is desinged to automatical
 
 ## Application Services
 
+The application uses a service-oriented architecture to encapsulate business logic, enforce rules, and maintain separation of concerns between the UI and data layers.
+
+These services are internally implemented within the codebase, with no reliance on third-party service implementation at this stage.
+
+The services are registered with scoped lifetimes and injected via dependency injection, ensuring consistency and testability across the application.
+
+### Core Services
+
+- **ISchoolDataService**  
+  Handles core business operations, including CRUD operations and database queries across all domain entities.
+
+- **IPermissionService**  
+  Manages role-based authorization, determining access to features and data based on user roles.
+
+- **IEmailService**  
+  Provides a custom SMTP-based email client for sending system emails.
+
+- **IAccountInvitationService**  
+  Manages user account provisioning through secure email invitations.
+
+- **IEmailNotificationService**  
+  Handles school-branded email communications, including:
+  - Payment notifications and reminders
+  - Account invitations
+  - Report card notifications
+  - Event announcements
+  - School newsletters
+
+### Supporting Services
+
+- **ValidationService**  
+  Provides centralized validation logic for form inputs across the application.
+
+- **ExceptionHandlerService**  
+  Coordinates application-wide exception handling in conjunction with custom exceptions (e.g., `BusinessRuleException`) and UI error boundaries.
 
 ---
 
