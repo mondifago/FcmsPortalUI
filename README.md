@@ -327,6 +327,19 @@ Reports are dynamically generated from live system data, ensuring accuracy, cons
 
 ## Archiving
 
+The archiving system ensures that historical academic and operational data of students are preserved without interfering with active system processes.
+
+The active system processes data of the current academic period in real-time, while the data from past academic periods are preserved and can be easily accessed in Archives
+
+- Data Archived are:
+  - Historical Payment records of all students
+  - Historical grades records of all studnets
+  - Historical attendance records of all students 
+  - List of all graduated students along with their graduating reports 
+
+### Design Approach
+
+On transition of concluded learning paths, the system is desinged to automatically filter out archivable data and store them at their designated archive locations
 
 ---
 
@@ -349,7 +362,7 @@ Reports are dynamically generated from live system data, ensuring accuracy, cons
   - Verified email ownership
   - Controlled onboarding
   - Reduced risk of unauthorized access
-
+- Password recovery and change of login credintials are also done via email
 ---
 
 ## Application Services
