@@ -785,7 +785,11 @@ namespace FcmsPortalUI.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RemarksSubmittedByName = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    RemarksSubmittedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    RemarksSubmittedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    VideoUrl = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VideoTitle = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -1206,7 +1210,7 @@ namespace FcmsPortalUI.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     DiscussionThreadId = table.Column<int>(type: "int", nullable: false),
                     PersonId = table.Column<int>(type: "int", nullable: false),
-                    Comment = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                    Comment = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -1236,7 +1240,7 @@ namespace FcmsPortalUI.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     DiscussionThreadId = table.Column<int>(type: "int", nullable: false),
                     PersonId = table.Column<int>(type: "int", nullable: false),
-                    Comment = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                    Comment = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
@@ -1337,7 +1341,11 @@ namespace FcmsPortalUI.Migrations
                     ArchivedCourseGradeId = table.Column<int>(type: "int", nullable: false),
                     Score = table.Column<double>(type: "double", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    GradeType = table.Column<int>(type: "int", nullable: false)
+                    GradeType = table.Column<int>(type: "int", nullable: false),
+                    TeacherName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TeacherRemark = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20260219134520_AddVideoLinksToClassSession")]
-    partial class AddVideoLinksToClassSession
+    [Migration("20260309020910_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -573,6 +573,14 @@ namespace FcmsPortalUI.Migrations
                     b.Property<double>("Score")
                         .HasColumnType("double");
 
+                    b.Property<string>("TeacherName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TeacherRemark")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ArchivedCourseGradeId");
@@ -871,8 +879,8 @@ namespace FcmsPortalUI.Migrations
 
                     b.Property<string>("Comment")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -1271,8 +1279,8 @@ namespace FcmsPortalUI.Migrations
 
                     b.Property<string>("Comment")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
