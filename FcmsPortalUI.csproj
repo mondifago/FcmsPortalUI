@@ -34,6 +34,12 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
     <Folder Include="uploads\" />
+    <Folder Include="uploads\ClassSession-2-Materials\" />
+    <Folder Include="uploads\ClassSession-28-Materials\" />
+    <Folder Include="uploads\GuardianProfilePictures\" />
+    <Folder Include="uploads\SchoolLogos\" />
+    <Folder Include="uploads\StaffProfilePictures\" />
+    <Folder Include="uploads\StudentProfilePictures\" />
     <Folder Include="wwwroot\ClassSession-4-Materials\" />
     <Folder Include="wwwroot\ClassSession-9-Materials\" />
   </ItemGroup>
