@@ -531,16 +531,11 @@ namespace FcmsPortalUI.Services
 
         public void RemoveStudentFromAllLearningPaths(Student student)
         {
-            var learningPaths = _context.LearningPaths
-                .Include(lp => lp.Students)
-                .Where(lp => lp.Students.Any(s => s.Id == student.Id))
-                .ToList();
+            var existingStudent = _context.Students.FirstOrDefault(s => s.Id == student.Id);
+            if (existingStudent == null)
+                return;
 
-            foreach (var lp in learningPaths)
-            {
-                lp.Students.Remove(student);
-            }
-
+            existingStudent.LearningPathId = null;
             _context.SaveChanges();
         }
 
