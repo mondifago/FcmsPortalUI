@@ -15,6 +15,8 @@ namespace FcmsPortalUI.Services
         private readonly IDbContextFactory<FcmsPortalUIContext> _contextFactory;
         private readonly IWebHostEnvironment _environment;
         private List<Student> _archivedStudents = new List<Student>();
+        private AcademicPeriod? _cachedCurrentAcademicPeriod;
+        private bool _academicPeriodLoaded;
 
         public SchoolDataService(
             FcmsPortalUIContext context,
@@ -3181,7 +3183,6 @@ namespace FcmsPortalUI.Services
             if (school == null)
                 throw new InvalidOperationException("No school found.");
 
-            // Create new period and set current period
             context.AcademicPeriods.Add(academicPeriod);
             school.CurrentAcademicPeriod = academicPeriod;
             context.SaveChanges();
@@ -3189,12 +3190,17 @@ namespace FcmsPortalUI.Services
 
         public AcademicPeriod? GetCurrentAcademicPeriod()
         {
-            using var context = _contextFactory.CreateDbContext();
+            if (_academicPeriodLoaded)
+                return _cachedCurrentAcademicPeriod;
 
-            return context.School
+            using var context = _contextFactory.CreateDbContext();
+            _cachedCurrentAcademicPeriod = context.School
                 .AsNoTracking()
                 .Select(s => s.CurrentAcademicPeriod)
                 .FirstOrDefault();
+
+            _academicPeriodLoaded = true;
+            return _cachedCurrentAcademicPeriod;
         }
 
         #endregion
