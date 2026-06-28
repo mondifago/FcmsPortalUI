@@ -2061,14 +2061,25 @@ namespace FcmsPortalUI.Services
             return testGrade;
         }
 
-        public int GetGradeCountByType(int learningPathId, string course, GradeType gradeType)
+        public Dictionary<(string Course, GradeType GradeType), int> GetGradeCountsByLearningPath(int learningPathId)
         {
-            return _context.TestGrades
-                .Where(tg => tg.CourseGrade.Course == course &&
-                            tg.CourseGrade.LearningPathId == learningPathId &&
-                            tg.GradeType == gradeType)
-                .GroupBy(tg => new { tg.Date.Date, tg.Date.Hour, tg.Date.Minute, tg.Date.Second })
-                .Count();
+            var batches = _context.TestGrades
+                .Where(tg => tg.CourseGrade.LearningPathId == learningPathId)
+                .Select(tg => new
+                {
+                    tg.CourseGrade.Course,
+                    tg.GradeType,
+                    tg.Date.Date,
+                    tg.Date.Hour,
+                    tg.Date.Minute,
+                    tg.Date.Second
+                })
+                .Distinct()
+                .ToList();
+
+            return batches
+                .GroupBy(b => (b.Course, b.GradeType))
+                .ToDictionary(g => g.Key, g => g.Count());
         }
 
         public void SaveFinalizedGrades(LearningPath learningPath)

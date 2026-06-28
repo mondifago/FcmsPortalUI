@@ -241,7 +241,8 @@
     private bool showRecordGradeModal = false;
     private bool showStudentDetailsModal = false;
     private bool showCourseGradeDetailsModal = false;
-
+    private List<CourseGradingConfiguration> configuredCourses = new();
+    private Dictionary<(string Course, GradeType GradeType), int> gradeCounts = new();
   
 
     protected override void OnParametersSet()
@@ -249,6 +250,8 @@
         if (IsVisible && LearningPath != null)
         {
             allCourses = CourseDefaults.GetCourseNames(LearningPath.EducationLevel);
+            configuredCourses = SchoolDataService.GetAllCourseGradingConfigurations(LearningPath.Id);
+            gradeCounts = SchoolDataService.GetGradeCountsByLearningPath(LearningPath.Id);
             LoadExistingConfiguration();
         }
     }
@@ -302,7 +305,7 @@
         configModel.Course = selectedCourse;
         configModel.LearningPathId = LearningPath.Id;
         SchoolDataService.SaveCourseGradingConfiguration(configModel);
-        
+        configuredCourses = SchoolDataService.GetAllCourseGradingConfigurations(LearningPath.Id);
         configModel = new CourseGradingConfiguration();
         selectedCourse = "";
         StateHasChanged();
@@ -310,22 +313,16 @@
 
     private List<CourseGradingConfiguration> GetConfiguredCourses()
     {
-        return SchoolDataService.GetAllCourseGradingConfigurations(LearningPath.Id);
+        return configuredCourses;
     }
 
-    private int GetHomeworkCount(string course)
-    {
-        return SchoolDataService.GetGradeCountByType(LearningPath.Id, course, GradeType.Homework);
-    }
+    private int GetHomeworkCount(string course) => GetGradeCount(course, GradeType.Homework);
+    private int GetQuizCount(string course) => GetGradeCount(course, GradeType.Quiz);
+    private int GetExamCount(string course) => GetGradeCount(course, GradeType.Exam);
 
-    private int GetQuizCount(string course)
+    private int GetGradeCount(string course, GradeType gradeType)
     {
-        return SchoolDataService.GetGradeCountByType(LearningPath.Id, course, GradeType.Quiz);
-    }
-
-    private int GetExamCount(string course)
-    {
-        return SchoolDataService.GetGradeCountByType(LearningPath.Id, course, GradeType.Exam);
+        return gradeCounts.TryGetValue((course, gradeType), out var count) ? count : 0;
     }
 
     private void ShowRecordGradeModal(string course)
@@ -346,6 +343,7 @@
     {
         showRecordGradeModal = false;
         LearningPath = SchoolDataService.GetLearningPathForGradeManagement(LearningPath.Id) ?? new LearningPath();
+        gradeCounts = SchoolDataService.GetGradeCountsByLearningPath(LearningPath.Id);
         StateHasChanged();
     }
 
