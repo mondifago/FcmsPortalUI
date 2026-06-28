@@ -364,9 +364,9 @@
             }
         }
 
-        LearningPath.Students.Remove(student);                        // UI: student leaves the displayed list
-        SchoolDataService.RemoveStudentFromAllLearningPaths(student); // DB: robustly null the pointer
-        SchoolDataService.UpdateStudent(student);                     // DB: persist the class promotion
+        LearningPath.Students.Remove(student);                        
+        SchoolDataService.RemoveStudentFromAllLearningPaths(student); 
+        SchoolDataService.UpdateStudent(student);                     
         StateHasChanged();
     }
 

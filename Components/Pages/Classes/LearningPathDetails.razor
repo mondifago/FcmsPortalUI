@@ -479,7 +479,7 @@
     private bool showAddStudentsModal = false;
     private Person? currentUser;
     private int? currentUserId;
-
+    private List<ScheduleEntry> generalCalendarSchedules = new();
     private bool showDailyView = false;
     private DateTime? selectedDateForDailyView = null;
     private ScheduleType? selectedScheduleTypeForDailyView = null;
@@ -489,7 +489,7 @@
     protected override async Task OnInitializedAsync()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
-
+        generalCalendarSchedules = SchoolDataService.GetAllSchoolCalendarSchedules().ToList();
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
         currentUser = await PermissionService.GetCurrentPersonAsync();
     }
@@ -500,7 +500,7 @@
       ? LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date)
       : new List<ScheduleEntry>();
 
-        var generalSchedules = SchoolDataService.GetAllSchoolCalendarSchedules()
+        var generalSchedules = generalCalendarSchedules
             .Where(s => s.DateTime.Date == date.Date &&
                        ((!string.IsNullOrEmpty(s.Event)) || (!string.IsNullOrEmpty(s.Meeting))))
             .ToList();
@@ -654,6 +654,7 @@
     {
         showScheduleCreateModal = false;
         selectedDateForSchedule = null;
+        generalCalendarSchedules = SchoolDataService.GetAllSchoolCalendarSchedules().ToList();
         StateHasChanged();
     }
 
