@@ -40,6 +40,7 @@ namespace FcmsPortalUI.Services
         IEnumerable<Student> GetStudents();
         List<Guardian> GetAllGuardians();
         Student? GetStudentById(int id);
+        Student? GetStudentByPersonId(int personId);
         void UpdateStudent(Student student);
         void RemoveStudentFromAllLearningPaths(Student student);
         Task<bool> DeleteStudentAsync(int studentId);
@@ -160,7 +161,6 @@ namespace FcmsPortalUI.Services
 
         #region Student Report Cards
         StudentReportCard? GetStudentReportCard(int studentId, int learningPathId);
-        List<StudentReportCard> GetStudentReportCards(int studentId);
         List<StudentReportCard> GetStudentReportCardsForLearningPath(int learningPathId);
         StudentReportCard SaveStudentReportCard(StudentReportCard reportCard);
         void UpdateStudentReportCardRemarks(int studentId, int learningPathId, string? teacherRemarks = null, string? principalRemarks = null);
@@ -192,6 +192,7 @@ namespace FcmsPortalUI.Services
         ArchivedLearningPathGrade? GetArchivedLearningPathGrade(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         void ArchiveStudentReportCard(StudentReportCard reportCard);
         void ArchiveLearningPathGrades(LearningPath learningPath);
+        List<ArchivedStudentGrade> GetStudentArchivedGrades(int studentId);
         #endregion
 
         #region Announcements

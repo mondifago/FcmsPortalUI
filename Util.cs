@@ -17,6 +17,14 @@ namespace FcmsPortalUI
             return $"{person.FirstName}{middleName} {person.LastName}";
         }
 
+        public static string GetFormattedAddress(Address address)
+        {
+            if (address == null)
+                return string.Empty;
+
+            var parts = new[] { address.Street, address.City, address.State, address.PostalCode, address.Country };
+            return string.Join(", ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
+        }
         public static string GetLearningPathName(LearningPath learningPath)
         {
             if (learningPath == null) return "-";

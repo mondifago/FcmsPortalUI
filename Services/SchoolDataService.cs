@@ -466,6 +466,13 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(s => s.Id == id);
         }
 
+        public Student? GetStudentByPersonId(int personId)
+        {
+            return _context.Students
+                .Include(s => s.Person)
+                .FirstOrDefault(s => s.PersonId == personId);
+        }
+
         public IEnumerable<Student> GetStudents()
         {
             return _context.Students
@@ -2301,19 +2308,6 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(rc => rc.StudentId == studentId && rc.LearningPathId == learningPathId);
         }
 
-        public List<StudentReportCard> GetStudentReportCards(int studentId)
-        {
-            return _context.StudentReportCards
-                .Include(rc => rc.Student)
-                .Include(rc => rc.LearningPath)
-                .Include(rc => rc.GeneratedByTeacher)
-                .Include(rc => rc.FinalizedByPrincipal)
-                .Where(rc => rc.StudentId == studentId)
-                .OrderByDescending(rc => rc.DateFinalized)
-                .ToList();
-        }
-
-
         public List<StudentReportCard> GetStudentReportCardsForLearningPath(int learningPathId)
         {
             return _context.StudentReportCards
@@ -2398,9 +2392,6 @@ namespace FcmsPortalUI.Services
 
             _context.SaveChanges();
         }
-
-
-
         #endregion
 
         #region Archives
@@ -3039,6 +3030,16 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
+        public List<ArchivedStudentGrade> GetStudentArchivedGrades(int studentId)
+        {
+            return _context.ArchivedStudentGrades
+                .AsNoTracking()
+                .Where(asg => asg.StudentId == studentId)
+                .Include(asg => asg.ArchivedLearningPathGrade)
+                .Include(asg => asg.CourseGrades)
+                .AsSplitQuery()
+                .ToList();
+        }
         #endregion
 
         #region Announcements

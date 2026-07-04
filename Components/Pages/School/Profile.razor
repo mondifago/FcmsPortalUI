@@ -3,6 +3,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
 @using FcmsPortalUI.Components.Pages.Shared
+@using FcmsPortalUI.Components.Pages.Archive
 @inject IPermissionService PermissionService
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
@@ -11,276 +12,313 @@
 
 <div class="container mt-4">
 
-    @if (isLoading)
+    @if (isLoading || currentPerson == null)
     {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    }
-    else if (currentPerson == null)
-    {
-        <div class="alert alert-danger">Unable to load profile.</div>
+        <p class="text-muted">Loading...</p>
     }
     else
     {
         <!-- PROFILE HEADER -->
-        <div class="row mb-4">
-            <div class="col-md-4 d-flex justify-content-center">
-                <div class="card text-center w-100">
-                    <div class="card-body">
+        <div class="card mb-4">
 
-                        @if (!string.IsNullOrEmpty(currentPerson.ProfilePictureUrl))
-                        {
-                            <img src="@currentPerson.ProfilePictureUrl"
-                                 class="img-fluid rounded-circle mb-3"
-                                 style="width:150px;height:150px;object-fit:cover;" />
-                        }
-                        else
-                        {
-                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3"
-                                 style="width:150px;height:150px;border-radius:50%;font-size:50px;">
-                                @Util.GetInitials(currentPerson)
-                            </div>
-                        }
+            <div class="card-body d-flex align-items-center flex-wrap" style="gap:1rem;">
+                @if (!string.IsNullOrEmpty(currentPerson.ProfilePictureUrl))
+                {
+                    <img src="@currentPerson.ProfilePictureUrl"
+                         class="rounded-circle flex-shrink-0"
+                         style="width:80px;height:80px;object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:80px;height:80px;background-color:#5a3e2b;color:#fdf6f0;font-size:28px;font-weight:500;">
+                        @Util.GetInitials(currentPerson)
+                    </div>
+                }
 
-                        <h3>@Util.GetFullName(currentPerson)</h3>
+                <div class="flex-grow-1" style="min-width:0;">
+                    <h3 class="mb-2">@Util.GetFullName(currentPerson)</h3>
 
+                    <div class="d-flex align-items-center flex-wrap" style="gap:0.5rem;">
                         @if (!string.IsNullOrEmpty(userRole))
                         {
-                            <span class="badge bg-info">@userRole</span>
+                            <span class="badge" style="background-color:#f0d5c4;color:#5a3e2b;">@userRole</span>
                         }
 
-                        <!-- Role-specific details -->
                         @if (isStudent && studentProfile != null)
                         {
-                            <div class="mt-2">
-                                @if (studentProfile.Person.EducationLevel != EducationLevel.None && studentProfile.Person.ClassLevel != ClassLevel.None)
-                                {
-                                    <small class="text-muted d-block">@studentProfile.Person.EducationLevel.ToDisplayName() - @studentProfile.Person.ClassLevel.ToDisplayName()</small>
-                                }
-                                else
-                                {
-                                    <small class="text-muted d-block"><em>Inactive</em></small>
-                                }
-                            </div>
+                            @if (Util.IsStudentEnrolled(studentProfile))
+                            {
+                                <span class="badge" style="background-color:#d4edda;color:#218838;">Enrolled</span>
+                                <small class="text-muted">@studentProfile.Person.EducationLevel.ToDisplayName() - @studentProfile.Person.ClassLevel.ToDisplayName()</small>
+                            }
+                            else
+                            {
+                                <span class="badge" style="background-color:#f0f0f0;color:#6c757d;">Not Enrolled</span>
+                            }
                         }
 
                         @if (staffProfile != null)
                         {
-                            <div class="mt-2">
-                                @if (staffProfile.Person.EducationLevel != EducationLevel.None)
-                                {
-                                    <small class="text-muted d-block">@staffProfile.Person.EducationLevel.ToDisplayName()</small>
-                                }
-                                @if (staffProfile.Person.ClassLevel != ClassLevel.None)
-                                {
-                                    <small class="text-muted d-block">@staffProfile.Person.ClassLevel.ToDisplayName()</small>
-                                }
-                                @if (!string.IsNullOrEmpty(staffProfile.JobDescription))
-                                {
-                                    <small class="text-muted d-block">@staffProfile.JobDescription</small>
-                                }
-                            </div>
-                        }
-
-                        @if (isGuardian && guardianProfile != null && guardianProfile.Wards.Any())
-                        {
-                            <div class="mt-3">
-                                <small class="text-muted"><strong>Wards:</strong></small>
-                                @foreach (var ward in guardianProfile.Wards)
-                                {
-                                    <div class="ms-2">
-                                        <small class="d-block">
-                                            @Util.GetFullName(ward.Person) -
-                                            @if (ward.Person.EducationLevel != EducationLevel.None && ward.Person.ClassLevel != ClassLevel.None)
-                                            {
-                                                <span>@ward.Person.EducationLevel.ToDisplayName() - @ward.Person.ClassLevel.ToDisplayName()</span>
-                                            }
-                                            else
-                                            {
-                                                <em>Inactive</em>
-                                            }
-                                        </small>
-                                    </div>
-                                }
-                            </div>
+                            @if (staffProfile.Person.EducationLevel != EducationLevel.None)
+                            {
+                                <small class="text-muted">@staffProfile.Person.EducationLevel.ToDisplayName()</small>
+                            }
+                            @if (staffProfile.Person.ClassLevel != ClassLevel.None)
+                            {
+                                <small class="text-muted">@staffProfile.Person.ClassLevel.ToDisplayName()</small>
+                            }
+                            @if (!string.IsNullOrEmpty(staffProfile.JobDescription))
+                            {
+                                <small class="text-muted">@staffProfile.JobDescription</small>
+                            }
                         }
                     </div>
+
+                    @if (isGuardian && guardianProfile != null && guardianProfile.Wards.Any())
+                    {
+                        <div class="mt-2">
+                            <small class="text-muted d-block mb-1"><strong>Wards</strong></small>
+                            @foreach (var ward in guardianProfile.Wards)
+                            {
+                                <div class="d-flex align-items-center flex-wrap mb-1" style="gap:0.5rem;">
+                                    <small>@Util.GetFullName(ward.Person)</small>
+                                    @if (Util.IsStudentEnrolled(ward))
+                                    {
+                                        <span class="badge" style="background-color:#d4edda;color:#218838;">Enrolled</span>
+                                        <small class="text-muted">@ward.Person.EducationLevel.ToDisplayName() - @ward.Person.ClassLevel.ToDisplayName()</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge" style="background-color:#f0f0f0;color:#6c757d;">Not Enrolled</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
 
-            <div class="col-md-8">
-                <!-- PERSONAL INFORMATION -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Personal Information</h5>
+            <div class="card-body border-top">
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <h6 class="text-muted mb-1"><i class="fa fa-envelope me-1"></i>Email</h6>
+                        <p class="mb-0">@currentPerson.Email</p>
                     </div>
-                    <div class="card-body">
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Email</h6>
-                                <p>@currentPerson.Email</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Phone</h6>
-                                <p>@currentPerson.PhoneNumber</p>
-                            </div>
+                    <div class="col-md-6 col-lg-4">
+                        <h6 class="text-muted mb-1"><i class="fa fa-phone me-1"></i>Phone</h6>
+                        <p class="mb-0">@currentPerson.PhoneNumber</p>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <h6 class="text-muted mb-1"><i class="fa fa-cake-candles me-1"></i>Age</h6>
+                        <p class="mb-0">@currentPerson.Age years</p>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <h6 class="text-muted mb-1"><i class="fa fa-venus-mars me-1"></i>Gender</h6>
+                        <p class="mb-0">@(currentPerson.Sex.ToString() ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <h6 class="text-muted mb-1"><i class="fa fa-calendar me-1"></i>Enrollment Date</h6>
+                        <p class="mb-0">@currentPerson.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
+                    </div>
+                    @if (!string.IsNullOrEmpty(currentPerson.StateOfOrigin))
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <h6 class="text-muted mb-1"><i class="fa fa-map-pin me-1"></i>State of Origin</h6>
+                            <p class="mb-0">@currentPerson.StateOfOrigin</p>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Gender</h6>
-                                <p>@(currentPerson.Sex.ToString() ?? "N/A")</p>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <h6 class="text-muted">Enrollment Date</h6>
-                                <p>@currentPerson.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
-                            </div>
+                    }
+                    @if (!string.IsNullOrEmpty(currentPerson.LgaOfOrigin))
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <h6 class="text-muted mb-1"><i class="fa fa-map me-1"></i>LGA of Origin</h6>
+                            <p class="mb-0">@currentPerson.LgaOfOrigin</p>
                         </div>
-
-                    </div>
+                    }
                 </div>
+            </div>
 
-                <!-- ADDRESS INFORMATION -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Address</h5>
-                    </div>
-                    <div class="card-body">
-                        @if (currentPerson.Address != null)
-                        {
-                            <div class="row g-3">
-                                <div class="col-md-8">
-                                    <h6 class="text-muted mb-1">Street</h6>
-                                    <p class="mb-0">@currentPerson.Address.Street</p>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <h6 class="text-muted mb-1">City</h6>
-                                    <p class="mb-0">@currentPerson.Address.City</p>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <h6 class="text-muted mb-1">State</h6>
-                                    <p class="mb-0">@currentPerson.Address.State</p>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <h6 class="text-muted mb-1">Postal Code</h6>
-                                    <p class="mb-0">@currentPerson.Address.PostalCode</p>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <h6 class="text-muted mb-1">Country</h6>
-                                    <p class="mb-0">@currentPerson.Address.Country</p>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <p class="text-muted mb-0">No address on file.</p>
-                        }
-                    </div>
-                </div>
+            <div class="card-body border-top">
+                <h6 class="text-muted mb-2"><i class="fa fa-location-dot me-1"></i>Address</h6>
+                @if (currentPerson.Address != null)
+                {
+                    <p class="mb-0">@Util.GetFormattedAddress(currentPerson.Address)</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No address on file.</p>
+                }
             </div>
         </div>
 
-        <!-- STUDENT REPORT CARDS -->
-        @if (studentProfile != null)
+        <!-- ACHIEVEMENTS -->
+        @if ((isStudent && studentProfile != null) || (isGuardian && guardianProfile != null && guardianProfile.Wards.Any()))
         {
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">My Report Cards</h5>
-                </div>
-                <div class="card-body">
-                    @if (!myReportCards.Any())
-                    {
-                        <p class="text-muted">No report cards available.</p>
-                    }
-                    else
-                    {
-                        @foreach (var rc in myReportCards.OrderByDescending(r => r.DateFinalized))
-                        {
-                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                                <strong>@GetYearAndSemester(rc)</strong>
-
-                                <button class="btn btn-sm btn-primary"
-                                        @onclick="() => OpenReportCard(rc)">
-                                    View
-                                </button>
-                            </div>
-                        }
-                    }
-                </div>
-            </div>
-        }
-
-        <!-- GUARDIAN REPORT CARDS -->
-        @if (guardianProfile != null)
-        {
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">My Children's Report Cards</h5>
+                    <h5 class="mb-0">Achievements</h5>
                 </div>
                 <div class="card-body">
 
-                    @foreach (var ward in guardianProfile.Wards)
+                    @if (isGuardian && guardianProfile != null && guardianProfile.Wards.Count > 1)
                     {
-                        <h6 class="mt-3">@Util.GetFullName(ward.Person)</h6>
+                        <div class="d-flex align-items-center flex-wrap mb-3" style="gap:0.5rem;">
+                            <small class="text-muted">Viewing ward:</small>
+                            @foreach (var ward in guardianProfile.Wards)
+                            {
+                                @if (ward.Id == activeAchievementStudentId)
+                                {
+                                    <span class="badge" style="background-color:#f0d5c4;color:#5a3e2b;cursor:default;">@Util.GetFullName(ward.Person)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-secondary border" style="cursor:pointer;"
+                                          @onclick="() => SelectAchievementWard(ward.Id)">@Util.GetFullName(ward.Person)</span>
+                                }
+                            }
+                        </div>
+                    }
 
-                        var reports = guardianReports.ContainsKey(ward.Id)
-                        ? guardianReports[ward.Id]
-                        : new List<StudentReportCard>();
+                    <ul class="nav nav-tabs mb-3">
+                        <li class="nav-item">
+                            <button class="nav-link @(activeAchievementTab == TabReportCards ? "active" : "")"
+                                    style="@(activeAchievementTab == TabReportCards ? "color:#5a3e2b;font-weight:500;" : "")"
+                                    @onclick="() => activeAchievementTab = TabReportCards">
+                                <i class="fa fa-file-alt me-1"></i>Report Cards
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeAchievementTab == TabAwards ? "active" : "")"
+                                    @onclick="() => activeAchievementTab = TabAwards">
+                                <i class="fa fa-trophy me-1"></i>Awards
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeAchievementTab == TabBehaviour ? "active" : "")"
+                                    @onclick="() => activeAchievementTab = TabBehaviour">
+                                <i class="fa fa-star me-1"></i>Behaviour Rating
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeAchievementTab == TabGallery ? "active" : "")"
+                                    @onclick="() => activeAchievementTab = TabGallery">
+                                <i class="fa fa-images me-1"></i>Gallery
+                            </button>
+                        </li>
+                    </ul>
 
-                        if (!reports.Any())
+                    @if (activeAchievementTab == TabReportCards)
+                    {
+                        var grades = GetActiveAchievementGrades();
+
+                        @if (!grades.Any())
                         {
                             <p class="text-muted">No report cards available.</p>
                         }
                         else
                         {
-                            @foreach (var rc in reports.OrderByDescending(r => r.DateFinalized))
+                            @foreach (var yearGroup in grades
+                                .GroupBy(g => g.ArchivedLearningPathGrade?.AcademicYear ?? "Unknown")
+                                .OrderByDescending(gr => gr.Key))
                             {
-                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                                    <span>@GetYearAndSemester(rc)</span>
+                                var first = yearGroup.First();
+                                var isExpanded = expandedAcademicYear == yearGroup.Key;
 
-                                    <button class="btn btn-sm btn-primary"
-                                            @onclick="() => OpenReportCard(rc)">
-                                        View
-                                    </button>
+                                <div class="border rounded mb-2">
+                                    <div class="d-flex justify-content-between align-items-center p-2"
+                                         style="cursor:pointer;"
+                                         @onclick="() => ToggleAcademicYear(yearGroup.Key)">
+                                        <span>
+                                            <strong>@yearGroup.Key</strong>
+                                            @if (first.ArchivedLearningPathGrade != null)
+                                            {
+                                                <span class="text-muted ms-2">@first.ArchivedLearningPathGrade.EducationLevel.ToDisplayName() - @first.ArchivedLearningPathGrade.ClassLevel.ToDisplayName()</span>
+                                            }
+                                        </span>
+                                        <i class="fa @(isExpanded ? "fa-chevron-up" : "fa-chevron-down") text-muted"></i>
+                                    </div>
+
+                                    @if (isExpanded)
+                                    {
+                                        <div class="border-top">
+                                            @foreach (var asg in yearGroup.OrderBy(g => g.ArchivedLearningPathGrade?.Semester))
+                                            {
+                                                <div class="d-flex justify-content-between align-items-center flex-wrap border-bottom p-2" style="gap:0.5rem;">
+                                                    <div>
+                                                        <strong>@(asg.ArchivedLearningPathGrade?.Semester.ToTermDisplay() ?? "Unknown Term")</strong>
+                                                        <small class="text-muted d-block">@asg.ArchivedLearningPathGrade?.ArchivedDate.ToString("MMMM d, yyyy")</small>
+                                                        <span class="badge bg-light text-secondary border mt-1">Overall @asg.SemesterOverallGrade.ToString("F2")%</span>
+                                                        @if (asg.IsPromoted)
+                                                        {
+                                                            <span class="badge mt-1" style="background-color:#d4edda;color:#218838;">
+                                                                <i class="fa fa-arrow-up me-1"></i>Promoted
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                    <div class="d-flex" style="gap:0.5rem;">
+                                                        <button class="btn btn-sm btn-primary" @onclick="() => OpenArchivedReportCard(asg)">
+                                                            <i class="fa fa-file-alt me-1"></i>Report Card
+                                                        </button>
+                                                        <button class="btn btn-sm btn-info" @onclick="() => OpenArchivedGradeDetails(asg)">
+                                                            <i class="fa fa-eye me-1"></i>Grade Details
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
                                 </div>
                             }
                         }
+                    }
+
+                    @if (activeAchievementTab == TabAwards)
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fa fa-trophy fa-2x mb-2" style="color:#f0d5c4;"></i>
+                            <p class="mb-0">Coming soon</p>
+                        </div>
+                    }
+
+                    @if (activeAchievementTab == TabBehaviour)
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fa fa-star fa-2x mb-2" style="color:#f0d5c4;"></i>
+                            <p class="mb-0">Coming soon</p>
+                        </div>
+                    }
+
+                    @if (activeAchievementTab == TabGallery)
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fa fa-images fa-2x mb-2" style="color:#f0d5c4;"></i>
+                            <p class="mb-0">Coming soon</p>
+                        </div>
                     }
 
                 </div>
             </div>
         }
     }
-</div>
 
-<StudentReportCardModal IsVisible="showReportCardModal"
-                        Student="selectedStudent"
-                        LearningPath="selectedLearningPath"
-                        TeacherRemarks="@selectedTeacherRemarks"
-                        PrincipalRemarks="@selectedPrincipalRemarks"
-                        IsFinalized="true"
-                        OnClose="CloseReportCardModal" />
+</div>
+<ArchivedStudentReportCardModal IsVisible="showArchivedReportCardModal"
+                                ArchivedStudent="selectedArchivedGrade"
+                                OnClose="CloseArchivedReportCardModal" />
+
+<ArchivedStudentGradeModal IsVisible="showArchivedGradeModal"
+                           ArchivedStudent="selectedArchivedGrade"
+                           OnClose="CloseArchivedGradeModal" />
 
 
 
 @code {
-
-    // The logged-in person
     private Person? currentPerson;
     private string userRole = "";
 
     // Role flags (matches PermissionService)
     private bool isStudent = false;
     private bool isGuardian = false;
-    private bool isStaff = false;
     private bool isPrincipal = false;
     private bool isDeveloper = false;
 
@@ -292,23 +330,21 @@
     // Loading state
     private bool isLoading = true;
 
-    // Student report cards (for logged-in student)
-    private List<StudentReportCard> myReportCards = new();
+    // Achievements section
+    private const string TabReportCards = "reportcards";
+    private const string TabAwards = "awards";
+    private const string TabBehaviour = "behaviour";
+    private const string TabGallery = "gallery";
+    private string activeAchievementTab = TabReportCards;
+    private int activeAchievementStudentId = 0;
+    private string expandedAcademicYear = "";
 
-    // Guardian report cards (key = wardId, value = list of ward report cards)
-    private Dictionary<int, List<StudentReportCard>> guardianReports = new();
+    // key = studentId, value = archived grade snapshots (one per finalized term)
+    private Dictionary<int, List<ArchivedStudentGrade>> achievementGrades = new();
 
-    // For showing a report card modal
-    private bool showReportCardModal = false;
-    private Student? selectedStudent;
-    private LearningPath? selectedLearningPath;
-    private string selectedTeacherRemarks = "";
-    private string selectedPrincipalRemarks = "";
-
-    // Profile photo or initials
-    private string? currentUserPhoto = null;       // null means use initials
-    private string currentUserInitials = "";
-
+    private bool showArchivedReportCardModal = false;
+    private bool showArchivedGradeModal = false;
+    private ArchivedStudentGrade? selectedArchivedGrade;
 
     protected override async Task OnInitializedAsync()
     {
@@ -337,16 +373,16 @@
         else if (isGuardian) userRole = "Guardian";
         else if (isStudent) userRole = "Student";
 
-        // 3. Student Profile + Student Report Cards
-        studentProfile = SchoolDataService.GetStudents()
-            .FirstOrDefault(s => s.PersonId == currentPerson.Id);
+        // 3. Student Profile + Achievements
+        studentProfile = SchoolDataService.GetStudentByPersonId(currentPerson.Id);
 
         if (studentProfile != null)
         {
-            myReportCards = SchoolDataService.GetStudentReportCards(studentProfile.Id);
+            achievementGrades[studentProfile.Id] = SchoolDataService.GetStudentArchivedGrades(studentProfile.Id);
+            activeAchievementStudentId = studentProfile.Id;
         }
 
-        // 4. Guardian Profile + Their Children's Report Cards
+        // 4. Guardian Profile + Wards' Achievements
         guardianProfile = SchoolDataService.GetGuardians()
             .FirstOrDefault(g => g.PersonId == currentPerson.Id);
 
@@ -354,62 +390,69 @@
         {
             foreach (var ward in guardianProfile.Wards)
             {
-                guardianReports[ward.Id] =
-                     SchoolDataService.GetStudentReportCards(ward.Id);
+                achievementGrades[ward.Id] = SchoolDataService.GetStudentArchivedGrades(ward.Id);
+            }
+
+            if (guardianProfile.Wards.Any() && activeAchievementStudentId == 0)
+            {
+                activeAchievementStudentId = guardianProfile.Wards.First().Id;
             }
         }
+
+        SetDefaultExpandedYear();
 
         // 5. Staff Profile
         staffProfile = SchoolDataService.GetStaff()
             .FirstOrDefault(s => s.PersonId == currentPerson.Id);
 
-        // 6. Picture or Initials
-        if (!string.IsNullOrEmpty(currentPerson.ProfilePictureUrl))
-        {
-            currentUserPhoto = currentPerson.ProfilePictureUrl;
-        }
-        else
-        {
-            currentUserInitials = Util.GetInitials(currentPerson);
-        }
-
         isLoading = false;
     }
 
-
-
-
-    private void OpenReportCard(StudentReportCard rc)
+    private List<ArchivedStudentGrade> GetActiveAchievementGrades()
     {
-        var realCard = SchoolDataService.GetStudentReportCard(rc.StudentId, rc.LearningPathId);
-
-        if (realCard == null)
-            return; // Should never happen unless DB inconsistency
-
-        // Fetch student + learning path
-        selectedStudent = SchoolDataService.GetStudentById(realCard.StudentId);
-        selectedLearningPath = SchoolDataService.GetLearningPathById(realCard.LearningPathId);
-
-        // Update modal inputs based on the REAL card
-        selectedTeacherRemarks = realCard.TeacherRemarks;
-        selectedPrincipalRemarks = realCard.PrincipalRemarks;
-
-        showReportCardModal = true;
+        return achievementGrades.ContainsKey(activeAchievementStudentId)
+            ? achievementGrades[activeAchievementStudentId]
+            : new List<ArchivedStudentGrade>();
     }
 
-    private string GetYearAndSemester(StudentReportCard rc)
+    private void SelectAchievementWard(int wardId)
     {
-        var lp = SchoolDataService.GetLearningPathById(rc.LearningPathId);
-
-        if (lp == null)
-            return "Unknown Semester";
-
-        return $"{lp.AcademicYear} - {lp.Semester}";
+        activeAchievementStudentId = wardId;
+        SetDefaultExpandedYear();
     }
 
-
-    private void CloseReportCardModal()
+    private void SetDefaultExpandedYear()
     {
-        showReportCardModal = false;
+        expandedAcademicYear = GetActiveAchievementGrades()
+            .Select(g => g.ArchivedLearningPathGrade?.AcademicYear ?? "")
+            .OrderByDescending(y => y)
+            .FirstOrDefault() ?? "";
+    }
+
+    private void ToggleAcademicYear(string year)
+    {
+        expandedAcademicYear = expandedAcademicYear == year ? "" : year;
+    }
+
+    private void OpenArchivedReportCard(ArchivedStudentGrade asg)
+    {
+        selectedArchivedGrade = asg;
+        showArchivedReportCardModal = true;
+    }
+
+    private void OpenArchivedGradeDetails(ArchivedStudentGrade asg)
+    {
+        selectedArchivedGrade = asg;
+        showArchivedGradeModal = true;
+    }
+
+    private void CloseArchivedReportCardModal()
+    {
+        showArchivedReportCardModal = false;
+    }
+
+    private void CloseArchivedGradeModal()
+    {
+        showArchivedGradeModal = false;
     }
 }
