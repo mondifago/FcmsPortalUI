@@ -53,9 +53,6 @@
                                             <button class="btn btn-outline-primary" @onclick="() => NavigateToTestimonial(student)">
                                                  Testimonial
                                             </button>
-                                            <button class="btn btn-outline-success" @onclick="() => ShowFinalResult(student)">
-                                                 Final Result
-                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -76,20 +73,10 @@
         </div>
     }
 </div>
-<!-- Final Result Modal -->
-@if (showReportCardModal && selectedStudent != null && ss3LearningPath != null)
-{
-    <StudentReportCardModal Student="selectedStudent"
-                            LearningPath="ss3LearningPath"
-                            IsVisible="showReportCardModal"
-                            OnClose="CloseReportCardModal" />
-}
+
 
 @code {
     private List<Student> archivedStudents = new();
-    private bool showReportCardModal = false;
-    private Student? selectedStudent = null;
-    private LearningPath? ss3LearningPath = null;
 
     protected override void OnInitialized()
     {
@@ -104,28 +91,5 @@
     private void NavigateToTestimonial(Student student)
     {
         NavigationManager.NavigateTo($"/testimonial/{student.Id}");
-    }
-
-    private void ShowFinalResult(Student student)
-    {
-        selectedStudent = student;
-
-        ss3LearningPath = SchoolDataService.GetAllLearningPaths()
-            .FirstOrDefault(lp =>
-                lp.EducationLevel == EducationLevel.SeniorCollege &&
-                lp.ClassLevel == ClassLevel.SC_3 &&
-                lp.Semester == Semester.Third);
-
-        if (ss3LearningPath != null)
-        {
-            showReportCardModal = true;
-        }
-    }
-
-    private void CloseReportCardModal()
-    {
-        showReportCardModal = false;
-        selectedStudent = null;
-        ss3LearningPath = null;
-    }
+    }  
 }

@@ -193,6 +193,7 @@ else
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        collapseNavMenu = true;
         StateHasChanged();
     }
 
