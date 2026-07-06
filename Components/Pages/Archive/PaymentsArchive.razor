@@ -225,35 +225,37 @@
                     @if (selectedStudentPaymentDetails.Any())
                     {
                         <div class="table-container">
-                            <table class="table table-sm attendance-table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th class="student-name">Date</th>
-                                        <th class="summary-col">Amount</th>
-                                        <th class="summary-col">Method</th>
-                                        <th class="summary-col">Reference</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var payment in selectedStudentPaymentDetails.OrderByDescending(p => p.Date))
-                                    {
+                            <div class="table-responsive">
+                                <table class="table table-sm attendance-table mb-0">
+                                    <thead>
                                         <tr>
-                                            <td class="student-name">@payment.Date.ToString("dd/MM/yyyy")</td>
-                                            <td class="text-center">₦@payment.Amount.ToString("N0")</td>
-                                            <td class="text-center">@payment.PaymentMethod</td>
-                                            <td class="text-center">@payment.Reference</td>
+                                            <th class="student-name">Date</th>
+                                            <th class="summary-col">Amount</th>
+                                            <th class="summary-col">Method</th>
+                                            <th class="summary-col">Reference</th>
                                         </tr>
-                                    }
-                                </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <th class="student-name">Total</th>
-                                        <th class="summary-data text-center">₦@selectedStudentPaymentDetails.Sum(p => p.Amount).ToString("N0")</th>
-                                        <th class="summary-data text-center">@selectedStudentPaymentDetails.Count() payments</th>
-                                        <th class="summary-data text-center">-</th>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var payment in selectedStudentPaymentDetails.OrderByDescending(p => p.Date))
+                                        {
+                                            <tr>
+                                                <td class="student-name">@payment.Date.ToString("dd/MM/yyyy")</td>
+                                                <td class="text-center">₦@payment.Amount.ToString("N0")</td>
+                                                <td class="text-center">@payment.PaymentMethod</td>
+                                                <td class="text-center">@payment.Reference</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <th class="student-name">Total</th>
+                                            <th class="summary-data text-center">₦@selectedStudentPaymentDetails.Sum(p => p.Amount).ToString("N0")</th>
+                                            <th class="summary-data text-center">@selectedStudentPaymentDetails.Count() payments</th>
+                                            <th class="summary-data text-center">-</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     }
                     else

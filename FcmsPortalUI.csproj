@@ -42,6 +42,9 @@
     <Folder Include="uploads\StudentProfilePictures\" />
     <Folder Include="wwwroot\ClassSession-4-Materials\" />
     <Folder Include="wwwroot\ClassSession-9-Materials\" />
+    <Folder Include="wwwroot\GuardianProfilePictures\" />
+    <Folder Include="wwwroot\SchoolLogos\" />
+    <Folder Include="wwwroot\StaffProfilePictures\" />
   </ItemGroup>
 
 </Project>

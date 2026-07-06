@@ -26,88 +26,90 @@
                 else
                 {
                     <div class="table-container">
-                        <table class="table table-bordered table-sm attendance-table">
-                            <thead>
-                                <tr>
-                                    <th class="student-name">Student</th>
-                                    @foreach (var section in gradeSections)
-                                    {
-                                        @if (section.Dates.Any())
-                                        {
-                                            <th @attributes="@(new Dictionary<string, object> { ["colspan"] = section.Dates.Count })" class="text-center summary-col">
-                                                @((section.GradeType))
-                                            </th>
-                                        }
-                                    }
-                                    <th class="text-center">Action</th>
-                                </tr>
-                                <tr>
-                                    <th class="student-name"></th>
-                                    @foreach (var section in gradeSections)
-                                    {
-                                        @foreach (var date in section.Dates)
-                                        {
-                                            <th class="date-header">
-                                                @date.ToString("MM/dd")
-                                            </th>
-                                        }
-                                    }
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var student in LearningPath.Students.OrderBy(s => s.Person.LastName))
-                                {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm attendance-table">
+                                <thead>
                                     <tr>
-                                        <td class="student-name">
-                                            @student.Person.FirstName @student.Person.LastName
-                                        </td>
+                                        <th class="student-name">Student</th>
                                         @foreach (var section in gradeSections)
                                         {
-                                            @for (int i = 0; i < section.Dates.Count; i++)
+                                            @if (section.Dates.Any())
                                             {
-                                                int localIndex = i; 
-                                                                    <td class="text-center">
-                                                    @if (editingStudentId == student.Id)
-                                                    {
-                                                        <input type="number"
-                                                               class="form-control form-control-sm"
-                                                               style="width: 50px; font-size: 0.8rem;"
-                                                               value="@GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[localIndex], localIndex)"
-                                                               @onchange="@(e => UpdateStudentGrade(student, section.GradeType, section.Dates[localIndex], localIndex, e.Value?.ToString()))"
-                                                               min="0" max="100" />
-                                                    }
-                                                    else
-                                                    {
-                                                        var grade = GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[localIndex], localIndex);
-                                                        <span class="@Util.GetGradeColorClass(grade, useTextPrefix: true)">
-                                                            @(grade > 0 ? grade.ToString("F0") : "-")
-                                                        </span>
-                                                    }
-                                                </td>
+                                                <th @attributes="@(new Dictionary<string, object> { ["colspan"] = section.Dates.Count })" class="text-center summary-col">
+                                                    @((section.GradeType))
+                                                </th>
                                             }
                                         }
-                                        <td class="text-center">
-                                            @if (editingStudentId == student.Id)
-                                            {
-                                                <button class="btn btn-success btn-sm me-1" @onclick="() => SaveStudentGrades(student)">
-                                                    <i class="fa fa-save"></i>
-                                                </button>
-                                                <button class="btn btn-secondary btn-sm" @onclick="CancelEdit">
-                                                    <i class="fa fa-times"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn btn-primary btn-sm" @onclick="() => EditStudent(student.Id)">
-                                                    <i class="fa fa-edit"></i> Edit
-                                                </button>
-                                            }
-                                        </td>
+                                        <th class="text-center">Action</th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
+                                    <tr>
+                                        <th class="student-name"></th>
+                                        @foreach (var section in gradeSections)
+                                        {
+                                            @foreach (var date in section.Dates)
+                                            {
+                                                <th class="date-header">
+                                                    @date.ToString("MM/dd")
+                                                </th>
+                                            }
+                                        }
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var student in LearningPath.Students.OrderBy(s => s.Person.LastName))
+                                    {
+                                        <tr>
+                                            <td class="student-name">
+                                                @student.Person.FirstName @student.Person.LastName
+                                            </td>
+                                            @foreach (var section in gradeSections)
+                                            {
+                                                @for (int i = 0; i < section.Dates.Count; i++)
+                                                {
+                                                    int localIndex = i;
+                                                    <td class="text-center">
+                                                        @if (editingStudentId == student.Id)
+                                                        {
+                                                            <input type="number"
+                                                                   class="form-control form-control-sm"
+                                                                   style="width: 50px; font-size: 0.8rem;"
+                                                                   value="@GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[localIndex], localIndex)"
+                                                                   @onchange="@(e => UpdateStudentGrade(student, section.GradeType, section.Dates[localIndex], localIndex, e.Value?.ToString()))"
+                                                                   min="0" max="100" />
+                                                        }
+                                                        else
+                                                        {
+                                                            var grade = GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[localIndex], localIndex);
+                                                            <span class="@Util.GetGradeColorClass(grade, useTextPrefix: true)">
+                                                                @(grade > 0 ? grade.ToString("F0") : "-")
+                                                            </span>
+                                                        }
+                                                    </td>
+                                                }
+                                            }
+                                            <td class="text-center">
+                                                @if (editingStudentId == student.Id)
+                                                {
+                                                    <button class="btn btn-success btn-sm me-1" @onclick="() => SaveStudentGrades(student)">
+                                                        <i class="fa fa-save"></i>
+                                                    </button>
+                                                    <button class="btn btn-secondary btn-sm" @onclick="CancelEdit">
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-primary btn-sm" @onclick="() => EditStudent(student.Id)">
+                                                        <i class="fa fa-edit"></i> Edit
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 }
             </div>
@@ -243,13 +245,13 @@
                     else
                     {
                         SchoolDataService.AddTestGrade(
-                            student.Id,                   
-                            Course,                        
-                            change.Value,                  
-                            gradeType,                     
-                            currentTeacher.Id,             
-                            "",                           
-                            LearningPath.Id                
+                            student.Id,
+                            Course,
+                            change.Value,
+                            gradeType,
+                            currentTeacher.Id,
+                            "",
+                            LearningPath.Id
                         );
                     }
                 }

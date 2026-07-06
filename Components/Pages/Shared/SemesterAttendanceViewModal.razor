@@ -16,61 +16,63 @@
                 @if (AttendanceReport != null && AttendanceReport.Students.Any())
                 {
                     <div class="table-container">
-                        <table class="table table-sm attendance-table mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="student-name">Student Name</th>
-                                    @foreach (var date in AttendanceReport.AttendanceDates.OrderBy(d => d))
-                                    {
-                                        <th class="date-header">@date.ToString("MMM dd")</th>
-                                    }
-                                    <th class="rotated-header present-col">Present</th>
-                                    <th class="rotated-header absent-col">Absent</th>
-                                    <th class="summary-col rate-col">Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var student in AttendanceReport.Students.OrderBy(s => s.StudentName))
-                                {
+                        <div class="table-responsive">
+                            <table class="table table-sm attendance-table mb-0">
+                                <thead>
                                     <tr>
-                                        <td class="student-name">@student.StudentName</td>
+                                        <th class="student-name">Student Name</th>
                                         @foreach (var date in AttendanceReport.AttendanceDates.OrderBy(d => d))
                                         {
-                                            <td class="date-cell text-center">
-                                                @if (student.AttendanceByDate.TryGetValue(date, out var isPresent))
-                                                {
-                                                    @if (isPresent)
-                                                    {
-                                                        <i class="fa fa-check text-success fs-5"></i>
-                                                    }
-                                                    else
-                                                    {
-                                                        <i class="fa fa-times text-danger fs-5"></i>
-                                                    }
-                                                }
-                                            </td>
+                                            <th class="date-header">@date.ToString("MMM dd")</th>
                                         }
-                                        <td class="summary-data present-data">@student.TotalPresentDays</td>
-                                        <td class="summary-data absent-data">@student.TotalAbsentDays</td>
-                                        <td class="summary-data rate-data @GetAttendanceRateClass(student.AttendanceRate)">
-                                            @student.AttendanceRate.ToString("F0")%
-                                        </td>
+                                        <th class="rotated-header present-col">Present</th>
+                                        <th class="rotated-header absent-col">Absent</th>
+                                        <th class="summary-col rate-col">Rate</th>
                                     </tr>
-                                }
-                            </tbody>
-                            <tfoot>
-                                <tr class="table-secondary">
-                                    <th class="student-name">Daily Totals</th>
-                                    @foreach (var date in AttendanceReport.AttendanceDates.OrderBy(d => d))
+                                </thead>
+                                <tbody>
+                                    @foreach (var student in AttendanceReport.Students.OrderBy(s => s.StudentName))
                                     {
-                                        <th class="date-cell text-center">@GetDailyPresentCount(date)</th>
+                                        <tr>
+                                            <td class="student-name">@student.StudentName</td>
+                                            @foreach (var date in AttendanceReport.AttendanceDates.OrderBy(d => d))
+                                            {
+                                                <td class="date-cell text-center">
+                                                    @if (student.AttendanceByDate.TryGetValue(date, out var isPresent))
+                                                    {
+                                                        @if (isPresent)
+                                                        {
+                                                            <i class="fa fa-check text-success fs-5"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fa fa-times text-danger fs-5"></i>
+                                                        }
+                                                    }
+                                                </td>
+                                            }
+                                            <td class="summary-data present-data">@student.TotalPresentDays</td>
+                                            <td class="summary-data absent-data">@student.TotalAbsentDays</td>
+                                            <td class="summary-data rate-data @GetAttendanceRateClass(student.AttendanceRate)">
+                                                @student.AttendanceRate.ToString("F0")%
+                                            </td>
+                                        </tr>
                                     }
-                                    <th class="summary-data present-data">@AttendanceReport.Students.Sum(s => s.TotalPresentDays)</th>
-                                    <th class="summary-data absent-data">@AttendanceReport.Students.Sum(s => s.TotalAbsentDays)</th>
-                                    <th class="summary-data rate-data">@GetOverallAttendanceRate().ToString("F0")%</th>
-                                </tr>
-                            </tfoot>
-                        </table>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-secondary">
+                                        <th class="student-name">Daily Totals</th>
+                                        @foreach (var date in AttendanceReport.AttendanceDates.OrderBy(d => d))
+                                        {
+                                            <th class="date-cell text-center">@GetDailyPresentCount(date)</th>
+                                        }
+                                        <th class="summary-data present-data">@AttendanceReport.Students.Sum(s => s.TotalPresentDays)</th>
+                                        <th class="summary-data absent-data">@AttendanceReport.Students.Sum(s => s.TotalAbsentDays)</th>
+                                        <th class="summary-data rate-data">@GetOverallAttendanceRate().ToString("F0")%</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 }
                 else

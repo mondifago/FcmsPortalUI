@@ -43,7 +43,7 @@
                             <p class="mb-0"><strong>Academic Year:</strong> @LearningPath.AcademicYear</p>
                             <p><strong>Term:</strong> @LearningPath.Semester.ToTermDisplay()</p>
                         </div>
-                        
+
                         <!-- Student Information -->
                         <div class="card mb-4">
                             <div class="card-body">
@@ -141,33 +141,35 @@
                                     <h6 class="mb-0">Promotion Summary</h6>
                                 </div>
                                 <div class="card-body">
-                                    <table class="table table-sm">
-                                        <tbody>
-                                            @foreach (var sem in new[] { Semester.First, Semester.Second, Semester.Third })
-                                            {
-                                                <tr>
-                                                    <td>@sem.ToTermDisplay()</td>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <tbody>
+                                                @foreach (var sem in new[] { Semester.First, Semester.Second, Semester.Third })
+                                                {
+                                                    <tr>
+                                                        <td>@sem.ToTermDisplay()</td>
+                                                        <td class="text-end">
+                                                            @if (semesterGrades.TryGetValue(sem, out var semGrade))
+                                                            {
+                                                                <span>@semGrade.ToString("F1")%</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">-</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                                <tr class="table-primary">
+                                                    <td><strong>PROMOTION GRADE</strong></td>
                                                     <td class="text-end">
-                                                        @if (semesterGrades.TryGetValue(sem, out var semGrade))
-                                                        {
-                                                            <span>@semGrade.ToString("F1")%</span>
-                                                        }
-                                                        else
-                                                        {
-                                                            <span class="text-muted">-</span>
-                                                        }
+                                                        <strong>@GetPromotionGrade().ToString("F1")%</strong>
                                                     </td>
                                                 </tr>
-                                            }
-
-                                            <tr class="table-primary">
-                                                <td><strong>PROMOTION GRADE</strong></td>
-                                                <td class="text-end">
-                                                    <strong>@GetPromotionGrade().ToString("F1")%</strong>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     <div class="text-center mt-3">
                                         <h5 class="@(IsPromoted() ? "text-success" : "text-danger")">
                                             <i class="fa @(IsPromoted() ? "fa-check-circle" : "fa-times-circle")"></i>
@@ -280,8 +282,8 @@
 
     private School? school;
     private Guardian? guardian;
-    private bool isTeacher = false; 
-    private bool isPrincipal = false; 
+    private bool isTeacher = false;
+    private bool isPrincipal = false;
     private Dictionary<Semester, double> semesterGrades = new();
 
     protected override async Task OnParametersSetAsync()

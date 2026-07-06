@@ -696,6 +696,51 @@ main {
     width: 90px; /* Avoid full-width */
 }
 
+
+/* Mobile: monthly calendar compresses to phone width */
+@media (max-width: 640.98px) {
+    .calendar-table th,
+    .calendar-table td {
+        padding: 2px;
+        font-size: 0.7rem;
+    }
+
+    .calendar-table td {
+        height: 56px;
+    }
+
+    .calendar-table .badge {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+    }
+
+    .calendar-events {
+        margin-top: 2px;
+        max-height: 26px;
+        overflow: hidden;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 3px;
+    }
+
+    .calendar-event {
+        margin-bottom: 0;
+    }
+
+        .calendar-event .small-badge {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            padding: 0 !important;
+        }
+
+            .calendar-event .small-badge small {
+                display: none;
+            }
+}
+
+
 .attendance-table {
     font-size: 0.9rem;
     border-collapse: separate;

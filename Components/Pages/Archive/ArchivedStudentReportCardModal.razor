@@ -140,36 +140,37 @@
                                 </div>
 
                                 <div class="card-body">
-                                    <table class="table table-sm">
-                                        <tbody>
-                                            <tr>
-                                                <td>First Term</td>
-                                                <td class="text-end">
-                                                    @ArchivedStudent.FirstSemesterGrade.ToString("F1")%
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Second Term</td>
-                                                <td class="text-end">
-                                                    @ArchivedStudent.SecondSemesterGrade.ToString("F1")%
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Third Term</td>
-                                                <td class="text-end">
-                                                    @ArchivedStudent.ThirdSemesterGrade.ToString("F1")%
-                                                </td>
-                                            </tr>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <tbody>
+                                                <tr>
+                                                    <td>First Term</td>
+                                                    <td class="text-end">
+                                                        @ArchivedStudent.FirstSemesterGrade.ToString("F1")%
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Second Term</td>
+                                                    <td class="text-end">
+                                                        @ArchivedStudent.SecondSemesterGrade.ToString("F1")%
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Third Term</td>
+                                                    <td class="text-end">
+                                                        @ArchivedStudent.ThirdSemesterGrade.ToString("F1")%
+                                                    </td>
+                                                </tr>
 
-                                            <tr class="table-primary">
-                                                <td><strong>PROMOTION GRADE</strong></td>
-                                                <td class="text-end">
-                                                    <strong>@ArchivedStudent.PromotionGrade.ToString("F1")%</strong>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-
+                                                <tr class="table-primary">
+                                                    <td><strong>PROMOTION GRADE</strong></td>
+                                                    <td class="text-end">
+                                                        <strong>@ArchivedStudent.PromotionGrade.ToString("F1")%</strong>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     <div class="text-center mt-3">
                                         <h5 class="@(ArchivedStudent.IsPromoted ? "text-success" : "text-danger")">
                                             <i class="fa @(ArchivedStudent.IsPromoted ? "fa-check-circle" : "fa-times-circle")"></i>
@@ -214,12 +215,12 @@
 
                         <!-- Footer -->
                         <div class="text-center text-muted">
-                        <p>
-                            Date Issued:
-                            @(ArchivedStudent.ArchivedLearningPathGrade != null
-                                                        ? ArchivedStudent.ArchivedLearningPathGrade.ArchivedDate.ToString("MMMM dd, yyyy")
-                                                        : "N/A")
-                        </p>
+                            <p>
+                                Date Issued:
+                                @(ArchivedStudent.ArchivedLearningPathGrade != null
+                                                            ? ArchivedStudent.ArchivedLearningPathGrade.ArchivedDate.ToString("MMMM dd, yyyy")
+                                                            : "N/A")
+                            </p>
                         </div>
                     </div>
                 </div>
