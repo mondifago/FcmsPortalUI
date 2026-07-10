@@ -1,0 +1,20 @@
+﻿
+@if (!string.IsNullOrEmpty(ImageUrl))
+{
+    <img src="@ImageUrl" class="rounded-circle me-2" style="width: 30px; height: 30px;" alt="Profile" />
+}
+else
+{
+    <div class="bg-secondary text-white d-flex align-items-center justify-content-center me-2"
+         style="width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;">
+        @Initials
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? ImageUrl { get; set; }
+
+    [Parameter]
+    public string Initials { get; set; } = "";
+}

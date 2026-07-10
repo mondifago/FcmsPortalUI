@@ -1569,3 +1569,42 @@ main {
 .character-count-textarea-container textarea {
     padding-right: 40px;
 }
+
+/* QuickGrid list pages */
+.fcms-grid thead th {
+    background-color: #f0d5c4;
+    color: #5a3e2b;
+}
+
+.fcms-grid td {
+    vertical-align: middle;
+}
+
+.grid-name-link {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+    .grid-name-link:hover {
+        color: #5a3e2b;
+        text-decoration: underline;
+    }
+
+.btn-fcms {
+    background-color: #5a3e2b;
+    color: #fdf6f0;
+    border: 1px solid #5a3e2b;
+}
+
+    .btn-fcms:hover:not(:disabled) {
+        background-color: #4a3728;
+        color: #fdf6f0;
+    }
+
+    .btn-fcms:disabled {
+        background-color: transparent;
+        color: #6c757d;
+        border-color: #dee2e6;
+    }

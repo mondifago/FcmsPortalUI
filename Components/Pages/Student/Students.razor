@@ -1,10 +1,13 @@
 ﻿@page "/students"
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.QuickGrid
 @using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortalUI.Services
+@using FcmsPortalUI.DTOs
 @using FcmsPortalUI.Components.Pages.Shared
 @rendermode InteractiveServer
 
@@ -54,88 +57,101 @@
         </div>
     </div>
 
-    @if (students == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else if (!filtersApplied)
+    @if (!filtersApplied)
     {
         <div class="alert alert-info">
             <i class="fa fa-info-circle me-2"></i>
             Please select filters to view students.
         </div>
     }
-    else if (!visibleStudents.Any())
-    {
-        <div class="alert alert-warning">
-            <i class="fa fa-exclamation-triangle me-2"></i>
-            No students found matching the selected filters.
-        </div>
-    }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Profile</th>
-                        <th>Name</th>
-                        <th>Age</th>
-                        <th>Education Level</th>
-                        <th>Class Level</th>
-                        <th>status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var student in visibleStudents)
-                    {
-                        <tr>
-                            <td>@student.Id</td>
-                            <td>
-                                <ProfileThumbnailList Person="student.Person" />
-                            </td>
-                            <td>@Util.GetFullName(student.Person)</td>
-                            <td>@student.Person.Age</td>
-                            <td>@student.Person.EducationLevel.ToDisplayName()</td>
-                            <td>@student.Person.ClassLevel.ToDisplayName()</td>
-                            <td>
-                                <span class="badge @(student.Person.IsActive ? "bg-success" : "bg-danger")">
-                                    @(student.Person.IsActive ? "Active" : "Inactive")
-                                </span>
-                                <span class="badge @(Util.IsStudentEnrolled(student) ? "bg-success" : "bg-danger")">
-                                    @(Util.IsStudentEnrolled(student) ? "Enrolled" : "Not Enrolled")
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="/students/details/@student.Id" class="btn btn-info btn-sm">
-                                        <i class="fa fa-eye"></i> View
-                                    </a>
-                                    <AuthorizeView Roles="Developer,Principal,Admin">
-                                        <Authorized>
-                                            <a href="/students/edit/@student.Id" class="btn btn-warning btn-sm">
-                                                <i class="fa fa-pencil"></i> Edit
-                                            </a>
+        <div class="card">
+            <div class="card-body">
+                <AuthorizeView Roles="Developer,Principal,Admin">
+                    <Authorized>
+                        <div class="d-flex align-items-center flex-wrap mb-2" style="gap:0.5rem;">
+                            @if (!selectMode)
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="EnterSelectMode">
+                                    <i class="fa fa-check-square me-1"></i>Select
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-warning" disabled="@(selectedIds.Count != 1)" @onclick="EditSelected">
+                                    <i class="fa fa-pencil me-1"></i>Edit
+                                </button>
+                                <button class="btn btn-sm btn-primary" disabled="@(selectedIds.Count != 1)" @onclick="AccountSelected">
+                                    <i class="fa fa-user me-1"></i>Account
+                                </button>
+                                <button class="btn btn-sm btn-danger" disabled="@(!selectedIds.Any())" @onclick="DeleteSelected">
+                                    <i class="fa fa-trash me-1"></i>Delete (@selectedIds.Count)
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="ExitSelectMode">
+                                    <i class="fa fa-times me-1"></i>Cancel
+                                </button>
+                            }
+                        </div>
+                    </Authorized>
+                </AuthorizeView>
 
-                                            <a href="/students/account/@student.Id" class="btn btn-primary btn-sm">
-                                                <i class="fa fa-user"></i> Account
-                                            </a>
+                <div class="table-responsive">
+                    <QuickGrid Items="itemsQuery" Pagination="pagination" Class="table table-striped fcms-grid">
+                        @if (selectMode)
+                        {
+                            <TemplateColumn Title="">
+                                <input type="checkbox"
+                                       checked="@selectedIds.Contains(context.Id)"
+                                       @onchange="e => ToggleSelection(context.Id, e)" />
+                            </TemplateColumn>
+                        }
 
-                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteStudent(student.Id)">
-                                                <i class="fa fa-trash"></i> Delete
-                                            </button>
-                                        </Authorized>
-                                    </AuthorizeView>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                        <TemplateColumn Title="Name">
+                            <a href="/students/details/@context.Id" class="grid-name-link">
+                                <ListThumbnail ImageUrl="@context.ProfilePictureUrl" Initials="@context.Initials" />
+                                @context.FullName
+                            </a>
+                        </TemplateColumn>
+
+                        <PropertyColumn Property="@(s => s.Age)" Title="Age" Class="d-none d-md-table-cell" />
+
+                        <TemplateColumn Title="Education Level" Class="d-none d-md-table-cell">
+                            @context.EducationLevel.ToDisplayName()
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="Class Level" Class="d-none d-md-table-cell">
+                            @context.ClassLevel.ToDisplayName()
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="Status">
+                            <span class="badge @(context.IsActive ? "bg-success" : "bg-danger")">
+                                @(context.IsActive ? "Active" : "Inactive")
+                            </span>
+                            <span class="badge @(context.IsEnrolled ? "bg-success" : "bg-danger")">
+                                @(context.IsEnrolled ? "Enrolled" : "Not Enrolled")
+                            </span>
+                        </TemplateColumn>
+                    </QuickGrid>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <button class="btn btn-sm btn-fcms"
+                            disabled="@(pagination.CurrentPageIndex == 0)"
+                            @onclick="PreviousPage">
+                        <i class="fa fa-arrow-left"></i>
+                    </button>
+                    <small class="text-muted">Page @(pagination.CurrentPageIndex + 1) of @((pagination.LastPageIndex ?? 0) + 1)</small>
+                    <button class="btn btn-sm btn-fcms"
+                            disabled="@(pagination.CurrentPageIndex >= (pagination.LastPageIndex ?? 0))"
+                            @onclick="NextPage">
+                        <i class="fa fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     }
+
     <ErrorDisplayModal IsVisible="showErrorModal"
                        Title="Delete Error"
                        Message="@errorMessage"
@@ -143,7 +159,7 @@
 
     <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
                         Title="Confirm Delete"
-                        Message="Are you sure you want to delete this Student?"
+                        Message="@deleteMessage"
                         OnConfirm="ConfirmDelete"
                         OnCancel="CancelDelete" />
 
@@ -154,23 +170,26 @@
 </div>
 
 @code {
-    private IEnumerable<Student>? students;
-    private int studentIdToDelete;
-    private bool showDeleteConfirmation = false;
-    private bool showGuardianSelectionModal = false;
-    private List<Student> visibleStudents = new();
+    private IQueryable<StudentListItem>? itemsQuery;
+    private PaginationState pagination = new() { ItemsPerPage = FcmsConstants.LIST_PAGE_SIZE };
+
+    private bool selectMode = false;
+    private HashSet<int> selectedIds = new();
+
     private List<ClassLevel> availableClassLevelsForFilter = new();
     private string selectedEducationLevel = "";
     private string selectedClassLevel = "";
     private bool filtersApplied = false;
+
+    private bool showDeleteConfirmation = false;
+    private bool showGuardianSelectionModal = false;
     private bool showErrorModal = false;
     private string errorMessage = "";
-
+    private string deleteMessage = "";
 
     protected override void OnInitialized()
     {
-        students = SchoolDataService.GetStudents();
-
+        pagination.TotalItemCountChanged += (sender, eventArgs) => InvokeAsync(StateHasChanged);
     }
 
     private void OnEducationLevelFilterChanged()
@@ -188,7 +207,6 @@
         }
 
         FilterStudents();
-        StateHasChanged();
     }
 
     private void FilterStudents()
@@ -198,27 +216,113 @@
 
         if (!filtersApplied)
         {
-            visibleStudents = new List<Student>();
+            itemsQuery = null;
             return;
         }
 
-        visibleStudents = students?.ToList() ?? new List<Student>();
+        var query = SchoolDataService.GetStudentsForList();
 
         if (!string.IsNullOrEmpty(selectedEducationLevel) &&
             Enum.TryParse<EducationLevel>(selectedEducationLevel, out var eduLevel))
         {
-            visibleStudents = visibleStudents
-                .Where(s => s.Person.EducationLevel == eduLevel)
-                .ToList();
+            query = query.Where(s => s.EducationLevel == eduLevel);
         }
 
         if (!string.IsNullOrEmpty(selectedClassLevel) &&
             Enum.TryParse<ClassLevel>(selectedClassLevel, out var classLevel))
         {
-            visibleStudents = visibleStudents
-                .Where(s => s.Person.ClassLevel == classLevel)
-                .ToList();
+            query = query.Where(s => s.ClassLevel == classLevel);
         }
+
+        itemsQuery = query;
+    }
+
+    private void EnterSelectMode()
+    {
+        selectMode = true;
+        selectedIds.Clear();
+    }
+
+    private void ExitSelectMode()
+    {
+        selectMode = false;
+        selectedIds.Clear();
+    }
+
+    private void ToggleSelection(int id, ChangeEventArgs e)
+    {
+        var isChecked = e.Value is bool b && b;
+
+        if (isChecked)
+        {
+            selectedIds.Add(id);
+        }
+        else
+        {
+            selectedIds.Remove(id);
+        }
+    }
+
+    private void EditSelected()
+    {
+        NavigationManager.NavigateTo($"/students/edit/{selectedIds.First()}");
+    }
+
+    private void AccountSelected()
+    {
+        NavigationManager.NavigateTo($"/students/account/{selectedIds.First()}");
+    }
+
+    private void DeleteSelected()
+    {
+        deleteMessage = $"Are you sure you want to delete {selectedIds.Count} student(s)?";
+        showDeleteConfirmation = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirmation = false;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        var failures = new List<string>();
+
+        foreach (var id in selectedIds.ToList())
+        {
+            try
+            {
+                var result = await SchoolDataService.DeleteStudentAsync(id);
+                if (result)
+                {
+                    selectedIds.Remove(id);
+                }
+            }
+            catch (BusinessRuleException ex)
+            {
+                failures.Add(ex.Message);
+            }
+        }
+
+        if (failures.Any())
+        {
+            errorMessage = string.Join(" ", failures);
+            showErrorModal = true;
+        }
+
+        FilterStudents();
+        showDeleteConfirmation = false;
+        StateHasChanged();
+    }
+
+    private async Task PreviousPage()
+    {
+        await pagination.SetCurrentPageIndexAsync(pagination.CurrentPageIndex - 1);
+    }
+
+    private async Task NextPage()
+    {
+        await pagination.SetCurrentPageIndexAsync(pagination.CurrentPageIndex + 1);
     }
 
     private void ShowGuardianSelectionModal()
@@ -234,41 +338,6 @@
     private void HandleGuardianSelected(Guardian selectedGuardian)
     {
         NavigationManager.NavigateTo($"/students/create?guardianId={selectedGuardian.Id}");
-    }
-
-
-    private void DeleteStudent(int id)
-    {
-        studentIdToDelete = id;
-        showDeleteConfirmation = true;
-    }
-
-    private void CancelDelete()
-    {
-        showDeleteConfirmation = false;
-    }
-
-    private async Task ConfirmDelete()
-    {
-        try
-        {
-            var result = await SchoolDataService.DeleteStudentAsync(studentIdToDelete);
-            if (result)
-            {
-                students = SchoolDataService.GetStudents();
-                FilterStudents();
-            }
-        }
-        catch (BusinessRuleException ex)
-        {
-            errorMessage = ex.Message;
-            showErrorModal = true;
-        }
-        finally
-        {
-            showDeleteConfirmation = false;
-            StateHasChanged();
-        }
     }
 
     private void CloseErrorModal()

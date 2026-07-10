@@ -3,6 +3,7 @@ using FcmsPortal.Constants;
 using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using FcmsPortalUI.Data;
+using FcmsPortalUI.DTOs;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 
@@ -3490,6 +3491,29 @@ namespace FcmsPortalUI.Services
                     hs.SubmissionDate))
                 .ToList();
         }
-        #endregion 
+        #endregion
+
+        #region Pagination and Filtering
+        public IQueryable<StudentListItem> GetStudentsForList()
+        {
+            return _context.Students
+                .AsNoTracking()
+                .Where(s => !s.Person.IsArchived)
+                .OrderBy(s => s.Person.FirstName)
+                .Select(s => new StudentListItem
+                {
+                    Id = s.Id,
+                    FirstName = s.Person.FirstName,
+                    MiddleName = s.Person.MiddleName,
+                    LastName = s.Person.LastName,
+                    ProfilePictureUrl = s.Person.ProfilePictureUrl,
+                    DateOfBirth = s.Person.DateOfBirth,
+                    EducationLevel = s.Person.EducationLevel,
+                    ClassLevel = s.Person.ClassLevel,
+                    IsActive = s.Person.IsActive,
+                    LearningPathId = s.LearningPathId
+                });
+        }
+        #endregion
     }
 }

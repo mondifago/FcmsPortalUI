@@ -1,5 +1,6 @@
 ﻿using FcmsPortal.Enums;
 using FcmsPortal.Models;
+using FcmsPortalUI.DTOs;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace FcmsPortalUI.Services
@@ -240,6 +241,10 @@ namespace FcmsPortalUI.Services
         int GetActiveClassCount();
         List<ScheduleEntry> GetTodayClassSessionsForTeacher(int teacherId, int maxCount);
         List<(string Course, string StudentName, string ClassLevelName, DateTime SubmittedDate)> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount);
+        #endregion
+
+        #region Pagination and Filtering
+        IQueryable<StudentListItem> GetStudentsForList();
         #endregion
     }
 }
