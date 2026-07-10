@@ -3533,6 +3533,24 @@ namespace FcmsPortalUI.Services
                     IsActive = s.Person.IsActive
                 });
         }
+
+        public IQueryable<GuardianListItem> GetGuardiansForList()
+        {
+            return _context.Guardians
+                .AsNoTracking()
+                .OrderBy(g => g.Person.FirstName)
+                .Select(g => new GuardianListItem
+                {
+                    Id = g.Id,
+                    FirstName = g.Person.FirstName,
+                    MiddleName = g.Person.MiddleName,
+                    LastName = g.Person.LastName,
+                    ProfilePictureUrl = g.Person.ProfilePictureUrl,
+                    Email = g.Person.Email,
+                    PhoneNumber = g.Person.PhoneNumber,
+                    IsActive = g.Person.IsActive
+                });
+        }
         #endregion
     }
 }

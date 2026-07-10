@@ -1,12 +1,15 @@
 ﻿@page "/guardians"
 @inject ISchoolDataService SchoolDataService
-@using FcmsPortalUI.Services
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
+@using FcmsPortalUI.Services
+@using FcmsPortalUI.DTOs
 @using FcmsPortalUI.Components.Pages.Shared
-@inject ExceptionHandlerService ExceptionHandler
 @rendermode InteractiveServer
-
 
 <PageTitle>Guardians</PageTitle>
 
@@ -23,73 +26,87 @@
             </Authorized>
         </AuthorizeView>
     </div>
-    @if (guardians == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else if (!guardians.Any())
-    {
-        <div class="alert alert-info">
-            No guardians found. Add a new guardian to get started.
-        </div>
-    }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Profile</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        <th>status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var guardian in guardians)
+
+    <div class="card">
+        <div class="card-body">
+            <AuthorizeView Roles="Developer,Principal,Admin">
+                <Authorized>
+                    <div class="d-flex align-items-center flex-wrap mb-2" style="gap:0.5rem;">
+                        @if (!selectMode)
+                        {
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="EnterSelectMode">
+                                <i class="fa fa-check-square me-1"></i>Select
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-warning" disabled="@(selectedIds.Count != 1)" @onclick="EditSelected">
+                                <i class="fa fa-pencil me-1"></i>Edit
+                            </button>
+                            <button class="btn btn-sm btn-primary" disabled="@(selectedIds.Count != 1)" @onclick="AccountSelected">
+                                <i class="fa fa-user me-1"></i>Account
+                            </button>
+                            <button class="btn btn-sm btn-danger" disabled="@(!selectedIds.Any())" @onclick="DeleteSelected">
+                                <i class="fa fa-trash me-1"></i>Delete (@selectedIds.Count)
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="ExitSelectMode">
+                                <i class="fa fa-times me-1"></i>Cancel
+                            </button>
+                        }
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <div class="table-responsive">
+                <QuickGrid Items="itemsQuery" Pagination="pagination" Class="table table-striped fcms-grid">
+                    @if (selectMode)
                     {
-                        <tr>
-                            <td>@guardian.Id</td>
-                            <td>
-                                <ProfileThumbnailList Person="guardian.Person" />
-                            </td>
-                            <td>@Util.GetFullName(guardian.Person)</td>
-                            <td>@guardian.Person.Email</td>
-                            <td>@guardian.Person.PhoneNumber</td>
-                            <td>
-                                <span class="badge @(guardian.Person.IsActive ? "bg-success" : "bg-danger")">
-                                    @(guardian.Person.IsActive ? "Active" : "Inactive")
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="/guardians/details/@guardian.Id" class="btn btn-info btn-sm">
-                                        <i class="fa fa-eye"></i> View
-                                    </a>
-                                    <AuthorizeView Roles="Developer,Principal,Admin">
-                                        <Authorized>
-                                            <a href="/guardians/edit/@guardian.Id" class="btn btn-warning btn-sm">
-                                                <i class="fa fa-pencil"></i> Edit
-                                            </a>
-                                            <a href="/guardians/account/@guardian.Id" class="btn btn-primary btn-sm">
-                                                <i class="fa fa-user"></i> Account
-                                            </a>
-                                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteGuardian(guardian.Id)">
-                                                <i class="fa fa-trash"></i> Delete
-                                            </button>
-                                        </Authorized>
-                                    </AuthorizeView>
-                                </div>
-                            </td>
-                        </tr>
+                        <TemplateColumn Title="">
+                            <input type="checkbox"
+                                   checked="@selectedIds.Contains(context.Id)"
+                                   @onchange="e => ToggleSelection(context.Id, e)" />
+                        </TemplateColumn>
                     }
-                </tbody>
-            </table>
+
+                    <TemplateColumn Title="Name">
+                        <a href="/guardians/details/@context.Id" class="grid-name-link">
+                            <ListThumbnail ImageUrl="@context.ProfilePictureUrl" Initials="@context.Initials" />
+                            @context.FullName
+                        </a>
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Email" Class="d-none d-md-table-cell">
+                        @context.Email
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Phone" Class="d-none d-md-table-cell">
+                        @context.PhoneNumber
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Status">
+                        <span class="badge @(context.IsActive ? "bg-success" : "bg-danger")">
+                            @(context.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </TemplateColumn>
+                </QuickGrid>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <button class="btn btn-sm btn-fcms"
+                        disabled="@(pagination.CurrentPageIndex == 0)"
+                        @onclick="PreviousPage">
+                    <i class="fa fa-arrow-left"></i>
+                </button>
+                <small class="text-muted">Page @(pagination.CurrentPageIndex + 1) of @((pagination.LastPageIndex ?? 0) + 1)</small>
+                <button class="btn btn-sm btn-fcms"
+                        disabled="@(pagination.CurrentPageIndex >= (pagination.LastPageIndex ?? 0))"
+                        @onclick="NextPage">
+                    <i class="fa fa-arrow-right"></i>
+                </button>
+            </div>
         </div>
-    }
+    </div>
+
     <ErrorDisplayModal IsVisible="showErrorModal"
                        Title="Cannot Delete Guardian"
                        Message="@errorMessage"
@@ -97,39 +114,87 @@
 
     <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
                         Title="Confirm Delete"
-                        Message="Are you sure you want to delete this guardian?"
+                        Message="@deleteMessage"
                         OnConfirm="ConfirmDelete"
                         OnCancel="CancelDelete" />
 </div>
 
 @code {
-    private IEnumerable<Guardian>? guardians;
-    private int guardianIdToDelete;
+    private IQueryable<GuardianListItem>? itemsQuery;
+    private PaginationState pagination = new() { ItemsPerPage = FcmsConstants.LIST_PAGE_SIZE };
+
+    private bool selectMode = false;
+    private HashSet<int> selectedIds = new();
+
     private bool showDeleteConfirmation = false;
     private bool showErrorModal = false;
     private string errorMessage = "";
+    private string deleteMessage = "";
 
     protected override void OnInitialized()
     {
-        guardians = SchoolDataService.GetGuardians();
+        pagination.TotalItemCountChanged += (sender, eventArgs) => InvokeAsync(StateHasChanged);
+        itemsQuery = SchoolDataService.GetGuardiansForList();
     }
 
-    private void DeleteGuardian(int id)
+    private void EnterSelectMode()
     {
-        var validationError = SchoolDataService.ValidateGuardianDeletion(id);
+        selectMode = true;
+        selectedIds.Clear();
+    }
 
-        if (!string.IsNullOrEmpty(validationError))
+    private void ExitSelectMode()
+    {
+        selectMode = false;
+        selectedIds.Clear();
+    }
+
+    private void ToggleSelection(int id, ChangeEventArgs e)
+    {
+        var isChecked = e.Value is bool b && b;
+
+        if (isChecked)
         {
-            errorMessage = validationError;
-            showErrorModal = true;
-            StateHasChanged();
+            selectedIds.Add(id);
         }
         else
         {
-            guardianIdToDelete = id;
-            showDeleteConfirmation = true;
-            StateHasChanged();
+            selectedIds.Remove(id);
         }
+    }
+
+    private void EditSelected()
+    {
+        NavigationManager.NavigateTo($"/guardians/edit/{selectedIds.First()}");
+    }
+
+    private void AccountSelected()
+    {
+        NavigationManager.NavigateTo($"/guardians/account/{selectedIds.First()}");
+    }
+
+    private void DeleteSelected()
+    {
+        var validationErrors = new List<string>();
+
+        foreach (var id in selectedIds)
+        {
+            var validationError = SchoolDataService.ValidateGuardianDeletion(id);
+            if (!string.IsNullOrEmpty(validationError))
+            {
+                validationErrors.Add(validationError);
+            }
+        }
+
+        if (validationErrors.Any())
+        {
+            errorMessage = string.Join(" ", validationErrors);
+            showErrorModal = true;
+            return;
+        }
+
+        deleteMessage = $"Are you sure you want to delete {selectedIds.Count} guardian(s)?";
+        showDeleteConfirmation = true;
     }
 
     private void CancelDelete()
@@ -141,21 +206,26 @@
     {
         try
         {
-            var guardian = SchoolDataService.GetGuardianById(guardianIdToDelete);
-
-            if (guardian != null && !string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl) && !guardian.Person.ProfilePictureUrl.StartsWith("data:"))
+            foreach (var id in selectedIds.ToList())
             {
-                var attachment = new FileAttachment { FilePath = guardian.Person.ProfilePictureUrl };
-                await SchoolDataService.DeleteFileAsync(attachment);
+                var guardian = SchoolDataService.GetGuardianById(id);
+
+                if (guardian != null && !string.IsNullOrEmpty(guardian.Person.ProfilePictureUrl) && !guardian.Person.ProfilePictureUrl.StartsWith("data:"))
+                {
+                    var attachment = new FileAttachment { FilePath = guardian.Person.ProfilePictureUrl };
+                    await SchoolDataService.DeleteFileAsync(attachment);
+                }
+
+                var result = SchoolDataService.DeleteGuardian(id);
+                if (result)
+                {
+                    selectedIds.Remove(id);
+                }
             }
 
-            var result = SchoolDataService.DeleteGuardian(guardianIdToDelete);
-            if (result)
-            {
-                guardians = SchoolDataService.GetGuardians();
-                showDeleteConfirmation = false;
-                StateHasChanged();
-            }
+            itemsQuery = SchoolDataService.GetGuardiansForList();
+            showDeleteConfirmation = false;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -166,10 +236,19 @@
         }
     }
 
+    private async Task PreviousPage()
+    {
+        await pagination.SetCurrentPageIndexAsync(pagination.CurrentPageIndex - 1);
+    }
+
+    private async Task NextPage()
+    {
+        await pagination.SetCurrentPageIndexAsync(pagination.CurrentPageIndex + 1);
+    }
+
     private void CloseErrorModal()
     {
         showErrorModal = false;
         errorMessage = "";
-        StateHasChanged();
     }
 }
