@@ -245,6 +245,7 @@ namespace FcmsPortalUI.Services
 
         #region Pagination and Filtering
         IQueryable<StudentListItem> GetStudentsForList();
+        IQueryable<StaffListItem> GetStaffForList();
         #endregion
     }
 }

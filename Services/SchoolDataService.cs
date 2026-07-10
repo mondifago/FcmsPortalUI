@@ -3514,6 +3514,25 @@ namespace FcmsPortalUI.Services
                     LearningPathId = s.LearningPathId
                 });
         }
+
+        public IQueryable<StaffListItem> GetStaffForList()
+        {
+            return _context.Staff
+                .AsNoTracking()
+                .OrderBy(s => s.Person.FirstName)
+                .Select(s => new StaffListItem
+                {
+                    Id = s.Id,
+                    FirstName = s.Person.FirstName,
+                    MiddleName = s.Person.MiddleName,
+                    LastName = s.Person.LastName,
+                    ProfilePictureUrl = s.Person.ProfilePictureUrl,
+                    Email = s.Person.Email,
+                    PhoneNumber = s.Person.PhoneNumber,
+                    UserRole = s.UserRole,
+                    IsActive = s.Person.IsActive
+                });
+        }
         #endregion
     }
 }
