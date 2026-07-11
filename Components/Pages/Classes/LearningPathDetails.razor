@@ -101,7 +101,7 @@
                             <Authorized>
                                 @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending)
                                 {
-                                    <button class="btn btn-primary" @onclick="SubmitForReview">
+                                    <button class="btn btn-primary" @onclick="() => showSubmitConfirm = true">
                                         <i class="fa fa-check-circle"></i> Submit
                                     </button>
                                 }
@@ -112,7 +112,7 @@
                             <Authorized>
                                 @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
                                 {
-                                    <button class="btn btn-success" @onclick="ApproveLearningPath">
+                                    <button class="btn btn-success" @onclick="() => showApproveConfirm = true">
                                         <i class="fa fa-thumbs-up"></i> Approve
                                     </button>
                                     <button class="btn btn-secondary" @onclick="RestoreLearningPath">
@@ -332,6 +332,59 @@
                          OnClose="() => showScheduleCreateModal = false" />
 </div>
 
+@if (showSubmitConfirm)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Submit Learning Path</h5>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        This learning path will be submitted to the Principal for review.<br />
+                        You will no longer have access to it after this action.<br />
+                        Are you sure you are ready to submit?
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showSubmitConfirm = false">Cancel</button>
+                    <button class="btn btn-primary" @onclick="ConfirmSubmitForReview">Submit</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+@if (showApproveConfirm)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Approve Learning Path</h5>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Are you sure you are ready to approve this class?<br />
+                        You cannot undo this action.
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showApproveConfirm = false">Cancel</button>
+                    <button class="btn btn-success" @onclick="ConfirmApproveLearningPath">Approve</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
 @if (showAddStudentsModal)
 {
     <div class="modal show" style="display: block" tabindex="-1">
@@ -477,6 +530,8 @@
     private bool showDailyAttendanceModal = false;
     private bool showScheduleCreateModal = false;
     private bool showAddStudentsModal = false;
+    private bool showSubmitConfirm = false;
+    private bool showApproveConfirm = false;
     private Person? currentUser;
     private int? currentUserId;
     private List<ScheduleEntry> generalCalendarSchedules = new();
@@ -763,5 +818,17 @@
     {
         showFinalizeGradesModal = false;
         StateHasChanged();
+    }
+
+    private void ConfirmSubmitForReview()
+    {
+        showSubmitConfirm = false;
+        SubmitForReview();
+    }
+
+    private void ConfirmApproveLearningPath()
+    {
+        showApproveConfirm = false;
+        ApproveLearningPath();
     }
 }
