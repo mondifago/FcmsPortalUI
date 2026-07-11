@@ -1,7 +1,11 @@
 ﻿@page "/classes"
-@using FcmsPortalUI.Services
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
+@using FcmsPortalUI.Services
+@using FcmsPortalUI.DTOs
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject IPermissionService PermissionService
@@ -52,74 +56,93 @@
         Please select filters to view learning paths.
     </div>
 }
-else if (!visibleLearningPaths.Any())
-{
-    <div class="alert alert-warning">
-        <i class="fa fa-exclamation-triangle me-2"></i>
-        No learning paths found matching the selected filters.
-    </div>
-}
 else
 {
     <div class="card">
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Education Level</th>
-                            <th>Class Level</th>
-                            <th>Term</th>
-                            <th>Academic Year</th>
-                            <th>Approval Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var learningPath in visibleLearningPaths)
-                        {
-                            <tr>
-                                <td>@learningPath.Id</td>
-                                <td>@learningPath.EducationLevel.ToDisplayName()</td>
-                                <td>@learningPath.ClassLevel.ToDisplayName()</td>
-                                <td>@learningPath.Semester.ToTermDisplay()</td>
-                                <td>@learningPath.AcademicYear</td>
-                                <td>
-                                    <span class="@Util.GetApprovalStatusBadgeClass(learningPath.ApprovalStatus)">
-                                        @learningPath.ApprovalStatus
-                                    </span>
-                                </td>
-                                <td>
-                                    @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Review)
-                                    {
-                                    }
-                                    else
-                                    {
-                                        <div class="btn-group" role="group">
-                                            <a href="/learningpaths/details/@learningPath.Id" class="btn btn-sm btn-info">
-                                                <span class="fa fa-eye"></span> Details
-                                            </a>
-                                            @if (learningPath.ApprovalStatus == PrincipalApprovalStatus.Pending && canManageLearningPaths)
-                                            {
-                                                <a href="/learningpath/edit/@learningPath.Id" class="btn btn-sm btn-warning">
-                                                    <span class="fa fa-pencil"></span> Edit
-                                                </a>
-                                            }
-                                            @if (canManageLearningPaths)
-                                            {
-                                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteConfirmation(learningPath)">
-                                                    <span class="fa fa-trash"></span> Delete
-                                                </button>
-                                            }
-                                        </div>
-                                    }
-                                </td>
+            @if (canManageLearningPaths)
+            {
+                <div class="d-flex align-items-center flex-wrap mb-2" style="gap:0.5rem;">
+                    @if (!selectMode)
+                    {
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="EnterSelectMode">
+                            <i class="fa fa-check-square me-1"></i>Select
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-sm btn-warning" disabled="@(!CanEditSelected())" @onclick="EditSelected">
+                            <i class="fa fa-pencil me-1"></i>Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" disabled="@(!selectedItems.Any())" @onclick="DeleteSelected">
+                            <i class="fa fa-trash me-1"></i>Delete (@selectedItems.Count)
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="ExitSelectMode">
+                            <i class="fa fa-times me-1"></i>Cancel
+                        </button>
+                    }
+                </div>
+            }
 
-                            </tr>
+            <div class="table-responsive">
+                <QuickGrid Items="itemsQuery" Pagination="pagination" Class="table table-striped fcms-grid">
+                    @if (selectMode)
+                    {
+                        <TemplateColumn Title="">
+                            @if (context.ApprovalStatus != PrincipalApprovalStatus.Review)
+                            {
+                                <input type="checkbox"
+                                       checked="@selectedItems.ContainsKey(context.Id)"
+                                       @onchange="e => ToggleSelection(context, e)" />
+                            }
+                        </TemplateColumn>
+                    }
+
+                    <TemplateColumn Title="Class Level">
+                        @if (context.ApprovalStatus != PrincipalApprovalStatus.Review)
+                        {
+                            <a href="/learningpaths/details/@context.Id" class="grid-name-link">
+                                @context.ClassLevel.ToDisplayName()
+                            </a>
                         }
-                    </tbody>
-                </table>
+                        else
+                        {
+                            @context.ClassLevel.ToDisplayName()
+                        }
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Education Level" Class="d-none d-md-table-cell">
+                        @context.EducationLevel.ToDisplayName()
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Term" Class="d-none d-md-table-cell">
+                        @context.Semester.ToTermDisplay()
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Academic Year" Class="d-none d-md-table-cell">
+                        @context.AcademicYear
+                    </TemplateColumn>
+
+                    <TemplateColumn Title="Approval Status">
+                        <span class="@Util.GetApprovalStatusBadgeClass(context.ApprovalStatus)">
+                            @context.ApprovalStatus
+                        </span>
+                    </TemplateColumn>
+                </QuickGrid>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <button class="btn btn-sm btn-fcms"
+                        disabled="@(pagination.CurrentPageIndex == 0)"
+                        @onclick="PreviousPage">
+                    <i class="fa fa-arrow-left"></i>
+                </button>
+                <small class="text-muted">Page @(pagination.CurrentPageIndex + 1) of @((pagination.LastPageIndex ?? 0) + 1)</small>
+                <button class="btn btn-sm btn-fcms"
+                        disabled="@(pagination.CurrentPageIndex >= (pagination.LastPageIndex ?? 0))"
+                        @onclick="NextPage">
+                    <i class="fa fa-arrow-right"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -127,7 +150,7 @@ else
 
 <ConfirmDeleteModal IsVisible="showDeleteConfirmation"
                     Title="Confirm Delete"
-                    Message="Are you sure you want to delete this Learning Path?"
+                    Message="@deleteMessage"
                     OnConfirm="DeleteLearningPath"
                     OnCancel="CancelDelete" />
 
@@ -138,9 +161,13 @@ else
 
 
 @code {
-    private IEnumerable<LearningPath> learningPaths = Enumerable.Empty<LearningPath>();
-    private LearningPath? learningPathToDelete;
-    private List<LearningPath> visibleLearningPaths = new();
+    private IQueryable<LearningPathListItem>? scopedQuery;
+    private IQueryable<LearningPathListItem>? itemsQuery;
+    private PaginationState pagination = new() { ItemsPerPage = FcmsConstants.LIST_PAGE_SIZE };
+
+    private bool selectMode = false;
+    private Dictionary<int, PrincipalApprovalStatus> selectedItems = new();
+
     private List<string> availableAcademicYears = new();
     private Person? currentUser;
     private int? currentUserId;
@@ -154,9 +181,12 @@ else
     private bool showDeleteConfirmation = false;
     private bool showErrorModal = false;
     private string errorMessage = "";
+    private string deleteMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
+        pagination.TotalItemCountChanged += (sender, eventArgs) => InvokeAsync(StateHasChanged);
+
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
         currentUser = await PermissionService.GetCurrentPersonAsync();
 
@@ -165,34 +195,35 @@ else
         isGuardian = await PermissionService.IsInRoleAsync("Guardian");
         isStudent = await PermissionService.IsInRoleAsync("Student");
 
-        LoadLearningPaths();
+        scopedQuery = SchoolDataService.GetLearningPathsForList();
+
         if (isGuardian)
         {
             var guardian = SchoolDataService.GetGuardians()
                 .FirstOrDefault(g => g.PersonId == currentUser?.Id);
 
             var wardIds = guardian?.Wards
-                .Select(w => w.LearningPathId)
-                .Where(id => id != null)
+                .Where(w => w.LearningPathId != null)
+                .Select(w => w.LearningPathId!.Value)
                 .ToList() ?? new();
 
-            learningPaths = learningPaths.Where(lp => wardIds.Contains(lp.Id));
+            scopedQuery = scopedQuery.Where(lp => wardIds.Contains(lp.Id));
         }
-        else if (isStudent)
+
+        if (isStudent)
         {
             var student = SchoolDataService.GetStudents()
                 .FirstOrDefault(s => s.PersonId == currentUser?.Id);
 
             if (student?.LearningPathId != null)
-                learningPaths = learningPaths.Where(lp => lp.Id == student.LearningPathId);
+            {
+                var studentPathId = student.LearningPathId.Value;
+                scopedQuery = scopedQuery.Where(lp => lp.Id == studentPathId);
+            }
         }
+
         LoadAvailableFilters();
         InitializeWithCurrentAcademicPeriod();
-    }
-
-    public void LoadLearningPaths()
-    {
-        learningPaths = SchoolDataService.GetAllLearningPaths();
     }
 
     private void InitializeWithCurrentAcademicPeriod()
@@ -209,10 +240,18 @@ else
 
     private void LoadAvailableFilters()
     {
-        availableAcademicYears = learningPaths
-            .Select(lp => lp.AcademicYear)
+        if (scopedQuery == null)
+        {
+            availableAcademicYears = new List<string>();
+            return;
+        }
+
+        availableAcademicYears = scopedQuery
+            .Select(lp => lp.AcademicYearStart.Year)
             .Distinct()
             .OrderByDescending(y => y)
+            .ToList()
+            .Select(y => $"{y}-{y + 1}")
             .ToList();
     }
 
@@ -221,65 +260,113 @@ else
         filtersApplied = !string.IsNullOrEmpty(selectedAcademicYear) ||
                          !string.IsNullOrEmpty(selectedSemester);
 
-        if (!filtersApplied)
+        if (!filtersApplied || scopedQuery == null)
         {
-            visibleLearningPaths = new List<LearningPath>();
+            itemsQuery = null;
             return;
         }
 
-        visibleLearningPaths = learningPaths.ToList();
+        var query = scopedQuery;
 
-        if (!string.IsNullOrEmpty(selectedAcademicYear))
+        if (!string.IsNullOrEmpty(selectedAcademicYear) &&
+            int.TryParse(selectedAcademicYear.Split('-')[0], out var startYear))
         {
-            visibleLearningPaths = visibleLearningPaths
-                .Where(lp => lp.AcademicYear == selectedAcademicYear)
-                .ToList();
+            query = query.Where(lp => lp.AcademicYearStart.Year == startYear);
         }
 
         if (!string.IsNullOrEmpty(selectedSemester) && Enum.TryParse<Semester>(selectedSemester, out var semester))
         {
-            visibleLearningPaths = visibleLearningPaths
-                .Where(lp => lp.Semester == semester)
-                .ToList();
+            query = query.Where(lp => lp.Semester == semester);
         }
 
+        itemsQuery = query;
     }
 
-    private void DeleteConfirmation(LearningPath learningPath)
+    private void EnterSelectMode()
     {
-        learningPathToDelete = learningPath;
+        selectMode = true;
+        selectedItems.Clear();
+    }
+
+    private void ExitSelectMode()
+    {
+        selectMode = false;
+        selectedItems.Clear();
+    }
+
+    private void ToggleSelection(LearningPathListItem item, ChangeEventArgs e)
+    {
+        var isChecked = e.Value is bool b && b;
+
+        if (isChecked)
+        {
+            selectedItems[item.Id] = item.ApprovalStatus;
+        }
+        else
+        {
+            selectedItems.Remove(item.Id);
+        }
+    }
+
+    private bool CanEditSelected()
+    {
+        return selectedItems.Count == 1 &&
+               selectedItems.First().Value == PrincipalApprovalStatus.Pending;
+    }
+
+    private void EditSelected()
+    {
+        NavigationManager.NavigateTo($"/learningpath/edit/{selectedItems.First().Key}");
+    }
+
+    private void DeleteSelected()
+    {
+        deleteMessage = $"Are you sure you want to delete {selectedItems.Count} learning path(s)?";
         showDeleteConfirmation = true;
     }
 
     private void CancelDelete()
     {
-        learningPathToDelete = null;
         showDeleteConfirmation = false;
     }
 
     private void DeleteLearningPath()
     {
-        try
-        {
-            if (learningPathToDelete != null)
-            {
-                SchoolDataService.DeleteLearningPath(learningPathToDelete.Id);
-                LoadLearningPaths();
-                LoadAvailableFilters();
-                FilterLearningPaths();
-            }
+        var failures = new List<string>();
 
-            showDeleteConfirmation = false;
-            learningPathToDelete = null;
-        }
-        catch (BusinessRuleException ex)
+        foreach (var id in selectedItems.Keys.ToList())
         {
-            errorMessage = ex.Message;
-            showErrorModal = true;
-            showDeleteConfirmation = false;
-            learningPathToDelete = null;
-            StateHasChanged();
+            try
+            {
+                SchoolDataService.DeleteLearningPath(id);
+                selectedItems.Remove(id);
+            }
+            catch (BusinessRuleException ex)
+            {
+                failures.Add(ex.Message);
+            }
         }
+
+        if (failures.Any())
+        {
+            errorMessage = string.Join(" ", failures);
+            showErrorModal = true;
+        }
+
+        LoadAvailableFilters();
+        FilterLearningPaths();
+        showDeleteConfirmation = false;
+        StateHasChanged();
+    }
+
+    private async Task PreviousPage()
+    {
+        await pagination.SetCurrentPageIndexAsync(pagination.CurrentPageIndex - 1);
+    }
+
+    private async Task NextPage()
+    {
+        await pagination.SetCurrentPageIndexAsync(pagination.CurrentPageIndex + 1);
     }
 
     private void CloseErrorModal()

@@ -59,6 +59,7 @@ namespace FcmsPortalUI.Services
         LearningPath? GetLearningPathForAttendanceReport(int id);
         LearningPath? GetLearningPathForGradeManagement(int id);
         LearningPath? GetLearningPathForSchedules(int id);
+        List<ScheduleEntry> GetLearningPathCalendarSchedules(int learningPathId);
         LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId);
         Dictionary<int, LearningPath?> GetLearningPathsByScheduleEntries(List<int> scheduleEntryIds);
         LearningPath? GetLearningPathWithAttendanceByClassSessionId(int classSessionId, DateTime sessionDate);
@@ -247,6 +248,7 @@ namespace FcmsPortalUI.Services
         IQueryable<StudentListItem> GetStudentsForList();
         IQueryable<StaffListItem> GetStaffForList();
         IQueryable<GuardianListItem> GetGuardiansForList();
+        IQueryable<LearningPathListItem> GetLearningPathsForList();
         #endregion
     }
 }

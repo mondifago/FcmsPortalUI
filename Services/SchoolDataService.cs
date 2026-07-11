@@ -747,6 +747,15 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(lp => lp.Id == id);
         }
 
+        public List<ScheduleEntry> GetLearningPathCalendarSchedules(int learningPathId)
+        {
+            return _context.ScheduleEntries
+                .AsNoTracking()
+                .Where(se => se.LearningPathId == learningPathId)
+                .Include(se => se.ClassSession)
+                .ToList();
+        }
+
         public IEnumerable<LearningPath> GetAllLearningPaths()
         {
             return _context.LearningPaths
@@ -1191,7 +1200,6 @@ namespace FcmsPortalUI.Services
             {
                 mainCalendar = new CalendarModel
                 {
-                    Id = 1,
                     Name = "Main School Calendar",
                     ScheduleEntries = new List<ScheduleEntry>()
                 };
@@ -3549,6 +3557,24 @@ namespace FcmsPortalUI.Services
                     Email = g.Person.Email,
                     PhoneNumber = g.Person.PhoneNumber,
                     IsActive = g.Person.IsActive
+                });
+        }
+
+        public IQueryable<LearningPathListItem> GetLearningPathsForList()
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Where(lp => !lp.IsTemplate)
+                .OrderBy(lp => lp.ClassLevel)
+                    .ThenBy(lp => lp.Id)
+                .Select(lp => new LearningPathListItem
+                {
+                    Id = lp.Id,
+                    EducationLevel = lp.EducationLevel,
+                    ClassLevel = lp.ClassLevel,
+                    Semester = lp.Semester,
+                    AcademicYearStart = lp.AcademicYearStart,
+                    ApprovalStatus = lp.ApprovalStatus
                 });
         }
         #endregion

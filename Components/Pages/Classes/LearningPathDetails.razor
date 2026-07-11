@@ -480,6 +480,7 @@
     private Person? currentUser;
     private int? currentUserId;
     private List<ScheduleEntry> generalCalendarSchedules = new();
+    private LearningPath schedulesContainer = new LearningPath();
     private bool showDailyView = false;
     private DateTime? selectedDateForDailyView = null;
     private ScheduleType? selectedScheduleTypeForDailyView = null;
@@ -489,6 +490,7 @@
     protected override async Task OnInitializedAsync()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
+        schedulesContainer = new LearningPath { Schedule = SchoolDataService.GetLearningPathCalendarSchedules(Id) };
         generalCalendarSchedules = SchoolDataService.GetAllSchoolCalendarSchedules().ToList();
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
         currentUser = await PermissionService.GetCurrentPersonAsync();
@@ -496,8 +498,8 @@
 
     private List<ScheduleEntry> GetSessionsForDate(DateTime date)
     {
-        var learningPathSchedules = learningPath != null
-      ? LogicMethods.GetSchedulesByDateInLearningPath(learningPath, date)
+        var learningPathSchedules = schedulesContainer != null
+      ? LogicMethods.GetSchedulesByDateInLearningPath(schedulesContainer, date)
       : new List<ScheduleEntry>();
 
         var generalSchedules = generalCalendarSchedules
@@ -654,6 +656,7 @@
     {
         showScheduleCreateModal = false;
         selectedDateForSchedule = null;
+        schedulesContainer = new LearningPath { Schedule = SchoolDataService.GetLearningPathCalendarSchedules(Id) };
         generalCalendarSchedules = SchoolDataService.GetAllSchoolCalendarSchedules().ToList();
         StateHasChanged();
     }
@@ -691,7 +694,6 @@
             showDailyAttendanceModal = true;
         }
     }
-
 
     private void OnAttendanceSubmitted(DailyAttendanceLogEntry attendanceLog)
     {
