@@ -1,0 +1,594 @@
+﻿@page "/myclasses"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using FcmsPortal
+@using FcmsPortal.Models
+@using FcmsPortal.Enums
+@using FcmsPortal.Constants
+@using FcmsPortalUI.Services
+@using FcmsPortalUI.DTOs
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+@inject IPermissionService PermissionService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>My Classes</PageTitle>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap:0.5rem;">
+        <h2 class="mb-0">My Classes</h2>
+
+        @if (canManageSchedules && activePathId > 0)
+        {
+            <button class="btn btn-primary" @onclick="() => showCreateModal = true">
+                <i class="fa fa-plus me-1"></i> Add Class Schedule
+            </button>
+        }
+    </div>
+
+    @if (isGuardian && guardianProfile != null && guardianProfile.Wards.Count > 1)
+    {
+        <div class="d-flex align-items-center flex-wrap mb-3" style="gap:0.5rem;">
+            <small class="text-muted">Viewing ward:</small>
+            @foreach (var ward in guardianProfile.Wards)
+            {
+                @if (ward.Id == activeWardId)
+                {
+                    <span class="badge" style="background-color:#f0d5c4;color:#5a3e2b;cursor:default;">@Util.GetFullName(ward.Person)</span>
+                }
+                else
+                {
+                    <span class="badge bg-light text-secondary border" style="cursor:pointer;"
+                          @onclick="() => SelectWard(ward.Id)">@Util.GetFullName(ward.Person)</span>
+                }
+            }
+        </div>
+    }
+
+    @if (isStaffViewer)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Academic Year:</label>
+                        <select class="form-select" @bind="staffYear" @bind:after="OnStaffFiltersChanged">
+                            <option value="">Select Academic Year</option>
+                            @foreach (var year in availableYears)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Education Level:</label>
+                        <select class="form-select" @bind="staffEducationLevel" @bind:after="OnStaffFiltersChanged"
+                                disabled="@(string.IsNullOrEmpty(staffYear))">
+                            <option value="">Select Education Level</option>
+                            @foreach (var level in Enum.GetValues<EducationLevel>().Where(l => l != EducationLevel.None))
+                            {
+                                <option value="@level">@level.ToDisplayName()</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Class Level:</label>
+                        <select class="form-select" @bind="staffClassLevel" @bind:after="OnStaffFiltersChanged"
+                                disabled="@(string.IsNullOrEmpty(staffEducationLevel))">
+                            <option value="">Select Class Level</option>
+                            @foreach (var level in availableClassLevels)
+                            {
+                                <option value="@level">@level.ToDisplayName()</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Term:</label>
+                        <select class="form-select" @bind="staffTerm" @bind:after="OnStaffFiltersChanged"
+                                disabled="@(string.IsNullOrEmpty(staffClassLevel))">
+                            <option value="">Select Term</option>
+                            @foreach (var semester in Enum.GetValues<Semester>())
+                            {
+                                <option value="@semester">@semester.ToTermDisplay()</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <ul class="nav fcms-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabTimetable ? "active" : "")"
+                    @onclick="() => activeTab = TabTimetable">
+                Timetable
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabOne ? "active" : "")"
+                    @onclick="() => activeTab = TabOne">
+                Tab1
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabTwo ? "active" : "")"
+                    @onclick="() => activeTab = TabTwo">
+                Tab2
+            </button>
+        </li>
+    </ul>
+
+    @if (activeTab == TabTimetable)
+    {
+        @if (activePathId == 0)
+        {
+            <div class="text-center py-4">
+                <i class="fa fa-calendar-week fa-3x text-muted mb-3"></i>
+                @if (isStudent)
+                {
+                    <h5 class="text-muted">You are not enrolled in any class yet</h5>
+                    <p class="text-muted">Your timetable will appear here once you are enrolled.</p>
+                }
+                else
+                {
+                    @if (StaffFiltersComplete())
+                    {
+                        <h5 class="text-muted">No class found for this selection</h5>
+                        <p class="text-muted">No learning path exists for that year, level and term combination.</p>
+                    }
+                    else
+                    {
+                        <h5 class="text-muted">Select a class to view its timetable</h5>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body">
+
+                    @if (canManageSchedules)
+                    {
+                        <div class="d-flex align-items-center flex-wrap mb-2" style="gap:0.5rem;">
+                            @if (!selectMode)
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="EnterSelectMode">
+                                    <i class="fa fa-check-square me-1"></i>Select
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-warning" disabled="@(selectedEntryIds.Count != 1)" @onclick="EditSelected">
+                                    <i class="fa fa-pencil me-1"></i>Edit
+                                </button>
+                                <button class="btn btn-sm btn-danger" disabled="@(!selectedEntryIds.Any())" @onclick="DeleteSelected">
+                                    <i class="fa fa-trash me-1"></i>Delete (@selectedEntryIds.Count)
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="ExitSelectMode">
+                                    <i class="fa fa-times me-1"></i>Cancel
+                                </button>
+                            }
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap:0.5rem;">
+                        <button class="btn btn-sm btn-fcms" @onclick="PreviousWeek">
+                            <i class="fa fa-arrow-left"></i>
+                        </button>
+                        <div class="text-center">
+                            <strong>@currentWeekStart.ToString("MMM d") - @currentWeekStart.AddDays(5).ToString("MMM d, yyyy")</strong>
+                            @if (!IsCurrentWeek())
+                            {
+                                <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="GoToToday">Today</button>
+                            }
+                        </div>
+                        <button class="btn btn-sm btn-fcms" @onclick="NextWeek">
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    @foreach (var day in GetVisibleDays())
+                    {
+                        var dayEntries = GetEntriesForDay(day);
+                        var isExpanded = expandedDays.Contains(day);
+
+                        <div class="border rounded mb-2">
+                            <div class="d-flex justify-content-between align-items-center p-2"
+                                 style="cursor:pointer;"
+                                 @onclick="() => ToggleDay(day)">
+                                <span>
+                                    <strong>@day.ToString("dddd, MMMM d")</strong>
+                                    @if (day.Date == DateTime.Today)
+                                    {
+                                        <span class="badge ms-2" style="background-color:#f0d5c4;color:#5a3e2b;">Today</span>
+                                    }
+                                    <span class="text-muted ms-2">
+                                        @(dayEntries.Any() ? $"{dayEntries.Count} class(es)" : "No classes")
+                                    </span>
+                                </span>
+                                <i class="fa @(isExpanded ? "fa-chevron-up" : "fa-chevron-down") text-muted"></i>
+                            </div>
+
+                            @if (isExpanded && dayEntries.Any())
+                            {
+                                <div class="border-top">
+                                    @foreach (var entry in dayEntries)
+                                    {
+                                        <div class="d-flex align-items-center border-bottom" style="gap:0.5rem;">
+
+                                            @if (selectMode)
+                                            {
+                                                <div class="ps-2">
+                                                    <input type="checkbox"
+                                                           checked="@selectedEntryIds.Contains(entry.Id)"
+                                                           @onchange="e => ToggleEntrySelection(entry.Id, e)" />
+                                                </div>
+                                            }
+
+                                            <div class="flex-grow-1 d-flex justify-content-between align-items-center flex-wrap p-2"
+                                                 style="gap:0.5rem;@(!selectMode && entry.ClassSession != null ? "cursor:pointer;" : "")"
+                                                 @onclick="() => OpenSession(entry)">
+
+                                                <div>
+                                                    <strong>@entry.DateTime.ToString("h:mm tt") - @entry.DateTime.Add(entry.Duration).ToString("h:mm tt")</strong>
+                                                    @if (entry.ClassSession != null)
+                                                    {
+                                                        <span class="ms-2">@entry.ClassSession.Course</span>
+                                                        <small class="text-muted d-block">@entry.ClassSession.Topic</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="ms-2">@entry.Title</span>
+                                                    }
+                                                </div>
+
+                                                <small class="text-muted">
+                                                    <i class="fa fa-location-dot me-1"></i>@entry.Venue
+                                                </small>
+
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+            </div>
+        }
+    }
+
+    @if (activeTab == TabOne)
+    {
+        <div class="text-center text-muted py-4">
+            <i class="fa fa-hourglass-half fa-2x mb-2" style="color:#f0d5c4;"></i>
+            <p class="mb-0">Coming soon</p>
+        </div>
+    }
+
+    @if (activeTab == TabTwo)
+    {
+        <div class="text-center text-muted py-4">
+            <i class="fa fa-hourglass-half fa-2x mb-2" style="color:#f0d5c4;"></i>
+            <p class="mb-0">Coming soon</p>
+        </div>
+    }
+</div>
+
+<ScheduleEntryCreate IsVisible="showCreateModal"
+                     LearningPathId="activePathId"
+                     RestrictToClassOnly="true"
+                     OnSave="HandleScheduleCreated"
+                     OnClose="() => showCreateModal = false" />
+
+<ScheduleEntryEdit IsVisible="showEditModal"
+                   LearningPathId="activePathId"
+                   ScheduleId="entryIdToEdit"
+                   RestrictToClassOnly="true"
+                   OnSave="HandleScheduleEdited"
+                   OnClose="() => showEditModal = false" />
+
+<ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                    Title="Confirm Delete"
+                    Message="@deleteMessage"
+                    OnConfirm="ConfirmDeleteSelected"
+                    OnCancel="() => showDeleteConfirmation = false" />
+
+@code {
+    private const string TabTimetable = "timetable";
+    private const string TabOne = "tab1";
+    private const string TabTwo = "tab2";
+
+    private string activeTab = TabTimetable;
+
+    private Person? currentPerson;
+    private bool isStudent = false;
+    private bool isGuardian = false;
+    private bool isStaffViewer = false;
+    private bool canManageSchedules = false;
+
+    private Guardian? guardianProfile;
+    private int activeWardId = 0;
+    private List<LearningPathListItem> pathOptions = new();
+  
+
+    private int activePathId = 0;
+    private List<ScheduleEntry> termSchedules = new();
+
+    private DateTime currentWeekStart;
+    private HashSet<DateTime> expandedDays = new();
+
+    private bool showCreateModal = false;
+
+    private bool selectMode = false;
+    private HashSet<int> selectedEntryIds = new();
+    private bool showEditModal = false;
+    private int? entryIdToEdit;
+    private bool showDeleteConfirmation = false;
+    private string deleteMessage = "";
+
+    private string staffYear = "";
+    private string staffEducationLevel = "";
+    private string staffClassLevel = "";
+    private string staffTerm = "";
+    private List<string> availableYears = new();
+    private List<ClassLevel> availableClassLevels = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentPerson = await PermissionService.GetCurrentPersonAsync();
+
+        if (currentPerson == null)
+        {
+            NavigationManager.NavigateTo("/Account/Login", true);
+            return;
+        }
+
+        isStudent = await PermissionService.IsInRoleAsync("Student");
+        isGuardian = await PermissionService.IsInRoleAsync("Guardian");
+        canManageSchedules = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
+        isStaffViewer = canManageSchedules || await PermissionService.IsInRoleAsync("Staff");
+
+        if (isStudent)
+        {
+            var student = SchoolDataService.GetStudentByPersonId(currentPerson.Id);
+            activePathId = student?.LearningPathId ?? 0;
+        }
+
+        if (isGuardian)
+        {
+            guardianProfile = SchoolDataService.GetGuardians()
+                .FirstOrDefault(g => g.PersonId == currentPerson.Id);
+
+            if (guardianProfile != null && guardianProfile.Wards.Any())
+            {
+                SelectWard(guardianProfile.Wards.First().Id);
+            }
+        }
+
+        if (isStaffViewer)
+        {
+            pathOptions = SchoolDataService.GetLearningPathsForList().ToList();
+            availableYears = pathOptions.Select(p => p.AcademicYear).Distinct().OrderByDescending(y => y).ToList();
+        }
+
+        LoadTimetable();
+        GoToToday();
+    }
+
+    private void SelectWard(int wardId)
+    {
+        activeWardId = wardId;
+        var ward = guardianProfile?.Wards.FirstOrDefault(w => w.Id == wardId);
+        activePathId = ward?.LearningPathId ?? 0;
+        LoadTimetable();
+        GoToToday();
+    }
+
+    private void LoadTimetable()
+    {
+        termSchedules = activePathId > 0
+            ? SchoolDataService.GetLearningPathCalendarSchedules(activePathId)
+            : new List<ScheduleEntry>();
+    }
+
+    private void HandleScheduleCreated(ScheduleEntry entry)
+    {
+        LoadTimetable();
+        showCreateModal = false;
+    }
+
+    private static DateTime GetWeekStart(DateTime date)
+    {
+        return date.AddDays(-(((int)date.DayOfWeek + 6) % 7)).Date;
+    }
+
+    private bool IsCurrentWeek()
+    {
+        return currentWeekStart == GetWeekStart(DateTime.Today);
+    }
+
+    private void GoToToday()
+    {
+        currentWeekStart = GetWeekStart(DateTime.Today);
+        expandedDays = new HashSet<DateTime> { DateTime.Today };
+    }
+
+    private void PreviousWeek()
+    {
+        currentWeekStart = currentWeekStart.AddDays(-7);
+        ResetExpansionForWeek();
+    }
+
+    private void NextWeek()
+    {
+        currentWeekStart = currentWeekStart.AddDays(7);
+        ResetExpansionForWeek();
+    }
+
+    private void ResetExpansionForWeek()
+    {
+        expandedDays = IsCurrentWeek()
+            ? new HashSet<DateTime> { DateTime.Today }
+            : new HashSet<DateTime>();
+    }
+
+    private void ToggleDay(DateTime day)
+    {
+        if (expandedDays.Contains(day))
+        {
+            expandedDays.Remove(day);
+        }
+        else
+        {
+            expandedDays.Add(day);
+        }
+    }
+
+    private List<DateTime> GetVisibleDays()
+    {
+        var days = new List<DateTime>();
+
+        for (var i = 0; i < 7; i++)
+        {
+            var day = currentWeekStart.AddDays(i);
+            var isSchoolDay = i < 5;
+
+            if (isSchoolDay || GetEntriesForDay(day).Any())
+            {
+                days.Add(day);
+            }
+        }
+
+        return days;
+    }
+
+    private List<ScheduleEntry> GetEntriesForDay(DateTime day)
+    {
+        return termSchedules
+            .Where(se => se.DateTime.Date == day.Date)
+            .OrderBy(se => se.DateTime.TimeOfDay)
+            .ToList();
+    }
+
+    private void OpenSession(ScheduleEntry entry)
+    {
+        if (entry.ClassSession != null)
+        {
+            NavigationManager.NavigateTo($"/classsession/details/{entry.ClassSession.Id}");
+        }
+    }
+
+    private void EnterSelectMode()
+    {
+        selectMode = true;
+        selectedEntryIds.Clear();
+    }
+
+    private void ExitSelectMode()
+    {
+        selectMode = false;
+        selectedEntryIds.Clear();
+    }
+
+    private void ToggleEntrySelection(int entryId, ChangeEventArgs e)
+    {
+        var isChecked = e.Value is bool b && b;
+
+        if (isChecked)
+        {
+            selectedEntryIds.Add(entryId);
+        }
+        else
+        {
+            selectedEntryIds.Remove(entryId);
+        }
+    }
+
+    private void EditSelected()
+    {
+        entryIdToEdit = selectedEntryIds.First();
+        showEditModal = true;
+    }
+
+    private void HandleScheduleEdited(ScheduleEntry entry)
+    {
+        LoadTimetable();
+        showEditModal = false;
+        ExitSelectMode();
+    }
+
+    private void DeleteSelected()
+    {
+        deleteMessage = $"Are you sure you want to delete {selectedEntryIds.Count} schedule(s)?";
+        showDeleteConfirmation = true;
+    }
+
+    private void ConfirmDeleteSelected()
+    {
+        foreach (var entryId in selectedEntryIds.ToList())
+        {
+            var deleted = SchoolDataService.DeleteScheduleEntry(activePathId, entryId);
+            if (deleted)
+            {
+                selectedEntryIds.Remove(entryId);
+            }
+        }
+
+        LoadTimetable();
+        showDeleteConfirmation = false;
+    }
+
+    private void OnStaffFiltersChanged()
+    {
+        ExitSelectMode();
+
+        availableClassLevels = new List<ClassLevel>();
+        if (Enum.TryParse<EducationLevel>(staffEducationLevel, out var eduLevel))
+        {
+            availableClassLevels = LogicMethods.GetAvailableClassLevels(eduLevel);
+        }
+
+        if (!string.IsNullOrEmpty(staffClassLevel) && availableClassLevels.All(cl => cl.ToString() != staffClassLevel))
+        {
+            staffClassLevel = "";
+            staffTerm = "";
+        }
+
+        ResolveStaffPath();
+    }
+
+    private void ResolveStaffPath()
+    {
+        activePathId = 0;
+
+        if (!string.IsNullOrEmpty(staffYear) &&
+            Enum.TryParse<EducationLevel>(staffEducationLevel, out var eduLevel) &&
+            Enum.TryParse<ClassLevel>(staffClassLevel, out var classLevel) &&
+            Enum.TryParse<Semester>(staffTerm, out var term))
+        {
+            var match = pathOptions.FirstOrDefault(p =>
+                p.AcademicYear == staffYear &&
+                p.EducationLevel == eduLevel &&
+                p.ClassLevel == classLevel &&
+                p.Semester == term);
+
+            activePathId = match?.Id ?? 0;
+        }
+
+        LoadTimetable();
+        GoToToday();
+    }
+
+    private bool StaffFiltersComplete()
+    {
+        return !string.IsNullOrEmpty(staffYear) &&
+               !string.IsNullOrEmpty(staffEducationLevel) &&
+               !string.IsNullOrEmpty(staffClassLevel) &&
+               !string.IsNullOrEmpty(staffTerm);
+    }
+}

@@ -978,6 +978,12 @@ namespace FcmsPortalUI.Services
             if (school == null)
                 throw new InvalidOperationException("No school found. Cannot create template without a school.");
 
+            var scheduleSource = _context.ScheduleEntries
+                .Include(se => se.ClassSession)
+                    .ThenInclude(cs => cs.Teacher)
+                .Where(se => se.LearningPathId == learningPath.Id)
+                .ToList();
+
             string templateKey = GenerateTemplateKey(learningPath.EducationLevel, learningPath.ClassLevel, learningPath.Semester);
 
             var existingTemplate = _context.LearningPaths
@@ -1004,7 +1010,7 @@ namespace FcmsPortalUI.Services
                 TemplateKey = templateKey,
                 ApprovalStatus = PrincipalApprovalStatus.Pending,
 
-                Schedule = learningPath.Schedule.Select(s => new ScheduleEntry
+                Schedule = scheduleSource.Select(s => new ScheduleEntry
                 {
                     Title = s.Title,
                     DateTime = s.DateTime,
