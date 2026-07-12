@@ -191,8 +191,8 @@
                                 else if (isTeacher)
                                 {
                                     <textarea class="form-control mb-3"
-                                              value="@TeacherRemarks"
-                                              @oninput="OnTeacherInput"
+                                              @bind:get="TeacherRemarks"
+                                              @bind:set="OnTeacherInput"
                                               placeholder="Enter teacher remarks..." rows="3"></textarea>
                                 }
                                 else
@@ -208,8 +208,8 @@
                                 else if (isPrincipal)
                                 {
                                     <textarea class="form-control mb-3"
-                                              value="@PrincipalRemarks"
-                                              @oninput="OnPrincipalInput"
+                                              @bind:get="PrincipalRemarks"
+                                              @bind:set="OnPrincipalInput"
                                               placeholder="Enter principal remarks..." rows="3"></textarea>
                                 }
                                 else
@@ -495,18 +495,16 @@
         }
     }
 
-    private async Task OnTeacherInput(ChangeEventArgs e)
+    private async Task OnTeacherInput(string? newText)
     {
-        var newText = e.Value?.ToString() ?? string.Empty;
-        TeacherRemarks = newText;
-        await OnTeacherRemarksChanged(newText);
+        TeacherRemarks = newText ?? string.Empty;
+        await OnTeacherRemarksChanged(TeacherRemarks);
     }
 
-    private async Task OnPrincipalInput(ChangeEventArgs e)
+    private async Task OnPrincipalInput(string? newText)
     {
-        var newText = e.Value?.ToString() ?? string.Empty;
-        PrincipalRemarks = newText;
-        await OnPrincipalRemarksChanged(newText);
+        PrincipalRemarks = newText ?? string.Empty;
+        await OnPrincipalRemarksChanged(PrincipalRemarks);
     }
 
 

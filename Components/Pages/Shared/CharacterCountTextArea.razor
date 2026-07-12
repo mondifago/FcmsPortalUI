@@ -6,8 +6,8 @@
                   rows="@Rows"
                   maxlength="@MaxLength"
                   placeholder="@Placeholder"
-                  @oninput="HandleInput"
-                  value="@Value">
+                  @bind:get="Value"
+                  @bind:set="HandleValueSet">
         </textarea>
 
         @if (ShowEmojiPicker)
@@ -61,16 +61,15 @@
         "✏️", "📝", "⭐", "🔥", "💪", "👀"
     };
 
-    private async Task HandleInput(ChangeEventArgs e)
+    private async Task HandleValueSet(string? newValue)
     {
-        var newValue = e.Value?.ToString() ?? string.Empty;
+        Value = newValue ?? string.Empty;
 
-        if (newValue.Length > MaxLength)
+        if (Value.Length > MaxLength)
         {
-            newValue = newValue[..MaxLength];
+            Value = Value[..MaxLength];
         }
 
-        Value = newValue;
         await ValueChanged.InvokeAsync(Value);
     }
 
