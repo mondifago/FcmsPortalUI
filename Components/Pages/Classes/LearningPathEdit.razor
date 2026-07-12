@@ -35,7 +35,7 @@ else
 
     protected override void OnInitialized()
     {
-        learningPath = SchoolDataService.GetLearningPathById(Id);
+        learningPath = SchoolDataService.GetLearningPathBasicInfo(Id);
 
         if (learningPath == null)
         {

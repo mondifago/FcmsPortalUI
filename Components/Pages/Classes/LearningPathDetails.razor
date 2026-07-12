@@ -490,7 +490,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
+        learningPath = SchoolDataService.GetLearningPathForDetails(Id) ?? new LearningPath();
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
         currentUser = await PermissionService.GetCurrentPersonAsync();
     }
@@ -607,7 +607,7 @@
     {
         if (learningPath != null)
         {
-            dailyAttendanceData = LogicMethods.GetDailyAttendanceEntry(learningPath, DateTime.Now);
+            dailyAttendanceData = SchoolDataService.GetAttendanceForDate(learningPath.Id, DateTime.Today) ?? new DailyAttendanceLogEntry();
             todaysAttendance = dailyAttendanceData;
             showDailyAttendanceModal = true;
         }

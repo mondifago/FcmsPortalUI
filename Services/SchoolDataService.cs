@@ -681,30 +681,24 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public LearningPath? GetLearningPathById(int id)
+        public LearningPath? GetLearningPathForDetails(int id)
         {
             return _context.LearningPaths
-            .Include(lp => lp.Students)
-                .ThenInclude(s => s.Person)
-            .Include(lp => lp.Students)
-                .ThenInclude(s => s.CourseGrades)
-                    .ThenInclude(cg => cg.TestGrades)
-                        .ThenInclude(tg => tg.Teacher)
-                            .ThenInclude(t => t.Person)
-            .Include(lp => lp.Students)
-                .ThenInclude(s => s.CourseGrades)
-                    .ThenInclude(cg => cg.GradingConfiguration)
-            .Include(lp => lp.CourseGradingConfigurations)
-            .Include(lp => lp.StudentsWithAccess)
-                .ThenInclude(s => s.Person)
-            .Include(lp => lp.AttendanceLog)
-                .ThenInclude(al => al.Teacher)
-                    .ThenInclude(t => t.Person)
-            .Include(lp => lp.AttendanceLog)
-                .ThenInclude(al => al.PresentStudents)
-            .Include(lp => lp.AttendanceLog)
-                .ThenInclude(al => al.AbsentStudents)
-            .FirstOrDefault(lp => lp.Id == id);
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.CourseGrades)
+                        .ThenInclude(cg => cg.TestGrades)
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.CourseGrades)
+                        .ThenInclude(cg => cg.GradingConfiguration)
+                .AsSplitQuery()
+                .FirstOrDefault(lp => lp.Id == id);
+        }
+
+        public LearningPath? GetLearningPathBasicInfo(int id)
+        {
+            return _context.LearningPaths.FirstOrDefault(lp => lp.Id == id);
         }
 
         public LearningPath? GetLearningPathForAttendanceReport(int id)
