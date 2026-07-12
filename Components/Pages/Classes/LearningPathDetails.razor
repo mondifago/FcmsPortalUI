@@ -123,45 +123,6 @@
                         </AuthorizeView>
                     </div>
                 </div>
-                <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
-                    <Authorized>
-                        <div class="mb-3">
-                            <button class="btn btn-success" @onclick="ShowScheduleCreateModal">
-                                <i class="fa fa-plus"></i> Schedule A Class
-                            </button>
-                        </div>
-                    </Authorized>
-                </AuthorizeView>
-
-                <MonthlyCalendarView Title="Class Schedule"
-                                     CurrentDate="@currentDate"
-                                     CurrentDateChanged="date => { currentDate = date; StateHasChanged(); }"
-                                     OnDateSelected="NavigateToScheduleList"
-                                     OnScheduleTypeClicked="HandleScheduleTypeClicked"
-                                     GetSchedulesForDate="date => GetSessionsForDate(date)"
-                                     ScheduleTypeLabel="Class"
-                                     ScheduleTypesLabel="Classes" />
-
-
-                @if (showDailyView && selectedDateForDailyView.HasValue)
-                {
-                    <div class="mt-4">
-                        <DailyScheduleList Title="Schedule for"
-                                           SelectedDate="selectedDateForDailyView.Value"
-                                           Schedules="GetSchedulesForDailyView()"
-                                           FilterByType="selectedScheduleTypeForDailyView"
-                                           IsGeneralCalendar="false"
-                                           OnView="ViewScheduleDetails" />
-                    </div>
-                }
-
-                @if (showScheduleDetailsModal && selectedScheduleForDetails != null)
-                {
-                    <ScheduleDetailsModal IsVisible="showScheduleDetailsModal"
-                                          ScheduleEntry="selectedScheduleForDetails"
-                                          OnClose="CloseScheduleDetailsModal" />
-                }
-
             </div>
 
             <div class="col-md-4">
@@ -322,14 +283,6 @@
             </div>
         </div>
     }
-
-    <ScheduleEntryCreate IsVisible="showScheduleCreateModal"
-                         LearningPathId="learningPath?.Id"
-                         DateParam="@selectedDateForSchedule"
-                         AllowClassSchedule="true"
-                         RestrictToClassOnly="true"
-                         OnSave="HandleScheduleCreated"
-                         OnClose="() => showScheduleCreateModal = false" />
 </div>
 
 @if (showSubmitConfirm)
@@ -521,52 +474,25 @@
     private List<Student> availableStudents = new List<Student>();
     private HashSet<int> selectedStudentIds = new HashSet<int>();
     private Student? selectedStudent;
-    private DateTime currentDate = DateTime.Now;
-    private string? selectedDateForSchedule = null;
+
+ 
     private bool showGradesModal = false;
     private bool showStudentDetailsModal = false;
     private bool showFinalizeGradesModal = false;
     private bool showAttendanceModal = false;
     private bool showDailyAttendanceModal = false;
-    private bool showScheduleCreateModal = false;
+
     private bool showAddStudentsModal = false;
     private bool showSubmitConfirm = false;
     private bool showApproveConfirm = false;
     private Person? currentUser;
     private int? currentUserId;
-    private List<ScheduleEntry> generalCalendarSchedules = new();
-    private LearningPath schedulesContainer = new LearningPath();
-    private bool showDailyView = false;
-    private DateTime? selectedDateForDailyView = null;
-    private ScheduleType? selectedScheduleTypeForDailyView = null;
-    private ScheduleEntry? selectedScheduleForDetails = null;
-    private bool showScheduleDetailsModal = false;
 
     protected override async Task OnInitializedAsync()
     {
         learningPath = SchoolDataService.GetLearningPathById(Id) ?? new LearningPath();
-        schedulesContainer = new LearningPath { Schedule = SchoolDataService.GetLearningPathCalendarSchedules(Id) };
-        generalCalendarSchedules = SchoolDataService.GetAllSchoolCalendarSchedules().ToList();
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
         currentUser = await PermissionService.GetCurrentPersonAsync();
-    }
-
-    private List<ScheduleEntry> GetSessionsForDate(DateTime date)
-    {
-        var learningPathSchedules = schedulesContainer != null
-      ? LogicMethods.GetSchedulesByDateInLearningPath(schedulesContainer, date)
-      : new List<ScheduleEntry>();
-
-        var generalSchedules = generalCalendarSchedules
-            .Where(s => s.DateTime.Date == date.Date &&
-                       ((!string.IsNullOrEmpty(s.Event)) || (!string.IsNullOrEmpty(s.Meeting))))
-            .ToList();
-
-        var allSchedules = new List<ScheduleEntry>();
-        allSchedules.AddRange(learningPathSchedules);
-        allSchedules.AddRange(generalSchedules);
-
-        return allSchedules;
     }
 
     private void ShowAddStudentsModal()
@@ -653,84 +579,21 @@
         SchoolDataService.UpdateLearningPath(learningPath);
     }
 
-    private void NavigateToScheduleList(DateTime date)
-    {
-        string formattedDate = date.ToString("yyyy-MM-dd");
-        NavigationManager.NavigateTo($"/learningpath/{learningPath.Id}/schedules/{formattedDate}");
-    }
-
-
-
-    private void HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
-    {
-        if (data.type == ScheduleType.ClassSession)
-        {
-            NavigateToScheduleList(data.date);
-            return;
-        }
-        // For Events and Meetings, show inline
-        selectedDateForDailyView = data.date;
-        selectedScheduleTypeForDailyView = data.type;
-        showDailyView = true;
-        StateHasChanged();
-    }
-
-    private List<ScheduleEntry> GetSchedulesForDailyView()
-    {
-        if (!selectedDateForDailyView.HasValue)
-            return new List<ScheduleEntry>();
-
-        return GetSessionsForDate(selectedDateForDailyView.Value);
-    }
-
-    private void ViewScheduleDetails(ScheduleEntry schedule)
-    {
-        selectedScheduleForDetails = schedule;
-        showScheduleDetailsModal = true;
-    }
-
-    private void CloseScheduleDetailsModal()
-    {
-        showScheduleDetailsModal = false;
-        selectedScheduleForDetails = null;
-    }
-
-    private void ShowScheduleCreateModal()
-    {
-        selectedDateForSchedule = null;
-        showScheduleCreateModal = true;
-    }
-
-    private void ShowScheduleCreateModalForDate(DateTime date)
-    {
-        selectedDateForSchedule = date.ToString("yyyy-MM-dd");
-        showScheduleCreateModal = true;
-    }
-
-    private void HandleScheduleCreated(ScheduleEntry scheduleEntry)
-    {
-        showScheduleCreateModal = false;
-        selectedDateForSchedule = null;
-        schedulesContainer = new LearningPath { Schedule = SchoolDataService.GetLearningPathCalendarSchedules(Id) };
-        generalCalendarSchedules = SchoolDataService.GetAllSchoolCalendarSchedules().ToList();
-        StateHasChanged();
-    }
-
     private string GetAttendanceButtonText()
     {
-        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, currentDate) ? "View Attendance" : "Take Attendance";
+        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today) ? "View Attendance" : "Take Attendance";
     }
 
     private string GetAttendanceButtonClass()
     {
-        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, currentDate)
+        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today)
             ? "btn btn-success btn-sm"
             : "btn btn-warning btn-sm";
     }
 
     private void HandleAttendanceAction()
     {
-        if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, currentDate))
+        if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today))
         {
             ShowTodaysAttendance();
         }
