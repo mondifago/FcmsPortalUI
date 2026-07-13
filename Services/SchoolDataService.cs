@@ -1145,6 +1145,7 @@ namespace FcmsPortalUI.Services
         public bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)
         {
             var existing = _context.ScheduleEntries
+                .Include(se => se.ClassSession)
                 .FirstOrDefault(se => se.Id == scheduleEntry.Id && se.LearningPathId == learningPathId);
 
             if (existing == null)
@@ -1162,6 +1163,15 @@ namespace FcmsPortalUI.Services
             existing.EndDate = scheduleEntry.EndDate;
             existing.DaysOfWeek = scheduleEntry.DaysOfWeek;
             existing.ClassSessionId = scheduleEntry.ClassSessionId;
+
+            if (existing.ClassSession != null && scheduleEntry.ClassSession != null)
+            {
+                existing.ClassSession.Course = scheduleEntry.ClassSession.Course;
+                existing.ClassSession.Topic = scheduleEntry.ClassSession.Topic;
+                existing.ClassSession.Description = scheduleEntry.ClassSession.Description;
+                existing.ClassSession.LessonPlan = scheduleEntry.ClassSession.LessonPlan;
+                existing.ClassSession.TeacherId = scheduleEntry.ClassSession.TeacherId;
+            }
 
             _context.SaveChanges();
             UpdateScheduleInSchoolCalendar(existing);
