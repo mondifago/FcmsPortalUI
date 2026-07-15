@@ -1,3 +1,4 @@
+using FcmsPortal.Constants;
 using FcmsPortal.Models;
 using FcmsPortalUI.Components;
 using FcmsPortalUI.Components.Account;
@@ -48,6 +49,12 @@ builder.Services.AddIdentityCore<Person>(options => options.SignIn.RequireConfir
                .AddSignInManager()
                .AddDefaultTokenProviders();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.ExpireTimeSpan = TimeSpan.FromHours(FcmsConstants.AUTH_SESSION_HOURS);
+    options.SlidingExpiration = true;
+});
+
 builder.Services.AddScoped<IEmailSender<Person>, IdentityEmailSender>();
 builder.Services.AddAuthorization();
 
@@ -57,6 +64,7 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+
 // Application services
 builder.Services.AddScoped<ISchoolDataService, SchoolDataService>();
 builder.Services.AddScoped<ValidationService>();
