@@ -132,8 +132,18 @@
             ? null
             : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
+        if (HttpContext.User.Identity?.IsAuthenticated == true)
+        {
+            await SignInManager.SignOutAsync();
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+            return;
+        }
+
         school = SchoolDataService.GetSchoolBasicInfo();
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
