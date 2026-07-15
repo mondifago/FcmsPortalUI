@@ -102,37 +102,37 @@
             <div class="card-body border-top">
                 <div class="row g-3">
                     <div class="col-md-6 col-lg-4">
-                        <h6 class="text-muted mb-1"><i class="fa fa-envelope me-1"></i>Email</h6>
-                        <p class="mb-0">@currentPerson.Email</p>
+                        <h6 class="text-muted">Email</h6>
+                        <p>@currentPerson.Email</p>
                     </div>
                     <div class="col-md-6 col-lg-4">
-                        <h6 class="text-muted mb-1"><i class="fa fa-phone me-1"></i>Phone</h6>
-                        <p class="mb-0">@currentPerson.PhoneNumber</p>
+                        <h6 class="text-muted">Phone</h6>
+                        <p>@currentPerson.PhoneNumber</p>
                     </div>
                     <div class="col-md-6 col-lg-4">
-                        <h6 class="text-muted mb-1"><i class="fa fa-cake-candles me-1"></i>Age</h6>
-                        <p class="mb-0">@currentPerson.Age years</p>
+                        <h6 class="text-muted">Age</h6>
+                        <p>@currentPerson.Age years</p>
                     </div>
                     <div class="col-md-6 col-lg-4">
-                        <h6 class="text-muted mb-1"><i class="fa fa-venus-mars me-1"></i>Gender</h6>
-                        <p class="mb-0">@(currentPerson.Sex.ToString() ?? "N/A")</p>
+                        <h6 class="text-muted">Gender</h6>
+                        <p>@(currentPerson.Sex.ToString() ?? "N/A")</p>
                     </div>
                     <div class="col-md-6 col-lg-4">
-                        <h6 class="text-muted mb-1"><i class="fa fa-calendar me-1"></i>Enrollment Date</h6>
-                        <p class="mb-0">@currentPerson.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
+                        <h6 class="text-muted">Enrollment Date</h6>
+                        <p>@currentPerson.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
                     </div>
                     @if (!string.IsNullOrEmpty(currentPerson.StateOfOrigin))
                     {
                         <div class="col-md-6 col-lg-4">
-                            <h6 class="text-muted mb-1"><i class="fa fa-map-pin me-1"></i>State of Origin</h6>
-                            <p class="mb-0">@currentPerson.StateOfOrigin</p>
+                            <h6 class="text-muted">State of Origin</h6>
+                            <p>@currentPerson.StateOfOrigin</p>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(currentPerson.LgaOfOrigin))
                     {
                         <div class="col-md-6 col-lg-4">
-                            <h6 class="text-muted mb-1"><i class="fa fa-map me-1"></i>LGA of Origin</h6>
-                            <p class="mb-0">@currentPerson.LgaOfOrigin</p>
+                            <h6 class="text-muted">LGA of Origin</h6>
+                            <p>@currentPerson.LgaOfOrigin</p>
                         </div>
                     }
                 </div>
@@ -179,10 +179,9 @@
                         </div>
                     }
 
-                    <ul class="nav nav-tabs mb-3">
+                    <ul class="nav fcms-tabs mb-3">
                         <li class="nav-item">
                             <button class="nav-link @(activeAchievementTab == TabReportCards ? "active" : "")"
-                                    style="@(activeAchievementTab == TabReportCards ? "color:#5a3e2b;font-weight:500;" : "")"
                                     @onclick="() => activeAchievementTab = TabReportCards">
                                 <i class="fa fa-file-alt me-1"></i>Report Cards
                             </button>

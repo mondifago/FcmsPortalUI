@@ -146,7 +146,7 @@
         }
         else
         {
-            <div class="card">
+            <div class="card timetable-card" style="background-color:#fdf6f0;">
                 <div class="card-body">
 
                     @if (canManageSchedules)
@@ -196,27 +196,27 @@
 
                         <div class="border rounded mb-2">
                             <div class="d-flex justify-content-between align-items-center p-2"
-                                 style="cursor:pointer;"
+                                 style="cursor:pointer;background-color:#f0d5c4;position:relative;"
                                  @onclick="() => ToggleDay(day)">
                                 <span>
                                     <strong>@day.ToString("dddd, MMMM d")</strong>
-                                    @if (day.Date == DateTime.Today)
-                                    {
-                                        <span class="badge ms-2" style="background-color:#f0d5c4;color:#5a3e2b;">Today</span>
-                                    }
                                     <span class="text-muted ms-2">
                                         @(dayEntries.Any() ? $"{dayEntries.Count} class(es)" : "No classes")
                                     </span>
                                 </span>
+                                @if (day.Date == DateTime.Today)
+                                {
+                                    <span class="badge" style="background-color:#5a3e2b;color:#fdf6f0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);">Today</span>
+                                }
                                 <i class="fa @(isExpanded ? "fa-chevron-up" : "fa-chevron-down") text-muted"></i>
                             </div>
 
                             @if (isExpanded && dayEntries.Any())
                             {
-                                <div class="border-top">
+                                <div class="d-flex flex-column p-2" style="background-color:#f0d5c4;gap:0.5rem;">
                                     @foreach (var entry in dayEntries)
                                     {
-                                        <div class="d-flex align-items-center border-bottom" style="gap:0.5rem;">
+                                        <div class="d-flex align-items-center rounded" style="gap:0.5rem;background-color:#fdf6f0;">
 
                                             @if (selectMode)
                                             {
@@ -232,19 +232,19 @@
                                                  @onclick="() => OpenSession(entry)">
 
                                                 <div>
-                                                    <strong>@entry.DateTime.ToString("h:mm tt") - @entry.DateTime.Add(entry.Duration).ToString("h:mm tt")</strong>
+                                                    <strong style="font-size:0.85rem;">@entry.DateTime.ToString("h:mm tt") - @entry.DateTime.Add(entry.Duration).ToString("h:mm tt")</strong>
                                                     @if (entry.ClassSession != null)
                                                     {
-                                                        <span class="ms-2">@entry.ClassSession.Course</span>
-                                                        <small class="text-muted d-block">@entry.ClassSession.Topic</small>
+                                                        <span class="ms-2" style="font-size:0.85rem;">@entry.ClassSession.Course</span>
+                                                        <small class="text-muted d-block" style="font-size:0.8rem;">@entry.ClassSession.Topic</small>
                                                     }
                                                     else
                                                     {
-                                                        <span class="ms-2">@entry.Title</span>
+                                                        <span class="ms-2" style="font-size:0.85rem;">@entry.Title</span>
                                                     }
                                                 </div>
 
-                                                <small class="text-muted">
+                                                <small class="text-muted" style="font-size:0.85rem;">
                                                     <i class="fa fa-location-dot me-1"></i>@entry.Venue
                                                 </small>
 
@@ -592,3 +592,14 @@
                !string.IsNullOrEmpty(staffTerm);
     }
 }
+
+
+<style>
+    .timetable-card {
+        color: #5a3e2b;
+    }
+
+        .timetable-card .text-muted {
+            color: #5a3e2b !important;
+        }
+</style>

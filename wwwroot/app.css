@@ -1608,3 +1608,37 @@ main {
         color: #6c757d;
         border-color: #dee2e6;
     }
+
+/* ===== Reusable tabs ===== */
+.fcms-tabs {
+    border-bottom: var(--bs-border-width) solid var(--bs-border-color-translucent);
+    gap: 0.25rem;
+}
+
+    .fcms-tabs .nav-item {
+        padding: 0;
+    }
+
+    .fcms-tabs .nav-link {
+        display: inline-flex;
+        align-items: center;
+        color: #5a3e2b;
+        background-color: transparent;
+        border: var(--bs-border-width) solid var(--bs-border-color-translucent);
+        border-radius: 6px 6px 0 0;
+        margin-bottom: calc(-1 * var(--bs-border-width));
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+
+        .fcms-tabs .nav-link:hover {
+            background-color: #fdf6f0;
+            color: #5a3e2b;
+        }
+
+        .fcms-tabs .nav-link.active {
+            background-color: #fdf6f0;
+            color: #5a3e2b;
+            font-weight: 600;
+        }
