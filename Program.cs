@@ -6,6 +6,7 @@ using FcmsPortalUI.Data;
 using FcmsPortalUI.Infrastructure.Startup;
 using FcmsPortalUI.Services;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -54,6 +55,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromHours(FcmsConstants.AUTH_SESSION_HOURS);
     options.SlidingExpiration = true;
 });
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"))
+    .SetApplicationName("FcmsPortal");
 
 builder.Services.AddScoped<IEmailSender<Person>, IdentityEmailSender>();
 builder.Services.AddAuthorization();
