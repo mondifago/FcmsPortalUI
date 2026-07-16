@@ -37,7 +37,6 @@
                         <div class="input-group">
                             <input type="text" class="form-control"
                                    placeholder="Search guardian by name..."
-                                   @bind="searchTerm"
                                    @oninput="OnSearchTermChanged" />
                         </div>
                         @if (!string.IsNullOrWhiteSpace(searchTerm) && searchTerm.Length < 1)
