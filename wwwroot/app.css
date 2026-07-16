@@ -1642,3 +1642,77 @@ main {
             color: #5a3e2b;
             font-weight: 600;
         }
+
+/* ===== My Classes timetable card ===== */
+.timetable-card {
+    background-color: #fdf6f0;
+    color: #5a3e2b;
+}
+
+    .timetable-card .text-muted {
+        color: #5a3e2b !important;
+    }
+
+/* ===== Reusable fold (collapsible sections) ===== */
+.fcms-fold-header {
+    cursor: pointer;
+    background-color: #f0d5c4;
+    position: relative;
+    color: #5a3e2b;
+}
+
+.fcms-fold-body {
+    background-color: #f0d5c4;
+    gap: 0.5rem;
+    color: #5a3e2b;
+}
+
+    .fcms-fold-header .text-muted,
+    .fcms-fold-body .text-muted {
+        color: #5a3e2b !important;
+    }
+
+.fcms-fold-center-badge {
+    background-color: #5a3e2b;
+    color: #fdf6f0;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.fcms-fold-item {
+    gap: 0.5rem;
+    background-color: #fdf6f0;
+}
+
+.fcms-fold-item-main {
+    gap: 0.5rem;
+}
+
+/* ===== Small reusable utilities ===== */
+.fcms-gap-sm {
+    gap: 0.5rem;
+}
+
+.fcms-clickable {
+    cursor: pointer;
+}
+
+.fcms-badge-selected {
+    background-color: #f0d5c4;
+    color: #5a3e2b;
+    cursor: default;
+}
+
+.fcms-text-sm {
+    font-size: 0.85rem;
+}
+
+.fcms-text-xs {
+    font-size: 0.8rem;
+}
+
+.fcms-icon-soft {
+    color: #f0d5c4;
+}

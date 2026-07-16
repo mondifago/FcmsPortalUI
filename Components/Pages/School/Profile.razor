@@ -224,8 +224,7 @@
                                 var isExpanded = expandedAcademicYear == yearGroup.Key;
 
                                 <div class="border rounded mb-2">
-                                    <div class="d-flex justify-content-between align-items-center p-2"
-                                         style="cursor:pointer;"
+                                    <div class="d-flex justify-content-between align-items-center p-2 fcms-fold-header"
                                          @onclick="() => ToggleAcademicYear(yearGroup.Key)">
                                         <span>
                                             <strong>@yearGroup.Key</strong>
@@ -239,10 +238,10 @@
 
                                     @if (isExpanded)
                                     {
-                                        <div class="border-top">
+                                        <div class="d-flex flex-column p-2 fcms-fold-body">
                                             @foreach (var asg in yearGroup.OrderBy(g => g.ArchivedLearningPathGrade?.Semester))
                                             {
-                                                <div class="d-flex justify-content-between align-items-center flex-wrap border-bottom p-2" style="gap:0.5rem;">
+                                                <div class="d-flex justify-content-between align-items-center flex-wrap rounded p-2 fcms-fold-item">
                                                     <div>
                                                         <strong>@(asg.ArchivedLearningPathGrade?.Semester.ToTermDisplay() ?? "Unknown Term")</strong>
                                                         <small class="text-muted d-block">@asg.ArchivedLearningPathGrade?.ArchivedDate.ToString("MMMM d, yyyy")</small>
@@ -254,7 +253,7 @@
                                                             </span>
                                                         }
                                                     </div>
-                                                    <div class="d-flex" style="gap:0.5rem;">
+                                                    <div class="d-flex fcms-gap-sm">
                                                         <button class="btn btn-sm btn-primary" @onclick="() => OpenArchivedReportCard(asg)">
                                                             <i class="fa fa-file-alt me-1"></i>Report Card
                                                         </button>

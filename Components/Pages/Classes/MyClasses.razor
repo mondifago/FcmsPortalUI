@@ -16,7 +16,7 @@
 <PageTitle>My Classes</PageTitle>
 
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap:0.5rem;">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap fcms-gap-sm">
         <h2 class="mb-0">My Classes</h2>
 
         @if (canManageSchedules && activePathId > 0)
@@ -29,17 +29,17 @@
 
     @if (isGuardian && guardianProfile != null && guardianProfile.Wards.Count > 1)
     {
-        <div class="d-flex align-items-center flex-wrap mb-3" style="gap:0.5rem;">
+        <div class="d-flex align-items-center flex-wrap mb-3 fcms-gap-sm">
             <small class="text-muted">Viewing ward:</small>
             @foreach (var ward in guardianProfile.Wards)
             {
                 @if (ward.Id == activeWardId)
                 {
-                    <span class="badge" style="background-color:#f0d5c4;color:#5a3e2b;cursor:default;">@Util.GetFullName(ward.Person)</span>
+                    <span class="badge fcms-badge-selected">@Util.GetFullName(ward.Person)</span>
                 }
                 else
                 {
-                    <span class="badge bg-light text-secondary border" style="cursor:pointer;"
+                    <span class="badge bg-light text-secondary border fcms-clickable"
                           @onclick="() => SelectWard(ward.Id)">@Util.GetFullName(ward.Person)</span>
                 }
             }
@@ -147,12 +147,12 @@
         }
         else
         {
-            <div class="card timetable-card" style="background-color:#fdf6f0;">
+            <div class="card timetable-card">
                 <div class="card-body">
 
                     @if (canManageSchedules)
                     {
-                        <div class="d-flex align-items-center flex-wrap mb-2" style="gap:0.5rem;">
+                        <div class="d-flex align-items-center flex-wrap mb-2 fcms-gap-sm">
                             @if (!selectMode)
                             {
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="EnterSelectMode">
@@ -174,7 +174,7 @@
                         </div>
                     }
 
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap:0.5rem;">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap fcms-gap-sm">
                         <button class="btn btn-sm btn-fcms" @onclick="PreviousWeek">
                             <i class="fa fa-arrow-left"></i>
                         </button>
@@ -196,8 +196,7 @@
                         var isExpanded = expandedDays.Contains(day);
 
                         <div class="border rounded mb-2">
-                            <div class="d-flex justify-content-between align-items-center p-2"
-                                 style="cursor:pointer;background-color:#f0d5c4;position:relative;"
+                            <div class="d-flex justify-content-between align-items-center p-2 fcms-fold-header"
                                  @onclick="() => ToggleDay(day)">
                                 <span>
                                     <strong>@day.ToString("dddd, MMMM d")</strong>
@@ -207,17 +206,17 @@
                                 </span>
                                 @if (day.Date == DateTime.Today)
                                 {
-                                    <span class="badge" style="background-color:#5a3e2b;color:#fdf6f0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);">Today</span>
+                                    <span class="badge fcms-fold-center-badge">Today</span>
                                 }
                                 <i class="fa @(isExpanded ? "fa-chevron-up" : "fa-chevron-down") text-muted"></i>
                             </div>
 
                             @if (isExpanded && dayEntries.Any())
                             {
-                                <div class="d-flex flex-column p-2" style="background-color:#f0d5c4;gap:0.5rem;">
+                                <div class="d-flex flex-column p-2 fcms-fold-body">
                                     @foreach (var entry in dayEntries)
                                     {
-                                        <div class="d-flex align-items-center rounded" style="gap:0.5rem;background-color:#fdf6f0;">
+                                        <div class="d-flex align-items-center rounded fcms-fold-item">
 
                                             @if (selectMode)
                                             {
@@ -228,24 +227,23 @@
                                                 </div>
                                             }
 
-                                            <div class="flex-grow-1 d-flex justify-content-between align-items-center flex-wrap p-2"
-                                                 style="gap:0.5rem;@(!selectMode && entry.ClassSession != null ? "cursor:pointer;" : "")"
+                                            <div class="flex-grow-1 d-flex justify-content-between align-items-center flex-wrap p-2 fcms-fold-item-main @(!selectMode && entry.ClassSession != null ? "fcms-clickable" : "")"
                                                  @onclick="() => OpenSession(entry)">
 
                                                 <div>
-                                                    <strong style="font-size:0.85rem;">@entry.DateTime.ToString("h:mm tt") - @entry.DateTime.Add(entry.Duration).ToString("h:mm tt")</strong>
+                                                    <strong class="fcms-text-sm">@entry.DateTime.ToString("h:mm tt") - @entry.DateTime.Add(entry.Duration).ToString("h:mm tt")</strong>
                                                     @if (entry.ClassSession != null)
                                                     {
-                                                        <span class="ms-2" style="font-size:0.85rem;">@entry.ClassSession.Course</span>
-                                                        <small class="text-muted d-block" style="font-size:0.8rem;">@entry.ClassSession.Topic</small>
+                                                        <span class="ms-2 fcms-text-sm">@entry.ClassSession.Course</span>
+                                                        <small class="text-muted d-block fcms-text-xs">@entry.ClassSession.Topic</small>
                                                     }
                                                     else
                                                     {
-                                                        <span class="ms-2" style="font-size:0.85rem;">@entry.Title</span>
+                                                        <span class="ms-2 fcms-text-sm">@entry.Title</span>
                                                     }
                                                 </div>
 
-                                                <small class="text-muted" style="font-size:0.85rem;">
+                                                <small class="text-muted fcms-text-sm">
                                                     <i class="fa fa-location-dot me-1"></i>@entry.Venue
                                                 </small>
 
@@ -266,7 +264,7 @@
     @if (activeTab == TabOne)
     {
         <div class="text-center text-muted py-4">
-            <i class="fa fa-hourglass-half fa-2x mb-2" style="color:#f0d5c4;"></i>
+            <i class="fa fa-hourglass-half fa-2x mb-2 fcms-icon-soft"></i>
             <p class="mb-0">Coming soon</p>
         </div>
     }
@@ -274,7 +272,7 @@
     @if (activeTab == TabTwo)
     {
         <div class="text-center text-muted py-4">
-            <i class="fa fa-hourglass-half fa-2x mb-2" style="color:#f0d5c4;"></i>
+            <i class="fa fa-hourglass-half fa-2x mb-2 fcms-icon-soft"></i>
             <p class="mb-0">Coming soon</p>
         </div>
     }
@@ -315,8 +313,8 @@
     private Guardian? guardianProfile;
     private int activeWardId = 0;
     private List<LearningPathListItem> pathOptions = new();
-  
 
+  
     private int activePathId = 0;
     private List<ScheduleEntry> termSchedules = new();
 
@@ -593,14 +591,3 @@
                !string.IsNullOrEmpty(staffTerm);
     }
 }
-
-
-<style>
-    .timetable-card {
-        color: #5a3e2b;
-    }
-
-        .timetable-card .text-muted {
-            color: #5a3e2b !important;
-        }
-</style>

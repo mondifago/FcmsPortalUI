@@ -17,24 +17,21 @@
         </div>
     </div>
 
-    <ul class="nav nav-tabs mb-3">
+    <ul class="nav fcms-tabs mb-3">
         <li class="nav-item">
             <button class="nav-link @(activeReportTab == TabAttendance ? "active" : "")"
-                    style="@(activeReportTab == TabAttendance ? "color:#5a3e2b;font-weight:500;" : "")"
                     @onclick="() => activeReportTab = TabAttendance">
                 Attendance
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link @(activeReportTab == TabSessions ? "active" : "")"
-                    style="@(activeReportTab == TabSessions ? "color:#5a3e2b;font-weight:500;" : "")"
                     @onclick="() => activeReportTab = TabSessions">
                 Class Sessions
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link @(activeReportTab == TabGrades ? "active" : "")"
-                    style="@(activeReportTab == TabGrades ? "color:#5a3e2b;font-weight:500;" : "")"
                     @onclick="() => activeReportTab = TabGrades">
                 Grades
             </button>
