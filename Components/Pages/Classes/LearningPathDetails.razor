@@ -9,6 +9,9 @@
 @inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
 
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Developer, Principal, Admin, Teacher")]
+
 <div class="container-fluid mt-3">
     @if (learningPath == null)
     {

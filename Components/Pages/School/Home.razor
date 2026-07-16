@@ -78,7 +78,7 @@
                                 @if (todayTeacherClasses.Any() && todayTeacherClasses.First().LearningPathId > 0)
                                 {
                                     <div class="hbar-view-all">
-                                        <a href="/learningpath/@todayTeacherClasses.First().LearningPathId/schedules/@DateTime.Today.ToString("yyyy-MM-dd")"
+                                        <a href="/myclasses"
                                            class="text-decoration-none">
                                             View All <i class="fa fa-arrow-right ms-1"></i>
                                         </a>
@@ -122,7 +122,7 @@
                                 @if (todayTeacherClasses.Any() && todayTeacherClasses.First().LearningPathId > 0)
                                 {
                                     <div class="hbar-view-all">
-                                        <a href="/learningpath/@todayTeacherClasses.First().LearningPathId/schedules/@DateTime.Today.ToString("yyyy-MM-dd")"
+                                        <a href="/myclasses"
                                            class="text-decoration-none">
                                             View All <i class="fa fa-arrow-right ms-1"></i>
                                         </a>
@@ -168,7 +168,7 @@
                                 @if (currentStudent?.LearningPathId > 0)
                                 {
                                     <div class="hbar-view-all">
-                                        <a href="/learningpath/@currentStudent.LearningPathId/schedules/@DateTime.Today.ToString("yyyy-MM-dd")"
+                                        <a href="/myclasses"
                                            class="text-decoration-none">
                                             View All <i class="fa fa-arrow-right ms-1"></i>
                                         </a>
@@ -207,7 +207,7 @@
                                 @if (currentStudent?.LearningPathId > 0)
                                 {
                                     <div class="hbar-view-all">
-                                        <a href="/learningpath/@currentStudent.LearningPathId/schedules/@DateTime.Today.ToString("yyyy-MM-dd")"
+                                        <a href="/myclasses"
                                            class="text-decoration-none">
                                             View All <i class="fa fa-arrow-right ms-1"></i>
                                         </a>

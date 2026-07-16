@@ -45,17 +45,25 @@
                 </Authorized>
             </AuthorizeView>
 
-            <div class="nav-item">
-                <NavLink class="nav-link" href="classes">
-                    <i class="fa fa-chalkboard-teacher me-2"></i>Classes
-                </NavLink>
-            </div>
+            <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+                <Authorized>
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="classes">
+                            <i class="fa fa-graduation-cap me-2"></i>Classes
+                        </NavLink>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
 
-            <div class="nav-item">
-                <NavLink class="nav-link" href="myclasses">
-                    <i class="fa fa-calendar-week me-2"></i>My Classes
-                </NavLink>
-            </div>
+            <AuthorizeView Roles="Developer,Principal,Admin,Teacher,Student,Guardian">
+                <Authorized>
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="myclasses">
+                            <i class="fa fa-calendar-week me-2"></i>My Classes
+                        </NavLink>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
 
             <AuthorizeView Roles="Developer,Principal,Admin,Teacher,Staff">
                 <Authorized>

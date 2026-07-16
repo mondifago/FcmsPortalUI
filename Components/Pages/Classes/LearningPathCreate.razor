@@ -7,7 +7,9 @@
 @using FcmsPortalUI.Services
 @using FcmsPortal
 @using FcmsPortal.Constants
-@using FcmsPortalUI.Components.Pages.Shared
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Developer, Principal, Admin, Teacher")]
 
 <h3>Create Learning Path</h3>
 

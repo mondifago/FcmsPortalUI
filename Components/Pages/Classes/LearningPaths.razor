@@ -1,6 +1,5 @@
 ﻿@page "/classes"
 @using Microsoft.AspNetCore.Components.QuickGrid
-@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Constants
@@ -10,6 +9,9 @@
 @inject ISchoolDataService SchoolDataService
 @inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Developer, Principal, Admin, Teacher")]
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0">Class Rooms</h2>
@@ -172,9 +174,6 @@ else
     private Person? currentUser;
     private int? currentUserId;
     private bool canManageLearningPaths;
-    private bool isStaff;
-    private bool isGuardian;
-    private bool isStudent;
     private string selectedAcademicYear = "";
     private string selectedSemester = "";
     private bool filtersApplied = false;
@@ -191,36 +190,8 @@ else
         currentUser = await PermissionService.GetCurrentPersonAsync();
 
         canManageLearningPaths = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
-        isStaff = await PermissionService.IsInRoleAsync("Staff");
-        isGuardian = await PermissionService.IsInRoleAsync("Guardian");
-        isStudent = await PermissionService.IsInRoleAsync("Student");
 
         scopedQuery = SchoolDataService.GetLearningPathsForList();
-
-        if (isGuardian)
-        {
-            var guardian = SchoolDataService.GetGuardians()
-                .FirstOrDefault(g => g.PersonId == currentUser?.Id);
-
-            var wardIds = guardian?.Wards
-                .Where(w => w.LearningPathId != null)
-                .Select(w => w.LearningPathId!.Value)
-                .ToList() ?? new();
-
-            scopedQuery = scopedQuery.Where(lp => wardIds.Contains(lp.Id));
-        }
-
-        if (isStudent)
-        {
-            var student = SchoolDataService.GetStudents()
-                .FirstOrDefault(s => s.PersonId == currentUser?.Id);
-
-            if (student?.LearningPathId != null)
-            {
-                var studentPathId = student.LearningPathId.Value;
-                scopedQuery = scopedQuery.Where(lp => lp.Id == studentPathId);
-            }
-        }
 
         LoadAvailableFilters();
         InitializeWithCurrentAcademicPeriod();

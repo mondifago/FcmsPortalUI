@@ -1,9 +1,7 @@
 ﻿@page "/myclasses"
-@using Microsoft.AspNetCore.Components.QuickGrid
 @using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortal.Constants
 @using FcmsPortalUI.Services
 @using FcmsPortalUI.DTOs
 @using FcmsPortalUI.Components.Pages.Shared
@@ -11,6 +9,9 @@
 @inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Developer, Principal, Admin, Teacher, Student, Guardian")]
 
 <PageTitle>My Classes</PageTitle>
 
@@ -300,7 +301,7 @@
 
 @code {
     private const string TabTimetable = "timetable";
-    private const string TabOne = "tab1";
+    private const string TabOne = "template";
     private const string TabTwo = "tab2";
 
     private string activeTab = TabTimetable;
@@ -351,7 +352,7 @@
         isStudent = await PermissionService.IsInRoleAsync("Student");
         isGuardian = await PermissionService.IsInRoleAsync("Guardian");
         canManageSchedules = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
-        isStaffViewer = canManageSchedules || await PermissionService.IsInRoleAsync("Staff");
+        isStaffViewer = canManageSchedules;
 
         if (isStudent)
         {

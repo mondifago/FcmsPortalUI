@@ -3,10 +3,10 @@
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 @using FcmsPortal.Models
-@using FcmsPortal.Enums
 @using FcmsPortalUI.Services
-@using FcmsPortal
-@using FcmsPortalUI.Components.Pages.Shared
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Developer, Principal, Admin, Teacher")]
 
 <h3>Edit Learning Path</h3>
 
