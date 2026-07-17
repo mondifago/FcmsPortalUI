@@ -6,16 +6,6 @@
 @using System.ComponentModel.DataAnnotations
 @inject ISchoolDataService SchoolDataService
 
-<AuthorizeView Roles="Developer,Principal,Admin,Teacher">
-    <Authorized>
-        <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-success" @onclick="ShowFinalizeGradesModal">
-                <i class="fa fa-flag-checkered"></i> Finalize Grades
-            </button>
-        </div>
-    </Authorized>
-</AuthorizeView>
-
 <!-- Course Grade Weight Configuration Section -->
 <div class="card mb-4">
     <div class="card-header">
@@ -235,6 +225,7 @@
 
 @code {
     [Parameter] public int LearningPathId { get; set; }
+
     [Parameter] public EventCallback OnGradesChanged { get; set; }
 
     private LearningPath learningPath = new();
@@ -378,9 +369,10 @@
         selectedStudent = null;
     }
 
-    private void ShowFinalizeGradesModal()
+    public void OpenFinalizeGrades()
     {
         showFinalizeGradesModal = true;
+        StateHasChanged();
     }
 
     private async Task CloseFinalizeGradesModal()

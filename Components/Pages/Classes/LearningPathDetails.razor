@@ -24,7 +24,7 @@
     else
     {
         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 fcms-gap-sm">
-            <h2>Class Room</h2>
+            <h2>Class Management</h2>
             <div class="d-flex flex-wrap fcms-gap-sm">
                 <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
                     <Authorized>
@@ -122,12 +122,6 @@
                 </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link @(activeTab == TabAttendance ? "active" : "")"
-                        @onclick="() => activeTab = TabAttendance">
-                    Attendance
-                </button>
-            </li>
-            <li class="nav-item">
                 <button class="nav-link @(activeTab == TabGrades ? "active" : "")"
                         @onclick="() => activeTab = TabGrades">
                     Grades
@@ -138,8 +132,14 @@
         @if (activeTab == TabStudents)
         {
             <div class="card timetable-card mb-4">
-                <div class="card-header">
-                    <h4 class="mb-0">Students (@learningPath.Students.Count)</h4>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Students (@learningPath.Students.Count)</h5>
+                    @if (learningPath.Students != null && learningPath.Students.Any())
+                    {
+                        <button class="@GetAttendanceButtonClass()" @onclick="HandleAttendanceAction">
+                            @GetAttendanceButtonText()
+                        </button>
+                    }
                 </div>
                 <div class="card-body">
                     @if (learningPath.Students == null || !learningPath.Students.Any())
@@ -222,46 +222,32 @@
             </div>
         }
 
-        @if (activeTab == TabAttendance)
-        {
-            <div class="card timetable-card mb-4">
-                <div class="card-header">
-                    <h4 class="mb-0">Attendance</h4>
-                </div>
-                <div class="card-body text-center">
-                    @if (learningPath.Students != null && learningPath.Students.Any())
-                    {
-                        <button class="@GetAttendanceButtonClass()" @onclick="HandleAttendanceAction">
-                            @GetAttendanceButtonText()
-                        </button>
-                    }
-                    else
-                    {
-                        <p class="text-muted mb-0">No students enrolled yet, so attendance cannot be taken.</p>
-                    }
-                </div>
-            </div>
-        }
-
         @if (activeTab == TabGrades)
         {
             <div class="card timetable-card mb-4">
-                <div class="card-header">
-                    <h4 class="mb-0">Grades</h4>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Grades</h5>
+                    <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
+                        <Authorized>
+                            <button class="btn btn-success btn-sm" @onclick="() => gradesPanel?.OpenFinalizeGrades()">
+                                Finalize Grades
+                            </button>
+                        </Authorized>
+                    </AuthorizeView>
                 </div>
                 <div class="card-body">
-                    @if (!IsGradeConfigurationComplete())
+                    @if (unconfiguredCourses.Any())
                     {
                         <div class="alert alert-warning">
                             <i class="fa fa-exclamation-triangle"></i>
                             <strong>Grade Configuration Required</strong>
                             <p class="mb-3">Grade weights must be configured for all courses before recording grades or issuing homework.</p>
 
-                            @if (GetUnconfiguredCourses().Any())
+                            @if (unconfiguredCourses.Any())
                             {
                                 <p class="mb-2"><strong>Courses needing configuration:</strong></p>
                                 <ul class="mb-3">
-                                    @foreach (var course in GetUnconfiguredCourses())
+                                    @foreach (var course in unconfiguredCourses)
                                     {
                                         <li>@course</li>
                                     }
@@ -269,7 +255,8 @@
                             }
                         </div>
                     }
-                    <LearningPathGradesPanel LearningPathId="learningPath.Id"
+                    <LearningPathGradesPanel @ref="gradesPanel"
+                                             LearningPathId="learningPath.Id"
                                              OnGradesChanged="RefreshLearningPath" />
                 </div>
             </div>
@@ -429,7 +416,7 @@
         {
             <DailyAttendanceViewModal IsVisible="showDailyAttendanceModal"
                                       SelectedDate="DateTime.Now"
-                                      AttendanceData="dailyAttendanceData"
+                                      AttendanceData="todaysAttendance"
                                       LearningPathName="@Util.GetLearningPathName(learningPath)"
                                       OnClose="CloseDailyAttendanceModal" />
         }
@@ -455,32 +442,30 @@
     public int Id { get; set; }
 
     private LearningPath learningPath = new LearningPath();
-    private DailyAttendanceLogEntry? dailyAttendanceData;
     private DailyAttendanceLogEntry? todaysAttendance;
     private List<Student> availableStudents = new List<Student>();
     private HashSet<int> selectedStudentIds = new HashSet<int>();
+    private List<string> unconfiguredCourses = new();
     private Student? selectedStudent;
-
- 
-
+    private LearningPathGradesPanel? gradesPanel;
+    private Person? currentUser;
+    private int? currentUserId;
+    private const string TabStudents = "students";
+    private const string TabGrades = "grades";
+    private string activeTab = TabStudents;
     private bool showStudentDetailsModal = false;
     private bool showAttendanceModal = false;
     private bool showDailyAttendanceModal = false;
-
     private bool showAddStudentsModal = false;
     private bool showSubmitConfirm = false;
     private bool showApproveConfirm = false;
-    private Person? currentUser;
-    private int? currentUserId;
-
-    private const string TabStudents = "students";
-    private const string TabAttendance = "attendance";
-    private const string TabGrades = "grades";
-    private string activeTab = TabStudents;
+    private bool attendanceTakenToday;
 
     protected override async Task OnInitializedAsync()
     {
         learningPath = SchoolDataService.GetLearningPathForDetails(Id) ?? new LearningPath();
+        attendanceTakenToday = SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today);
+        unconfiguredCourses = SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
         currentUser = await PermissionService.GetCurrentPersonAsync();
     }
@@ -488,6 +473,7 @@
     private void RefreshLearningPath()
     {
         learningPath = SchoolDataService.GetLearningPathForDetails(Id) ?? new LearningPath();
+        unconfiguredCourses = SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
         StateHasChanged();
     }
 
@@ -577,19 +563,19 @@
 
     private string GetAttendanceButtonText()
     {
-        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today) ? "View Attendance" : "Take Attendance";
+        return attendanceTakenToday ? "View Attendance" : "Take Attendance";
     }
 
     private string GetAttendanceButtonClass()
     {
-        return SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today)
+        return attendanceTakenToday
             ? "btn btn-success btn-sm"
             : "btn btn-warning btn-sm";
     }
 
     private void HandleAttendanceAction()
     {
-        if (SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today))
+        if (attendanceTakenToday)
         {
             ShowTodaysAttendance();
         }
@@ -603,8 +589,7 @@
     {
         if (learningPath != null)
         {
-            dailyAttendanceData = SchoolDataService.GetAttendanceForDate(learningPath.Id, DateTime.Today) ?? new DailyAttendanceLogEntry();
-            todaysAttendance = dailyAttendanceData;
+            todaysAttendance = SchoolDataService.GetAttendanceForDate(learningPath.Id, DateTime.Today) ?? new DailyAttendanceLogEntry();
             showDailyAttendanceModal = true;
         }
     }
@@ -612,6 +597,7 @@
     private void OnAttendanceSubmitted(DailyAttendanceLogEntry attendanceLog)
     {
         showAttendanceModal = false;
+        attendanceTakenToday = true;
         StateHasChanged();
     }
 
@@ -624,19 +610,6 @@
     {
         showDailyAttendanceModal = false;
         todaysAttendance = null;
-    }
-
-    private bool IsGradeConfigurationComplete()
-    {
-        var allCourses = CourseDefaults.GetCourseNames(learningPath.EducationLevel);
-        var configuredCourses = SchoolDataService.GetAllCourseGradingConfigurations(learningPath.Id);
-
-        return allCourses.All(course => configuredCourses.Any(config => config.Course == course));
-    }
-
-    private List<string> GetUnconfiguredCourses()
-    {
-        return SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
     }
 
     private bool HasAnyGrades()
