@@ -1884,7 +1884,8 @@ namespace FcmsPortalUI.Services
 
             _context.SaveChanges();
 
-            UpdateCourseGradeConfigurations(learningPath.Id, configuration.Course, configuration);
+            var savedConfig = existingConfig ?? configuration;
+            UpdateCourseGradeConfigurations(learningPath.Id, configuration.Course, savedConfig);
         }
 
         private void UpdateCourseGradeConfigurations(int learningPathId, string course, CourseGradingConfiguration config)
@@ -3005,7 +3006,9 @@ namespace FcmsPortalUI.Services
                     {
                         Course = courseGrade.Course,
                         TotalGrade = courseGrade.TotalGrade,
-                        FinalGradeCode = courseGrade.FinalGradeCode ?? Util.GetGradeCode(courseGrade.TotalGrade),
+                        FinalGradeCode = string.IsNullOrEmpty(courseGrade.FinalGradeCode)
+                            ? Util.GetGradeCode(courseGrade.TotalGrade)
+                            : courseGrade.FinalGradeCode,
 
                         HomeworkWeightPercentage = homeworkWeight,
                         QuizWeightPercentage = quizWeight,
