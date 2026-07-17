@@ -1716,3 +1716,27 @@ main {
 .fcms-icon-soft {
     color: #f0d5c4;
 }
+
+/* ===== Reusable info strip (page identity band) ===== */
+.fcms-info-strip {
+    background-color: #fdf6f0;
+    color: #5a3e2b;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.5rem;
+}
+
+.fcms-info-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.75;
+}
+
+.fcms-info-value {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
