@@ -2483,6 +2483,15 @@ namespace FcmsPortalUI.Services
 
         public void ArchiveStudentPayments(LearningPath learningPath)
         {
+            bool alreadyArchived = _context.ArchivedStudentPayments
+                .AsNoTracking()
+                .Any(a => a.LearningPathId == learningPath.Id &&
+                          a.AcademicYear == learningPath.AcademicYear &&
+                          a.Semester == learningPath.Semester);
+
+            if (alreadyArchived)
+                return;
+
             var studentIds = learningPath.Students.Select(s => s.Id).ToList();
             var studentsWithFees = _context.Students
                 .Include(s => s.Person)
@@ -2558,6 +2567,15 @@ namespace FcmsPortalUI.Services
 
         public void ArchiveStudentAttendance(LearningPath learningPath)
         {
+            bool alreadyArchived = _context.AttendanceArchives
+                .AsNoTracking()
+                .Any(a => a.LearningPathId == learningPath.Id &&
+                          a.AcademicYear == learningPath.AcademicYear &&
+                          a.Semester == learningPath.Semester);
+
+            if (alreadyArchived)
+                return;
+
             var attendanceLogs = GetDailyAttendanceForLearningPath(learningPath.Id);
 
             foreach (var student in learningPath.Students)
@@ -2931,7 +2949,7 @@ namespace FcmsPortalUI.Services
                 double secondSemesterGrade = semesterGrades.GetValueOrDefault(Semester.Second, 0);
                 double thirdSemesterGrade = semesterGrades.GetValueOrDefault(Semester.Third, 0);
 
-                double promotionGrade = semesterGrades.Any() ? Math.Round(semesterGrades.Values.Average(), FcmsConstants.GRADE_ROUNDING_DIGIT) : 0;
+                double promotionGrade = LogicMethods.CalculatePromotionGrade(semesterGrades);
 
                 bool isPromoted = promotionGrade >= FcmsConstants.PASSING_GRADE;
 

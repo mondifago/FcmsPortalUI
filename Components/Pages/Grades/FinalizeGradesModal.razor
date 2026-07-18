@@ -5,8 +5,6 @@
 @using FcmsPortal
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
-@inject IPermissionService PermissionService
-@inject NavigationManager NavigationManager
 
 <div class="modal fade @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -48,10 +46,7 @@
                                         <td>@student.Person.LastName, @student.Person.FirstName</td>
                                         @if (LearningPath.Semester == Semester.Third)
                                         {
-
-                                            var grades = studentSemesterGrades.ContainsKey(student.Id)
-                                            ? studentSemesterGrades[student.Id]
-                                            : new Dictionary<Semester, double>();
+                                            var grades = studentSemesterGrades.ContainsKey(student.Id) ? studentSemesterGrades[student.Id] : new Dictionary<Semester, double>();
 
                                             @foreach (var sem in new[] { Semester.First, Semester.Second, Semester.Third })
                                             {
@@ -70,14 +65,8 @@
                                             }
                                             <td class="text-center bg-info bg-opacity-10">
                                                 <strong>
-                                                    @{
-
-                                                        var promotionGrade = grades.Any()
-                                                        ? Math.Round(grades.Values.Average(), 2)
-                                                        : 0;
-                                                    }
+                                                    @{ var promotionGrade = LogicMethods.CalculatePromotionGrade(grades); }
                                                     @promotionGrade.ToString("F1")%
-
                                                 </strong>
                                             </td>
                                         }
@@ -97,17 +86,9 @@
 
                                             @if (LearningPath.Semester == Semester.Third)
                                             {
-                                                var grades = studentSemesterGrades.ContainsKey(student.Id)
-                                                ? studentSemesterGrades[student.Id]
-                                                : new Dictionary<Semester, double>();
-
-                                                var promotionGrade = grades.Any()
-                                                ? Math.Round(grades.Values.Average(), 2)
-                                                : 0;
-
-                                                bool isLastClass = LogicMethods.IsLastClassInEducationLevel(
-                                                LearningPath.EducationLevel, LearningPath.ClassLevel);
-
+                                                var grades = studentSemesterGrades.ContainsKey(student.Id) ? studentSemesterGrades[student.Id] : new Dictionary<Semester, double>();
+                                                var promotionGrade = LogicMethods.CalculatePromotionGrade(grades);
+                                                bool isLastClass = LogicMethods.IsLastClassInEducationLevel(LearningPath.EducationLevel, LearningPath.ClassLevel);
                                                 bool passed = promotionGrade >= FcmsConstants.PASSING_GRADE;
 
                                                 @if (isGradesFinalized && isLastClass)
@@ -229,7 +210,7 @@
     private string errorMessage = string.Empty;
     private Dictionary<int, Dictionary<Semester, double>> studentSemesterGrades = new();
 
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
         CheckGradesFinalizationStatus();
         if (LearningPath != null && LearningPath.Semester == Semester.Third)
