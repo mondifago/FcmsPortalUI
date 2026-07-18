@@ -40,8 +40,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var student in LearningPath.Students.OrderBy(s => s.Person.LastName))
+                                @foreach (var entry in LogicMethods.RankStudentsBySemesterGrade(LearningPath))
                                 {
+                                    var student = entry.Student;
+
                                     <tr>
                                         <td>@student.Person.LastName, @student.Person.FirstName</td>
                                         @if (LearningPath.Semester == Semester.Third)

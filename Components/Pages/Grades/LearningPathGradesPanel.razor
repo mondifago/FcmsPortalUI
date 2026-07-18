@@ -152,8 +152,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var student in learningPath.Students.OrderBy(s => s.Person.LastName))
+                        @foreach (var entry in LogicMethods.RankStudentsBySemesterGrade(learningPath))
                         {
+                            var student = entry.Student;
                             <tr>
                                 <td><strong>@student.Person.FirstName @student.Person.LastName</strong></td>
                                 @foreach (var config in GetConfiguredCourses())
@@ -174,7 +175,7 @@
                                 }
                                 <td class="text-center">
                                     <strong class="text-primary">
-                                        @LogicMethods.CalculateSemesterOverallGrade(student, learningPath).ToString("F1")%
+                                        @entry.SemesterGrade.ToString("F1")%
                                     </strong>
                                 </td>
                                 <td class="text-center">
