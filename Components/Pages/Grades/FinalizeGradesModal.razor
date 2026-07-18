@@ -3,6 +3,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortal.Constants
 @using FcmsPortal
+@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
@@ -156,7 +157,7 @@
                 {
                     <AuthorizeView Roles="Developer,Principal">
                         <Authorized>
-                            <button type="button" class="btn btn-primary" @onclick="() => showFinalizeConfirm = true">
+                            <button type="button" class="btn btn-primary" @onclick="ShowFinalizeConfirmation">
                                 <i class="fa fa-check-circle"></i> Finalize All Grades
                             </button>
                         </Authorized>
@@ -198,6 +199,10 @@
         </div>
     </div>
 }
+<ErrorDisplayModal IsVisible="showErrorModal"
+                   Title="Remarks Required"
+                   Message="@errorMessage"
+                   OnClose="() => showErrorModal = false" />
 
 <StudentReportCardModal IsVisible="showReportCardModal"
                         Student="selectedStudentForReport"
@@ -220,6 +225,8 @@
     private bool showReportCardModal = false;
     private bool showFinalizeConfirm = false;
     private bool isGradesFinalized = false;
+    private bool showErrorModal = false;
+    private string errorMessage = string.Empty;
     private Dictionary<int, Dictionary<Semester, double>> studentSemesterGrades = new();
 
     protected override void OnParametersSet()
@@ -265,6 +272,17 @@
 
     private void ShowFinalizeConfirmation()
     {
+        var reportCards = SchoolDataService.GetStudentReportCardsForLearningPath(LearningPath.Id);
+        var incomplete = LogicMethods.GetStudentsWithIncompleteReportCardRemarks(LearningPath, reportCards);
+
+        if (incomplete.Any())
+        {
+            errorMessage = "Both teacher and principal remarks are required on every report card before grades can be finalized. Still missing for: " +
+                string.Join(", ", incomplete.Select(s => Util.GetFullName(s.Person)));
+            showErrorModal = true;
+            return;
+        }
+
         showFinalizeConfirm = true;
     }
 
