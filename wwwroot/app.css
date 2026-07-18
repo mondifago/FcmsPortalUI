@@ -1653,6 +1653,16 @@ main {
         color: #5a3e2b !important;
     }
 
+/* ===== Tab content card ===== */
+.fcms-tab-card {
+    background-color: #f0d5c4;
+    color: #5a3e2b;
+}
+
+    .fcms-tab-card .text-muted {
+        color: #5a3e2b !important;
+    }
+
 /* ===== Reusable fold (collapsible sections) ===== */
 .fcms-fold-header {
     cursor: pointer;
@@ -1730,8 +1740,8 @@ main {
 
 .fcms-info-label {
     display: block;
-    font-size: 0.75rem;
-    text-transform: uppercase;
+    font-size: 0.8rem;
+
     letter-spacing: 0.03em;
     opacity: 0.75;
 }

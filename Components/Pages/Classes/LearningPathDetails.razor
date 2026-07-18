@@ -131,7 +131,7 @@
 
         @if (activeTab == TabStudents)
         {
-            <div class="card timetable-card mb-4">
+            <div class="card fcms-tab-card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Students (@learningPath.Students.Count)</h5>
                     @if (learningPath.Students != null && learningPath.Students.Any())
@@ -224,7 +224,7 @@
 
         @if (activeTab == TabGrades)
         {
-            <div class="card timetable-card mb-4">
+            <div class="card fcms-tab-card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Grades</h5>
                     <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
@@ -242,17 +242,13 @@
                             <i class="fa fa-exclamation-triangle"></i>
                             <strong>Grade Configuration Required</strong>
                             <p class="mb-3">Grade weights must be configured for all courses before recording grades or issuing homework.</p>
-
-                            @if (unconfiguredCourses.Any())
-                            {
-                                <p class="mb-2"><strong>Courses needing configuration:</strong></p>
-                                <ul class="mb-3">
-                                    @foreach (var course in unconfiguredCourses)
-                                    {
-                                        <li>@course</li>
-                                    }
-                                </ul>
-                            }
+                            <p class="mb-2"><strong>Courses needing configuration:</strong></p>
+                            <ul class="mb-3">
+                                @foreach (var course in unconfiguredCourses)
+                                {
+                                    <li>@course</li>
+                                }
+                            </ul>
                         </div>
                     }
                     <LearningPathGradesPanel @ref="gradesPanel"
@@ -544,7 +540,7 @@
     private void ApproveLearningPath()
     {
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
-       
+
         foreach (var student in learningPath.Students.ToList())
         {
             SchoolDataService.RemoveStudentFromLearningPath(learningPath, student);
