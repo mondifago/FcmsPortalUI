@@ -117,10 +117,20 @@
                         <h6 class="text-muted">Gender</h6>
                         <p>@(currentPerson.Sex.ToString() ?? "N/A")</p>
                     </div>
-                    <div class="col-md-6 col-lg-4">
-                        <h6 class="text-muted">Enrollment Date</h6>
-                        <p>@currentPerson.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
-                    </div>
+                    @if (isStaff && staffProfile != null)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <h6 class="text-muted">Date of Employment</h6>
+                            <p>@staffProfile.DateOfEmployment.ToString("MMMM d, yyyy")</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <h6 class="text-muted">Enrollment Date</h6>
+                            <p>@currentPerson.DateOfEnrollment.ToString("MMMM d, yyyy")</p>
+                        </div>
+                    }
                     @if (!string.IsNullOrEmpty(currentPerson.StateOfOrigin))
                     {
                         <div class="col-md-6 col-lg-4">
@@ -314,21 +324,18 @@
     private Person? currentPerson;
     private string userRole = "";
 
-    // Role flags (matches PermissionService)
     private bool isStudent = false;
     private bool isGuardian = false;
     private bool isPrincipal = false;
     private bool isDeveloper = false;
+    private bool isStaff = false;
 
-    // Profiles mapped from SchoolDataService
     private Student? studentProfile;
     private Guardian? guardianProfile;
     private Staff? staffProfile;
 
-    // Loading state
     private bool isLoading = true;
 
-    // Achievements section
     private const string TabReportCards = "reportcards";
     private const string TabAwards = "awards";
     private const string TabBehaviour = "behaviour";
@@ -337,7 +344,6 @@
     private int activeAchievementStudentId = 0;
     private string expandedAcademicYear = "";
 
-    // key = studentId, value = archived grade snapshots (one per finalized term)
     private Dictionary<int, List<ArchivedStudentGrade>> achievementGrades = new();
 
     private bool showArchivedReportCardModal = false;
@@ -346,7 +352,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // 1. Load logged-in person
         currentPerson = await PermissionService.GetCurrentPersonAsync();
 
         if (currentPerson == null)
@@ -355,23 +360,14 @@
             return;
         }
 
-        // 2. Determine user roles
         isStudent = await PermissionService.IsInRoleAsync("Student");
         isGuardian = await PermissionService.IsInRoleAsync("Guardian");
-        //isStaff = await PermissionService.IsInAnyRoleAsync("Staff", "Teacher", "Admin");
+        isStaff = await PermissionService.IsInAnyRoleAsync("Staff", "Teacher", "Admin");
         isPrincipal = await PermissionService.IsInRoleAsync("Principal");
         isDeveloper = await PermissionService.IsInRoleAsync("Developer");
 
-        if (isDeveloper) userRole = "Developer";
-        else if (isPrincipal) userRole = "Principal";
-        else if (staffProfile != null) userRole = staffProfile.UserRole.ToString();
-        else if (await PermissionService.IsInRoleAsync("Admin")) userRole = "Admin";
-        else if (await PermissionService.IsInRoleAsync("Teacher")) userRole = "Teacher";
-        else if (await PermissionService.IsInRoleAsync("Staff")) userRole = "Staff";
-        else if (isGuardian) userRole = "Guardian";
-        else if (isStudent) userRole = "Student";
+        userRole = await DetermineUserRoleAsync();
 
-        // 3. Student Profile + Achievements
         studentProfile = SchoolDataService.GetStudentByPersonId(currentPerson.Id);
 
         if (studentProfile != null)
@@ -380,7 +376,6 @@
             activeAchievementStudentId = studentProfile.Id;
         }
 
-        // 4. Guardian Profile + Wards' Achievements
         guardianProfile = SchoolDataService.GetGuardians()
             .FirstOrDefault(g => g.PersonId == currentPerson.Id);
 
@@ -399,11 +394,21 @@
 
         SetDefaultExpandedYear();
 
-        // 5. Staff Profile
-        staffProfile = SchoolDataService.GetStaff()
-            .FirstOrDefault(s => s.PersonId == currentPerson.Id);
-
+        staffProfile = SchoolDataService.GetStaff().FirstOrDefault(s => s.PersonId == currentPerson.Id);
         isLoading = false;
+    }
+
+    private async Task<string> DetermineUserRoleAsync()
+    {
+        if (isDeveloper) return "Developer";
+        if (isPrincipal) return "Principal";
+        if (staffProfile != null) return staffProfile.UserRole.ToString();
+        if (await PermissionService.IsInRoleAsync("Admin")) return "Admin";
+        if (await PermissionService.IsInRoleAsync("Teacher")) return "Teacher";
+        if (await PermissionService.IsInRoleAsync("Staff")) return "Staff";
+        if (isGuardian) return "Guardian";
+        if (isStudent) return "Student";
+        return "";
     }
 
     private List<ArchivedStudentGrade> GetActiveAchievementGrades()
