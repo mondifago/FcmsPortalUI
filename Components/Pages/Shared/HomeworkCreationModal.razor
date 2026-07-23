@@ -116,8 +116,13 @@
     {
         if (!IsEditing)
         {
-            homework.Id = 0; 
+            homework.Id = 0;
             homework.ClassSessionId = ClassSession.Id;
+        }
+
+        if (homework.AssignedDate.TimeOfDay == TimeSpan.Zero)
+        {
+            homework.AssignedDate = homework.AssignedDate.Add(DateTime.Now.TimeOfDay);
         }
 
         await OnSave.InvokeAsync(homework);

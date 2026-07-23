@@ -173,6 +173,8 @@
     {
         if (!IsFormValid()) return;
 
+        var setRecordedDate = DateTime.Now;
+
         for (int i = 0; i < studentTestGrades.Count; i++)
         {
             var testGrade = studentTestGrades[i];
@@ -183,13 +185,14 @@
                 var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
 
                 SchoolDataService.AddTestGrade(
-                    student.Id,                                                   
-                    Course,                                                        
-                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),   
-                    selectedGradeType,                                            
-                    testGrade.Teacher.Id,                                        
-                    testGrade.TeacherRemark,                                      
-                    LearningPath.Id                                               
+                    student.Id,
+                    Course,
+                    Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT),
+                    selectedGradeType,
+                    testGrade.Teacher.Id,
+                    testGrade.TeacherRemark,
+                    LearningPath.Id,
+                    setRecordedDate
                 );
             }
         }

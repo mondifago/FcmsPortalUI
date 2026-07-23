@@ -157,8 +157,6 @@
 
         foreach (GradeType gradeType in Enum.GetValues<GradeType>())
         {
-            // one column per assessment batch: distinct exact timestamps,
-            // the same batch concept GetGradeCountsByLearningPath counts
             var batches = allTestGrades
                 .Where(tg => tg.GradeType == gradeType)
                 .Select(tg => tg.Date)
@@ -226,8 +224,6 @@
             }
             else
             {
-                // student had no grade in this batch (e.g. was absent);
-                // the explicit date makes the new grade join the batch column
                 SchoolDataService.AddTestGrade(
                     student.Id,
                     Course,

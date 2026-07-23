@@ -146,7 +146,7 @@ namespace FcmsPortalUI.Services
         void UpdateTestGradeScore(int testGradeId, double score);
         void AddTestGrade(int studentId, string course, double score, GradeType gradeType, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null);
         Dictionary<(string Course, GradeType GradeType), int> GetGradeCountsByLearningPath(int learningPathId);
-        Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId);
+        Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null);
         void SaveFinalizedGrades(LearningPath learningPath);
         Dictionary<Semester, double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
         #endregion

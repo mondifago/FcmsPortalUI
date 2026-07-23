@@ -2059,13 +2059,7 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public async Task<TestGrade> AddHomeworkSubmissionGradeAsync(
-                int studentId,
-                string course,
-                double score,
-                int teacherId,
-                string teacherRemark,
-                int learningPathId)
+        public async Task<TestGrade> AddHomeworkSubmissionGradeAsync( int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null)
         {
             var courseGrade = await _context.CourseGrades
                 .Include(cg => cg.TestGrades)
@@ -2100,7 +2094,7 @@ namespace FcmsPortalUI.Services
                 Score = score,
                 GradeType = GradeType.Homework,
                 TeacherId = teacherId,
-                Date = DateTime.Now,
+                Date = date ?? DateTime.Now,
                 TeacherRemark = teacherRemark,
                 CourseGradeId = courseGrade.Id
             };
@@ -2126,10 +2120,7 @@ namespace FcmsPortalUI.Services
                 {
                     tg.CourseGrade.Course,
                     tg.GradeType,
-                    tg.Date.Date,
-                    tg.Date.Hour,
-                    tg.Date.Minute,
-                    tg.Date.Second
+                    tg.Date
                 })
                 .Distinct()
                 .ToList();
