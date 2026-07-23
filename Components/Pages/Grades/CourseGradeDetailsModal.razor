@@ -33,12 +33,9 @@
                                         <th class="student-name">Student</th>
                                         @foreach (var section in gradeSections)
                                         {
-                                            @if (section.Dates.Any())
-                                            {
-                                                <th @attributes="@(new Dictionary<string, object> { ["colspan"] = section.Dates.Count })" class="text-center summary-col">
-                                                    @((section.GradeType))
-                                                </th>
-                                            }
+                                            <th @attributes="@(new Dictionary<string, object> { ["colspan"] = section.Batches.Count })" class="text-center summary-col">
+                                                @((section.GradeType))
+                                            </th>
                                         }
                                         <th class="text-center">Action</th>
                                     </tr>
@@ -46,10 +43,10 @@
                                         <th class="student-name"></th>
                                         @foreach (var section in gradeSections)
                                         {
-                                            @foreach (var date in section.Dates)
+                                            @foreach (var batch in section.Batches)
                                             {
-                                                <th class="date-header">
-                                                    @date.ToString("MM/dd")
+                                                <th class="date-header" title="@batch.ToString("MMM d, yyyy h:mm tt")">
+                                                    @batch.ToString("MM/dd")
                                                 </th>
                                             }
                                         }
@@ -57,33 +54,39 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var student in LearningPath.Students.OrderBy(s => s.Person.LastName))
+                                    @foreach (var entry in LogicMethods.RankStudentsBySemesterGrade(LearningPath))
                                     {
+                                        var student = entry.Student;
                                         <tr>
                                             <td class="student-name">
                                                 @student.Person.FirstName @student.Person.LastName
                                             </td>
                                             @foreach (var section in gradeSections)
                                             {
-                                                @for (int i = 0; i < section.Dates.Count; i++)
+                                                @foreach (var batch in section.Batches)
                                                 {
-                                                    int localIndex = i;
+                                                    var existingGrade = GetStudentGradeForBatch(student, section.GradeType, batch);
                                                     <td class="text-center">
                                                         @if (editingStudentId == student.Id)
                                                         {
                                                             <input type="number"
-                                                                   class="form-control form-control-sm"
-                                                                   style="width: 50px; font-size: 0.8rem;"
-                                                                   value="@GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[localIndex], localIndex)"
-                                                                   @onchange="@(e => UpdateStudentGrade(student, section.GradeType, section.Dates[localIndex], localIndex, e.Value?.ToString()))"
-                                                                   min="0" max="100" />
+                                                                   class="form-control form-control-sm fcms-grade-input"
+                                                                   value="@(existingGrade?.Score ?? 0)"
+                                                                   @onchange="@(e => StageGradeChange(section.GradeType, batch, e.Value?.ToString()))"
+                                                                   min="0" max="@FcmsConstants.TOTAL_SCORE" />
                                                         }
                                                         else
                                                         {
-                                                            var grade = GetStudentGradeForDateAndIndex(student, section.GradeType, section.Dates[localIndex], localIndex);
-                                                            <span class="@Util.GetGradeColorClass(grade, useTextPrefix: true)">
-                                                                @(grade > 0 ? grade.ToString("F0") : "-")
-                                                            </span>
+                                                            @if (existingGrade != null)
+                                                            {
+                                                                <span class="@Util.GetGradeColorClass(existingGrade.Score, useTextPrefix: true)">
+                                                                    @existingGrade.Score.ToString("F0")
+                                                                </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="text-muted">-</span>
+                                                            }
                                                         }
                                                     </td>
                                                 }
@@ -133,16 +136,13 @@
 
     private List<GradeSection> gradeSections = new();
     private int editingStudentId = 0;
-    private Dictionary<string, double> pendingGradeChanges = new();
+    private Dictionary<(GradeType GradeType, DateTime Batch), double> pendingGradeChanges = new();
     private Staff? currentTeacher;
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        if (IsVisible && LearningPath != null && !string.IsNullOrEmpty(Course))
-        {
-            await InitializeCurrentTeacherAsync();
-            LoadGradeData();
-        }
+        await InitializeCurrentTeacherAsync();
+        LoadGradeData();
     }
 
     private void LoadGradeData()
@@ -157,34 +157,33 @@
 
         foreach (GradeType gradeType in Enum.GetValues<GradeType>())
         {
-            var gradeTypeGrades = allTestGrades.Where(tg => tg.GradeType == gradeType).ToList();
-            var uniqueDates = gradeTypeGrades
-                .Select(tg => tg.Date.Date)
+            // one column per assessment batch: distinct exact timestamps,
+            // the same batch concept GetGradeCountsByLearningPath counts
+            var batches = allTestGrades
+                .Where(tg => tg.GradeType == gradeType)
+                .Select(tg => tg.Date)
+                .Distinct()
                 .OrderBy(d => d)
                 .ToList();
 
-            if (uniqueDates.Any())
+            if (batches.Any())
             {
                 gradeSections.Add(new GradeSection
                 {
                     GradeType = gradeType,
-                    Dates = uniqueDates
+                    Batches = batches
                 });
             }
         }
     }
 
-    private double GetStudentGradeForDateAndIndex(Student student, GradeType gradeType, DateTime date, int index)
+    private TestGrade? GetStudentGradeForBatch(Student student, GradeType gradeType, DateTime batch)
     {
         var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
             cg.Course == Course && cg.LearningPathId == LearningPath.Id);
 
-        if (courseGrade == null) return 0;
-
-        var testGrades = courseGrade.TestGrades.Where(tg =>
-            tg.GradeType == gradeType && tg.Date.Date == date.Date).ToList();
-
-        return index < testGrades.Count ? testGrades[index].Score : 0;
+        return courseGrade?.TestGrades.FirstOrDefault(tg =>
+            tg.GradeType == gradeType && tg.Date == batch);
     }
 
     private void EditStudent(int studentId)
@@ -201,15 +200,13 @@
         StateHasChanged();
     }
 
-    private void UpdateStudentGrade(Student student, GradeType gradeType, DateTime date, int index, string? scoreString)
+    private void StageGradeChange(GradeType gradeType, DateTime batch, string? scoreString)
     {
-        var key = $"{student.Id}_{gradeType}_{date:yyyy-MM-dd}_{index}";
-
         if (double.TryParse(scoreString, out double score))
         {
-            if (score >= 0 && score <= 100)
+            if (score >= 0 && score <= FcmsConstants.TOTAL_SCORE)
             {
-                pendingGradeChanges[key] = score;
+                pendingGradeChanges[(gradeType, batch)] = score;
             }
         }
     }
@@ -217,44 +214,29 @@
     private void SaveStudentGrades(Student student)
     {
         if (currentTeacher == null)
-            return; // add warning message
+            return;
 
         foreach (var change in pendingGradeChanges)
         {
-            var parts = change.Key.Split('_');
-            if (parts.Length == 4 &&
-            int.Parse(parts[0]) == student.Id &&
-            Enum.TryParse<GradeType>(parts[1], out var gradeType) &&
-            DateTime.TryParse(parts[2], out var date) &&
-            int.TryParse(parts[3], out var index))
+            var existingGrade = GetStudentGradeForBatch(student, change.Key.GradeType, change.Key.Batch);
+
+            if (existingGrade != null)
             {
-                var courseGrade = student.CourseGrades.FirstOrDefault(cg =>
-                    cg.Course == Course && cg.LearningPathId == LearningPath.Id);
-
-                if (courseGrade != null)
-                {
-                    var existingGrades = courseGrade.TestGrades.Where(tg =>
-                        tg.GradeType == gradeType && tg.Date.Date == date.Date).ToList();
-
-                    if (index < existingGrades.Count)
-                    {
-                        existingGrades[index].Score = change.Value;
-                        SchoolDataService.SaveTestGrade(existingGrades[index]);
-                        LogicMethods.RecalculateCourseGrade(courseGrade);
-                    }
-                    else
-                    {
-                        SchoolDataService.AddTestGrade(
-                            student.Id,
-                            Course,
-                            change.Value,
-                            gradeType,
-                            currentTeacher.Id,
-                            "",
-                            LearningPath.Id
-                        );
-                    }
-                }
+                SchoolDataService.UpdateTestGradeScore(existingGrade.Id, change.Value);
+            }
+            else
+            {
+                // student had no grade in this batch (e.g. was absent);
+                // the explicit date makes the new grade join the batch column
+                SchoolDataService.AddTestGrade(
+                    student.Id,
+                    Course,
+                    change.Value,
+                    change.Key.GradeType,
+                    currentTeacher.Id,
+                    "",
+                    LearningPath.Id,
+                    change.Key.Batch);
             }
         }
 
@@ -272,8 +254,7 @@
             currentTeacher = null;
             return;
         }
-        currentTeacher = SchoolDataService.GetStaff()
-            .FirstOrDefault(s => s.PersonId == person.Id);
+        currentTeacher = SchoolDataService.GetStaffByPersonId(person.Id);
     }
 
     private void Close()
@@ -286,6 +267,6 @@
     private class GradeSection
     {
         public GradeType GradeType { get; set; }
-        public List<DateTime> Dates { get; set; } = new();
+        public List<DateTime> Batches { get; set; } = new();
     }
 }

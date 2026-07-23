@@ -195,6 +195,13 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(st => st.Id == id);
         }
 
+        public Staff? GetStaffByPersonId(int personId)
+        {
+            return _context.Staff
+                .AsNoTracking()
+                .FirstOrDefault(s => s.PersonId == personId);
+        }
+
         public List<Staff> GetTeachersByEducationLevel(EducationLevel educationLevel)
         {
             return _context.Staff
@@ -1980,8 +1987,29 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public void AddTestGrade(int studentId, string course, double score, GradeType gradeType,
-                 int teacherId, string teacherRemark, int learningPathId)
+        public void UpdateTestGradeScore(int testGradeId, double score)
+        {
+            var testGrade = _context.TestGrades
+                .Include(tg => tg.CourseGrade)
+                    .ThenInclude(cg => cg.GradingConfiguration)
+                .Include(tg => tg.CourseGrade)
+                    .ThenInclude(cg => cg.TestGrades)
+                .FirstOrDefault(tg => tg.Id == testGradeId);
+
+            if (testGrade == null || testGrade.CourseGrade == null) return;
+            if (testGrade.CourseGrade.IsFinalized) return;
+
+            testGrade.Score = score;
+
+            if (testGrade.CourseGrade.GradingConfiguration != null)
+            {
+                LogicMethods.RecalculateCourseGrade(testGrade.CourseGrade);
+            }
+
+            _context.SaveChanges();
+        }
+
+        public void AddTestGrade(int studentId, string course, double score, GradeType gradeType, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null)
         {
             var courseGrade = _context.CourseGrades
                 .Include(cg => cg.TestGrades)
@@ -2015,7 +2043,7 @@ namespace FcmsPortalUI.Services
                 Score = score,
                 GradeType = gradeType,
                 TeacherId = teacherId,
-                Date = DateTime.Now,
+                Date = date ?? DateTime.Now,
                 TeacherRemark = teacherRemark,
                 CourseGradeId = courseGrade.Id
             };

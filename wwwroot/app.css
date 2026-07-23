@@ -1750,3 +1750,9 @@ main {
     font-weight: 600;
     font-size: 0.95rem;
 }
+
+/*for CourseGradeDetailsModal*/
+.fcms-grade-input {
+    width: 50px;
+    font-size: 0.8rem;
+}

@@ -21,6 +21,7 @@ namespace FcmsPortalUI.Services
         Staff AddStaff(Staff staff);
         IEnumerable<Staff> GetStaff();
         Staff? GetStaffById(int id);
+        Staff? GetStaffByPersonId(int personId);
         List<Staff> GetTeachersByEducationLevel(EducationLevel educationLevel);
         void UpdateStaff(Staff staff);
         bool DeleteStaff(int staffId);
@@ -142,7 +143,8 @@ namespace FcmsPortalUI.Services
         List<string> GetCoursesWithoutGradingConfiguration(int learningPathId);
         List<LearningPath> GetSubmittedLearningPaths(string academicYear, string semester);
         void SaveTestGrade(TestGrade testGrade);
-        void AddTestGrade(int studentId, string course, double score, GradeType gradeType, int teacherId, string teacherRemark, int learningPathId);
+        void UpdateTestGradeScore(int testGradeId, double score);
+        void AddTestGrade(int studentId, string course, double score, GradeType gradeType, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null);
         Dictionary<(string Course, GradeType GradeType), int> GetGradeCountsByLearningPath(int learningPathId);
         Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId);
         void SaveFinalizedGrades(LearningPath learningPath);
