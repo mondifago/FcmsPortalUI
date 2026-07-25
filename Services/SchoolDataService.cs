@@ -199,7 +199,8 @@ namespace FcmsPortalUI.Services
         {
             return _context.Staff
                 .AsNoTracking()
-                .FirstOrDefault(s => s.PersonId == personId);
+                .Include(st => st.Person)
+                .FirstOrDefault(st => st.PersonId == personId);
         }
 
         public List<Staff> GetTeachersByEducationLevel(EducationLevel educationLevel)

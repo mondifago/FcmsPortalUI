@@ -157,7 +157,7 @@
             currentTeacher = null;
             return;
         }
-        currentTeacher = SchoolDataService.GetStaff().FirstOrDefault(s => s.PersonId == person.Id);
+        currentTeacher = SchoolDataService.GetStaffByPersonId(person.Id);
     }
 
     private bool IsFormValid()

@@ -672,12 +672,10 @@
             if (currentUser != null)
             {
                 if (await PermissionService.IsInRoleAsync("Teacher"))
-                    currentTeacher = SchoolDataService.GetStaff()
-                        .FirstOrDefault(s => s.PersonId == currentUser.Id) ?? new Staff();
+                    currentTeacher = SchoolDataService.GetStaffByPersonId(currentUser.Id) ?? new Staff();
 
                 if (await PermissionService.IsInRoleAsync("Student"))
-                    currentStudent = SchoolDataService.GetStudents()
-                        .FirstOrDefault(st => st.PersonId == currentUser.Id) ?? new Student();
+                    currentStudent = SchoolDataService.GetStudentByPersonId(currentUser.Id) ?? new Student();
             }
 
             LoadEnrolledStudents();
@@ -736,29 +734,6 @@
         showRemarksEditor = false;
     }
 
-    private void EditHomework(Homework homework)
-    {
-        selectedHomework = homework;
-        showHomeworkModal = true;
-    }
-
-    private void DeleteHomework(Homework homework)
-    {
-        if (classSession.HomeworkDetails != null && classSession.HomeworkDetails.Id == homework.Id)
-        {
-            classSession.HomeworkDetails = null;
-        }
-        SchoolDataService.DeleteHomework(homework.Id);
-        SchoolDataService.UpdateClassSession(classSession);
-    }
-
-    private void SubmitHomework(Homework homework)
-    {
-        selectedHomework = homework;
-        existingSubmission = homework.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent.Id) ?? new HomeworkSubmission();
-        showSubmissionModal = true;
-    }
-
     private void GoBack()
     {
         if (!string.IsNullOrEmpty(ReturnUrl))
@@ -809,33 +784,6 @@
         editingLessonPlan = false;
     }
 
-    private void HandleThreadUpdated(DiscussionThread updatedThread)
-    {
-        if (classSession.DiscussionThreads == null)
-            classSession.DiscussionThreads = new List<DiscussionThread>();
-
-        var existingThreadIndex = classSession.DiscussionThreads.FindIndex(t => t.Id == updatedThread.Id);
-        if (existingThreadIndex >= 0)
-        {
-            classSession.DiscussionThreads[existingThreadIndex] = updatedThread;
-        }
-
-        StateHasChanged();
-    }
-
-    private void HandleNewThreadCreated(DiscussionThread newThread)
-    {
-        if (classSession.DiscussionThreads == null)
-            classSession.DiscussionThreads = new List<DiscussionThread>();
-
-        if (!classSession.DiscussionThreads.Any(t => t.Id == newThread.Id))
-        {
-            classSession.DiscussionThreads.Add(newThread);
-        }
-
-        StateHasChanged();
-    }
-
     private void CreateNewHomework()
     {
         selectedHomework = null;
@@ -859,7 +807,6 @@
         {
             SchoolDataService.DeleteHomework(classSession.HomeworkDetails.Id);
             classSession.HomeworkDetails = null;
-            SchoolDataService.UpdateClassSession(classSession);
         }
     }
 
