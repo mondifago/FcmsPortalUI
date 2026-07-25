@@ -286,7 +286,7 @@
     private bool isPrincipal = false;
     private Dictionary<Semester, double> semesterGrades = new();
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
         school = SchoolDataService.GetSchoolBasicInfo();
 

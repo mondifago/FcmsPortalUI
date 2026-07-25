@@ -187,15 +187,19 @@
                    Message="@errorMessage"
                    OnClose="() => showErrorModal = false" />
 
-<StudentReportCardModal IsVisible="showReportCardModal"
-                        Student="selectedStudentForReport"
-                        LearningPath="LearningPath"
-                        TeacherRemarks="@(teacherRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
-                        PrincipalRemarks="@(principalRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
-                        TeacherRemarksChanged="@((remarks) => UpdateTeacherRemarks(selectedStudentForReport?.Id ?? 0, remarks))"
-                        PrincipalRemarksChanged="@((remarks) => UpdatePrincipalRemarks(selectedStudentForReport?.Id ?? 0, remarks))"
-                        OnClose="() => showReportCardModal = false"
-                        IsFinalized="isGradesFinalized" />
+@if (showReportCardModal)
+{
+    <StudentReportCardModal IsVisible="showReportCardModal"
+                            Student="selectedStudentForReport"
+                            LearningPath="LearningPath"
+                            TeacherRemarks="@(teacherRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
+                            PrincipalRemarks="@(principalRemarks.GetValueOrDefault(selectedStudentForReport?.Id ?? 0, ""))"
+                            TeacherRemarksChanged="@((remarks) => UpdateTeacherRemarks(selectedStudentForReport?.Id ?? 0, remarks))"
+                            PrincipalRemarksChanged="@((remarks) => UpdatePrincipalRemarks(selectedStudentForReport?.Id ?? 0, remarks))"
+                            OnClose="() => showReportCardModal = false"
+                            IsFinalized="isGradesFinalized" />
+
+}
 
 @code {
     [Parameter] public bool IsVisible { get; set; }
