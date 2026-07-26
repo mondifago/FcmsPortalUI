@@ -1441,37 +1441,6 @@ namespace FcmsPortalUI.Services
             return AddHomeworkSubmission(submission);
         }
 
-        public void UpdateHomework(Homework homework)
-        {
-            if (homework == null)
-                return;
-
-            var learningPaths = _context.LearningPaths
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.HomeworkDetails)
-                .ToList();
-
-            foreach (var learningPath in learningPaths)
-            {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession?.HomeworkDetails != null &&
-                        schedule.ClassSession.HomeworkDetails.Id == homework.Id)
-                    {
-                        schedule.ClassSession.HomeworkDetails.Title = homework.Title;
-                        schedule.ClassSession.HomeworkDetails.AssignedDate = homework.AssignedDate;
-                        schedule.ClassSession.HomeworkDetails.DueDate = homework.DueDate;
-                        schedule.ClassSession.HomeworkDetails.Question = homework.Question;
-                        schedule.ClassSession.HomeworkDetails.Submissions = homework.Submissions;
-
-                        _context.SaveChanges();
-                        return;
-                    }
-                }
-            }
-        }
-
         public bool DeleteHomework(int id)
         {
             var learningPaths = _context.LearningPaths
@@ -1975,21 +1944,6 @@ namespace FcmsPortalUI.Services
                              (lp.ApprovalStatus == PrincipalApprovalStatus.Review ||
                               lp.ApprovalStatus == PrincipalApprovalStatus.Approved))
                 .ToList();
-        }
-
-        public void SaveTestGrade(TestGrade testGrade)
-        {
-            if (testGrade == null) return;
-
-            if (testGrade.Id == 0)
-            {
-                _context.TestGrades.Add(testGrade);
-            }
-            else
-            {
-                _context.TestGrades.Update(testGrade);
-            }
-            _context.SaveChanges();
         }
 
         public void UpdateTestGradeScore(int testGradeId, double score)

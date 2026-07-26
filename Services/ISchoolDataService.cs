@@ -104,7 +104,6 @@ namespace FcmsPortalUI.Services
         #region Homework
         Homework? GetHomeworkById(int id);
         HomeworkSubmission? SubmitHomework(int homeworkId, Student student, string answer);
-        void UpdateHomework(Homework homework);
         bool DeleteHomework(int id);
         HomeworkSubmission? GetHomeworkSubmissionById(int id);
         HomeworkSubmission? AddHomeworkSubmission(HomeworkSubmission submission);
@@ -142,7 +141,6 @@ namespace FcmsPortalUI.Services
         List<CourseGradingConfiguration> GetAllCourseGradingConfigurations(int learningPathId);
         List<string> GetCoursesWithoutGradingConfiguration(int learningPathId);
         List<LearningPath> GetSubmittedLearningPaths(string academicYear, string semester);
-        void SaveTestGrade(TestGrade testGrade);
         void UpdateTestGradeScore(int testGradeId, double score);
         void AddTestGrade(int studentId, string course, double score, GradeType gradeType, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null);
         Dictionary<(string Course, GradeType GradeType), int> GetGradeCountsByLearningPath(int learningPathId);

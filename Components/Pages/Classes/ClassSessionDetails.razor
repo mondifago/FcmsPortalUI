@@ -428,9 +428,6 @@
                                 }
                                 else if (!studentSubmission.IsGraded)
                                 {
-                                    <button class="btn btn-outline-info" @onclick="ViewMySubmission">
-                                        <i class="fa fa-check-circle"></i> View My Submission
-                                    </button>
                                     <button class="btn btn-outline-warning" @onclick="EditMySubmission">
                                         <i class="fa fa-edit"></i> Edit Submission
                                     </button>
@@ -742,7 +739,7 @@
         NavigationManager.NavigateTo($"/myclasses");
     }
 
-    private new void SelectMaterial(FileAttachment material)
+    private void SelectMaterial(FileAttachment material)
     {
         if (IsPdfFile(material.FileName))
         {
@@ -819,13 +816,6 @@
         showSubmissionModal = true;
     }
 
-    private void ViewMySubmission()
-    {
-        selectedSubmission = classSession.HomeworkDetails?.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id)
-                             ?? new HomeworkSubmission();
-        showSubmissionModal = true;
-    }
-
     private void EditMySubmission()
     {
         selectedSubmission = classSession.HomeworkDetails?.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id)
@@ -842,7 +832,11 @@
 
     private void HandleSubmissionSaved(HomeworkSubmission submission)
     {
-        classSession = SchoolDataService.GetClassSessionById(classSession.Id) ?? new ClassSession();
+        var submissions = classSession.HomeworkDetails?.Submissions;
+        if (submissions != null && !submissions.Any(s => s.Id == submission.Id))
+        {
+            submissions.Add(submission);
+        }
         showSubmissionModal = false;
     }
 
