@@ -1363,12 +1363,16 @@ namespace FcmsPortalUI.Services
                     .ThenInclude(h => h.Submissions)
                         .ThenInclude(s => s.Student)
                             .ThenInclude(st => st.Person)
+                .Include(cs => cs.HomeworkDetails)
+                    .ThenInclude(h => h.Submissions)
+                        .ThenInclude(s => s.HomeworkGrade)
                 .Include(cs => cs.DiscussionThreads)
                     .ThenInclude(dt => dt.FirstPost)
                         .ThenInclude(fp => fp.Author)
                 .Include(cs => cs.DiscussionThreads)
                     .ThenInclude(dt => dt.Replies)
                         .ThenInclude(r => r.Author)
+                .AsSplitQuery()
                 .FirstOrDefault(cs => cs.Id == classSessionId);
         }
 
@@ -2060,7 +2064,7 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public async Task<TestGrade> AddHomeworkSubmissionGradeAsync( int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null)
+        public async Task<TestGrade> AddHomeworkSubmissionGradeAsync( int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null, int? submissionId = null)
         {
             var courseGrade = await _context.CourseGrades
                 .Include(cg => cg.TestGrades)
@@ -2106,6 +2110,19 @@ namespace FcmsPortalUI.Services
             {
                 LogicMethods.RecalculateCourseGrade(courseGrade);
                 _context.CourseGrades.Update(courseGrade);
+            }
+
+            if (submissionId.HasValue)
+            {
+                var submission = await _context.HomeworkSubmissions
+                    .FirstOrDefaultAsync(hs => hs.Id == submissionId.Value);
+
+                if (submission != null)
+                {
+                    submission.HomeworkGrade = testGrade;
+                    submission.IsGraded = true;
+                    submission.FeedbackComment = teacherRemark;
+                }
             }
 
             await _context.SaveChangesAsync();

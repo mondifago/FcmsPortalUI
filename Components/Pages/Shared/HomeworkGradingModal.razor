@@ -172,18 +172,15 @@
             if (learningPathId.HasValue)
             {
                 var savedGrade = await SchoolDataService.AddHomeworkSubmissionGradeAsync(
-                    Submission.Student.Id,
-                    course,
-                    finalScoreRounded,
-                    CurrentTeacher.Id,
-                    testGrade.TeacherRemark,
-                    learningPathId.Value,
-                    Submission.Homework!.AssignedDate
-                );
-
-                Submission.HomeworkGrade = savedGrade;
-                Submission.IsGraded = true;
-                Submission.FeedbackComment = savedGrade.TeacherRemark;
+                     Submission.Student.Id,
+                     course,
+                     finalScoreRounded,
+                     CurrentTeacher.Id,
+                     testGrade.TeacherRemark,
+                     learningPathId.Value,
+                     Submission.Homework!.AssignedDate,
+                     Submission.Id
+                 );
             }
         }
 
