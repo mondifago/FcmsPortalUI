@@ -2,210 +2,123 @@
 @using FcmsPortal.Models
 @using FcmsPortalUI.Services
 @inject ISchoolDataService SchoolDataService
-@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <PageTitle>Archive Center</PageTitle>
 
 <div class="container-fluid mt-3">
-    <div class="row mb-4">
-        <div class="col">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2>Archive Center</h2>
-            </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 fcms-gap-sm">
+        <h2>Archive Center</h2>
     </div>
 
-    <div class="row">
-        <div class="mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-primary text-white d-flex align-items-center">
-                    <i class="fa fa-user-graduate me-2 fs-5"></i>
-                    <h5 class="mb-0">Student Archives</h5>
-                </div>
+    <ul class="nav fcms-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabPayments ? "active" : "")"
+                    @onclick="() => activeTab = TabPayments">
+                Payment Archive
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabAttendance ? "active" : "")"
+                    @onclick="() => activeTab = TabAttendance">
+                Attendance
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabGrades ? "active" : "")"
+                    @onclick="() => activeTab = TabGrades">
+                Grades
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabGraduated ? "active" : "")"
+                    @onclick="() => activeTab = TabGraduated">
+                Graduated Students
+            </button>
+        </li>
+    </ul>
 
-                <div class="card-body">
-                    <p class="text-muted mb-3">
-                        Access graduated students final grades and testimonials.
-                    </p>
+    @if (activeTab == TabPayments)
+    {
+        <div class="card fcms-tab-card mb-4">
+            <div class="card-body">
+                <ul class="nav nav-pills fcms-subtabs mb-3">
+                    <li class="nav-item">
+                        <button class="nav-link @(activePaymentView == PayStudents ? "active" : "")"
+                                @onclick="() => activePaymentView = PayStudents">
+                            Student Payments
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @(activePaymentView == PayLearningPaths ? "active" : "")"
+                                @onclick="() => activePaymentView = PayLearningPaths">
+                            Learning Path Payments
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @(activePaymentView == PaySchool ? "active" : "")"
+                                @onclick="() => activePaymentView = PaySchool">
+                            School Summaries
+                        </button>
+                    </li>
+                </ul>
 
-                    <ul class="list-group">
+                @if (activePaymentView == PayStudents)
+                {
+                    <PaymentsArchivePanel />
+                }
 
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Graduated Students</strong><br />
-                            </div>
+                @if (activePaymentView == PayLearningPaths)
+                {
+                    <LearningPathPaymentArchivePanel />
+                }
 
-                            <button class="btn btn-primary btn-sm"
-                                    @onclick="NavigateToStudentArchive">
-                                View
-                            </button>
-                        </li>
-
-                    </ul>
-                </div>
+                @if (activePaymentView == PaySchool)
+                {
+                    <SchoolPaymentArchivePanel />
+                }
             </div>
         </div>
-    </div>
+    }
 
-
-    <!-- Payments Archive Section  -->
-
-    <div class="row">
-        <div class="mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-success text-white d-flex align-items-center">
-                    <i class="fa fa-money-bill-wave me-2 fs-5"></i>
-                    <h5 class="mb-0">Payments Archive</h5>
-                </div>
-
-                <div class="card-body">
-                    <p class="text-muted mb-3">
-                        Access archived payment data for past semesters
-                    </p>
-
-                    <ul class="list-group">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Student Payments</strong><br />
-                            </div>
-
-                            <button class="btn btn-success btn-sm"
-                                    @onclick="NavigateToStudentPaymentArchive">
-                                View
-                            </button>
-                        </li>
-
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Learning Path Payments</strong><br />
-                            </div>
-
-                            <button class="btn btn-success btn-sm"
-                                    @onclick="NavigateToLearningPathPaymentArchive">
-                                View
-                            </button>
-                        </li>
-
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>School Payment Summaries</strong><br />
-                            </div>
-                            <button class="btn btn-success btn-sm"
-                                    @onclick="NavigateToSchoolPaymentArchive">
-                                View
-                            </button>
-                        </li>
-                    </ul>
-                </div>
+    @if (activeTab == TabAttendance)
+    {
+        <div class="card fcms-tab-card mb-4">
+            <div class="card-body">
+                <ArchivedAttendancePanel />
             </div>
         </div>
-    </div>
+    }
 
-    <!-- Attendance Archive Section -->
-    <div class="row">
-        <div class="mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-primary text-white d-flex align-items-center">
-                    <i class="fa fa-calendar-check me-2 fs-5"></i>
-                    <h5 class="mb-0">Attendance Archives</h5>
-                </div>
-
-                <div class="card-body">
-                    <p class="text-muted mb-3">
-                        View archived student attendance records from previous semesters.
-                    </p>
-
-                    <ul class="list-group">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Students Attendance Records</strong><br />
-                            </div>
-
-                            <button class="btn btn-primary btn-sm"
-                                    @onclick="NavigateToAttendanceArchive">
-                                View
-                            </button>
-                        </li>
-                    </ul>
-                </div>
+    @if (activeTab == TabGrades)
+    {
+        <div class="card fcms-tab-card mb-4">
+            <div class="card-body">
+                <GradesArchivePanel />
             </div>
         </div>
-    </div>
+    }
 
-    <!-- Grades Archive Section -->
-    <div class="row">
-        <div class="mb-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-success text-white d-flex align-items-center">
-                    <i class="fa fa-graduation-cap me-2 fs-5"></i>
-                    <h5 class="mb-0">Grades Archives</h5>
-                </div>
-
-                <div class="card-body">
-                    <p class="text-muted mb-3">
-                        Access students grades from previous semesters.
-                    </p>
-
-                    <ul class="list-group">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Students Grade Records</strong><br />
-                            </div>
-
-                            <button class="btn btn-success btn-sm text-white"
-                                    @onclick="NavigateToGradesArchive">
-                                View
-                            </button>
-                        </li>
-                    </ul>
-                </div>
+    @if (activeTab == TabGraduated)
+    {
+        <div class="card fcms-tab-card mb-4">
+            <div class="card-body">
+                <GraduatedStudentsPanel />
             </div>
         </div>
-    </div>
+    }
 </div>
 
 @code {
-    private int archivedStudentsCount = 0;
+    private const string TabPayments = "payments";
+    private const string TabAttendance = "attendance";
+    private const string TabGrades = "grades";
+    private const string TabGraduated = "graduated";
 
-    protected override void OnInitialized()
-    {
-        LoadArchiveStats();
-    }
+    private const string PayStudents = "students";
+    private const string PayLearningPaths = "learningpaths";
+    private const string PaySchool = "school";
 
-    private void LoadArchiveStats()
-    {
-        var archivedStudents = SchoolDataService.GetArchivedStudents();
-        archivedStudentsCount = archivedStudents.Count;
-    }
-
-    private void NavigateToStudentArchive()
-    {
-        NavigationManager.NavigateTo("/archive/students");
-    }
-
-    private void NavigateToStudentPaymentArchive()
-    {
-        NavigationManager.NavigateTo("/archive/payments");
-    }
-
-    private void NavigateToLearningPathPaymentArchive()
-    {
-        NavigationManager.NavigateTo("/archive/payments/learningpaths");
-    }
-
-    private void NavigateToSchoolPaymentArchive()
-    {
-        NavigationManager.NavigateTo("/archive/payments/school");
-    }
-
-    private void NavigateToAttendanceArchive()
-    {
-        NavigationManager.NavigateTo("/archive/attendance");
-    }
-
-    private void NavigateToGradesArchive()
-    {
-        NavigationManager.NavigateTo("/archive/grades");
-    }
+    private string activeTab = TabPayments;
+    private string activePaymentView = PayStudents;
 }
