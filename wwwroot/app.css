@@ -1760,3 +1760,21 @@ main {
 .fcms-info-wide {
     flex-basis: 100%;
 }
+
+/* ===== Reusable sub-tabs (pill switcher inside a tab) ===== */
+.fcms-subtabs .nav-link {
+    color: #5a3e2b;
+    border-radius: 20px;
+    padding: 0.25rem 1rem;
+    font-size: 0.9rem;
+}
+
+    .fcms-subtabs .nav-link:hover {
+        background-color: #fdf6f0;
+    }
+
+    .fcms-subtabs .nav-link.active {
+        background-color: #5a3e2b;
+        color: #fdf6f0;
+        font-weight: 600;
+    }
