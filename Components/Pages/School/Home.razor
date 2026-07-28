@@ -745,10 +745,14 @@
 
     private void HandleRefreshRequest()
     {
-        LoadSemesterTimeline();
-        LoadAnnouncements();
-        LoadRandomQuote();
-        LoadUpcomingEvents();
+        InvokeAsync(() =>
+        {
+            LoadSemesterTimeline();
+            LoadAnnouncements();
+            LoadRandomQuote();
+            LoadUpcomingEvents();
+            StateHasChanged();
+        });
     }
 
     private void LoadSemesterTimeline()
