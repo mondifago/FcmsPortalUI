@@ -32,6 +32,7 @@ namespace FcmsPortalUI.Services
         Guardian AddGuardian(Guardian guardian);
         IEnumerable<Guardian> GetGuardians();
         Guardian? GetGuardianById(int id);
+        Guardian? GetGuardianByPersonId(int personId);
         Guardian? GetGuardianByStudentId(int studentId);
         void UpdateGuardian(Guardian guardian);
         bool DeleteGuardian(int guardianId);

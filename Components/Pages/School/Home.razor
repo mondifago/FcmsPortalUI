@@ -800,11 +800,13 @@
 
     private async Task LoadStudentDashboardData()
     {
+        if (!await PermissionService.IsInAnyRoleAsync("Developer", "Student")) 
+        return;
+
         var person = await PermissionService.GetCurrentPersonAsync();
         if (person == null) return;
 
-        currentStudent = SchoolDataService.GetStudents()
-            .FirstOrDefault(s => s.PersonId == person.Id);
+        currentStudent = SchoolDataService.GetStudentByPersonId(person.Id);
 
         if (currentStudent != null)
         {
@@ -848,11 +850,13 @@
 
     private async Task LoadGuardianDashboardData()
     {
+        if (!await PermissionService.IsInAnyRoleAsync("Developer", "Guardian"))
+        return;
+
         var person = await PermissionService.GetCurrentPersonAsync();
         if (person == null) return;
 
-        currentGuardian = SchoolDataService.GetGuardians()
-            .FirstOrDefault(g => g.PersonId == person.Id);
+        currentGuardian = SchoolDataService.GetGuardianByPersonId(person.Id);
 
         if (currentGuardian == null || currentGuardian.Wards == null) return;
 
@@ -897,11 +901,13 @@
 
     private async Task LoadTeacherDashboardData()
     {
+        if (!await PermissionService.IsInAnyRoleAsync("Developer", "Teacher")) 
+        return;
+
         var person = await PermissionService.GetCurrentPersonAsync();
         if (person == null) return;
 
-        currentTeacher = SchoolDataService.GetStaff()
-            .FirstOrDefault(s => s.PersonId == person.Id);
+        currentTeacher = SchoolDataService.GetStaffByPersonId(person.Id);
 
         if (currentTeacher == null) return;
 

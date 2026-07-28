@@ -367,6 +367,15 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(g => g.Id == id);
         }
 
+        public Guardian? GetGuardianByPersonId(int personId)
+        {
+            return _context.Guardians
+                .Include(g => g.Person)
+                .Include(g => g.Wards)
+                    .ThenInclude(w => w.Person)
+                .FirstOrDefault(g => g.PersonId == personId);
+        }
+
         public Guardian? GetGuardianByStudentId(int studentId)
         {
             return _context.Guardians
@@ -694,6 +703,8 @@ namespace FcmsPortalUI.Services
             return _context.LearningPaths
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.Person)
+                        .ThenInclude(p => p.SchoolFees)
+                            .ThenInclude(sf => sf.Payments)
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.CourseGrades)
                         .ThenInclude(cg => cg.TestGrades)
