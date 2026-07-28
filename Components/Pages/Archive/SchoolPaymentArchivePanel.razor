@@ -6,17 +6,11 @@
 @inject ISchoolDataService SchoolDataService
 
 <div>
-
-    <!-- FILTER CARD -->
     <div class="card mb-4">
-        
-
         <div class="card-body">
             <div class="row">
-
-                <!-- Academic Year -->
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Academic Year</label>
+                <div class="col-md-6">
+                    <label class="form-label">Academic Year</label>
                     <select class="form-select"
                             @bind="selectedAcademicYear"
                             @bind:after="LoadArchive">
@@ -29,9 +23,8 @@
                     </select>
                 </div>
 
-                <!-- Semester -->
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Term</label>
+                <div class="col-md-6">
+                    <label class="form-label">Term</label>
                     <select class="form-select"
                             @bind="selectedSemester"
                             @bind:after="LoadArchive">
@@ -47,12 +40,12 @@
         </div>
     </div>
 
-    <!-- NO DATA MESSAGE -->
-    @if (summary == null)
+    @if (showResults && summary == null)
     {
-        <p class="text-muted">Select an Academic Year and Term to view archived school payment data.</p>
+        <p class="text-muted">No archived school payment data found for the selected filters.</p>
     }
-    else
+
+    @if (showResults && summary != null)
     {
         <!-- KPI + REPORT CARD -->
         <div class="card mb-4">
@@ -197,17 +190,14 @@
                     </div>
                 </div>
 
-
                 <!-- BUTTON INSIDE SAME CARD -->
                 <div class="d-flex justify-content-center mt-2 mb-2">
                     <button class="btn btn-primary btn-lg" @onclick="ShowSchoolReport">
                         <i class="fa fa-file-alt me-2"></i> Generate School Report
                     </button>
                 </div>
-
             </div>
         </div>
-
     }
 </div>
 
@@ -216,13 +206,13 @@
     ArchiveEntry="summary"
     OnClose="CloseSchoolReport" />
 
-
 @code {
-    private List<string> academicYears = new();
-    private string? selectedAcademicYear;
-    private Semester selectedSemester = Semester.First;
     private ArchivedSchoolPaymentSummary? summary;
+    private List<string> academicYears = new();
+    private Semester selectedSemester = Semester.First;
+    private string? selectedAcademicYear;
     private bool showSchoolReport = false;
+    private bool showResults = false;
 
     protected override void OnInitialized()
     {
@@ -234,10 +224,12 @@
         if (string.IsNullOrEmpty(selectedAcademicYear))
         {
             summary = null;
+            showResults = false;
             return;
         }
 
         summary = SchoolDataService.GetArchivedSchoolPaymentSummary(selectedAcademicYear, selectedSemester);
+        showResults = true;
     }
 
     private void ShowSchoolReport()

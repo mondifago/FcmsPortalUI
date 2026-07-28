@@ -6,14 +6,10 @@
 @inject ISchoolDataService SchoolDataService
 
 <div>
-
     <div class="card mb-4">
-        
-
         <div class="card-body">
             <div class="row">
-
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6">
                     <label class="form-label">Academic Year</label>
                     <select class="form-select"
                             @bind="selectedAcademicYear"
@@ -28,7 +24,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-6 mb-3">
+                <div class="col-md-6">
                     <label class="form-label">Term</label>
                     <select class="form-select"
                             @bind="selectedSemester"
@@ -45,83 +41,82 @@
         </div>
     </div>
 
-    <!-- LIST CARD -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4 class="mb-0">Learning Path Payment Details</h4>
-        </div>
+    @if (showResults)
+    {
+        <!-- LIST CARD -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Learning Path Payment Details</h4>
+            </div>
 
-        <div class="card-body">
-            @if (filteredPayments.Count == 0)
-            {
-                <p class="text-muted">No archived data found for the selected filters.</p>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Learning Path</th>
-                                <th>Students</th>
-                                <th>School Fees</th>
-                                <th>Expected Revenue</th>
-                                <th>Total Paid</th>
-                                <th>Balance</th>
-                                <th>Payment Rate</th>
-                                <th>Timely Rate</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @foreach (var lp in filteredPayments)
-                            {
+            <div class="card-body">
+                @if (filteredPayments.Count == 0)
+                {
+                    <p class="text-muted">No archived data found for the selected filters.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
                                 <tr>
-                                    <td>@lp.EducationLevel.ToDisplayName() - @lp.ClassLevel.ToDisplayName()</td>
-                                    <td>@lp.TotalStudentsInPath</td>
-                                    <td>@lp.FeePerStudent.ToString("C", new CultureInfo("en-NG"))</td>
-                                    <td>@lp.LearningPathExpectedRevenue.ToString("C", new CultureInfo("en-NG"))</td>
-                                    <td>@lp.TotalPaid.ToString("C", new CultureInfo("en-NG"))</td>
-                                    <td>@lp.Outstanding.ToString("C", new CultureInfo("en-NG"))</td>
-                                    <td>@lp.LearningPathPaymentCompletionRate.ToString("F2")%</td>
-                                    <td>@lp.LearningPathTimelyCompletionRate.ToString("F2")%</td>
-
-                                    <td>
-                                        <button class="btn btn-sm btn-info"
-                                                @onclick="() => ShowLearningPathReport(lp)">
-                                            <i class="fa fa-file-alt"></i> Report
-                                        </button>
-                                    </td>
+                                    <th>Learning Path</th>
+                                    <th>Students</th>
+                                    <th>School Fees</th>
+                                    <th>Expected Revenue</th>
+                                    <th>Total Paid</th>
+                                    <th>Balance</th>
+                                    <th>Payment Rate</th>
+                                    <th>Timely Rate</th>
+                                    <th>Action</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+                            </thead>
+
+                            <tbody>
+                                @foreach (var lp in filteredPayments)
+                                {
+                                    <tr>
+                                        <td>@lp.EducationLevel.ToDisplayName() - @lp.ClassLevel.ToDisplayName()</td>
+                                        <td>@lp.TotalStudentsInPath</td>
+                                        <td>@lp.FeePerStudent.ToString("C", new CultureInfo("en-NG"))</td>
+                                        <td>@lp.LearningPathExpectedRevenue.ToString("C", new CultureInfo("en-NG"))</td>
+                                        <td>@lp.TotalPaid.ToString("C", new CultureInfo("en-NG"))</td>
+                                        <td>@lp.Outstanding.ToString("C", new CultureInfo("en-NG"))</td>
+                                        <td>@lp.LearningPathPaymentCompletionRate.ToString("F2")%</td>
+                                        <td>@lp.LearningPathTimelyCompletionRate.ToString("F2")%</td>
+
+                                        <td>
+                                            <button class="btn btn-sm btn-info"
+                                                    @onclick="() => ShowLearningPathReport(lp)">
+                                                <i class="fa fa-file-alt"></i> Report
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
         </div>
-    </div>
+    }
 
 </div>
 
 
-<LearningPathPaymentReportModal
-    IsVisible="showReport"
-    ArchiveEntry="selectedArchiveEntry"
-    OnClose="CloseReport" />
+<LearningPathPaymentReportModal IsVisible="showReport"
+                                ArchiveEntry="selectedArchiveEntry"
+                                OnClose="CloseReport" />
 
 @code {
-
-    private List<string> academicYears = new();
-    private string? selectedAcademicYear;
-
-    private Semester selectedSemester = Semester.First;
-
     private List<ArchivedLearningPathPayment> archivedPayments = new();
     private List<ArchivedLearningPathPayment> filteredPayments = new();
-
-    private bool showReport = false;
     private ArchivedLearningPathPayment? selectedArchiveEntry;
+    private List<string> academicYears = new();
+    private Semester selectedSemester = Semester.First;
+    private string? selectedAcademicYear;
+    private bool showReport = false;
+    private bool showResults = false;
 
     protected override void OnInitialized()
     {
@@ -133,6 +128,7 @@
         if (string.IsNullOrEmpty(selectedAcademicYear))
         {
             filteredPayments = new();
+            showResults = false;
             return;
         }
 
@@ -142,6 +138,7 @@
         );
 
         filteredPayments = archivedPayments;
+        showResults = true;
         StateHasChanged();
     }
 
