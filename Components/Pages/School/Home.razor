@@ -368,7 +368,7 @@
             </AuthorizeView>
 
             <!-- Count Cards - Admin/Principal/Developer View -->
-            <AuthorizeView Roles="Developer,Principal,Admin, Staff">
+            <AuthorizeView Roles="Developer,Principal,Admin">
                 <Authorized>
                     <div class="hbar-container">
                         <div class="count-card">
@@ -859,6 +859,10 @@
         currentGuardian = SchoolDataService.GetGuardianByPersonId(person.Id);
 
         if (currentGuardian == null || currentGuardian.Wards == null) return;
+
+        wardTodayClasses.Clear();
+        wardPendingHomework.Clear();
+        wardRecentGrades.Clear();
 
         foreach (var ward in currentGuardian.Wards)
         {
