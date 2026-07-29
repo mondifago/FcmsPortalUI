@@ -10,12 +10,9 @@
 @using FcmsPortal.Constants
 @using FcmsPortal
 @using Microsoft.AspNetCore.Authorization
-@rendermode InteractiveServer
 @implements IDisposable
 
-
 <div class="container-fluid py-4">
-    <!-- Welcome Banner -->
     <div class="welcome-banner mb-4">
         <div class="welcome-banner-content">
             <div class="welcome-top-row">
@@ -909,5 +906,4 @@
             RefreshRequested -= HandleRefreshRequest;
         }
     }
-
 }
