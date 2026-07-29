@@ -720,18 +720,25 @@
         }
 
         var person = await PermissionService.GetCurrentPersonAsync();
+
         if (person != null && !string.IsNullOrWhiteSpace(person.FirstName))
         {
             userFirstName = person.FirstName;
         }
+
         LoadSemesterTimeline();
         LoadAnnouncements();
         LoadRandomQuote();
         LoadUpcomingEvents();
         await LoadAdminDashboardData();
-        await LoadStudentDashboardData();
-        await LoadGuardianDashboardData();
-        await LoadTeacherDashboardData();
+
+        if (person != null)
+        {
+            await LoadStudentDashboardData(person);
+            await LoadGuardianDashboardData(person);
+            await LoadTeacherDashboardData(person);
+        }
+
         timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
@@ -798,13 +805,10 @@
         InvokeAsync(StateHasChanged);
     }
 
-    private async Task LoadStudentDashboardData()
+    private async Task LoadStudentDashboardData(Person person)
     {
         if (!await PermissionService.IsInAnyRoleAsync("Developer", "Student")) 
         return;
-
-        var person = await PermissionService.GetCurrentPersonAsync();
-        if (person == null) return;
 
         currentStudent = SchoolDataService.GetStudentByPersonId(person.Id);
 
@@ -848,13 +852,10 @@
         showStudentGradeDetailsModal = false;
     }
 
-    private async Task LoadGuardianDashboardData()
+    private async Task LoadGuardianDashboardData(Person person)
     {
         if (!await PermissionService.IsInAnyRoleAsync("Developer", "Guardian"))
         return;
-
-        var person = await PermissionService.GetCurrentPersonAsync();
-        if (person == null) return;
 
         currentGuardian = SchoolDataService.GetGuardianByPersonId(person.Id);
 
@@ -903,13 +904,10 @@
         selectedWardLearningPath = null;
     }
 
-    private async Task LoadTeacherDashboardData()
+    private async Task LoadTeacherDashboardData(Person person)
     {
         if (!await PermissionService.IsInAnyRoleAsync("Developer", "Teacher")) 
         return;
-
-        var person = await PermissionService.GetCurrentPersonAsync();
-        if (person == null) return;
 
         currentTeacher = SchoolDataService.GetStaffByPersonId(person.Id);
 
