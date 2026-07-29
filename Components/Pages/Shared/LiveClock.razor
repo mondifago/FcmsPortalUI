@@ -1,0 +1,28 @@
+﻿@implements IDisposable
+
+<div class="welcome-date">
+    @currentDateTime.ToString("dddd, MMMM d, yyyy")
+    <br />
+    <span class="welcome-time">@currentDateTime.ToString("hh:mm tt")</span>
+</div>
+
+@code {
+    private DateTime currentDateTime = DateTime.Now;
+    private System.Threading.Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
+    }
+
+    private void UpdateTime(object? state)
+    {
+        currentDateTime = DateTime.Now;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

@@ -22,11 +22,7 @@
                 <h2 class="welcome-title mb-0">
                     Welcome, <span class="welcome-name">@userFirstName</span>
                 </h2>
-                <div class="welcome-date">
-                    @currentDateTime.ToString("dddd, MMMM d, yyyy")
-                    <br />
-                    <span class="welcome-time">@currentDateTime.ToString("hh:mm tt")</span>
-                </div>
+                <LiveClock />
             </div>
             @if (randomQuote != null)
             {
@@ -662,22 +658,18 @@
 @code {
     //private School? school;
     private string userFirstName = "User";
-    private DateTime currentDateTime = DateTime.Now;
-    private System.Threading.Timer? timer;
+
     // Semester Timeline Data
     private string currentAcademicYear = "";
     private string currentSemester = "";
     private DateTime? semesterStartDate;
     private DateTime? semesterEndDate;
     private DateTime? examsStartDate;
-
     private List<Announcement> announcements = new();
     private Quote? randomQuote;
-
     private ScheduleEntry? todayEventOrMeeting;
     private ScheduleEntry? tomorrowEventOrMeeting;
     private ScheduleEntry? dayAfterEventOrMeeting;
-
     private static event Action? RefreshRequested;
     private static object refreshLock = new object();
 
@@ -738,8 +730,6 @@
             await LoadGuardianDashboardData(person);
             await LoadTeacherDashboardData(person);
         }
-
-        timer = new System.Threading.Timer(UpdateTime, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
     }
 
     public static void TriggerSchoolDataRefresh()
@@ -797,12 +787,6 @@
     private string GetEventOrMeetingName(ScheduleEntry entry)
     {
         return entry.Title;
-    }
-
-    private void UpdateTime(object? state)
-    {
-        currentDateTime = DateTime.Now;
-        InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadStudentDashboardData(Person person)
@@ -919,7 +903,6 @@
 
     public void Dispose()
     {
-        timer?.Dispose();
 
         lock (refreshLock)
         {
