@@ -565,43 +565,66 @@
 </div>
 
 <!-- Homework Modal -->
-<HomeworkCreationModal IsVisible="showHomeworkModal"
-                       ClassSession="classSession"
-                       CurrentTeacher="currentTeacher"
-                       ExistingHomework="selectedHomework"
-                       OnSave="HandleHomeworkSaved"
-                       OnClose="() => showHomeworkModal = false" />
+@if (showHomeworkModal)
+{
+    <HomeworkCreationModal IsVisible="showHomeworkModal"
+                           ClassSession="classSession"
+                           CurrentTeacher="currentTeacher"
+                           ExistingHomework="selectedHomework"
+                           OnSave="HandleHomeworkSaved"
+                           OnClose="() => showHomeworkModal = false" />
+}
+
 
 <!-- Homework View Modal -->
-<HomeworkViewModal IsVisible="showHomeworkViewModal"
-                   Homework="classSession?.HomeworkDetails"
-                   OnClose="() => showHomeworkViewModal = false" />
+@if (showHomeworkViewModal)
+{
+    <HomeworkViewModal IsVisible="showHomeworkViewModal"
+                       Homework="classSession?.HomeworkDetails"
+                       OnClose="() => showHomeworkViewModal = false" />
+}
+
 
 <!-- Homework Submission Modal -->
-<HomeworkSubmissionModal IsVisible="showSubmissionModal"
-                         Homework="classSession?.HomeworkDetails"
-                         CurrentStudent="currentStudent"
-                         ExistingSubmission="selectedSubmission"
-                         OnSave="HandleSubmissionSaved"
-                         OnClose="() => showSubmissionModal = false" />
+@if (showSubmissionModal)
+{
+    <HomeworkSubmissionModal IsVisible="showSubmissionModal"
+                             Homework="classSession?.HomeworkDetails"
+                             CurrentStudent="currentStudent"
+                             ExistingSubmission="selectedSubmission"
+                             OnSave="HandleSubmissionSaved"
+                             OnClose="() => showSubmissionModal = false" />
+}
+
 
 <!-- Homework Submissions List Modal -->
-<HomeworkSubmissionsListModal IsVisible="showSubmissionsListModal"
-                              Homework="classSession?.HomeworkDetails"
-                              CurrentTeacher="currentTeacher"
-                              OnClose="() => showSubmissionsListModal = false"
-                              OnGradeSubmission="HandleGradeSubmission" />
+@if (showSubmissionsListModal)
+{
+    <HomeworkSubmissionsListModal IsVisible="showSubmissionsListModal"
+                                  Homework="classSession?.HomeworkDetails"
+                                  CurrentTeacher="currentTeacher"
+                                  OnClose="() => showSubmissionsListModal = false"
+                                  OnGradeSubmission="HandleGradeSubmission" />
+}
+
 
 <!-- Homework Grading Modal -->
-<HomeworkGradingModal IsVisible="showGradingModal"
-                      Submission="submissionToGrade"
-                      CurrentTeacher="currentTeacher"
-                      OnSave="HandleGradingSaved"
-                      OnClose="() => showGradingModal = false" />
+@if (showGradingModal)
+{
+    <HomeworkGradingModal IsVisible="showGradingModal"
+                          Submission="submissionToGrade"
+                          CurrentTeacher="currentTeacher"
+                          OnSave="HandleGradingSaved"
+                          OnClose="() => showGradingModal = false" />
+}
 
-<StudentHomeworkGradeViewModal IsVisible="showStudentGradeModal"
-                               Submission="studentGradeSubmission"
-                               OnClose="() => showStudentGradeModal = false" />
+@if (showStudentGradeModal)
+{
+    <StudentHomeworkGradeViewModal IsVisible="showStudentGradeModal"
+                                   Submission="studentGradeSubmission"
+                                   OnClose="() => showStudentGradeModal = false" />
+}
+
 
 @code {
     [Parameter]
