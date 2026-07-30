@@ -236,7 +236,7 @@
                                         </div>
                                     }
                                 </div>
-                                @if (currentStudent != null && studentLearningPath != null)
+                                @if (currentStudent != null && currentStudent.LearningPathId > 0)
                                 {
                                     <div class="hbar-view-all">
                                         <a href="javascript:void(0)" @onclick="ShowStudentGradeDetailsModal"
@@ -634,7 +634,7 @@
         </div>
     </div>
     <!-- Student Grade Details Modal -->
-    @if (currentStudent != null && studentLearningPath != null)
+    @if (showStudentGradeDetailsModal && studentLearningPath != null)
     {
         <StudentGradeDetailsModal IsVisible="showStudentGradeDetailsModal"
                                   Student="currentStudent"
@@ -798,11 +798,6 @@
             todayStudentClasses = SchoolDataService.GetTodayClassSessionsForStudent(currentStudent.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
             pendingStudentHomework = SchoolDataService.GetPendingHomeworkForStudent(currentStudent.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
             recentStudentGrades = SchoolDataService.GetRecentGradesForStudent(currentStudent.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
-
-            if (currentStudent.LearningPathId > 0)
-            {
-                studentLearningPath = SchoolDataService.GetLearningPathForGradeManagement(currentStudent.LearningPathId ?? 0);
-            }
         }
     }
 
@@ -822,10 +817,10 @@
 
     private void ShowStudentGradeDetailsModal()
     {
-        if (currentStudent != null && studentLearningPath != null)
-        {
-            showStudentGradeDetailsModal = true;
-        }
+        if (currentStudent == null || currentStudent.LearningPathId <= 0) return;
+
+        studentLearningPath = SchoolDataService.GetLearningPathForGradeManagement(currentStudent.LearningPathId ?? 0);
+        showStudentGradeDetailsModal = true;
     }
 
     private void CloseStudentGradeDetailsModal()

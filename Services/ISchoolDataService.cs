@@ -40,7 +40,6 @@ namespace FcmsPortalUI.Services
 
         #region Students
         Student AddStudent(Student student);
-        IEnumerable<Student> GetStudents();
         List<Guardian> GetAllGuardians();
         Student? GetStudentById(int id);
         Student? GetStudentByPersonId(int personId);

@@ -359,8 +359,7 @@
 
         if (isGuardian)
         {
-            guardianProfile = SchoolDataService.GetGuardians()
-                .FirstOrDefault(g => g.PersonId == currentPerson.Id);
+            guardianProfile = SchoolDataService.GetGuardianByPersonId(currentPerson.Id);
 
             if (guardianProfile != null && guardianProfile.Wards.Any())
             {

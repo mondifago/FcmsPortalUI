@@ -375,8 +375,7 @@
             activeAchievementStudentId = studentProfile.Id;
         }
 
-        guardianProfile = SchoolDataService.GetGuardians()
-            .FirstOrDefault(g => g.PersonId == currentPerson.Id);
+        guardianProfile = SchoolDataService.GetGuardianByPersonId(currentPerson.Id);
 
         if (guardianProfile != null)
         {
@@ -393,7 +392,7 @@
 
         SetDefaultExpandedYear();
 
-        staffProfile = SchoolDataService.GetStaff().FirstOrDefault(s => s.PersonId == currentPerson.Id);
+        staffProfile = SchoolDataService.GetStaffByPersonId(currentPerson.Id);
         isLoading = false;
     }
 

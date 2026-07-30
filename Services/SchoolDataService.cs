@@ -481,6 +481,7 @@ namespace FcmsPortalUI.Services
                 .Include(s => s.LearningPath)
                 .Include(s => s.Guardian)
                     .ThenInclude(g => g.Person)
+                    .AsSplitQuery()
                 .FirstOrDefault(s => s.Id == id);
         }
 
@@ -489,20 +490,6 @@ namespace FcmsPortalUI.Services
             return _context.Students
                 .Include(s => s.Person)
                 .FirstOrDefault(s => s.PersonId == personId);
-        }
-
-        public IEnumerable<Student> GetStudents()
-        {
-            return _context.Students
-                .Include(s => s.Person)
-                    .ThenInclude(p => p.SchoolFees)
-                        .ThenInclude(sf => sf.Payments)
-                .Include(s => s.CourseGrades)
-                .Include(s => s.LearningPath)
-                .Include(s => s.Guardian)
-                    .ThenInclude(g => g.Person)
-                    .Where(s => !s.Person.IsArchived)
-                .ToList();
         }
 
         public void UpdateStudent(Student student)
@@ -746,6 +733,7 @@ namespace FcmsPortalUI.Services
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.CourseGrades)
                         .ThenInclude(cg => cg.GradingConfiguration)
+                .AsSplitQuery()
                 .FirstOrDefault(lp => lp.Id == id);
         }
 
