@@ -3352,8 +3352,6 @@ namespace FcmsPortalUI.Services
 
         public List<(string LearningPathName, DateTime Timestamp)> GetTodayAttendanceReports(int maxCount)
         {
-            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
-
             var academicPeriod = GetCurrentAcademicPeriod();
             if (academicPeriod == null)
                 return new List<(string, DateTime)>();
@@ -3377,8 +3375,6 @@ namespace FcmsPortalUI.Services
 
         public List<(string Course, string ClassLevelName, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount)
         {
-            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
-
             var academicPeriod = GetCurrentAcademicPeriod();
             if (academicPeriod == null)
                 return new List<(string, string, DateTime)>();
@@ -3413,8 +3409,6 @@ namespace FcmsPortalUI.Services
 
         public List<(string ClassLevelName, string AcademicYear, string Term, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount)
         {
-            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
-
             var academicPeriod = GetCurrentAcademicPeriod();
             if (academicPeriod == null)
                 return new List<(string, string, string, DateTime)>();
@@ -3424,8 +3418,7 @@ namespace FcmsPortalUI.Services
                 .Where(lp => !lp.IsTemplate &&
                              lp.AcademicPeriodId == academicPeriod.Id &&
                              lp.DateSubmitted.HasValue &&
-                             (lp.ApprovalStatus == PrincipalApprovalStatus.Review ||
-                              lp.ApprovalStatus == PrincipalApprovalStatus.Approved))
+                             lp.ApprovalStatus == PrincipalApprovalStatus.Review)
                 .OrderByDescending(lp => lp.DateSubmitted)
                 .Take(maxCount)
                 .Select(lp => new
@@ -3468,7 +3461,8 @@ namespace FcmsPortalUI.Services
 
             return _context.LearningPaths.AsNoTracking()
                 .Count(lp => lp.AcademicPeriodId == academicPeriod.Id &&
-                             !lp.IsTemplate &&
+                             !lp.IsTemplate && 
+                             lp.ApprovalStatus != PrincipalApprovalStatus.Approved &&
                              lp.ApprovalStatus == PrincipalApprovalStatus.Pending);
         }
 

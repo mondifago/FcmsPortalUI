@@ -425,8 +425,8 @@
                                             <div class="hbar-row">
                                                 <i class="fa fa-check-circle hbar-row-icon"></i>
                                                 <span>
-                                                    <strong>@report.LearningPathName</strong>
-                                                    — @report.Timestamp.ToString("MMM d, h:mm tt")
+                                                    <strong>@report.LearningPathName: </strong>
+                                                    @report.Timestamp.ToString("MMM d, h:mm tt")
                                                 </span>
                                             </div>
                                         }
@@ -461,8 +461,8 @@
                                                 <i class="fa fa-chalkboard hbar-row-icon"></i>
                                                 <span>
                                                     <strong>@remark.Course</strong>
-                                                    <small>(@remark.ClassLevelName)</small>
-                                                    — <small>@remark.Timestamp.ToString("MMM d, h:mm tt")</small>
+                                                    <small>(@remark.ClassLevelName): </small>
+                                                    <small>@remark.Timestamp.ToString("MMM d, h:mm tt")</small>
                                                 </span>
                                             </div>
                                         }
@@ -496,9 +496,9 @@
                                             <div class="hbar-row">
                                                 <i class="fa fa-check-circle hbar-row-icon"></i>
                                                 <span>
-                                                    <strong>@lp.ClassLevelName</strong>
-                                                    — @lp.AcademicYear, @lp.Term,
-                                                    <small>@lp.DateSubmitted.ToString("MMM d, h:mm tt")</small>
+                                                    <strong>@lp.ClassLevelName: </strong>
+                                                    @lp.AcademicYear, @lp.Term,
+                                                    <small>@lp.DateSubmitted.ToString("MMM d")</small>
                                                 </span>
                                             </div>
                                         }
