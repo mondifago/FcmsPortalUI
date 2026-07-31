@@ -1589,7 +1589,6 @@ main {
 
     .grid-name-link:hover {
         color: #5a3e2b;
-        text-decoration: underline;
     }
 
 .btn-fcms {
@@ -1602,12 +1601,25 @@ main {
         background-color: #4a3728;
         color: #fdf6f0;
     }
+  
 
-    .btn-fcms:disabled {
-        background-color: transparent;
-        color: #6c757d;
-        border-color: #dee2e6;
+/* ===== Tab / list content card ===== */
+.fcms-tab-card,
+.fcms-list-card {
+    background-color: #f0d5c4;
+    color: #5a3e2b;
+}
+
+    .fcms-tab-card .text-muted,
+    .fcms-list-card .text-muted {
+        color: #5a3e2b !important;
     }
+
+.fcms-list-toolbar {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.175);
+    padding-bottom: 0.75rem;
+}
+
 
 /* ===== Reusable tabs ===== */
 .fcms-tabs {
