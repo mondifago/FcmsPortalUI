@@ -233,7 +233,7 @@ namespace FcmsPortalUI.Services
         #region Dashboard
         ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date);
         List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount);
-        List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount);
+        List<PendingHomeworkItem> GetPendingHomeworkForStudent(int studentId, int maxCount);
         List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);
         List<(string LearningPathName, DateTime Timestamp)> GetTodayAttendanceReports(int maxCount);
         List<(string Course, string ClassLevelName, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount);

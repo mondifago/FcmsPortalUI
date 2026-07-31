@@ -3282,44 +3282,47 @@ namespace FcmsPortalUI.Services
             if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
                 return new List<ScheduleEntry>();
 
-            var today = DateTime.Today;
+            var now = DateTime.Now;
+            var tomorrow = DateTime.Today.AddDays(1);
 
             return _context.ScheduleEntries
                 .AsNoTracking()
                 .Include(se => se.ClassSession)
                 .Where(se => se.LearningPathId == student.LearningPathId &&
-                             se.DateTime.Date == today &&
+                             se.DateTime >= now &&
+                             se.DateTime < tomorrow &&
                              se.ClassSession != null)
                 .OrderBy(se => se.DateTime)
                 .Take(maxCount)
                 .ToList();
         }
 
-        public List<Homework> GetPendingHomeworkForStudent(int studentId, int maxCount)
+        public List<PendingHomeworkItem> GetPendingHomeworkForStudent(int studentId, int maxCount)
         {
             var student = _context.Students
                 .AsNoTracking()
                 .FirstOrDefault(s => s.Id == studentId);
 
             if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
-                return new List<Homework>();
+                return new List<PendingHomeworkItem>();
 
-            var homeworkList = _context.ScheduleEntries
+            return _context.ScheduleEntries
                 .AsNoTracking()
-                .Include(se => se.ClassSession)
-                    .ThenInclude(cs => cs.HomeworkDetails)
-                        .ThenInclude(h => h.Submissions)
                 .Where(se => se.LearningPathId == student.LearningPathId &&
                              se.ClassSession != null &&
-                             se.ClassSession.HomeworkDetails != null)
-                .Select(se => se.ClassSession.HomeworkDetails)
-                .ToList();
-
-            return homeworkList
-                .Where(h => h != null && !h.Submissions.Any(s => s.StudentId == studentId))
-                .OrderBy(h => h.DueDate)
+                             se.ClassSession.HomeworkDetails != null &&
+                             !se.ClassSession.HomeworkDetails.Submissions.Any(s => s.StudentId == studentId))
+                .OrderBy(se => se.ClassSession!.HomeworkDetails!.DueDate)
+                .Select(se => new PendingHomeworkItem
+                {
+                    HomeworkId = se.ClassSession!.HomeworkDetails!.Id,
+                    Title = se.ClassSession.HomeworkDetails.Title,
+                    Course = se.ClassSession.Course,
+                    AssignedDate = se.ClassSession.HomeworkDetails.AssignedDate,
+                    DueDate = se.ClassSession.HomeworkDetails.DueDate
+                })
                 .Take(maxCount)
-                .ToList()!;
+                .ToList();
         }
 
         public List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount)
@@ -3337,7 +3340,7 @@ namespace FcmsPortalUI.Services
                 .Where(tg => tg.CourseGrade != null &&
                              tg.CourseGrade.StudentId == studentId &&
                              tg.CourseGrade.LearningPathId == student.LearningPathId)
-                .OrderByDescending(tg => tg.Date)
+                .OrderByDescending(tg => tg.Id)
                 .Take(maxCount)
                 .Select(tg => new ValueTuple<string, GradeType, double>(
                     tg.CourseGrade!.Course,

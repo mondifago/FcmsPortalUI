@@ -42,13 +42,6 @@
     private void UpdateStudent(Student updatedStudent)
     {
         SchoolDataService.UpdateStudent(updatedStudent);
-
-        if (updatedStudent.GuardianId > 0)
-        {
-            var previousGuardian = SchoolDataService.GetGuardianByStudentId(updatedStudent.Id);
-            var newGuardian = SchoolDataService.GetGuardianById(updatedStudent.GuardianId);
-        }
-
         NavigationManager.NavigateTo("/students");
     }
 
