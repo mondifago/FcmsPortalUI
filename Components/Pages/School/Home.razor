@@ -282,7 +282,7 @@
                                     else
                                     {
                                         <div class="hbar-row">
-                                            <em class="text-muted">No classes today.</em>
+                                            <em class="text-muted">No more classes today.</em>
                                         </div>
                                     }
                                 </div>
@@ -348,16 +348,6 @@
                                         </div>
                                     }
                                 </div>
-                                @if (currentGuardian?.Wards != null && currentGuardian.Wards.Any())
-                                {
-                                    <div class="hbar-view-all">
-                                        <a href="javascript:void(0)"
-                                           @onclick="() => ShowWardGradeDetailsModal(currentGuardian.Wards.First())"
-                                           class="text-decoration-none">
-                                            View All <i class="fa fa-arrow-right ms-1"></i>
-                                        </a>
-                                    </div>
-                                }
                             </div>
                         </div>
                     </div>
@@ -645,15 +635,6 @@
                                   LearningPath="studentLearningPath"
                                   OnClose="CloseStudentGradeDetailsModal" />
     }
-
-    <!-- Guardian Ward Grade Details Modal -->
-    @if (selectedWardForGrades != null && selectedWardLearningPath != null)
-    {
-        <StudentGradeDetailsModal IsVisible="showGuardianGradeDetailsModal"
-                                  Student="selectedWardForGrades"
-                                  LearningPath="selectedWardLearningPath"
-                                  OnClose="CloseGuardianGradeDetailsModal" />
-    }
 </div>
 
 @code {
@@ -678,7 +659,7 @@
     private Student? currentStudent;
     private List<ScheduleEntry> todayStudentClasses = new();
     private List<PendingHomeworkItem> pendingStudentHomework = new();
-    private List<(string Course, GradeType GradeType, double Score)> recentStudentGrades = new();
+    private List<(string Course, GradeType GradeType, double Score, int SortKey)> recentStudentGrades = new();
     private LearningPath? studentLearningPath;
     private bool showStudentGradeDetailsModal = false;
 
@@ -695,10 +676,7 @@
     private Guardian? currentGuardian;
     private List<(string WardName, ScheduleEntry Schedule)> wardTodayClasses = new();
     private List<(string WardName, PendingHomeworkItem Homework)> wardPendingHomework = new();
-    private List<(string WardName, string Course, GradeType GradeType, double Score)> wardRecentGrades = new();
-    private bool showGuardianGradeDetailsModal = false;
-    private Student? selectedWardForGrades;
-    private LearningPath? selectedWardLearningPath;
+    private List<(string WardName, string Course, GradeType GradeType, double Score, int SortKey)> wardRecentGrades = new();
 
     // Teacher Dashboard Data
     private Staff? currentTeacher;
@@ -859,29 +837,23 @@
 
             var grades = SchoolDataService.GetRecentGradesForStudent(ward.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
             foreach (var g in grades)
-                wardRecentGrades.Add((wardName, g.Course, g.GradeType, g.Score));
+                wardRecentGrades.Add((wardName, g.Course, g.GradeType, g.Score, g.SortKey));
         }
 
-        wardTodayClasses = wardTodayClasses.Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT).ToList();
-        wardPendingHomework = wardPendingHomework.Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT).ToList();
-        wardRecentGrades = wardRecentGrades.Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT).ToList();
-    }
+        wardTodayClasses = wardTodayClasses
+             .OrderBy(x => x.Schedule.DateTime)
+             .Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT)
+             .ToList();
 
-    private void ShowWardGradeDetailsModal(Student ward)
-    {
-        selectedWardForGrades = ward;
-        if (ward.LearningPathId > 0)
-        {
-            selectedWardLearningPath = SchoolDataService.GetLearningPathForGradeManagement(ward.LearningPathId ?? 0);
-            showGuardianGradeDetailsModal = true;
-        }
-    }
+        wardPendingHomework = wardPendingHomework
+            .OrderBy(x => x.Homework.DueDate)
+            .Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT)
+            .ToList();
 
-    private void CloseGuardianGradeDetailsModal()
-    {
-        showGuardianGradeDetailsModal = false;
-        selectedWardForGrades = null;
-        selectedWardLearningPath = null;
+        wardRecentGrades = wardRecentGrades
+            .OrderByDescending(x => x.SortKey)
+            .Take(FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT)
+            .ToList();
     }
 
     private async Task LoadTeacherDashboardData(Person person)

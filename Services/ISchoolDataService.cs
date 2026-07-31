@@ -234,7 +234,7 @@ namespace FcmsPortalUI.Services
         ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date);
         List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount);
         List<PendingHomeworkItem> GetPendingHomeworkForStudent(int studentId, int maxCount);
-        List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount);
+        List<(string Course, GradeType GradeType, double Score, int SortKey)> GetRecentGradesForStudent(int studentId, int maxCount);
         List<(string LearningPathName, DateTime Timestamp)> GetTodayAttendanceReports(int maxCount);
         List<(string Course, string ClassLevelName, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount);
         List<(string ClassLevelName, string AcademicYear, string Term, DateTime DateSubmitted)> GetRecentlySubmittedLearningPaths(int maxCount);

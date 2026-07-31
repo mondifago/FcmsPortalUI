@@ -3325,14 +3325,14 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public List<(string Course, GradeType GradeType, double Score)> GetRecentGradesForStudent(int studentId, int maxCount)
+        public List<(string Course, GradeType GradeType, double Score, int SortKey)> GetRecentGradesForStudent(int studentId, int maxCount)
         {
             var student = _context.Students
                 .AsNoTracking()
                 .FirstOrDefault(s => s.Id == studentId);
 
             if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
-                return new List<(string, GradeType, double)>();
+                return new List<(string, GradeType, double, int)>();
 
             return _context.TestGrades
                 .AsNoTracking()
@@ -3342,10 +3342,11 @@ namespace FcmsPortalUI.Services
                              tg.CourseGrade.LearningPathId == student.LearningPathId)
                 .OrderByDescending(tg => tg.Id)
                 .Take(maxCount)
-                .Select(tg => new ValueTuple<string, GradeType, double>(
+                .Select(tg => new ValueTuple<string, GradeType, double, int>(
                     tg.CourseGrade!.Course,
                     tg.GradeType,
-                    tg.Score))
+                    tg.Score,
+                    tg.Id))
                 .ToList();
         }
 
