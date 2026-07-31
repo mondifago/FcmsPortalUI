@@ -243,7 +243,7 @@ namespace FcmsPortalUI.Services
         int GetGuardianCount();
         int GetActiveClassCount();
         List<ScheduleEntry> GetTodayClassSessionsForTeacher(int teacherId, int maxCount);
-        List<(string Course, string StudentName, string ClassLevelName, DateTime SubmittedDate)> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount);
+        List<TeacherSubmissionItem> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount);
         #endregion
 
         #region Pagination and Filtering

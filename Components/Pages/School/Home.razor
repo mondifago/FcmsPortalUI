@@ -65,7 +65,7 @@
                                     else
                                     {
                                         <div class="hbar-row">
-                                            <em class="text-muted">No classes today.</em>
+                                            <em class="text-muted">No more classes today.</em>
                                         </div>
                                     }
                                 </div>
@@ -96,12 +96,14 @@
                                                 <i class="fa fa-pen-to-square hbar-row-icon"></i>
                                                 <span>
                                                     <strong>@sub.StudentName</strong>
-                                                    @if (!string.IsNullOrEmpty(sub.ClassLevelName) && Enum.TryParse<ClassLevel>(sub.ClassLevelName, out var cl))
+                                                    @if (sub.ClassLevel.HasValue)
                                                     {
-                                                        <small>(@cl.ToDisplayName())</small>
+                                                        <small>(@sub.ClassLevel.Value.ToDisplayName()): </small>
                                                     }
-                                                    — @sub.Course
-                                                    <br /><small>@sub.SubmittedDate.ToString("MMM d, h:mm tt")</small>
+                                                    @sub.Course: @sub.Title
+                                                    <small class="text-muted d-block">
+                                                        (Assigned: @sub.AssignedDate.ToString("MMM d"), Due: @sub.DueDate.ToString("MMM d"), Submitted: @sub.SubmittedDate.ToString("MMM d, h:mm tt"))
+                                                    </small>
                                                 </span>
                                             </div>
                                         }
@@ -109,11 +111,11 @@
                                     else
                                     {
                                         <div class="hbar-row">
-                                            <em class="text-muted">No submissions yet.</em>
+                                            <em class="text-muted">No more submissions.</em>
                                         </div>
                                     }
                                 </div>
-                                @if (todayTeacherClasses.Any() && todayTeacherClasses.First().LearningPathId > 0)
+                                @if (recentHomeworkSubmissions.Any())
                                 {
                                     <div class="hbar-view-all">
                                         <a href="/myclasses"
@@ -681,7 +683,7 @@
     // Teacher Dashboard Data
     private Staff? currentTeacher;
     private List<ScheduleEntry> todayTeacherClasses = new();
-    private List<(string Course, string StudentName, string ClassLevelName, DateTime SubmittedDate)> recentHomeworkSubmissions = new();
+    private List<TeacherSubmissionItem> recentHomeworkSubmissions = new();
 
     protected override async Task OnInitializedAsync()
     {

@@ -3474,54 +3474,54 @@ namespace FcmsPortalUI.Services
 
         public List<ScheduleEntry> GetTodayClassSessionsForTeacher(int teacherId, int maxCount)
         {
-            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
-
             var academicPeriod = GetCurrentAcademicPeriod();
             if (academicPeriod == null)
                 return new List<ScheduleEntry>();
 
-            var today = DateTime.Today;
+            var now = DateTime.Now;
+            var tomorrow = DateTime.Today.AddDays(1);
 
             return _context.ScheduleEntries
                 .AsNoTracking()
                 .Include(se => se.ClassSession)
                  .Include(se => se.LearningPath)
-                .Where(se => se.LearningPathId.HasValue &&
+
+               .Where(se => se.LearningPathId.HasValue &&
                              se.ClassSession != null &&
                              se.ClassSession.TeacherId == teacherId &&
-                             se.DateTime.Date == today)
+                             se.DateTime >= now &&
+                             se.DateTime < tomorrow)
                 .OrderBy(se => se.DateTime)
                 .Take(maxCount)
                 .ToList();
         }
 
-        public List<(string Course, string StudentName, string ClassLevelName, DateTime SubmittedDate)> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount)
+        public List<TeacherSubmissionItem> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount)
         {
-            maxCount = FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT;
-
             var academicPeriod = GetCurrentAcademicPeriod();
             if (academicPeriod == null)
-                return new List<(string, string, string, DateTime)>();
+                return new List<TeacherSubmissionItem>();
 
             return _context.HomeworkSubmissions
                 .AsNoTracking()
-                .Include(hs => hs.Student)
-                    .ThenInclude(s => s.Person)
-                .Include(hs => hs.Student)
-                    .ThenInclude(s => s.LearningPath)
-                .Include(hs => hs.Homework)
-                    .ThenInclude(h => h.ClassSession)
                 .Where(hs => hs.Homework != null &&
                              hs.Homework.ClassSession != null &&
                              hs.Homework.ClassSession.TeacherId == teacherId &&
-                             hs.Student != null)
+                             hs.Student != null &&
+                             !hs.IsGraded &&
+                             hs.SubmissionDate >= academicPeriod.SemesterStartDate)
                 .OrderByDescending(hs => hs.SubmissionDate)
+                .Select(hs => new TeacherSubmissionItem
+                {
+                    StudentName = hs.Student!.Person.FirstName + " " + hs.Student.Person.LastName,
+                    ClassLevel = hs.Student.LearningPath != null ? hs.Student.LearningPath.ClassLevel : (ClassLevel?)null,
+                    Course = hs.Homework!.ClassSession!.Course,
+                    Title = hs.Homework.Title,
+                    AssignedDate = hs.Homework.AssignedDate,
+                    DueDate = hs.Homework.DueDate,
+                    SubmittedDate = hs.SubmissionDate
+                })
                 .Take(maxCount)
-                .Select(hs => new ValueTuple<string, string, string, DateTime>(
-                    hs.Homework.ClassSession.Course,
-                    hs.Student.Person.FirstName + " " + hs.Student.Person.LastName,
-                    hs.Student.LearningPath != null ? hs.Student.LearningPath.ClassLevel.ToString() : "",
-                    hs.SubmissionDate))
                 .ToList();
         }
         #endregion
