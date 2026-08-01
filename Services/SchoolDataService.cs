@@ -15,7 +15,6 @@ namespace FcmsPortalUI.Services
         private readonly FcmsPortalUIContext _context;
         private readonly IDbContextFactory<FcmsPortalUIContext> _contextFactory;
         private readonly IWebHostEnvironment _environment;
-        private List<Student> _archivedStudents = new List<Student>();
         private AcademicPeriod? _cachedCurrentAcademicPeriod;
         private bool _academicPeriodLoaded;
 
@@ -733,6 +732,8 @@ namespace FcmsPortalUI.Services
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.CourseGrades)
                         .ThenInclude(cg => cg.GradingConfiguration)
+                .Include(lp => lp.AttendanceLog)
+                    .ThenInclude(al => al.PresentStudents)
                 .AsSplitQuery()
                 .FirstOrDefault(lp => lp.Id == id);
         }
@@ -2242,12 +2243,6 @@ namespace FcmsPortalUI.Services
             };
 
             _context.DailyAttendanceLogEntries.Add(attendanceEntry);
-
-            if (learningPath.AttendanceLog == null)
-                learningPath.AttendanceLog = new List<DailyAttendanceLogEntry>();
-
-            learningPath.AttendanceLog.Add(attendanceEntry);
-
             _context.SaveChanges();
 
             return attendanceEntry;
@@ -2258,6 +2253,10 @@ namespace FcmsPortalUI.Services
             return _context.LearningPaths
                 .Include(lp => lp.Students)
                 .Include(lp => lp.AttendanceLog)
+                    .ThenInclude(al => al.PresentStudents)
+                .Include(lp => lp.AttendanceLog)
+                    .ThenInclude(al => al.AbsentStudents)
+                .AsSplitQuery()
                 .FirstOrDefault(lp => lp.Id == id);
         }
 
@@ -2331,10 +2330,6 @@ namespace FcmsPortalUI.Services
         {
             var existingReportCard = GetStudentReportCard(reportCard.StudentId, reportCard.LearningPathId);
 
-            var student = _context.Students
-                .Include(s => s.ReportCards)
-                .FirstOrDefault(s => s.Id == reportCard.StudentId);
-
             if (existingReportCard != null)
             {
                 existingReportCard.TeacherRemarks = reportCard.TeacherRemarks;
@@ -2352,28 +2347,13 @@ namespace FcmsPortalUI.Services
                 existingReportCard.GeneratedByTeacherId = reportCard.GeneratedByTeacherId;
                 existingReportCard.FinalizedByPrincipalId = reportCard.FinalizedByPrincipalId;
 
-                _context.StudentReportCards.Update(existingReportCard);
-
-                if (student != null && !student.ReportCards.Any(rc => rc.Id == existingReportCard.Id))
-                {
-                    student.ReportCards.Add(existingReportCard);
-                }
-
                 _context.SaveChanges();
                 return existingReportCard;
             }
-            else
-            {
-                _context.StudentReportCards.Add(reportCard);
 
-                if (student != null)
-                {
-                    student.ReportCards.Add(reportCard);
-                }
-
-                _context.SaveChanges();
-                return reportCard;
-            }
+            _context.StudentReportCards.Add(reportCard);
+            _context.SaveChanges();
+            return reportCard;
         }
 
         public void UpdateStudentReportCardRemarks(int studentId, int learningPathId, string? teacherRemarks = null, string? principalRemarks = null)
@@ -2443,7 +2423,6 @@ namespace FcmsPortalUI.Services
             student.Person.IsArchived = true;
             student.Person.IsActive = false;
             student.ArchivedDate = DateTime.Now;
-            _archivedStudents.Add(student);
             _context.Students.Update(student);
             _context.SaveChanges();
         }
