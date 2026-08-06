@@ -2272,8 +2272,12 @@ namespace FcmsPortalUI.Services
             var end = start.AddDays(1);
             return _context.DailyAttendanceLogEntries
                 .Include(al => al.Teacher)
+                    .ThenInclude(t => t.Person)
                 .Include(al => al.PresentStudents)
+                    .ThenInclude(s => s.Person)
                 .Include(al => al.AbsentStudents)
+                    .ThenInclude(s => s.Person)
+                .AsSplitQuery()
                 .FirstOrDefault(log =>
                     log.LearningPathId == learningPathId &&
                     log.TimeStamp >= start &&

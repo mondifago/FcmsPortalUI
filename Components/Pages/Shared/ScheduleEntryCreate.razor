@@ -196,7 +196,7 @@
     {
         InitializeScheduleEntry();
         editContext = new EditContext(scheduleEntry);
-        messageStore = new ValidationMessageStore(editContext);
+        messageStore = Util.CreateFieldAwareMessageStore(editContext);
     }
 
     protected override void OnParametersSet()
@@ -223,7 +223,7 @@
                 dateIsLocked = true;
             }
             editContext = new EditContext(scheduleEntry);
-            messageStore = new ValidationMessageStore(editContext);
+            messageStore = Util.CreateFieldAwareMessageStore(editContext);
         }
     }
 

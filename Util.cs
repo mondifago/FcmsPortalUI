@@ -421,5 +421,18 @@ namespace FcmsPortalUI
                    url.Contains("youtu.be/") ||
                    url.Contains("youtube.com/embed/");
         }
+
+        public static ValidationMessageStore CreateFieldAwareMessageStore(EditContext editContext)
+        {
+            var messageStore = new ValidationMessageStore(editContext);
+
+            editContext.OnFieldChanged += (_, args) =>
+            {
+                messageStore.Clear(args.FieldIdentifier);
+                editContext.NotifyValidationStateChanged();
+            };
+
+            return messageStore;
+        }
     }
 }

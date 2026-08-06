@@ -183,7 +183,7 @@
         oldProfilePictureUrl = profilePictureUrl;
 
         editContext = new EditContext(Guardian);
-        messageStore = new ValidationMessageStore(editContext);
+        messageStore = Util.CreateFieldAwareMessageStore(editContext);
     }
 
     private async Task HandleProfilePictureChanged(string newImageUrl)

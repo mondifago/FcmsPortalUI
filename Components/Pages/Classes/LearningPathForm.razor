@@ -269,7 +269,7 @@
             LearningPath.AcademicYearStart.Year : DateTime.Now.Year;
 
         editContext = new EditContext(LearningPath);
-        messageStore = new ValidationMessageStore(editContext);
+        messageStore = Util.CreateFieldAwareMessageStore(editContext);
     }
 
     private void LoadAvailableClassLevels()

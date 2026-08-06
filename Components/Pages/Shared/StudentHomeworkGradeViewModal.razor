@@ -71,12 +71,6 @@
                             <div class="card border-success">
                                 <div class="card-body">
                                     <div class="d-flex mb-2">
-                                        <small class="text-muted">
-                                            <i class="fa fa-user me-1"></i>
-                                            @(Submission.HomeworkGrade?.Teacher?.Person != null
-                                                                                ? Util.GetFullName(Submission.HomeworkGrade.Teacher.Person)
-                                                                                : "Teacher")
-                                        </small>
                                         <small class="text-muted ms-auto">
                                             @(Submission.HomeworkGrade?.Date.ToString("MMM d, yyyy") ?? "")
                                         </small>

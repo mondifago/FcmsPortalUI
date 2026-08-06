@@ -226,7 +226,7 @@
         availableClassLevels = LogicMethods.GetAvailableClassLevels(Student.Person.EducationLevel);
 
         editContext = new EditContext(Student);
-        messageStore = new ValidationMessageStore(editContext);
+        messageStore = Util.CreateFieldAwareMessageStore(editContext);
     }
 
     private void OnEducationLevelChanged()

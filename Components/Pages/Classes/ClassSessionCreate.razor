@@ -86,7 +86,7 @@
     {
         classSession = new ClassSession();
         editContext = new EditContext(classSession);
-        messageStore = new ValidationMessageStore(editContext);
+        messageStore = Util.CreateFieldAwareMessageStore(editContext);
     }
 
     protected override void OnParametersSet()
@@ -95,7 +95,7 @@
         {
             classSession = new ClassSession { Course = string.Empty, TeacherId = 0 };
             editContext = new EditContext(classSession);
-            messageStore = new ValidationMessageStore(editContext);
+            messageStore = Util.CreateFieldAwareMessageStore(editContext);
             LoadData();
         }
     }

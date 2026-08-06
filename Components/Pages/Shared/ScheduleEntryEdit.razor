@@ -255,7 +255,7 @@
         {
             LoadScheduleEntry();
             editContext = new EditContext(scheduleEntry);
-            messageStore = new ValidationMessageStore(editContext);
+            messageStore = Util.CreateFieldAwareMessageStore(editContext);
         }
     }
 
@@ -270,7 +270,7 @@
         };
 
         editContext = new EditContext(scheduleEntry);
-        messageStore = new ValidationMessageStore(editContext);
+        messageStore = Util.CreateFieldAwareMessageStore(editContext);
     }
 
 
