@@ -192,7 +192,7 @@ namespace FcmsPortalUI.Services
             if (learningPath.FeePerSemester <= 0)
             {
                 var field = new FieldIdentifier(learningPath, nameof(learningPath.FeePerSemester));
-                messageStore.Add(field, "Fee per semester must be greater than zero.");
+                messageStore.Add(field, "School fees for this term is required.");
                 isValid = false;
             }
 

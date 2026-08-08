@@ -32,13 +32,13 @@
                 </div>
                 <div class="col-md-6">
                     <label for="classLevel" class="form-label">Class Level<span class="text-danger">*</span></label>
-                    <select @bind="LearningPath.ClassLevel" @bind:after="NotifyClassLevelChanged" class="form-select">
+                    <InputSelect id="classLevel" class="form-select" @bind-Value="LearningPath.ClassLevel" @bind-Value:after="NotifyClassLevelChanged">
                         <option value="@ClassLevel.None">-- Select Class Level --</option>
                         @foreach (var level in availableClassLevels)
                         {
                             <option value="@level">@level.ToDisplayName()</option>
                         }
-                    </select>
+                    </InputSelect>
                     <ValidationMessage For="@(() => LearningPath.ClassLevel)" />
                 </div>
             </div>
@@ -85,6 +85,7 @@
             <div class="mb-3">
                 <label for="feePerSemester" class="form-label">Fee Per Term (₦)<span class="text-danger">*</span></label>
                 <InputNumber id="feePerSemester" @bind-Value="LearningPath.FeePerSemester" @bind-Value:after="OnFeePerSemesterChanged" class="form-control" />
+                <ValidationMessage For="@(() => LearningPath.FeePerSemester)" />
                 <small class="form-text text-muted">
                     Fee: @LearningPath.FeePerSemester.ToString("C", new CultureInfo("en-NG"))
                 </small>
