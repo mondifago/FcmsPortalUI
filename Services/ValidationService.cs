@@ -1,6 +1,7 @@
 ﻿using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using Microsoft.AspNetCore.Components.Forms;
+using System.ComponentModel.DataAnnotations;
 
 namespace FcmsPortalUI.Services
 {
@@ -28,6 +29,8 @@ namespace FcmsPortalUI.Services
             messageStore.Clear();
             bool isValid = context.Validate();
             bool personValid = ValidatePerson(context, student.Person, messageStore);
+
+            isValid &= RequireText(student.Person, nameof(student.Person.EmergencyContact), student.Person.EmergencyContact, "Emergency contact is required.", messageStore);
 
             if (student.Person.EducationLevel == default)
             {
@@ -67,6 +70,8 @@ namespace FcmsPortalUI.Services
             bool isValid = context.Validate();
             bool personValid = ValidatePerson(context, staff.Person, messageStore);
 
+            isValid &= RequireText(staff.Person, nameof(staff.Person.EmergencyContact), staff.Person.EmergencyContact, "Emergency contact is required.", messageStore);
+
             if (staff.Person.DateOfBirth == default || staff.Person.DateOfBirth == DateTime.Today)
             {
                 var field = new FieldIdentifier(staff.Person, nameof(staff.Person.DateOfBirth));
@@ -92,26 +97,17 @@ namespace FcmsPortalUI.Services
             return isValid && personValid;
         }
 
-        private bool ValidatePerson(EditContext context, Person person, ValidationMessageStore messageStore)
+        private static bool ValidatePerson(EditContext context, Person person, ValidationMessageStore messageStore)
         {
             bool isValid = true;
 
-            void Require(string propertyName, string value, string error)
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    var field = new FieldIdentifier(person, propertyName);
-                    messageStore.Add(field, error);
-                    isValid = false;
-                }
-            }
-
-            Require(nameof(person.FirstName), person.FirstName, "First name is required.");
-            Require(nameof(person.LastName), person.LastName, "Last name is required.");
-            Require(nameof(person.Email), person.Email, "Email is required.");
-            Require(nameof(person.PhoneNumber), person.PhoneNumber, "Phone number is required.");
-            Require(nameof(person.StateOfOrigin), person.StateOfOrigin, "State of origin is required.");
-            Require(nameof(person.LgaOfOrigin), person.LgaOfOrigin, "LGA of origin is required.");
+            isValid &= RequireText(person, nameof(person.FirstName), person.FirstName, "First name is required.", messageStore);
+            isValid &= RequireText(person, nameof(person.LastName), person.LastName, "Last name is required.", messageStore);
+            isValid &= RequireText(person, nameof(person.Email), person.Email, "Email is required.", messageStore);
+            isValid &= RequireText(person, nameof(person.PhoneNumber), person.PhoneNumber, "Phone number is required.", messageStore);
+            isValid &= RequireText(person, nameof(person.StateOfOrigin), person.StateOfOrigin, "State of origin is required.", messageStore);
+            isValid &= RequireText(person, nameof(person.LgaOfOrigin), person.LgaOfOrigin, "LGA of origin is required.", messageStore);
+            isValid &= OptionalText(person, nameof(person.MiddleName), person.MiddleName, messageStore);
 
             if (person.Sex == Gender.None)
             {
@@ -229,21 +225,54 @@ namespace FcmsPortalUI.Services
 
             bool isValid = true;
 
-            void Require(string propertyName, string? value, string error)
-            {
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    messageStore.Add(new FieldIdentifier(address, propertyName), error);
-                    isValid = false;
-                }
-            }
-
-            Require(nameof(address.Street), address.Street, "Street is required.");
-            Require(nameof(address.City), address.City, "City is required.");
-            Require(nameof(address.State), address.State, "State is required.");
-            Require(nameof(address.Country), address.Country, "Country is required.");
+            isValid &= RequireText(address, nameof(address.Street), address.Street, "Street is required.", messageStore);
+            isValid &= RequireText(address, nameof(address.City), address.City, "City is required.", messageStore);
+            isValid &= RequireText(address, nameof(address.State), address.State, "State is required.", messageStore);
+            isValid &= RequireText(address, nameof(address.Country), address.Country, "Country is required.", messageStore);
+            isValid &= OptionalText(address, nameof(address.PostalCode), address.PostalCode, messageStore);
 
             return isValid;
+        }
+
+        private static bool ValidateAnnotations(object model, string propertyName, ValidationMessageStore messageStore)
+        {
+            var propertyInfo = model.GetType().GetProperty(propertyName);
+            if (propertyInfo == null)
+            {
+                return true;
+            }
+
+            var results = new List<ValidationResult>();
+            var validationContext = new ValidationContext(model) { MemberName = propertyName };
+            bool isValid = Validator.TryValidateProperty(propertyInfo.GetValue(model), validationContext, results);
+
+            foreach (var result in results)
+            {
+                messageStore.Add(new FieldIdentifier(model, propertyName), result.ErrorMessage!);
+            }
+
+            return isValid;
+        }
+
+        private static bool RequireText(object model, string propertyName, string? value, string error, ValidationMessageStore messageStore)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                messageStore.Add(new FieldIdentifier(model, propertyName), error);
+                return false;
+            }
+
+            return ValidateAnnotations(model, propertyName, messageStore);
+        }
+
+        private static bool OptionalText(object model, string propertyName, string? value, ValidationMessageStore messageStore)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return true;
+            }
+
+            return ValidateAnnotations(model, propertyName, messageStore);
         }
     }
 }

@@ -141,6 +141,7 @@
                 <div class="col-md-6 mb-3">
                     <label for="emergencyContact" class="form-label">Emergency Contact<span class="text-danger">*</span></label>
                     <InputText id="emergencyContact" class="form-control" @bind-Value="Student.Person.EmergencyContact" />
+                    <ValidationMessage For="@(() => Student.Person.EmergencyContact)" />
                 </div>
             </div>
 
