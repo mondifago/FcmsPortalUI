@@ -26,6 +26,7 @@
                                     <option value="@course">@course</option>
                                 }
                             </InputSelect>
+                            <ValidationMessage For="@(() => classSession.Course)" />
                         </div>
                         <div class="col-md-6">
                             <label for="teacher" class="form-label">Teacher<span class="text-danger">*</span></label>
@@ -36,6 +37,7 @@
                                     <option value="@teacher.Id">@Util.GetFullName(teacher.Person)</option>
                                 }
                             </InputSelect>
+                            <ValidationMessage For="@(() => classSession.TeacherId)" />
                         </div>
                     </div>
 
@@ -48,6 +50,7 @@
                         <div class="col-md-6">
                             <label for="description" class="form-label">Description</label>
                             <InputText id="description" @bind-Value="classSession.Description" class="form-control" />
+                            <ValidationMessage For="@(() => classSession.Description)" />
                         </div>
                     </div>
 
