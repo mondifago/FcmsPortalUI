@@ -175,23 +175,13 @@ namespace FcmsPortalUI.Services
         List<Student> GetArchivedStudents();
         List<string> GetArchivedPaymentsAcademicYears();
         void ArchiveStudentPayments(LearningPath learningPath);
-        List<ArchivedStudentPayment> GetArchivedStudentPayments(
-            string academicYear,
-            EducationLevel educationLevel,
-            ClassLevel classLevel,
-            Semester semester);
+        List<ArchivedStudentPayment> GetArchivedStudentPayments(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         List<ArchivedPaymentDetail> GetArchivedPaymentDetails(int archivedStudentPaymentId);
         void ArchiveStudentAttendance(LearningPath learningPath);
-        List<AttendanceArchive> GetArchivedStudentAttendance(
-           string academicYear,
-           EducationLevel educationLevel,
-           ClassLevel classLevel,
-           Semester semester);
+        List<AttendanceArchive> GetArchivedStudentAttendance(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         List<AttendanceArchive> GetArchivedStudentAttendanceDetails(int studentId, int learningPathId);
         List<string> GetArchivedAttendanceAcademicYears();
         List<DailyAttendanceLogEntry> GetDailyAttendanceForLearningPath(int learningPathId);
-        List<string> GetArchivedGradesAcademicYears();
-        LearningPath? GetLearningPathByFilter(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         List<string> GetGradeArchiveAcademicYears();
         ArchivedLearningPathGrade? GetArchivedLearningPathGrade(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
         void ArchiveStudentReportCard(StudentReportCard reportCard);
@@ -251,6 +241,7 @@ namespace FcmsPortalUI.Services
         IQueryable<StaffListItem> GetStaffForList();
         IQueryable<GuardianListItem> GetGuardiansForList();
         IQueryable<LearningPathListItem> GetLearningPathsForList();
+        List<LearningPathListItem> GetEnrollableLearningPaths(EducationLevel educationLevel, ClassLevel classLevel);
         #endregion
     }
 }

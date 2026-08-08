@@ -2,6 +2,7 @@
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 @using FcmsPortalUI.Services
+@using FcmsPortalUI.DTOs
 @using FcmsPortal.Models
 @using FcmsPortalUI.Components.Pages.Shared
 @using Microsoft.AspNetCore.Components.Web
@@ -374,7 +375,7 @@
     private bool showLearningPathModal = false;
     private bool showRemoveConfirmation = false;
     private int selectedLearningPathId = 0;
-    private List<LearningPath> availableLearningPaths = new List<LearningPath>();
+    private List<LearningPathListItem> availableLearningPaths = new();
 
     protected override void OnInitialized()
     {
@@ -392,12 +393,11 @@
 
     private void ShowLearningPathModal()
     {
-        availableLearningPaths = SchoolDataService.GetAllLearningPaths()
-            .Where(lp =>
-                lp.EducationLevel == student?.Person.EducationLevel &&
-                lp.ClassLevel == student.Person.ClassLevel)
-            .ToList();
-
+        if (student == null)
+        {
+            return;
+        }
+        availableLearningPaths = SchoolDataService.GetEnrollableLearningPaths(student.Person.EducationLevel, student.Person.ClassLevel);
         selectedLearningPathId = 0;
         showLearningPathModal = true;
     }
@@ -419,14 +419,7 @@
 
     private bool IsStudentInLearningPath()
     {
-        if (student == null)
-            return false;
-
-        if (student.LearningPathId > 0 && student.LearningPath != null)
-            return true;
-
-        var allLearningPaths = SchoolDataService.GetAllLearningPaths();
-        return allLearningPaths.Any(lp => lp.Students.Any(s => s.Id == student.Id));
+        return student?.LearningPathId > 0;
     }
 
     private void ShowRemoveConfirmation()

@@ -2620,40 +2620,6 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public List<string> GetArchivedGradesAcademicYears()
-        {
-            return _context.StudentReportCards
-                .AsNoTracking()
-                .Include(rc => rc.LearningPath)
-                .Where(rc => rc.LearningPath != null && rc.IsFinalized)
-                .Select(rc => rc.LearningPath.AcademicYearStart.ToString())
-                .Distinct()
-                .OrderByDescending(year => year)
-                .ToList();
-        }
-
-        public LearningPath? GetLearningPathByFilter(string academicYear, EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
-        {
-            if (string.IsNullOrEmpty(academicYear))
-                return null;
-
-            var yearParts = academicYear.Split('-');
-            if (yearParts.Length != 2 || !int.TryParse(yearParts[0], out int startYear))
-                return null;
-
-            return _context.LearningPaths
-                .AsNoTracking()
-                .Include(lp => lp.Students)
-                    .ThenInclude(s => s.Person)
-                .Include(lp => lp.Students)
-                    .ThenInclude(s => s.CourseGrades)
-                .Include(lp => lp.ReportCards)
-                .FirstOrDefault(lp => lp.AcademicYearStart.Year == startYear &&
-                                     lp.EducationLevel == educationLevel &&
-                                     lp.ClassLevel == classLevel &&
-                                     lp.Semester == semester);
-        }
-
         public List<string> GetGradeArchiveAcademicYears()
         {
             return _context.LearningPaths
@@ -3578,6 +3544,28 @@ namespace FcmsPortalUI.Services
                     AcademicYearStart = lp.AcademicYearStart,
                     ApprovalStatus = lp.ApprovalStatus
                 });
+        }
+
+        public List<LearningPathListItem> GetEnrollableLearningPaths(EducationLevel educationLevel, ClassLevel classLevel)
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Where(lp => !lp.IsTemplate &&
+                             lp.ApprovalStatus != PrincipalApprovalStatus.Approved &&
+                             lp.EducationLevel == educationLevel &&
+                             lp.ClassLevel == classLevel)
+                .OrderByDescending(lp => lp.AcademicYearStart)
+                    .ThenBy(lp => lp.Semester)
+                .Select(lp => new LearningPathListItem
+                {
+                    Id = lp.Id,
+                    EducationLevel = lp.EducationLevel,
+                    ClassLevel = lp.ClassLevel,
+                    Semester = lp.Semester,
+                    AcademicYearStart = lp.AcademicYearStart,
+                    ApprovalStatus = lp.ApprovalStatus
+                })
+                .ToList();
         }
         #endregion
     }
