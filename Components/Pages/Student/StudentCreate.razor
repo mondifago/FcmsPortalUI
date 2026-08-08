@@ -60,13 +60,6 @@
     private void CreateStudent(Student student)
     {
         var createdStudent = SchoolDataService.AddStudent(student);
-        var associatedGuardian = SchoolDataService.GetGuardianById(student.GuardianId);
-
-        /*if (associatedGuardian != null)
-        {
-            FcmsPortal.LogicMethods.AddStudentToGuardianWards(associatedGuardian, createdStudent);
-        }*/
-
         NavigationManager.NavigateTo("/students");
     }
 

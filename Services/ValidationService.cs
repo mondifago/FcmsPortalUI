@@ -50,6 +50,13 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
+            if (student.GuardianId <= 0)
+            {
+                var field = new FieldIdentifier(student, nameof(student.GuardianId));
+                messageStore.Add(field, "Guardian is required.");
+                isValid = false;
+            }
+
             context.NotifyValidationStateChanged();
             return isValid && personValid;
         }
@@ -113,44 +120,7 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
-            // Updated address validation for single address model
-            if (person.Address == null)
-            {
-                var field = new FieldIdentifier(person, nameof(person.Address));
-                messageStore.Add(field, "Address is required.");
-                isValid = false;
-            }
-            else
-            {
-                // Validate required address fields
-                if (string.IsNullOrWhiteSpace(person.Address.Street))
-                {
-                    var field = new FieldIdentifier(person.Address, nameof(person.Address.Street));
-                    messageStore.Add(field, "Street is required.");
-                    isValid = false;
-                }
-
-                if (string.IsNullOrWhiteSpace(person.Address.City))
-                {
-                    var field = new FieldIdentifier(person.Address, nameof(person.Address.City));
-                    messageStore.Add(field, "City is required.");
-                    isValid = false;
-                }
-
-                if (string.IsNullOrWhiteSpace(person.Address.State))
-                {
-                    var field = new FieldIdentifier(person.Address, nameof(person.Address.State));
-                    messageStore.Add(field, "State is required.");
-                    isValid = false;
-                }
-
-                if (string.IsNullOrWhiteSpace(person.Address.Country))
-                {
-                    var field = new FieldIdentifier(person.Address, nameof(person.Address.Country));
-                    messageStore.Add(field, "Country is required.");
-                    isValid = false;
-                }
-            }
+            isValid &= ValidateAddress(person.Address, person, nameof(person.Address), messageStore);
 
             return isValid;
         }
@@ -246,6 +216,33 @@ namespace FcmsPortalUI.Services
             }
 
             context.NotifyValidationStateChanged();
+            return isValid;
+        }
+
+        private static bool ValidateAddress(Address? address, object owner, string ownerPropertyName, ValidationMessageStore messageStore)
+        {
+            if (address == null)
+            {
+                messageStore.Add(new FieldIdentifier(owner, ownerPropertyName), "Address is required.");
+                return false;
+            }
+
+            bool isValid = true;
+
+            void Require(string propertyName, string? value, string error)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    messageStore.Add(new FieldIdentifier(address, propertyName), error);
+                    isValid = false;
+                }
+            }
+
+            Require(nameof(address.Street), address.Street, "Street is required.");
+            Require(nameof(address.City), address.City, "City is required.");
+            Require(nameof(address.State), address.State, "State is required.");
+            Require(nameof(address.Country), address.Country, "Country is required.");
+
             return isValid;
         }
     }

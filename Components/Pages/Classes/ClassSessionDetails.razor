@@ -260,7 +260,7 @@
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">YouTube URL</label>
-                                            <input type="text" class="form-control" @bind="newVideoUrl" placeholder="https://www.youtube.com/watch?v=..." />
+                                            <input type="text" class="form-control" @bind="newVideoUrl" @bind:after="ClearVideoError" placeholder="https://www.youtube.com/watch?v=..." />
                                             <small class="text-muted">Paste any YouTube link</small>
                                         </div>
                                         @if (!string.IsNullOrEmpty(videoErrorMessage))
@@ -934,5 +934,10 @@
     {
         isVideoSelected = true;
         selectedPdfUrl = null;
+    }
+
+    private void ClearVideoError()
+    {
+        videoErrorMessage = string.Empty;
     }
 }

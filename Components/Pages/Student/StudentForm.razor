@@ -136,6 +136,7 @@
                             <option value="@guardian.Id">@guardian.Person.FirstName @guardian.Person.LastName</option>
                         }
                     </InputSelect>
+                    <ValidationMessage For="@(() => Student.GuardianId)" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="emergencyContact" class="form-label">Emergency Contact<span class="text-danger">*</span></label>
