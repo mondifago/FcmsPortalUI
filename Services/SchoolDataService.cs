@@ -771,6 +771,17 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
+        public bool LearningPathCombinationExists(int excludeId, EducationLevel educationLevel, ClassLevel classLevel, Semester semester, DateTime academicYearStart)
+        {
+            return _context.LearningPaths
+                .Any(lp => !lp.IsTemplate &&
+                           lp.Id != excludeId &&
+                           lp.EducationLevel == educationLevel &&
+                           lp.ClassLevel == classLevel &&
+                           lp.Semester == semester &&
+                           lp.AcademicYearStart.Year == academicYearStart.Year);
+        }
+
         public LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId)
         {
             return _context.LearningPaths
@@ -3017,6 +3028,16 @@ namespace FcmsPortalUI.Services
                 .Include(asg => asg.ArchivedLearningPathGrade)
                 .Include(asg => asg.CourseGrades)
                 .AsSplitQuery()
+                .ToList();
+        }
+
+        public List<ArchivedLearningPathGrade> GetArchivedLearningPathsForStudent(int studentId)
+        {
+            return _context.ArchivedStudentGrades
+                .AsNoTracking()
+                .Where(sg => sg.StudentId == studentId && sg.ArchivedLearningPathGrade != null)
+                .Select(sg => sg.ArchivedLearningPathGrade!)
+                .OrderBy(a => a.SemesterStartDate)
                 .ToList();
         }
         #endregion

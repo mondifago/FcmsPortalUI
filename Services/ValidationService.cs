@@ -160,21 +160,6 @@ namespace FcmsPortalUI.Services
             messageStore.Clear();
             bool isValid = context.Validate();
 
-            var existingPaths = schoolDataService.GetAllLearningPaths();
-            bool isDuplicate = existingPaths.Any(lp =>
-                lp.Id != learningPath.Id &&
-                lp.EducationLevel == learningPath.EducationLevel &&
-                lp.ClassLevel == learningPath.ClassLevel &&
-                lp.Semester == learningPath.Semester &&
-                lp.AcademicYear == learningPath.AcademicYear);
-
-            if (isDuplicate)
-            {
-                var field = new FieldIdentifier(learningPath, nameof(learningPath.EducationLevel));
-                messageStore.Add(field, "A learning path with this combination already exists.");
-                isValid = false;
-            }
-
             if (learningPath.EducationLevel == default)
             {
                 var field = new FieldIdentifier(learningPath, nameof(learningPath.EducationLevel));
@@ -193,6 +178,17 @@ namespace FcmsPortalUI.Services
             {
                 var field = new FieldIdentifier(learningPath, nameof(learningPath.FeePerSemester));
                 messageStore.Add(field, "School fees for this term is required.");
+                isValid = false;
+            }
+
+            bool canCheckDuplicate = learningPath.EducationLevel != default && learningPath.ClassLevel != default;
+
+            if (canCheckDuplicate &&
+                schoolDataService.LearningPathCombinationExists(learningPath.Id, learningPath.EducationLevel,
+                    learningPath.ClassLevel, learningPath.Semester, learningPath.AcademicYearStart))
+            {
+                var field = new FieldIdentifier(learningPath, nameof(learningPath.EducationLevel));
+                messageStore.Add(field, "A learning path with this combination already exists.");
                 isValid = false;
             }
 

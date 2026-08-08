@@ -56,10 +56,10 @@ namespace FcmsPortalUI.Services
         void RemoveStudentFromLearningPath(LearningPath learningPath, Student student);
         List<LearningPath> GetLearningPathsForPayments(int academicYearStartYear, Semester semester);
         IEnumerable<LearningPath> GetAllLearningPaths();
+        bool LearningPathCombinationExists(int excludeId, EducationLevel educationLevel, ClassLevel classLevel, Semester semester, DateTime academicYearStart);
         LearningPath? GetLearningPathForDetails(int id);
         LearningPath? GetLearningPathBasicInfo(int id);
         LearningPath? GetLearningPathForAttendanceReport(int id);
-
         LearningPath? GetLearningPathForGradeManagement(int id);
         LearningPath? GetLearningPathForSchedules(int id);
         List<ScheduleEntry> GetLearningPathCalendarSchedules(int learningPathId);
@@ -187,6 +187,7 @@ namespace FcmsPortalUI.Services
         void ArchiveStudentReportCard(StudentReportCard reportCard);
         void ArchiveLearningPathGrades(LearningPath learningPath);
         List<ArchivedStudentGrade> GetStudentArchivedGrades(int studentId);
+        List<ArchivedLearningPathGrade> GetArchivedLearningPathsForStudent(int studentId);
         #endregion
 
         #region Announcements
