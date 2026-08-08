@@ -758,19 +758,6 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public IEnumerable<LearningPath> GetAllLearningPaths()
-        {
-            return _context.LearningPaths
-                .Include(lp => lp.Students)
-                    .ThenInclude(s => s.Person)
-                        .ThenInclude(p => p.SchoolFees)
-                            .ThenInclude(sf => sf.Payments)
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                .Where(lp => !lp.IsTemplate)
-                .ToList();
-        }
-
         public bool LearningPathCombinationExists(int excludeId, EducationLevel educationLevel, ClassLevel classLevel, Semester semester, DateTime academicYearStart)
         {
             return _context.LearningPaths
@@ -904,12 +891,6 @@ namespace FcmsPortalUI.Services
 
                 SetStudentSchoolFees(student, existingLearningPath.FeePerSemester);
 
-                if (student.LearningPathId == 0)
-                {
-                    student.LearningPathId = existingLearningPath.Id;
-                    student.LearningPath = existingLearningPath;
-                }
-
                 // Get payments only for THIS learning path
                 var paymentsForThisLearningPath = student.Person.SchoolFees.Payments
                     .Where(p => p.LearningPathId == existingLearningPath.Id)
@@ -954,11 +935,6 @@ namespace FcmsPortalUI.Services
                     existingLearningPath.Students.Add(student);
 
                     SetStudentSchoolFees(student, existingLearningPath.FeePerSemester);
-                    if (student.LearningPathId == 0)
-                    {
-                        student.LearningPathId = existingLearningPath.Id;
-                        student.LearningPath = existingLearningPath;
-                    }
 
                     // Get payments only for THIS learning path
                     var paymentsForThisLearningPath = student.Person.SchoolFees.Payments

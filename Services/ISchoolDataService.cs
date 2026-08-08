@@ -55,7 +55,6 @@ namespace FcmsPortalUI.Services
         void SetStudentSchoolFees(Student student, double feeAmount);
         void RemoveStudentFromLearningPath(LearningPath learningPath, Student student);
         List<LearningPath> GetLearningPathsForPayments(int academicYearStartYear, Semester semester);
-        IEnumerable<LearningPath> GetAllLearningPaths();
         bool LearningPathCombinationExists(int excludeId, EducationLevel educationLevel, ClassLevel classLevel, Semester semester, DateTime academicYearStart);
         LearningPath? GetLearningPathForDetails(int id);
         LearningPath? GetLearningPathBasicInfo(int id);

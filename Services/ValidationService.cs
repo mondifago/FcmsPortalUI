@@ -208,12 +208,6 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
-            if (string.IsNullOrWhiteSpace(scheduleEntry.Venue))
-            {
-                var field = new FieldIdentifier(scheduleEntry, nameof(scheduleEntry.Venue));
-                isValid = false;
-            }
-
             if (scheduleType == ScheduleType.Event && string.IsNullOrWhiteSpace(scheduleEntry.Event))
             {
                 var field = new FieldIdentifier(scheduleEntry, nameof(scheduleEntry.Event));
@@ -241,22 +235,8 @@ namespace FcmsPortalUI.Services
 
         public bool ValidateClassSession(EditContext context, ClassSession classSession, ValidationMessageStore messageStore)
         {
-            bool isValid = true;
             messageStore.Clear();
-
-            var courseField = new FieldIdentifier(classSession, nameof(classSession.Course));
-            if (string.IsNullOrWhiteSpace(classSession.Course))
-            {
-                messageStore.Add(courseField, "Course is required.");
-                isValid = false;
-            }
-
-            var topicField = new FieldIdentifier(classSession, nameof(classSession.Topic));
-            if (string.IsNullOrWhiteSpace(classSession.Topic))
-            {
-                messageStore.Add(topicField, "Topic is required.");
-                isValid = false;
-            }
+            bool isValid = context.Validate();
 
             var teacherField = new FieldIdentifier(classSession, nameof(classSession.TeacherId));
             if (classSession.TeacherId <= 0)
