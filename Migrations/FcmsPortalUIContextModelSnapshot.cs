@@ -77,7 +77,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AcademicPeriods");
+                    b.ToTable("AcademicPeriods", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.AccountInvitation", b =>
@@ -117,7 +117,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AccountInvitations");
+                    b.ToTable("AccountInvitations", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Announcement", b =>
@@ -149,7 +149,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("PostedById");
 
-                    b.ToTable("Announcements");
+                    b.ToTable("Announcements", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedCourseGrade", b =>
@@ -196,7 +196,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ArchivedStudentGradeId");
 
-                    b.ToTable("ArchivedCourseGrades");
+                    b.ToTable("ArchivedCourseGrades", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedLearningPathGrade", b =>
@@ -244,7 +244,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ArchivedLearningPathGrades");
+                    b.ToTable("ArchivedLearningPathGrades", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedLearningPathPayment", b =>
@@ -313,7 +313,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ArchivedLearningPathPayments");
+                    b.ToTable("ArchivedLearningPathPayments", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedPaymentDetail", b =>
@@ -344,7 +344,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ArchivedStudentPaymentId");
 
-                    b.ToTable("ArchivedPaymentDetails");
+                    b.ToTable("ArchivedPaymentDetails", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedSchoolPaymentSummary", b =>
@@ -406,7 +406,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ArchivedSchoolPaymentSummaries");
+                    b.ToTable("ArchivedSchoolPaymentSummaries", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedStudentGrade", b =>
@@ -489,7 +489,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ArchivedReportCardId");
 
-                    b.ToTable("ArchivedStudentGrades");
+                    b.ToTable("ArchivedStudentGrades", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedStudentPayment", b =>
@@ -547,7 +547,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ArchivedStudentPayments");
+                    b.ToTable("ArchivedStudentPayments", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ArchivedTestGrade", b =>
@@ -582,7 +582,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ArchivedCourseGradeId");
 
-                    b.ToTable("ArchivedTestGrades");
+                    b.ToTable("ArchivedTestGrades", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.AttendanceArchive", b =>
@@ -631,7 +631,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AttendanceArchives");
+                    b.ToTable("AttendanceArchives", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.CalendarModel", b =>
@@ -654,7 +654,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("CalendarModel");
+                    b.ToTable("CalendarModel", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ClassSession", b =>
@@ -708,7 +708,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("TeacherId");
 
-                    b.ToTable("ClassSessions");
+                    b.ToTable("ClassSessions", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.CourseGrade", b =>
@@ -750,7 +750,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("CourseGrades");
+                    b.ToTable("CourseGrades", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.CourseGradingConfiguration", b =>
@@ -781,7 +781,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("LearningPathId");
 
-                    b.ToTable("CourseGradingConfiguration");
+                    b.ToTable("CourseGradingConfiguration", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.DailyAttendanceLogEntry", b =>
@@ -807,7 +807,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("TeacherId");
 
-                    b.ToTable("DailyAttendanceLogEntries");
+                    b.ToTable("DailyAttendanceLogEntries", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.DiscussionThread", b =>
@@ -831,7 +831,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ClassSessionId");
 
-                    b.ToTable("DiscussionThreads");
+                    b.ToTable("DiscussionThreads", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.FileAttachment", b =>
@@ -863,7 +863,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ClassSessionId");
 
-                    b.ToTable("FileAttachments");
+                    b.ToTable("FileAttachments", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.FirstPost", b =>
@@ -895,7 +895,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("PersonId");
 
-                    b.ToTable("FirstPosts");
+                    b.ToTable("FirstPosts", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Guardian", b =>
@@ -925,7 +925,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("Guardians");
+                    b.ToTable("Guardians", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Homework", b =>
@@ -960,7 +960,7 @@ namespace FcmsPortalUI.Migrations
                     b.HasIndex("ClassSessionId")
                         .IsUnique();
 
-                    b.ToTable("Homework");
+                    b.ToTable("Homework", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.HomeworkSubmission", b =>
@@ -1003,7 +1003,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("HomeworkSubmissions");
+                    b.ToTable("HomeworkSubmissions", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.LearningPath", b =>
@@ -1067,7 +1067,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("LearningPaths");
+                    b.ToTable("LearningPaths", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Payment", b =>
@@ -1112,7 +1112,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("SchoolFeesId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Person", b =>
@@ -1263,7 +1263,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("AddedById");
 
-                    b.ToTable("Quotes");
+                    b.ToTable("Quotes", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Reply", b =>
@@ -1294,7 +1294,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("PersonId");
 
-                    b.ToTable("Replies");
+                    b.ToTable("Replies", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.ScheduleEntry", b =>
@@ -1365,7 +1365,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("LearningPathId");
 
-                    b.ToTable("ScheduleEntries");
+                    b.ToTable("ScheduleEntries", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.School", b =>
@@ -1403,7 +1403,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("CurrentAcademicPeriodId");
 
-                    b.ToTable("School");
+                    b.ToTable("School", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.SchoolFees", b =>
@@ -1425,7 +1425,7 @@ namespace FcmsPortalUI.Migrations
                     b.HasIndex("PersonId")
                         .IsUnique();
 
-                    b.ToTable("SchoolFees");
+                    b.ToTable("SchoolFees", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Staff", b =>
@@ -1472,7 +1472,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("Staff");
+                    b.ToTable("Staff", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.Student", b =>
@@ -1517,7 +1517,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("Students");
+                    b.ToTable("Students", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.StudentReportCard", b =>
@@ -1592,7 +1592,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("StudentReportCards");
+                    b.ToTable("StudentReportCards", (string)null);
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.TestGrade", b =>
@@ -1629,7 +1629,7 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("TeacherId");
 
-                    b.ToTable("TestGrades");
+                    b.ToTable("TestGrades", (string)null);
                 });
 
             modelBuilder.Entity("LearningPathStudentsWithAccess", b =>
@@ -2086,7 +2086,7 @@ namespace FcmsPortalUI.Migrations
 
                             b1.HasKey("PersonId");
 
-                            b1.ToTable("AspNetUsers");
+                            b1.ToTable("AspNetUsers", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("PersonId");
@@ -2176,7 +2176,7 @@ namespace FcmsPortalUI.Migrations
 
                             b1.HasKey("SchoolId");
 
-                            b1.ToTable("School");
+                            b1.ToTable("School", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SchoolId");

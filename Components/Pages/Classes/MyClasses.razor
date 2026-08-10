@@ -16,7 +16,7 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap fcms-gap-sm">
-        <h2 class="mb-0">My Classes</h2>
+        <h2 class="mb-0">@pageHeading</h2>
 
         @if (canManageSchedules && activePathId > 0)
         {
@@ -333,6 +333,7 @@
     private string staffEducationLevel = "";
     private string staffClassLevel = "";
     private string staffTerm = "";
+    private string pageHeading = "My Classes";
     private List<string> availableYears = new();
     private List<ClassLevel> availableClassLevels = new();
 
@@ -355,6 +356,7 @@
         {
             var student = SchoolDataService.GetStudentByPersonId(currentPerson.Id);
             activePathId = student?.LearningPathId ?? 0;
+            SetPageHeading();
         }
 
         if (isGuardian)
@@ -382,8 +384,25 @@
         activeWardId = wardId;
         var ward = guardianProfile?.Wards.FirstOrDefault(w => w.Id == wardId);
         activePathId = ward?.LearningPathId ?? 0;
+        SetPageHeading();
         LoadTimetable();
         GoToToday();
+    }
+
+    private void SetPageHeading()
+    {
+        pageHeading = "My Classes";
+
+        if (activePathId > 0)
+        {
+            var path = SchoolDataService.GetLearningPathsForList()
+                .FirstOrDefault(p => p.Id == activePathId);
+
+            if (path != null)
+            {
+                pageHeading = $"{path.ClassLevel.ToDisplayName()} Classes";
+            }
+        }
     }
 
     private void LoadTimetable()
