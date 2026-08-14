@@ -67,7 +67,7 @@ namespace FcmsPortalUI.Services
         LearningPath? GetLearningPathWithAttendanceByClassSessionId(int classSessionId, DateTime sessionDate);
         int? GetLearningPathIdByClassSessionId(int classSessionId);
         void UpdateLearningPath(LearningPath learningPath);
-        bool DeleteLearningPath(int id);
+        Task<bool> DeleteLearningPathAsync(int id);
         void AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd);
         void AddStudentToLearningPath(int learningPathId, Student student);
         #endregion

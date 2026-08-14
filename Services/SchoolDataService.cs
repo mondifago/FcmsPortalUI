@@ -814,27 +814,84 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault();
         }
 
-        public bool DeleteLearningPath(int id)
+        public async Task<bool> DeleteLearningPathAsync(int id)
         {
-            var learningPath = _context.LearningPaths.Find(id);
+            var learningPath = await _context.LearningPaths
+                .FirstOrDefaultAsync(lp => lp.Id == id);
+
             if (learningPath == null)
             {
                 return false;
             }
 
-            var hasGrades = learningPath.Students
-                .Any(s => s.CourseGrades
-                .Any(cg => cg.LearningPathId == id && cg.TestGrades.Any()));
-
-            if (hasGrades)
+            var blocker = GetLearningPathDeletionBlocker(learningPath);
+            if (blocker != null)
             {
                 throw new BusinessRuleException(
-                    "Active Learning path containing grades cannot be deleted.");
+                    $"{Util.GetLearningPathName(learningPath)} cannot be deleted because {blocker}.");
             }
 
+            var scheduleEntries = await _context.ScheduleEntries
+                .Where(se => se.LearningPathId == id)
+                .ToListAsync();
+
+            var classSessionIds = scheduleEntries
+                .Where(se => se.ClassSessionId.HasValue)
+                .Select(se => se.ClassSessionId!.Value)
+                .ToList();
+
+            var studyMaterials = await _context.ClassSessions
+                .Where(cs => classSessionIds.Contains(cs.Id))
+                .SelectMany(cs => cs.StudyMaterials)
+                .ToListAsync();
+
+            foreach (var material in studyMaterials)
+            {
+                await DeleteFileAsync(material);
+            }
+
+            var classSessions = await _context.ClassSessions
+                .Where(cs => classSessionIds.Contains(cs.Id))
+                .ToListAsync();
+
+            _context.ScheduleEntries.RemoveRange(scheduleEntries);
+            _context.ClassSessions.RemoveRange(classSessions);
             _context.LearningPaths.Remove(learningPath);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
             return true;
+        }
+
+        private string? GetLearningPathDeletionBlocker(LearningPath learningPath)
+        {
+            if (learningPath.IsTemplate)
+                return "it is a template";
+
+            if (learningPath.ApprovalStatus != PrincipalApprovalStatus.Pending)
+                return "it has been submitted for approval";
+
+            if (_context.Students.Any(s => s.LearningPathId == learningPath.Id))
+                return "students are enrolled in it";
+
+            if (_context.CourseGrades.Any(cg => cg.LearningPathId == learningPath.Id && cg.TestGrades.Any()))
+                return "grades have been recorded for it";
+
+            if (_context.DailyAttendanceLogEntries.Any(a => a.LearningPathId == learningPath.Id))
+                return "attendance has been taken for it";
+
+            if (_context.Payments.Any(p => p.LearningPathId == learningPath.Id))
+                return "school fee payments have been made for it";
+
+            if (_context.StudentReportCards.Any(rc => rc.LearningPathId == learningPath.Id))
+                return "report cards have been generated for it";
+
+            if (_context.ScheduleEntries.Any(se => se.LearningPathId == learningPath.Id &&
+                                                   se.ClassSession != null &&
+                                                   se.ClassSession.HomeworkDetails != null &&
+                                                   se.ClassSession.HomeworkDetails.Submissions.Any()))
+                return "students have submitted homework in it";
+
+            return null;
         }
 
         public void UpdateLearningPath(LearningPath learningPath)

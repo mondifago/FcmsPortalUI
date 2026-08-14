@@ -301,7 +301,7 @@ else
         showDeleteConfirmation = false;
     }
 
-    private void DeleteLearningPath()
+    private async Task DeleteLearningPath()
     {
         var failures = new List<string>();
 
@@ -309,7 +309,7 @@ else
         {
             try
             {
-                SchoolDataService.DeleteLearningPath(id);
+                await SchoolDataService.DeleteLearningPathAsync(id);
                 selectedItems.Remove(id);
             }
             catch (BusinessRuleException ex)
