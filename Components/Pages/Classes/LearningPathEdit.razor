@@ -1,6 +1,7 @@
 ﻿@page "/learningpath/edit/{Id:int}"
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortalUI.Services
 
@@ -39,6 +40,12 @@ else
         if (learningPath == null)
         {
             NavigationManager.NavigateTo("/classes");
+            return;
+        }
+
+        if (LogicMethods.IsLearningPathReadOnly(learningPath.ApprovalStatus))
+        {
+            NavigationManager.NavigateTo($"/learningpaths/details/{Id}");
             return;
         }
 

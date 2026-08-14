@@ -91,7 +91,7 @@ else
                     @if (selectMode)
                     {
                         <TemplateColumn Title="">
-                            @if (context.ApprovalStatus != PrincipalApprovalStatus.Review)
+                            @if (context.ApprovalStatus == PrincipalApprovalStatus.Pending)
                             {
                                 <input type="checkbox"
                                        checked="@selectedItems.ContainsKey(context.Id)"
@@ -292,7 +292,8 @@ else
 
     private void DeleteSelected()
     {
-        deleteMessage = $"Are you sure you want to delete {selectedItems.Count} learning path(s)?";
+        deleteMessage = $"Are you sure you want to delete {selectedItems.Count} learning path(s)? " +
+                "The timetable, class sessions, lesson plans and uploaded study materials will be permanently removed.";
         showDeleteConfirmation = true;
     }
 

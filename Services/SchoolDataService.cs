@@ -867,8 +867,15 @@ namespace FcmsPortalUI.Services
             if (learningPath.IsTemplate)
                 return "it is a template";
 
-            if (learningPath.ApprovalStatus != PrincipalApprovalStatus.Pending)
-                return "it has been submitted for approval";
+            var statusBlocker = learningPath.ApprovalStatus switch
+            {
+                PrincipalApprovalStatus.Review => "it has been submitted for approval",
+                PrincipalApprovalStatus.Approved => "it has already been approved",
+                _ => null
+            };
+
+            if (statusBlocker != null)
+                return statusBlocker;
 
             if (_context.Students.Any(s => s.LearningPathId == learningPath.Id))
                 return "students are enrolled in it";
@@ -904,6 +911,12 @@ namespace FcmsPortalUI.Services
 
             if (existingLearningPath != null)
             {
+                if (LogicMethods.IsLearningPathReadOnly(existingLearningPath.ApprovalStatus))
+                {
+                    throw new BusinessRuleException(
+                        $"{Util.GetLearningPathName(existingLearningPath)} has been approved and can no longer be edited.");
+                }
+
                 existingLearningPath.SemesterStartDate = learningPath.SemesterStartDate;
                 existingLearningPath.SemesterEndDate = learningPath.SemesterEndDate;
                 existingLearningPath.ExamsStartDate = learningPath.ExamsStartDate;
@@ -938,6 +951,12 @@ namespace FcmsPortalUI.Services
 
             if (existingLearningPath == null)
                 throw new ArgumentException("Learning path not found in database.");
+
+            if (LogicMethods.IsLearningPathReadOnly(existingLearningPath.ApprovalStatus))
+            {
+                throw new BusinessRuleException(
+                    $"{Util.GetLearningPathName(existingLearningPath)} has been approved. Students can no longer be added to it.");
+            }
 
             if (existingLearningPath.Students == null)
                 existingLearningPath.Students = new List<Student>();
@@ -976,6 +995,12 @@ namespace FcmsPortalUI.Services
 
             if (existingLearningPath == null)
                 throw new ArgumentException("Learning path not found in database.");
+
+            if (LogicMethods.IsLearningPathReadOnly(existingLearningPath.ApprovalStatus))
+            {
+                throw new BusinessRuleException(
+                    $"{Util.GetLearningPathName(existingLearningPath)} has been approved. Students can no longer be added to it.");
+            }
 
             if (existingLearningPath.Students == null)
                 existingLearningPath.Students = new List<Student>();

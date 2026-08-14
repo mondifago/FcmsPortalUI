@@ -28,17 +28,24 @@
             <div class="d-flex flex-wrap fcms-gap-sm">
                 <AuthorizeView Roles="Developer,Principal,Admin,Teacher">
                     <Authorized>
-                        <button class="btn btn-success" @onclick="ShowAddStudentsModal">
-                            <i class="fa fa-user-plus"></i> Add Students
-                        </button>
+                        @if (!isReadOnly)
+                        {
+                            <button class="btn btn-success" @onclick="ShowAddStudentsModal">
+                                <i class="fa fa-user-plus"></i> Add Students
+                            </button>
+                        }
                     </Authorized>
                 </AuthorizeView>
 
                 <AuthorizeView Roles="Developer,Principal,Admin">
                     <Authorized>
-                        <a href="/learningpath/edit/@learningPath.Id" class="btn btn-warning">
-                            <i class="fa fa-pencil"></i> Edit
-                        </a>
+                        @if (!isReadOnly)
+                        {
+                            <a href="/learningpath/edit/@learningPath.Id" class="btn btn-warning">
+                                <i class="fa fa-pencil"></i> Edit
+                            </a>  
+                        }
+                        
                     </Authorized>
                 </AuthorizeView>
 
@@ -134,7 +141,7 @@
             <div class="card fcms-tab-card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Students (@learningPath.Students.Count)</h5>
-                    @if (learningPath.Students != null && learningPath.Students.Any())
+                    @if (learningPath.Students != null && learningPath.Students.Any() && !isReadOnly)
                     {
                         <button class="@GetAttendanceButtonClass()" @onclick="HandleAttendanceAction">
                             @GetAttendanceButtonText()
@@ -422,9 +429,6 @@
     </NotAuthorized>
 </AuthorizeView>
 
-
-
-
 @if (showStudentDetailsModal)
 {
     <StudentGradeDetailsModal IsVisible="showStudentDetailsModal"
@@ -456,10 +460,12 @@
     private bool showSubmitConfirm = false;
     private bool showApproveConfirm = false;
     private bool attendanceTakenToday;
+    private bool isReadOnly;
 
     protected override async Task OnInitializedAsync()
     {
         learningPath = SchoolDataService.GetLearningPathForDetails(Id) ?? new LearningPath();
+        isReadOnly = LogicMethods.IsLearningPathReadOnly(learningPath.ApprovalStatus);
         attendanceTakenToday = SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today);
         unconfiguredCourses = SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
@@ -469,6 +475,7 @@
     private void RefreshLearningPath()
     {
         learningPath = SchoolDataService.GetLearningPathForDetails(Id) ?? new LearningPath();
+        isReadOnly = LogicMethods.IsLearningPathReadOnly(learningPath.ApprovalStatus);
         unconfiguredCourses = SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
         StateHasChanged();
     }
