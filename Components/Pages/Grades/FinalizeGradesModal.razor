@@ -249,12 +249,7 @@
             return;
         }
 
-        var reportCards = SchoolDataService.GetStudentReportCardsForLearningPath(LearningPath.Id);
-
-        if (reportCards.Any())
-        {
-            isGradesFinalized = reportCards.All(rc => rc.IsFinalized);
-        }
+        isGradesFinalized = SchoolDataService.AreLearningPathGradesFinalized(LearningPath.Id);
     }
 
     private void ShowFinalizeConfirmation()

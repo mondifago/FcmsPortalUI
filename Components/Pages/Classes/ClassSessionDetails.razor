@@ -402,7 +402,7 @@
                                     <i class="fa fa-list"></i> View Submissions (@(classSession.HomeworkDetails.Submissions?.Count ?? 0))
                                 </button>
 
-                                @if (classSession.HomeworkDetails.Submissions == null || !classSession.HomeworkDetails.Submissions.Any())
+                                @if (!isReadOnly && classSession.HomeworkDetails.Submissions == null || !classSession.HomeworkDetails.Submissions.Any())
                                 {
                                     <button class="btn btn-outline-warning" @onclick="EditHomework">
                                         <i class="fa fa-edit"></i> Edit Homework

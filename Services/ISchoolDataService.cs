@@ -146,6 +146,7 @@ namespace FcmsPortalUI.Services
         Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null, int? submissionId = null);
         void SaveFinalizedGrades(LearningPath learningPath);
         Dictionary<Semester, double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
+        bool AreLearningPathGradesFinalized(int learningPathId);
         #endregion
 
         #region Curriculum

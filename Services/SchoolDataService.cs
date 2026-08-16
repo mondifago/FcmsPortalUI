@@ -2220,7 +2220,16 @@ namespace FcmsPortalUI.Services
             return semesterGrades;
         }
 
+        public bool AreLearningPathGradesFinalized(int learningPathId)
+        {
+            var finalizedFlags = _context.StudentReportCards
+                .AsNoTracking()
+                .Where(rc => rc.LearningPathId == learningPathId)
+                .Select(rc => rc.IsFinalized)
+                .ToList();
 
+            return finalizedFlags.Any() && finalizedFlags.All(isFinalized => isFinalized);
+        }
         #endregion
 
         #region Curriculum

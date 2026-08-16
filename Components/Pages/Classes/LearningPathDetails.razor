@@ -67,9 +67,13 @@
                             <button class="btn btn-success" @onclick="() => showApproveConfirm = true">
                                 <i class="fa fa-thumbs-up"></i> Approve
                             </button>
-                            <button class="btn btn-secondary" @onclick="RestoreLearningPath">
-                                <i class="fa fa-undo"></i> Restore
-                            </button>
+
+                            @if (!gradesFinalized)
+                            {
+                                <button class="btn btn-secondary" @onclick="() => showRestoreConfirm = true">
+                                    <i class="fa fa-undo"></i> Restore
+                                </button>
+                            }
                         }
                     </Authorized>
                 </AuthorizeView>
@@ -320,6 +324,31 @@
     </div>
 }
 
+@if (showRestoreConfirm)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Restore Learning Path</h5>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Are you sure you want to restore access to Teacher?
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showRestoreConfirm = false">Cancel</button>
+                    <button class="btn btn-secondary" @onclick="ConfirmRestoreLearningPath">Restore</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
 @if (showAddStudentsModal)
 {
     <div class="modal show" style="display: block" tabindex="-1">
@@ -437,6 +466,11 @@
                               OnClose="CloseStudentDetailsModal" />
 }
 
+<ErrorDisplayModal IsVisible="showErrorModal"
+                   Title="Approval Error"
+                   Message="@errorMessage"
+                   OnClose="CloseErrorModal" />
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -461,11 +495,16 @@
     private bool showApproveConfirm = false;
     private bool attendanceTakenToday;
     private bool isReadOnly;
+    private bool showErrorModal;
+    private bool showRestoreConfirm = false;
+    private bool gradesFinalized;
+    private string errorMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         learningPath = SchoolDataService.GetLearningPathForDetails(Id) ?? new LearningPath();
         isReadOnly = LogicMethods.IsLearningPathReadOnly(learningPath.ApprovalStatus);
+        gradesFinalized = SchoolDataService.AreLearningPathGradesFinalized(learningPath.Id);
         attendanceTakenToday = SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today);
         unconfiguredCourses = SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
@@ -476,6 +515,7 @@
     {
         learningPath = SchoolDataService.GetLearningPathForDetails(Id) ?? new LearningPath();
         isReadOnly = LogicMethods.IsLearningPathReadOnly(learningPath.ApprovalStatus);
+        gradesFinalized = SchoolDataService.AreLearningPathGradesFinalized(learningPath.Id);
         unconfiguredCourses = SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
         StateHasChanged();
     }
@@ -546,6 +586,14 @@
 
     private void ApproveLearningPath()
     {
+        if (!SchoolDataService.AreLearningPathGradesFinalized(learningPath.Id))
+        {
+            errorMessage = "Grades have not been finalized for this learning path. " +
+                           "Go back to 'Finalize Grades' and click the 'Finalize All Grades' button.";
+            showErrorModal = true;
+            return;
+        }
+
         learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
 
         foreach (var student in learningPath.Students.ToList())
@@ -649,5 +697,16 @@
     {
         showApproveConfirm = false;
         ApproveLearningPath();
+    }
+
+    private void ConfirmRestoreLearningPath()
+    {
+        showRestoreConfirm = false;
+        RestoreLearningPath();
+    }
+
+    private void CloseErrorModal()
+    {
+        showErrorModal = false;
     }
 }
