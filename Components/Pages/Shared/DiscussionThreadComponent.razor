@@ -51,9 +51,12 @@
                                 </div>
                                 <p class="mt-2 mb-1">@thread.FirstPost.Comment</p>
                                 <div>
-                                    <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => ToggleReplyForm(thread.Id)">
-                                        <i class="fas fa-reply me-1"></i>Reply
-                                    </button>
+                                    @if (AllowReplies)
+                                    {
+                                        <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => ToggleReplyForm(thread.Id)">
+                                            <i class="fas fa-reply me-1"></i>Reply
+                                        </button>
+                                    }
 
                                     @if (thread.Replies.Count > 2 && !expandedThreads.Contains(thread.Id))
                                     {
