@@ -1038,6 +1038,46 @@ namespace FcmsPortalUI.Services
                 _context.SaveChanges();
             }
         }
+
+        public void ApproveLearningPath(int learningPathId)
+        {
+            var existingLearningPath = _context.LearningPaths
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                        .ThenInclude(p => p.SchoolFees)
+                .Include(lp => lp.StudentsWithAccess)
+                .FirstOrDefault(lp => lp.Id == learningPathId);
+
+            if (existingLearningPath == null)
+                throw new ArgumentException("Learning path not found in database.");
+
+            if (LogicMethods.IsLearningPathReadOnly(existingLearningPath.ApprovalStatus))
+            {
+                throw new BusinessRuleException(
+                    $"{Util.GetLearningPathName(existingLearningPath)} has already been approved.");
+            }
+
+            if (!AreLearningPathGradesFinalized(learningPathId))
+            {
+                throw new BusinessRuleException(
+                    $"{Util.GetLearningPathName(existingLearningPath)} cannot be approved because its grades have not been finalized.");
+            }
+
+            foreach (var student in existingLearningPath.Students.ToList())
+            {
+                if (student.Person?.SchoolFees != null)
+                {
+                    student.Person.SchoolFees.TotalAmount = 0;
+                }
+
+                existingLearningPath.Students.Remove(student);
+            }
+
+            existingLearningPath.StudentsWithAccess.Clear();
+            existingLearningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
+
+            _context.SaveChanges();
+        }
         #endregion
 
         #region Learning Path Templates

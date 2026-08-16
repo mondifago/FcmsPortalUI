@@ -586,24 +586,17 @@
 
     private void ApproveLearningPath()
     {
-        if (!SchoolDataService.AreLearningPathGradesFinalized(learningPath.Id))
+        try
         {
-            errorMessage = "Grades have not been finalized for this learning path. " +
-                           "Go back to 'Finalize Grades' and click the 'Finalize All Grades' button.";
+            SchoolDataService.ApproveLearningPath(learningPath.Id);
+            SchoolDataService.CreateTemplateFromLearningPath(learningPath);
+            RefreshLearningPath();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
             showErrorModal = true;
-            return;
         }
-
-        learningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
-
-        foreach (var student in learningPath.Students.ToList())
-        {
-            SchoolDataService.RemoveStudentFromLearningPath(learningPath, student);
-        }
-
-        SchoolDataService.UpdateLearningPath(learningPath);
-        SchoolDataService.CreateTemplateFromLearningPath(learningPath);
-        StateHasChanged();
     }
 
     private void RestoreLearningPath()

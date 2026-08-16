@@ -70,6 +70,7 @@ namespace FcmsPortalUI.Services
         Task<bool> DeleteLearningPathAsync(int id);
         void AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd);
         void AddStudentToLearningPath(int learningPathId, Student student);
+        void ApproveLearningPath(int learningPathId);
         #endregion
 
         #region Learning Path Templates
