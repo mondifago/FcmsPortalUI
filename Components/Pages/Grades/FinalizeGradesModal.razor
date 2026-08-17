@@ -81,7 +81,9 @@
                                             </td>
                                         }
                                         <td class="text-center">
-                                            <button class="btn btn-sm btn-info me-1"
+                                            <button class="@Util.GetReportCardButtonClass(
+                                                                    teacherRemarks.GetValueOrDefault(student.Id),
+                                                                    principalRemarks.GetValueOrDefault(student.Id))"
                                                     @onclick="() => GenerateGradeReport(student)">
                                                 <i class="fa fa-file-pdf"></i> Report
                                             </button>
@@ -219,6 +221,8 @@
     protected override void OnInitialized()
     {
         CheckGradesFinalizationStatus();
+        LoadReportCardRemarks();
+
         if (LearningPath != null && LearningPath.Semester == Semester.Third)
         {
             LoadAllSemesterGrades();
@@ -240,6 +244,19 @@
         }
     }
 
+    private void LoadReportCardRemarks()
+    {
+        teacherRemarks.Clear();
+        principalRemarks.Clear();
+
+        var reportCards = SchoolDataService.GetStudentReportCardsForLearningPath(LearningPath.Id);
+
+        foreach (var reportCard in reportCards)
+        {
+            teacherRemarks[reportCard.StudentId] = reportCard.TeacherRemarks ?? string.Empty;
+            principalRemarks[reportCard.StudentId] = reportCard.PrincipalRemarks ?? string.Empty;
+        }
+    }
 
     private void CheckGradesFinalizationStatus()
     {

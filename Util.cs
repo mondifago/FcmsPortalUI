@@ -42,6 +42,20 @@ namespace FcmsPortalUI
             };
         }
 
+        public static string GetReportCardButtonClass(string? teacherRemark, string? principalRemark)
+        {
+            bool hasTeacherRemark = !string.IsNullOrWhiteSpace(teacherRemark);
+            bool hasPrincipalRemark = !string.IsNullOrWhiteSpace(principalRemark);
+
+            if (hasTeacherRemark && hasPrincipalRemark)
+                return "btn btn-sm btn-success me-1";
+
+            if (hasTeacherRemark || hasPrincipalRemark)
+                return "btn btn-sm btn-warning me-1";
+
+            return "btn btn-sm btn-info me-1";
+        }
+
         public static string GetInitials(Person person)
         {
             string initials = "";
