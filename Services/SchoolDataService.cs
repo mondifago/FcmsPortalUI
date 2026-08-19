@@ -16,6 +16,8 @@ namespace FcmsPortalUI.Services
         private readonly IDbContextFactory<FcmsPortalUIContext> _contextFactory;
         private readonly IWebHostEnvironment _environment;
         private AcademicPeriod? _cachedCurrentAcademicPeriod;
+        private static int _academicPeriodVersion;
+        private int _cachedAcademicPeriodVersion = -1;
         private bool _academicPeriodLoaded;
 
         public SchoolDataService(
@@ -1058,7 +1060,7 @@ namespace FcmsPortalUI.Services
             if (!AreLearningPathGradesFinalized(learningPathId))
             {
                 throw new BusinessRuleException(
-                    $"{Util.GetLearningPathName(existingLearningPath)} cannot be approved because its grades have not been finalized.");
+                    $"{Util.GetLearningPathName(existingLearningPath)} cannot be approved because its grades have not been finalized. Open 'Finalize Grade' and click 'Finalize All Grades'");
             }
 
             foreach (var student in existingLearningPath.Students.ToList())
@@ -3288,14 +3290,38 @@ namespace FcmsPortalUI.Services
             if (school == null)
                 throw new InvalidOperationException("No school found.");
 
-            context.AcademicPeriods.Add(academicPeriod);
-            school.CurrentAcademicPeriod = academicPeriod;
+            var existingPeriod = context.AcademicPeriods
+                .FirstOrDefault(ap => ap.AcademicYearStart.Year == academicPeriod.AcademicYearStart.Year &&
+                                      ap.Semester == academicPeriod.Semester);
+
+            if (existingPeriod == null)
+            {
+                context.AcademicPeriods.Add(academicPeriod);
+                school.CurrentAcademicPeriod = academicPeriod;
+            }
+            else
+            {
+                existingPeriod.SemesterStartDate = academicPeriod.SemesterStartDate;
+                existingPeriod.SemesterEndDate = academicPeriod.SemesterEndDate;
+                existingPeriod.ExamsStartDate = academicPeriod.ExamsStartDate;
+                school.CurrentAcademicPeriodId = existingPeriod.Id;
+            }
+
             context.SaveChanges();
+
+            InvalidateAcademicPeriodCache();
+        }
+
+        private void InvalidateAcademicPeriodCache()
+        {
+            Interlocked.Increment(ref _academicPeriodVersion);
+            _cachedCurrentAcademicPeriod = null;
+            _academicPeriodLoaded = false;
         }
 
         public AcademicPeriod? GetCurrentAcademicPeriod()
         {
-            if (_academicPeriodLoaded)
+            if (_academicPeriodLoaded && _cachedAcademicPeriodVersion == _academicPeriodVersion)
                 return _cachedCurrentAcademicPeriod;
 
             using var context = _contextFactory.CreateDbContext();
@@ -3305,7 +3331,17 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault();
 
             _academicPeriodLoaded = true;
+            _cachedAcademicPeriodVersion = _academicPeriodVersion;
             return _cachedCurrentAcademicPeriod;
+        }
+
+        public AcademicPeriod? GetAcademicPeriodByYearAndSemester(int academicYearStartYear, Semester semester)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            return context.AcademicPeriods
+                .AsNoTracking()
+                .FirstOrDefault(ap => ap.AcademicYearStart.Year == academicYearStartYear && ap.Semester == semester);
         }
 
         #endregion

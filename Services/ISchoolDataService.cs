@@ -189,6 +189,11 @@ namespace FcmsPortalUI.Services
         void ArchiveLearningPathGrades(LearningPath learningPath);
         List<ArchivedStudentGrade> GetStudentArchivedGrades(int studentId);
         List<ArchivedLearningPathGrade> GetArchivedLearningPathsForStudent(int studentId);
+        List<string> GetArchivedLearningPathAcademicYears();
+        List<ArchivedLearningPathPayment> GetArchivedLearningPathPayments(string academicYear, Semester semester);
+        ArchivedSchoolPaymentSummary? GetArchivedSchoolPaymentSummary(string academicYear, Semester semester);
+        void ArchiveSchoolPayments();
+        void ArchiveLearningPathPayments(LearningPath lp);
         #endregion
 
         #region Announcements
@@ -209,12 +214,7 @@ namespace FcmsPortalUI.Services
         #region Academic Period Management
         AcademicPeriod? GetCurrentAcademicPeriod();
         void SetSchoolAcademicPeriod(AcademicPeriod academicPeriod);
-        List<string> GetArchivedLearningPathAcademicYears();
-        List<ArchivedLearningPathPayment> GetArchivedLearningPathPayments(string academicYear, Semester semester);
-        ArchivedSchoolPaymentSummary? GetArchivedSchoolPaymentSummary(string academicYear, Semester semester);
-        void ArchiveSchoolPayments();
-        void ArchiveLearningPathPayments(LearningPath lp);
-
+        AcademicPeriod? GetAcademicPeriodByYearAndSemester(int academicYearStartYear, Semester semester);
         #endregion
 
         #region Account Management

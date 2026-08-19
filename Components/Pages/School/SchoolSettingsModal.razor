@@ -177,7 +177,7 @@
                                     </div>
                                 </div>
 
-                                <button type="button" class="btn btn-success" @onclick="SetAcademicPeriod">
+                                <button type="button" class="btn btn-success" @onclick="PreparePeriodConfirmation">
                                     <i class="fas fa-calendar-check me-2"></i>Set Academic Period
                                 </button>
                             </div>
@@ -443,6 +443,57 @@
     </div>
 </div>
 
+@if (showPeriodConfirm)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Confirm Academic Period</h5>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <strong>@academicYearStartYear-@(academicYearStartYear + 1) @selectedSemester.ToTermDisplay()</strong><br />
+                        @semesterStartDate.ToString("MMM dd, yyyy") &ndash; @semesterEndDate.ToString("MMM dd, yyyy")
+                    </p>
+
+                    @if (matchingPeriod == null)
+                    {
+                        <p>This academic period will be created and made active.</p>
+                    }
+                    else
+                    {
+                        @if (matchingPeriod.Id == currentAcademicPeriod?.Id)
+                        {
+                            <p>
+                                This academic period already exists and is currently active.
+                                Its dates will be updated, and the change will apply everywhere
+                                the current period is used.
+                            </p>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fa fa-exclamation-triangle me-1"></i>
+                                This academic period already exists and is not the active one.
+                                It will become active, and classes, reports and payments will
+                                switch to its data.
+                            </div>
+                        }
+                    }
+
+                    <p>Do you want to continue?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showPeriodConfirm = false">Cancel</button>
+                    <button class="btn btn-success" @onclick="ConfirmSetAcademicPeriod">Set Period</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (IsVisible)
 {
     <div class="modal-backdrop fade show"></div>
@@ -482,6 +533,9 @@
     private DateTime semesterStartDate = DateTime.Now;
     private DateTime semesterEndDate = DateTime.Now.AddMonths(3);
     private DateTime? examsStartDate = null;
+
+    private bool showPeriodConfirm = false;
+    private AcademicPeriod? matchingPeriod;
 
     protected override void OnParametersSet()
     {
@@ -749,5 +803,17 @@
     {
         SchoolDataService.DeleteQuote(id);
         LoadQuotes();
+    }
+
+    private void PreparePeriodConfirmation()
+    {
+        matchingPeriod = SchoolDataService.GetAcademicPeriodByYearAndSemester(academicYearStartYear, selectedSemester);
+        showPeriodConfirm = true;
+    }
+
+    private void ConfirmSetAcademicPeriod()
+    {
+        showPeriodConfirm = false;
+        SetAcademicPeriod();
     }
 }
