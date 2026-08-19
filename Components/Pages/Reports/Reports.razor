@@ -376,6 +376,7 @@
     private List<GradesReport> filteredGradesReports = new List<GradesReport>();
     private List<LearningPath> filteredLearningPaths = new();
     private List<string> availableAcademicYears = new();
+    private List<AcademicPeriod> academicPeriods = new();
     private bool showDailyAttendanceModal = false;
     private bool showSemesterAttendanceModal = false;
     private string selectedLearningPathName = string.Empty;
@@ -444,22 +445,22 @@
         return (fallbackYear, fallbackSemester);
     }
 
-    private List<string> GetSemestersForYear(string year)
+    private void LoadAvailableAcademicYears()
     {
-        return school.LearningPaths
-            .Where(lp => lp.AcademicYear == year)
-            .Select(lp => lp.Semester.ToString())
+        academicPeriods = SchoolDataService.GetAllAcademicPeriods();
+
+        availableAcademicYears = academicPeriods
+            .Select(ap => ap.AcademicYear)
             .Distinct()
-            .OrderBy(semester => semester)
             .ToList();
     }
 
-    private void LoadAvailableAcademicYears()
+    private List<string> GetSemestersForYear(string year)
     {
-        availableAcademicYears = school.LearningPaths
-            .Select(lp => lp.AcademicYear)
-            .Distinct()
-            .OrderByDescending(year => year)
+        return academicPeriods
+            .Where(ap => ap.AcademicYear == year)
+            .OrderBy(ap => ap.Semester)
+            .Select(ap => ap.Semester.ToString())
             .ToList();
     }
 

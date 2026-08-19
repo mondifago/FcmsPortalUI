@@ -3344,6 +3344,16 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(ap => ap.AcademicYearStart.Year == academicYearStartYear && ap.Semester == semester);
         }
 
+        public List<AcademicPeriod> GetAllAcademicPeriods()
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            return context.AcademicPeriods
+                .AsNoTracking()
+                .OrderByDescending(ap => ap.AcademicYearStart)
+                .ThenBy(ap => ap.Semester)
+                .ToList();
+        }
         #endregion
 
         #region Account Management

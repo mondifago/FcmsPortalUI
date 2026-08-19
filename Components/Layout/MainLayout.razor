@@ -48,12 +48,6 @@
                         <div class="top-icons">
                             <input type="text" class="search-box" placeholder="Search...">
                             @*<a href="/notifications" class="icon-link"><i class="fas fa-bell"></i></a>*@
-                            @if (canManageSchoolSettings)
-                            {
-                                <button class="icon-link" style="border: none; background: none;" @onclick="ShowSchoolSettings">
-                                    <i class="fas fa-cog"></i>
-                                </button>
-                            }
 
                             <div class="profile-menu-wrapper" @onclick:stopPropagation="true">
                                 <button class="icon-link profile-toggle-btn" @onclick="ToggleProfileMenu">
@@ -110,9 +104,6 @@
                             </article>
                         </main>
                     </div>
-                    <SchoolSettingsModal IsVisible="showSchoolSettings"
-                                         OnClose="CloseSchoolSettings"
-                                         OnSave="HandleSchoolSettingsSaved" />
                 }
                 else
                 {
@@ -147,13 +138,12 @@
     private NavMenu? navMenu;
     private School? school;
     private bool collapseNavMenu = true;
-    private bool showSchoolSettings = false;
     private bool hasSchool = false;
     private bool hasPrincipal = false;
     private bool isLoading = true;
 
     private bool showProfileMenu = false;
-    private bool canManageSchoolSettings = false;
+    
 
     private Person? currentPerson;
     private string? currentUserName = "";
@@ -167,7 +157,6 @@
         currentUserName = currentPerson != null ? $"{currentPerson.FirstName} {currentPerson.LastName}" : "User";
         currentUserEmail = currentPerson?.Email ?? "";
         if (!string.IsNullOrEmpty(currentPerson?.ProfilePictureUrl)) currentUserPhoto = currentPerson.ProfilePictureUrl;
-        canManageSchoolSettings = await PermissionService.IsInAnyRoleAsync("Developer", "Principal");
         InitializeApp();
     }
 
@@ -211,22 +200,6 @@
     {
         collapseNavMenu = !collapseNavMenu;
         navMenu?.Toggle(collapseNavMenu);
-    }
-
-    private void ShowSchoolSettings()
-    {
-        showSchoolSettings = true;
-    }
-
-    private void CloseSchoolSettings()
-    {
-        showSchoolSettings = false;
-    }
-
-    private void HandleSchoolSettingsSaved()
-    {
-        FcmsPortalUI.Components.Pages.School.Home.TriggerSchoolDataRefresh();
-        showSchoolSettings = false;
     }
 
     private void ToggleProfileMenu()

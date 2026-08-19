@@ -215,6 +215,7 @@ namespace FcmsPortalUI.Services
         AcademicPeriod? GetCurrentAcademicPeriod();
         void SetSchoolAcademicPeriod(AcademicPeriod academicPeriod);
         AcademicPeriod? GetAcademicPeriodByYearAndSemester(int academicYearStartYear, Semester semester);
+        List<AcademicPeriod> GetAllAcademicPeriods();
         #endregion
 
         #region Account Management
