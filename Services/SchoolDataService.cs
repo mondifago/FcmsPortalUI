@@ -669,12 +669,11 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public List<LearningPath> GetLearningPathsForPayments(int academicYearStartYear, Semester semester)
+        public List<LearningPath> GetLearningPathsForPayments(int academicPeriodId)
         {
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(lp => lp.AcademicYearStart.Year == academicYearStartYear
-                    && lp.Semester == semester
+                .Where(lp => lp.AcademicPeriodId == academicPeriodId
                     && !lp.IsTemplate
                     && lp.ApprovalStatus != PrincipalApprovalStatus.Approved)
                 .Include(lp => lp.Students)
@@ -758,15 +757,14 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-        public bool LearningPathCombinationExists(int excludeId, EducationLevel educationLevel, ClassLevel classLevel, Semester semester, DateTime academicYearStart)
+        public bool LearningPathCombinationExists(int excludeId, EducationLevel educationLevel, ClassLevel classLevel, int academicPeriodId)
         {
             return _context.LearningPaths
                 .Any(lp => !lp.IsTemplate &&
                            lp.Id != excludeId &&
                            lp.EducationLevel == educationLevel &&
                            lp.ClassLevel == classLevel &&
-                           lp.Semester == semester &&
-                           lp.AcademicYearStart.Year == academicYearStart.Year);
+                           lp.AcademicPeriodId == academicPeriodId);
         }
 
         public LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId)
@@ -2284,8 +2282,7 @@ namespace FcmsPortalUI.Services
                 .Include(lp => lp.Schedule)
                     .ThenInclude(s => s.ClassSession)
                 .Where(lp => !lp.IsTemplate &&
-                             lp.AcademicYearStart.Year == currentPeriod.AcademicYearStart.Year &&
-                             lp.Semester == currentPeriod.Semester)
+                             lp.AcademicPeriodId == currentPeriod.Id)
                 .ToList();
 
             return LogicMethods.GenerateCurriculumFromLearningPaths(learningPaths);
@@ -2796,7 +2793,7 @@ namespace FcmsPortalUI.Services
             if (existing != null)
                 return;
 
-            var learningPaths = GetLearningPathsForPayments(currentPeriod.AcademicYearStart.Year, currentPeriod.Semester);
+            var learningPaths = GetLearningPathsForPayments(currentPeriod.Id);
 
             var allStudents = learningPaths
                 .SelectMany(lp => lp.Students)
@@ -3670,6 +3667,7 @@ namespace FcmsPortalUI.Services
                     ClassLevel = lp.ClassLevel,
                     Semester = lp.Semester,
                     AcademicYearStart = lp.AcademicYearStart,
+                    AcademicPeriodId = lp.AcademicPeriodId,
                     ApprovalStatus = lp.ApprovalStatus
                 });
         }

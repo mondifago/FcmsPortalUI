@@ -147,11 +147,13 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
-            bool canCheckDuplicate = learningPath.EducationLevel != default && learningPath.ClassLevel != default;
+            bool canCheckDuplicate = learningPath.EducationLevel != default
+                 && learningPath.ClassLevel != default
+                 && learningPath.AcademicPeriodId != 0;
 
             if (canCheckDuplicate &&
                 schoolDataService.LearningPathCombinationExists(learningPath.Id, learningPath.EducationLevel,
-                    learningPath.ClassLevel, learningPath.Semester, learningPath.AcademicYearStart))
+                    learningPath.ClassLevel, learningPath.AcademicPeriodId))
             {
                 var field = new FieldIdentifier(learningPath, nameof(learningPath.EducationLevel));
                 messageStore.Add(field, "A learning path with this combination already exists.");

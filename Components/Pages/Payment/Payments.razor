@@ -286,7 +286,7 @@ OnClose="CloseLearningPathReport" />
     {
         if (currentPeriod != null)
         {
-            learningPaths = SchoolDataService.GetLearningPathsForPayments(currentPeriod.AcademicYearStart.Year, currentPeriod.Semester);
+            learningPaths = SchoolDataService.GetLearningPathsForPayments(currentPeriod.Id);
 
             CalculateSummaryData();
         }
