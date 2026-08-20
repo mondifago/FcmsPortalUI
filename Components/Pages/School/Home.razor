@@ -11,7 +11,7 @@
 @using FcmsPortal.Constants
 @using FcmsPortal
 @using Microsoft.AspNetCore.Authorization
-@implements IDisposable
+
 
 <div class="container-fluid py-4">
     <div class="welcome-banner mb-4">
@@ -654,8 +654,6 @@
     private ScheduleEntry? todayEventOrMeeting;
     private ScheduleEntry? tomorrowEventOrMeeting;
     private ScheduleEntry? dayAfterEventOrMeeting;
-    private static event Action? RefreshRequested;
-    private static object refreshLock = new object();
 
     // Student Dashboard Data
     private Student? currentStudent;
@@ -687,11 +685,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        lock (refreshLock)
-        {
-            RefreshRequested += HandleRefreshRequest;
-        }
-
         var person = await PermissionService.GetCurrentPersonAsync();
 
         if (person != null && !string.IsNullOrWhiteSpace(person.FirstName))
@@ -711,26 +704,6 @@
             await LoadGuardianDashboardData(person);
             await LoadTeacherDashboardData(person);
         }
-    }
-
-    public static void TriggerSchoolDataRefresh()
-    {
-        lock (refreshLock)
-        {
-            RefreshRequested?.Invoke();
-        }
-    }
-
-    private void HandleRefreshRequest()
-    {
-        InvokeAsync(() =>
-        {
-            LoadSemesterTimeline();
-            LoadAnnouncements();
-            LoadRandomQuote();
-            LoadUpcomingEvents();
-            StateHasChanged();
-        });
     }
 
     private void LoadSemesterTimeline()
@@ -869,14 +842,5 @@
 
         todayTeacherClasses = SchoolDataService.GetTodayClassSessionsForTeacher(currentTeacher.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
         recentHomeworkSubmissions = SchoolDataService.GetRecentHomeworkSubmissionsForTeacher(currentTeacher.Id, FcmsConstants.DEFAULT_DASHBOARD_LIST_COUNT);
-    }
-
-    public void Dispose()
-    {
-
-        lock (refreshLock)
-        {
-            RefreshRequested -= HandleRefreshRequest;
-        }
     }
 }

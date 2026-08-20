@@ -163,7 +163,7 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Academic Year Start</label>
                             <select @bind="academicYearStartYear" class="form-select">
-                                @for (int year = DateTime.Now.Year - 1; year <= DateTime.Now.Year + 2; year++)
+                                @foreach (var year in GetSelectableYears())
                                 {
                                     <option value="@year">@year-@(year + 1)</option>
                                 }
@@ -210,7 +210,7 @@
 
             <div class="card fcms-tab-card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-3">Academic Period History</h5>
+                    <h5 class="mb-0">Academic Period History</h5>
                 </div>
                 <div class="card-body">
                     @if (allAcademicPeriods != null && allAcademicPeriods.Any())
@@ -266,13 +266,7 @@
                         </div>
                     }
                 </div>
-            </div>
-
-         
-
-            
-
-            
+            </div> 
         }
 
         @if (activeTab == TabAnnouncement)
@@ -574,7 +568,6 @@
     private Announcement editingAnnouncement = new();
     private int editingAnnouncementId = 0;
 
-    // Quotes
     private List<Quote> quotes = new();
     private Quote newQuote = new();
     private Quote editingQuote = new();
@@ -583,23 +576,20 @@
     private bool showErrorModal = false;
     private string errorMessage = "";
 
-    // Academic Period fields
     private AcademicPeriod? currentAcademicPeriod;
+    private AcademicPeriod? matchingPeriod;
+    private List<AcademicPeriod> allAcademicPeriods = new();
     private int academicYearStartYear = DateTime.Now.Year;
     private Semester selectedSemester = Semester.First;
     private DateTime semesterStartDate = DateTime.Now;
     private DateTime semesterEndDate = DateTime.Now.AddMonths(3);
     private DateTime? examsStartDate = null;
-
     private bool showPeriodConfirm = false;
-    private AcademicPeriod? matchingPeriod;
-    private List<AcademicPeriod> allAcademicPeriods = new();
-
+   
     private const string TabSchoolDetails = "schooldetails";
     private const string TabAcademicPeriod = "academicperiod";
     private const string TabAnnouncement = "announcement";
     private const string TabQuotes = "quotes";
-
     private string activeTab = TabSchoolDetails;
 
     protected override void OnInitialized()
@@ -634,6 +624,22 @@
     private void LoadAcademicPeriods()
     {
         allAcademicPeriods = SchoolDataService.GetAllAcademicPeriods();
+    }
+
+    private List<int> GetSelectableYears()
+    {
+        var years = allAcademicPeriods
+            .Select(ap => ap.AcademicYearStart.Year)
+            .ToList();
+
+        years.Add(academicYearStartYear);
+
+        for (int year = DateTime.Now.Year; year <= DateTime.Now.Year + 2; year++)
+        {
+            years.Add(year);
+        }
+
+        return years.Distinct().OrderByDescending(year => year).ToList();
     }
 
     private void SetAcademicPeriod()
@@ -677,7 +683,6 @@
         try
         {
             await SchoolDataService.UpdateSchoolAsync(school);
-            Home.TriggerSchoolDataRefresh();
             StateHasChanged();
         }
         catch (Exception ex)
@@ -791,7 +796,6 @@
         LoadAnnouncements();
     }
 
-    // Quote Methods
     private void LoadQuotes()
     {
         quotes = SchoolDataService.GetAllQuotes();
