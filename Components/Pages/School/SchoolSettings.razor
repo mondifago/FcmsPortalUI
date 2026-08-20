@@ -13,103 +13,130 @@
 
 <div class="container-fluid mt-3 fcms-settings-page">
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 fcms-gap-sm">
-        <h2 class="mb-0"><i class="fas fa-cog me-2"></i>School Settings</h2>
+        <h2 class="mb-0">School Settings</h2>
     </div>
 
     @if (school != null)
     {
-        <EditForm Model="school" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+        <ul class="nav fcms-tabs mb-3">
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == TabSchoolDetails ? "active" : "")"
+                        @onclick="() => activeTab = TabSchoolDetails">
+                    <i class="fa fa-school me-2"></i>School Details
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == TabAcademicPeriod ? "active" : "")"
+                        @onclick="() => activeTab = TabAcademicPeriod">
+                    <i class="fa fa-calendar-alt me-2"></i>Academic Period
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == TabAnnouncement ? "active" : "")"
+                        @onclick="() => activeTab = TabAnnouncement">
+                    <i class="fa fa-bullhorn me-2"></i>Announcement
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == TabQuotes ? "active" : "")"
+                        @onclick="() => activeTab = TabQuotes">
+                    <i class="fa fa-quote-left me-2"></i>Quotes
+                </button>
+            </li>
+        </ul>
 
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">Basic Information</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">School Name</label>
-                                <InputText id="name" @bind-Value="school.Name" class="form-control" />
-                            </div>
+        @if (activeTab == TabSchoolDetails)
+        {
+            <EditForm Model="school" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <InputText id="email" @bind-Value="school.Email" class="form-control" />
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">Phone Number</label>
-                                <InputText id="phone" @bind-Value="school.PhoneNumber" class="form-control" />
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="website" class="form-label">Website URL</label>
-                                <InputText id="website" @bind-Value="school.WebsiteUrl" class="form-control" />
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 d-flex justify-content-center align-items-center">
-                            <div class="school-logo-card">
-                                <label class="form-label">School Logo</label>
-                                <div class="school-logo-container">
-                                    <InputFile OnChange="HandleFileUpload" accept="image/*" class="hidden-file-input" id="fileInput" />
-                                    <label for="fileInput" class="logo-label">
-                                        <img src="@logoUrl" alt="School Logo" class="school-logo @(string.IsNullOrEmpty(logoUrl) ? "hidden" : "")" />
-                                        <i class="fa fa-school placeholder-icon @(string.IsNullOrEmpty(logoUrl) ? "" : "hidden")"></i>
-                                    </label>
+                <div class="card fcms-tab-card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">School Name</label>
+                                    <InputText id="name" @bind-Value="school.Name" class="form-control" />
                                 </div>
-                                <span class="text-muted text-center">Click to upload logo</span>
+
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <InputText id="email" @bind-Value="school.Email" class="form-control" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <InputText id="phone" @bind-Value="school.PhoneNumber" class="form-control" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="website" class="form-label">Website URL</label>
+                                    <InputText id="website" @bind-Value="school.WebsiteUrl" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 d-flex justify-content-center align-items-center">
+                                <div class="school-logo-card">
+                                    <label class="form-label">School Logo</label>
+                                    <div class="school-logo-container">
+                                        <InputFile OnChange="HandleFileUpload" accept="image/*" class="hidden-file-input" id="fileInput" />
+                                        <label for="fileInput" class="logo-label">
+                                            <img src="@logoUrl" alt="School Logo" class="school-logo @(string.IsNullOrEmpty(logoUrl) ? "hidden" : "")" />
+                                            <i class="fa fa-school placeholder-icon @(string.IsNullOrEmpty(logoUrl) ? "" : "hidden")"></i>
+                                        </label>
+                                    </div>
+                                    <span class="text-muted text-center">Click to upload logo</span>
+                                </div>
                             </div>
                         </div>
+
+                        <hr class="my-4" />
+
+                        <h6 class="mb-3"><i class="fa fa-map-marker-alt me-2"></i>Address</h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="street" class="form-label">Street</label>
+                                <InputText id="street" @bind-Value="school.Address.Street" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <InputText id="city" @bind-Value="school.Address.City" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="state" class="form-label">State</label>
+                                <InputText id="state" @bind-Value="school.Address.State" class="form-control" />
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="postal" class="form-label">Postal Code</label>
+                                <InputText id="postal" @bind-Value="school.Address.PostalCode" class="form-control" />
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="country" class="form-label">Country</label>
+                                <InputText id="country" @bind-Value="school.Address.Country" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </EditForm>
+        }
 
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">Address</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="street" class="form-label">Street</label>
-                            <InputText id="street" @bind-Value="school.Address.Street" class="form-control" />
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="city" class="form-label">City</label>
-                            <InputText id="city" @bind-Value="school.Address.City" class="form-control" />
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="state" class="form-label">State</label>
-                            <InputText id="state" @bind-Value="school.Address.State" class="form-control" />
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="postal" class="form-label">Postal Code</label>
-                            <InputText id="postal" @bind-Value="school.Address.PostalCode" class="form-control" />
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="country" class="form-label">Country</label>
-                            <InputText id="country" @bind-Value="school.Address.Country" class="form-control" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Academic Period Management Section  -->
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h6 class="mb-0">
-                        <i class="fas fa-calendar-alt me-2"></i>Academic Period Management
-                    </h6>
-                </div>
+        @if (activeTab == TabAcademicPeriod)
+        {
+            <div class="card fcms-tab-card mb-4">
                 <div class="card-body">
                     @if (currentAcademicPeriod != null)
                     {
@@ -181,259 +208,298 @@
                 </div>
             </div>
 
-            <!-- Home Page Settings Section -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">Home Page Settings</h6>
+            <div class="card fcms-tab-card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-3">Academic Period History</h5>
                 </div>
                 <div class="card-body">
-                    <!-- School Announcements Subsection -->
-                    <div class="mb-4">
-                        <h6 class="text-primary mb-3">
-                            <i class="fa fa-bullhorn me-2"></i>School Announcements
-                        </h6>
-
-                        <!-- Add New Announcement Form -->
-                        <div class="card bg-light mb-3">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-12 mb-2">
-                                        <label class="form-label">Announcement Message<span class="text-danger">*</span></label>
-                                        <textarea class="form-control"
-                                                  rows="2"
-                                                  maxlength="100"
-                                                  @bind="newAnnouncement.Message"
-                                                  placeholder="Enter announcement message (max 100 characters)"></textarea>
-                                        <small class="text-muted">@newAnnouncement.Message.Length / 100 characters</small>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-5 mb-2">
-                                        <label class="form-label">Start Date<span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" @bind="newAnnouncement.StartDate" />
-                                    </div>
-                                    <div class="col-md-5 mb-2">
-                                        <label class="form-label">End Date<span class="text-danger">*</span></label>
-                                        <input type="date" class="form-control" @bind="newAnnouncement.EndDate" />
-                                    </div>
-                                    <div class="col-md-2 mb-2 d-flex align-items-end">
-                                        <button type="button" class="btn btn-success w-100" @onclick="AddAnnouncement">
-                                            <i class="fa fa-plus me-1"></i>Post
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Announcements List -->
-                        @if (announcements != null && announcements.Any())
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
-                                    <thead class="table-light">
+                    @if (allAcademicPeriods != null && allAcademicPeriods.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 30%;">Period</th>
+                                        <th style="width: 20%;">Term Start</th>
+                                        <th style="width: 20%;">Term End</th>
+                                        <th style="width: 20%;">Exams Start</th>
+                                        <th style="width: 10%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var period in allAcademicPeriods)
+                                    {
                                         <tr>
-                                            <th style="width: 50%;">Message</th>
-                                            <th style="width: 15%;">Start Date</th>
-                                            <th style="width: 15%;">End Date</th>
-                                            <th style="width: 10%;">Status</th>
-                                            <th style="width: 10%;">Actions</th>
+                                            <td>@period.DisplayName</td>
+                                            <td>@period.SemesterStartDate.ToString("MMM dd, yyyy")</td>
+                                            <td>@period.SemesterEndDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                @if (period.ExamsStartDate.HasValue)
+                                                {
+                                                    @period.ExamsStartDate.Value.ToString("MMM dd, yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Not set</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (period.Id == currentAcademicPeriod?.Id)
+                                                {
+                                                    <span class="badge bg-success">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Past</span>
+                                                }
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var announcement in announcements.OrderByDescending(a => a.PostedAt))
-                                        {
-                                            @if (editingAnnouncementId == announcement.Id)
-                                            {
-                                                <!-- Edit Mode -->
-                                                <tr>
-                                                    <td>
-                                                        <textarea class="form-control form-control-sm"
-                                                                  rows="2"
-                                                                  maxlength="100"
-                                                                  @bind="editingAnnouncement.Message"></textarea>
-                                                    </td>
-                                                    <td>
-                                                        <input type="date" class="form-control form-control-sm" @bind="editingAnnouncement.StartDate" />
-                                                    </td>
-                                                    <td>
-                                                        <input type="date" class="form-control form-control-sm" @bind="editingAnnouncement.EndDate" />
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge @(editingAnnouncement.IsActive ? "bg-success" : "bg-secondary")">
-                                                            @(editingAnnouncement.IsActive ? "Active" : "Inactive")
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-sm btn-primary me-1" @onclick="SaveAnnouncement">
-                                                            <i class="fa fa-save"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEditAnnouncement">
-                                                            <i class="fa fa-times"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            }
-                                            else
-                                            {
-                                                <!-- View Mode -->
-                                                <tr>
-                                                    <td>@announcement.Message</td>
-                                                    <td>@announcement.StartDate.ToString("MMM dd, yyyy")</td>
-                                                    <td>@announcement.EndDate.ToString("MMM dd, yyyy")</td>
-                                                    <td>
-                                                        <span class="badge @(announcement.IsActive ? "bg-success" : "bg-secondary")">
-                                                            @(announcement.IsActive ? "Active" : "Inactive")
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-sm btn-warning me-1" @onclick="() => EditAnnouncement(announcement)">
-                                                            <i class="fa fa-edit"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteAnnouncement(announcement.Id)">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-info mb-0">
-                                <i class="fa fa-info-circle me-2"></i>No announcements posted yet.
-                            </div>
-                        }
-                    </div>
-
-                    <hr class="my-4" />
-
-                    <!-- Quotes Subsection -->
-                    <div class="mb-3">
-                        <h6 class="text-primary mb-3">
-                            <i class="fa fa-quote-left me-2"></i>Quotes
-                        </h6>
-
-                        <!-- Add New Quote Form -->
-                        <div class="card bg-light mb-3">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-12 mb-2">
-                                        <label class="form-label">Quote Text<span class="text-danger">*</span></label>
-                                        <textarea class="form-control"
-                                                  rows="3"
-                                                  maxlength="500"
-                                                  @bind="newQuote.Text"
-                                                  placeholder="Enter inspirational or educational quote (max 500 characters)"></textarea>
-                                        <small class="text-muted">@newQuote.Text.Length / 500 characters</small>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-10 mb-2">
-                                        <label class="form-label">Author<span class="text-danger">*</span></label>
-                                        <input type="text"
-                                               class="form-control"
-                                               maxlength="50"
-                                               @bind="newQuote.Author"
-                                               placeholder="Author name" />
-                                    </div>
-                                    <div class="col-md-2 mb-2 d-flex align-items-end">
-                                        <button type="button" class="btn btn-success w-100" @onclick="AddQuote">
-                                            <i class="fa fa-plus me-1"></i>Add
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
-
-                        <!-- Quotes List -->
-                        @if (quotes != null && quotes.Any())
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 70%;">Quote</th>
-                                            <th style="width: 20%;">Author</th>
-                                            <th style="width: 10%;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var quote in quotes.OrderByDescending(q => q.DateAdded))
-                                        {
-                                            @if (editingQuoteId == quote.Id)
-                                            {
-                                                <!-- Edit Mode -->
-                                                <tr>
-                                                    <td>
-                                                        <textarea class="form-control form-control-sm"
-                                                                  rows="3"
-                                                                  maxlength="500"
-                                                                  @bind="editingQuote.Text"></textarea>
-                                                    </td>
-                                                    <td>
-                                                        <input type="text"
-                                                               class="form-control form-control-sm"
-                                                               maxlength="50"
-                                                               @bind="editingQuote.Author" />
-                                                    </td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-sm btn-primary me-1" @onclick="SaveQuote">
-                                                            <i class="fa fa-save"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEditQuote">
-                                                            <i class="fa fa-times"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            }
-                                            else
-                                            {
-                                                <!-- View Mode -->
-                                                <tr>
-                                                    <td style="font-style: italic;">"@quote.Text"</td>
-                                                    <td>@quote.Author</td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-sm btn-warning me-1" @onclick="() => EditQuote(quote)">
-                                                            <i class="fa fa-edit"></i>
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteQuote(quote.Id)">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-info mb-0">
-                                <i class="fa fa-info-circle me-2"></i>No quotes added yet.
-                            </div>
-                        }
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="fa fa-info-circle me-2"></i>No academic periods created yet.
+                        </div>
+                    }
                 </div>
             </div>
-            <div class="d-flex justify-content-end align-items-center fcms-gap-sm">
-                @if (!string.IsNullOrEmpty(saveMessage))
-                {
-                    <span class="text-success me-2"><i class="fa fa-check-circle me-1"></i>@saveMessage</span>
-                }
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save me-1"></i>Save Changes
-                </button>
+
+         
+
+            
+
+            
+        }
+
+        @if (activeTab == TabAnnouncement)
+        {
+            <div class="card fcms-tab-card mb-4">
+                <div class="card-body">
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12 mb-2">
+                                    <label class="form-label">Announcement Message<span class="text-danger">*</span></label>
+                                    <textarea class="form-control"
+                                              rows="2"
+                                              maxlength="100"
+                                              @bind="newAnnouncement.Message"
+                                              placeholder="Enter announcement message (max 100 characters)"></textarea>
+                                    <small class="text-muted">@newAnnouncement.Message.Length / 100 characters</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-5 mb-2">
+                                    <label class="form-label">Start Date<span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" @bind="newAnnouncement.StartDate" />
+                                </div>
+                                <div class="col-md-5 mb-2">
+                                    <label class="form-label">End Date<span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" @bind="newAnnouncement.EndDate" />
+                                </div>
+                                <div class="col-md-2 mb-2 d-flex align-items-end">
+                                    <button type="button" class="btn btn-success w-100" @onclick="AddAnnouncement">
+                                        <i class="fa fa-plus me-1"></i>Post
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (announcements != null && announcements.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50%;">Message</th>
+                                        <th style="width: 15%;">Start Date</th>
+                                        <th style="width: 15%;">End Date</th>
+                                        <th style="width: 10%;">Status</th>
+                                        <th style="width: 10%;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var announcement in announcements.OrderByDescending(a => a.PostedAt))
+                                    {
+                                        @if (editingAnnouncementId == announcement.Id)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <textarea class="form-control form-control-sm"
+                                                              rows="2"
+                                                              maxlength="100"
+                                                              @bind="editingAnnouncement.Message"></textarea>
+                                                </td>
+                                                <td>
+                                                    <input type="date" class="form-control form-control-sm" @bind="editingAnnouncement.StartDate" />
+                                                </td>
+                                                <td>
+                                                    <input type="date" class="form-control form-control-sm" @bind="editingAnnouncement.EndDate" />
+                                                </td>
+                                                <td>
+                                                    <span class="badge @(editingAnnouncement.IsActive ? "bg-success" : "bg-secondary")">
+                                                        @(editingAnnouncement.IsActive ? "Active" : "Inactive")
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-primary me-1" @onclick="SaveAnnouncement">
+                                                        <i class="fa fa-save"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEditAnnouncement">
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td>@announcement.Message</td>
+                                                <td>@announcement.StartDate.ToString("MMM dd, yyyy")</td>
+                                                <td>@announcement.EndDate.ToString("MMM dd, yyyy")</td>
+                                                <td>
+                                                    <span class="badge @(announcement.IsActive ? "bg-success" : "bg-secondary")">
+                                                        @(announcement.IsActive ? "Active" : "Inactive")
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-warning me-1" @onclick="() => EditAnnouncement(announcement)">
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteAnnouncement(announcement.Id)">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="fa fa-info-circle me-2"></i>No announcements posted yet.
+                        </div>
+                    }
+                </div>
             </div>
-        </EditForm>
+        }
+
+        @if (activeTab == TabQuotes)
+        {
+            <div class="card fcms-tab-card mb-4">
+                <div class="card-body">
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12 mb-2">
+                                    <label class="form-label">Quote Text<span class="text-danger">*</span></label>
+                                    <textarea class="form-control"
+                                              rows="3"
+                                              maxlength="500"
+                                              @bind="newQuote.Text"
+                                              placeholder="Enter inspirational or educational quote (max 500 characters)"></textarea>
+                                    <small class="text-muted">@newQuote.Text.Length / 500 characters</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-10 mb-2">
+                                    <label class="form-label">Author<span class="text-danger">*</span></label>
+                                    <input type="text"
+                                           class="form-control"
+                                           maxlength="50"
+                                           @bind="newQuote.Author"
+                                           placeholder="Author name" />
+                                </div>
+                                <div class="col-md-2 mb-2 d-flex align-items-end">
+                                    <button type="button" class="btn btn-success w-100" @onclick="AddQuote">
+                                        <i class="fa fa-plus me-1"></i>Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (quotes != null && quotes.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 70%;">Quote</th>
+                                        <th style="width: 20%;">Author</th>
+                                        <th style="width: 10%;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var quote in quotes.OrderByDescending(q => q.DateAdded))
+                                    {
+                                        @if (editingQuoteId == quote.Id)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <textarea class="form-control form-control-sm"
+                                                              rows="3"
+                                                              maxlength="500"
+                                                              @bind="editingQuote.Text"></textarea>
+                                                </td>
+                                                <td>
+                                                    <input type="text"
+                                                           class="form-control form-control-sm"
+                                                           maxlength="50"
+                                                           @bind="editingQuote.Author" />
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-primary me-1" @onclick="SaveQuote">
+                                                        <i class="fa fa-save"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-secondary" @onclick="CancelEditQuote">
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td style="font-style: italic;">"@quote.Text"</td>
+                                                <td>@quote.Author</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-warning me-1" @onclick="() => EditQuote(quote)">
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-danger" @onclick="() => DeleteQuote(quote.Id)">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="fa fa-info-circle me-2"></i>No quotes added yet.
+                        </div>
+                    }
+                </div>
+            </div>
+        }
     }
     else
     {
         <div class="text-center p-4">
-            <div class="spinner-border text-primary" role="status">
+            <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
             <p class="mt-2">Loading school information...</p>
@@ -498,6 +564,7 @@
                    Message="@errorMessage"
                    OnClose="CloseErrorModal" />
 
+
 @code {
     private FcmsPortal.Models.School? school;
     private string logoUrl = "";
@@ -526,12 +593,19 @@
 
     private bool showPeriodConfirm = false;
     private AcademicPeriod? matchingPeriod;
+    private List<AcademicPeriod> allAcademicPeriods = new();
 
-    private string saveMessage = string.Empty;
+    private const string TabSchoolDetails = "schooldetails";
+    private const string TabAcademicPeriod = "academicperiod";
+    private const string TabAnnouncement = "announcement";
+    private const string TabQuotes = "quotes";
+
+    private string activeTab = TabSchoolDetails;
 
     protected override void OnInitialized()
     {
         LoadSchoolData();
+        LoadAcademicPeriods();
     }
 
     private void LoadSchoolData()
@@ -557,6 +631,11 @@
         LoadQuotes();
     }
 
+    private void LoadAcademicPeriods()
+    {
+        allAcademicPeriods = SchoolDataService.GetAllAcademicPeriods();
+    }
+
     private void SetAcademicPeriod()
     {
         try
@@ -571,8 +650,7 @@
             };
 
             SchoolDataService.SetSchoolAcademicPeriod(newPeriod);
-
-            // Reload to reflect changes
+            LoadAcademicPeriods();
             currentAcademicPeriod = SchoolDataService.GetCurrentAcademicPeriod();
 
             StateHasChanged();
@@ -600,7 +678,6 @@
         {
             await SchoolDataService.UpdateSchoolAsync(school);
             Home.TriggerSchoolDataRefresh();
-            saveMessage = "School settings saved.";
             StateHasChanged();
         }
         catch (Exception ex)
