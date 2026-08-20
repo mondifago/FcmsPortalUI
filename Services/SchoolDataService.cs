@@ -2035,24 +2035,33 @@ namespace FcmsPortalUI.Services
 
         public List<LearningPath> GetSubmittedLearningPaths(string academicYear, string semester)
         {
-            if (string.IsNullOrEmpty(academicYear) || string.IsNullOrEmpty(semester))
-                return new List<LearningPath>();
+            var academicPeriod = GetAcademicPeriodByYearAndSemester(academicYear, semester);
 
-            var yearParts = academicYear.Split('-');
-            if (yearParts.Length != 2 || !int.TryParse(yearParts[0], out int startYear))
-                return new List<LearningPath>();
-
-            if (!Enum.TryParse<Semester>(semester, out var semesterEnum))
+            if (academicPeriod == null)
                 return new List<LearningPath>();
 
             return _context.LearningPaths
                 .AsNoTracking()
                 .Include(lp => lp.Students)
-                .Where(lp => lp.AcademicYearStart.Year == startYear &&
-                             lp.Semester == semesterEnum && !lp.IsTemplate &&
+                .Where(lp => lp.AcademicPeriodId == academicPeriod.Id && !lp.IsTemplate &&
                              (lp.ApprovalStatus == PrincipalApprovalStatus.Review ||
                               lp.ApprovalStatus == PrincipalApprovalStatus.Approved))
                 .ToList();
+        }
+
+        public AcademicPeriod? GetAcademicPeriodByYearAndSemester(string academicYear, string semester)
+        {
+            var yearParts = academicYear.Split('-');
+
+            if (yearParts.Length != 2 || !int.TryParse(yearParts[0], out int startYear))
+                return null;
+
+            if (!Enum.TryParse<Semester>(semester, out var semesterEnum))
+                return null;
+
+            return _context.AcademicPeriods
+                .AsNoTracking()
+                .FirstOrDefault(ap => ap.AcademicYearStart.Year == startYear && ap.Semester == semesterEnum);
         }
 
         public void UpdateTestGradeScore(int testGradeId, double score)
