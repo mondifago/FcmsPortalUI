@@ -628,6 +628,10 @@ namespace FcmsPortalUI.Services
             if (student?.Person == null)
                 throw new ArgumentNullException(nameof(student), "Student and Person cannot be null.");
 
+            var existingFees = _context.SchoolFees
+                .Include(sf => sf.Payments)
+                .FirstOrDefault(sf => sf.PersonId == student.Person.Id);
+
             if (student.Person.SchoolFees == null)
             {
                 student.Person.SchoolFees = new SchoolFees
