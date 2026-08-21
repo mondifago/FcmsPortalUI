@@ -89,20 +89,6 @@ namespace FcmsPortalUI.Data
                 .HasForeignKey(s => s.LearningPathId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configure many-to-many for LearningPath StudentsWithAccess
-            modelBuilder.Entity<LearningPath>()
-                .HasMany(lp => lp.StudentsWithAccess)
-                .WithMany()
-                .UsingEntity<Dictionary<string, object>>(
-                    "LearningPathStudentsWithAccess",
-                    l => l.HasOne<Student>().WithMany().HasForeignKey("StudentsWithAccessId"),
-                    r => r.HasOne<LearningPath>().WithMany().HasForeignKey("LearningPathId"),
-                    j =>
-                    {
-                        j.HasKey("StudentsWithAccessId", "LearningPathId");
-                        j.ToTable("LearningPathStudentsWithAccess");
-                    });
-
             modelBuilder.Entity<ClassSession>()
                 .HasOne(cs => cs.Teacher)
                 .WithMany(t => t.ClassSessions)
