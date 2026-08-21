@@ -95,6 +95,44 @@ namespace FcmsPortalUI.Data
                 .HasForeignKey(cs => cs.TeacherId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ---- SchoolFees ----
+
+            modelBuilder.Entity<SchoolFees>()
+                .HasOne<Student>()
+                .WithMany(student => student.SchoolFees)
+                .HasForeignKey(schoolFees => schoolFees.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SchoolFees>()
+                .HasOne(schoolFees => schoolFees.LearningPath)
+                .WithMany()
+                .HasForeignKey(schoolFees => schoolFees.LearningPathId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SchoolFees>()
+                .HasIndex(schoolFees => new { schoolFees.StudentId, schoolFees.LearningPathId })
+                .IsUnique();
+
+            modelBuilder.Entity<SchoolFees>()
+                .Navigation(schoolFees => schoolFees.LearningPath)
+                .AutoInclude();
+
+            modelBuilder.Entity<SchoolFees>()
+                .Navigation(schoolFees => schoolFees.Adjustments)
+                .AutoInclude();
+
+            // ---- Payment ----
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(payment => payment.LearningPath)
+                .WithMany()
+                .HasForeignKey(payment => payment.LearningPathId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Payment>()
+                .HasIndex(payment => payment.Reference)
+                .IsUnique();
         }
     }
 }
