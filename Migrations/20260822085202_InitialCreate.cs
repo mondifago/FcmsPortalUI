@@ -232,11 +232,13 @@ namespace FcmsPortalUI.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     IsArchived = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Email = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PhoneNumber = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     UserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedUserName = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     NormalizedEmail = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -246,8 +248,6 @@ namespace FcmsPortalUI.Migrations
                     SecurityStamp = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ConcurrencyStamp = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    PhoneNumber = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     PhoneNumberConfirmed = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -522,27 +522,6 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "SchoolFees",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    PersonId = table.Column<int>(type: "int", nullable: false),
-                    TotalAmount = table.Column<double>(type: "double", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SchoolFees", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_SchoolFees_AspNetUsers_PersonId",
-                        column: x => x.PersonId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "CalendarModel",
                 columns: table => new
                 {
@@ -662,35 +641,6 @@ namespace FcmsPortalUI.Migrations
                         name: "FK_Staff_School_SchoolId",
                         column: x => x.SchoolId,
                         principalTable: "School",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Payments",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Amount = table.Column<double>(type: "double", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    PaymentMethod = table.Column<int>(type: "int", nullable: false),
-                    Reference = table.Column<int>(type: "int", nullable: false),
-                    SchoolFeesId = table.Column<int>(type: "int", nullable: false),
-                    Semester = table.Column<int>(type: "int", nullable: false),
-                    AcademicYearStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    EducationLevel = table.Column<int>(type: "int", nullable: false),
-                    ClassLevel = table.Column<int>(type: "int", nullable: false),
-                    LearningPathId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Payments", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Payments_SchoolFees_SchoolFeesId",
-                        column: x => x.SchoolFeesId,
-                        principalTable: "SchoolFees",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -871,24 +821,26 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "LearningPathStudentsWithAccess",
+                name: "SchoolFees",
                 columns: table => new
                 {
-                    StudentsWithAccessId = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    StudentId = table.Column<int>(type: "int", nullable: false),
                     LearningPathId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LearningPathStudentsWithAccess", x => new { x.StudentsWithAccessId, x.LearningPathId });
+                    table.PrimaryKey("PK_SchoolFees", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_LearningPathStudentsWithAccess_LearningPaths_LearningPathId",
+                        name: "FK_SchoolFees_LearningPaths_LearningPathId",
                         column: x => x.LearningPathId,
                         principalTable: "LearningPaths",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_LearningPathStudentsWithAccess_Students_StudentsWithAccessId",
-                        column: x => x.StudentsWithAccessId,
+                        name: "FK_SchoolFees_Students_StudentId",
+                        column: x => x.StudentId,
                         principalTable: "Students",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -1149,6 +1101,69 @@ namespace FcmsPortalUI.Migrations
                         column: x => x.TeacherId,
                         principalTable: "Staff",
                         principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "FeeAdjustment",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SchoolFeesId = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<double>(type: "double", nullable: true),
+                    Percentage = table.Column<double>(type: "double", nullable: true),
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Reason = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AuthorizedById = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FeeAdjustment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FeeAdjustment_SchoolFees_SchoolFeesId",
+                        column: x => x.SchoolFeesId,
+                        principalTable: "SchoolFees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Amount = table.Column<double>(type: "double", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    PaymentMethod = table.Column<int>(type: "int", nullable: false),
+                    Reference = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SchoolFeesId = table.Column<int>(type: "int", nullable: false),
+                    Semester = table.Column<int>(type: "int", nullable: false),
+                    AcademicYearStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    EducationLevel = table.Column<int>(type: "int", nullable: false),
+                    ClassLevel = table.Column<int>(type: "int", nullable: false),
+                    LearningPathId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Payments_LearningPaths_LearningPathId",
+                        column: x => x.LearningPathId,
+                        principalTable: "LearningPaths",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Payments_SchoolFees_SchoolFeesId",
+                        column: x => x.SchoolFeesId,
+                        principalTable: "SchoolFees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -1482,6 +1497,11 @@ namespace FcmsPortalUI.Migrations
                 column: "ClassSessionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FeeAdjustment_SchoolFeesId",
+                table: "FeeAdjustment",
+                column: "SchoolFeesId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FileAttachments_ClassSessionId",
                 table: "FileAttachments",
                 column: "ClassSessionId");
@@ -1534,9 +1554,15 @@ namespace FcmsPortalUI.Migrations
                 column: "SchoolId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LearningPathStudentsWithAccess_LearningPathId",
-                table: "LearningPathStudentsWithAccess",
+                name: "IX_Payments_LearningPathId",
+                table: "Payments",
                 column: "LearningPathId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_Reference",
+                table: "Payments",
+                column: "Reference",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_SchoolFeesId",
@@ -1579,9 +1605,14 @@ namespace FcmsPortalUI.Migrations
                 column: "CurrentAcademicPeriodId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SchoolFees_PersonId",
+                name: "IX_SchoolFees_LearningPathId",
                 table: "SchoolFees",
-                column: "PersonId",
+                column: "LearningPathId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SchoolFees_StudentId_LearningPathId",
+                table: "SchoolFees",
+                columns: new[] { "StudentId", "LearningPathId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -1692,6 +1723,9 @@ namespace FcmsPortalUI.Migrations
                 name: "DailyAttendancePresentStudents");
 
             migrationBuilder.DropTable(
+                name: "FeeAdjustment");
+
+            migrationBuilder.DropTable(
                 name: "FileAttachments");
 
             migrationBuilder.DropTable(
@@ -1699,9 +1733,6 @@ namespace FcmsPortalUI.Migrations
 
             migrationBuilder.DropTable(
                 name: "HomeworkSubmissions");
-
-            migrationBuilder.DropTable(
-                name: "LearningPathStudentsWithAccess");
 
             migrationBuilder.DropTable(
                 name: "Payments");
