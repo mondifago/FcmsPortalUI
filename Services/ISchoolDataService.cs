@@ -52,9 +52,12 @@ namespace FcmsPortalUI.Services
 
         #region Learning Paths
         LearningPath AddLearningPath(LearningPath learningPath);
-        void SetStudentSchoolFees(Student student, double feeAmount);
+   
         void RemoveStudentFromLearningPath(LearningPath learningPath, Student student);
-        List<LearningPath> GetLearningPathsForPayments(int academicPeriodId);
+        List<LearningPath> GetLearningPathsForPeriod(int academicPeriodId);
+        List<SchoolFees> GetSchoolFeesForPeriodStudents(int academicPeriodId);
+        List<SchoolFees> GetSchoolFeesForLearningPath(int learningPathId);
+        List<SchoolFees> GetSchoolFeesForStudent(int studentId);
         bool LearningPathCombinationExists(int excludeId, EducationLevel educationLevel, ClassLevel classLevel, int academicPeriodId);
         LearningPath? GetLearningPathForDetails(int id);
         LearningPath? GetLearningPathBasicInfo(int id);
@@ -126,13 +129,10 @@ namespace FcmsPortalUI.Services
         #region Payments
         Payment AddPayment(Payment payment);
         void UpdatePayment(Payment payment);
-        void DeletePayment(int id);
-        Payment PrepareNewPayment(Student student);
+        void DeletePayment(int paymentId);
+        Payment PrepareNewPayment(SchoolFees schoolFees);
         SchoolFees? GetSchoolFees(int id);
         Student? GetStudentBySchoolFeesId(int schoolFeesId);
-        List<Payment> GetPaymentsForLearningPath(int schoolFeesId, int learningPathId);
-        double GetTotalPaidForLearningPath(int schoolFeesId, int learningPathId);
-        double GetBalanceForLearningPath(int schoolFeesId, int learningPathId, double totalAmount);
         #endregion
 
         #region Grading

@@ -476,8 +476,8 @@ namespace FcmsPortalUI.Services
         {
             return _context.Students
                 .Include(s => s.Person)
-                    .ThenInclude(p => p.SchoolFees)
-                        .ThenInclude(sf => sf.Payments)
+                .Include(s => s.SchoolFees)
+                    .ThenInclude(sf => sf.Payments)
                 .Include(s => s.CourseGrades)
                 .Include(s => s.LearningPath)
                 .Include(s => s.Guardian)
@@ -497,8 +497,8 @@ namespace FcmsPortalUI.Services
         {
             var existingStudent = _context.Students
                 .Include(s => s.Person)
-                    .ThenInclude(p => p.SchoolFees)
-                        .ThenInclude(sf => sf.Payments)
+
+
                 .FirstOrDefault(s => s.Id == student.Id);
 
             if (existingStudent != null)
@@ -511,7 +511,7 @@ namespace FcmsPortalUI.Services
                 existingStudent.Person.EducationLevel = student.Person.EducationLevel;
                 existingStudent.Person.ClassLevel = student.Person.ClassLevel;
                 existingStudent.Person.Sex = student.Person.Sex;
-                existingStudent.Person.SchoolFees = student.Person.SchoolFees;
+
                 existingStudent.Person.StateOfOrigin = student.Person.StateOfOrigin;
                 existingStudent.Person.LgaOfOrigin = student.Person.LgaOfOrigin;
                 existingStudent.Person.DateOfEnrollment = student.Person.DateOfEnrollment;
@@ -623,32 +623,6 @@ namespace FcmsPortalUI.Services
             return learningPath;
         }
 
-        public void SetStudentSchoolFees(Student student, double feeAmount)
-        {
-            if (student?.Person == null)
-                throw new ArgumentNullException(nameof(student), "Student and Person cannot be null.");
-
-            var existingFees = _context.SchoolFees
-                .Include(sf => sf.Payments)
-                .FirstOrDefault(sf => sf.PersonId == student.Person.Id);
-
-            if (student.Person.SchoolFees == null)
-            {
-                student.Person.SchoolFees = new SchoolFees
-                {
-                    PersonId = student.Person.Id,
-                    TotalAmount = feeAmount,
-                    Payments = new List<Payment>()
-                };
-                _context.SchoolFees.Add(student.Person.SchoolFees);
-            }
-            else
-            {
-                student.Person.SchoolFees.TotalAmount = feeAmount;
-            }
-            _context.SaveChanges();
-        }
-
         public void RemoveStudentFromLearningPath(LearningPath learningPath, Student student)
         {
             if (learningPath == null)
@@ -658,7 +632,7 @@ namespace FcmsPortalUI.Services
 
             var existingLearningPath = _context.LearningPaths
                 .Include(lp => lp.Students)
-                .Include(lp => lp.StudentsWithAccess)
+
                 .FirstOrDefault(lp => lp.Id == learningPath.Id);
 
             if (existingLearningPath == null)
@@ -668,24 +642,60 @@ namespace FcmsPortalUI.Services
                 return;
 
             existingLearningPath.Students.Remove(student);
-            existingLearningPath.StudentsWithAccess.Remove(student);
-
-            SetStudentSchoolFees(student, 0);
 
             _context.SaveChanges();
         }
 
-        public List<LearningPath> GetLearningPathsForPayments(int academicPeriodId)
+        public List<LearningPath> GetLearningPathsForPeriod(int academicPeriodId)
         {
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(lp => lp.AcademicPeriodId == academicPeriodId
-                    && !lp.IsTemplate
-                    && lp.ApprovalStatus != PrincipalApprovalStatus.Approved)
-                .Include(lp => lp.Students)
-                    .ThenInclude(s => s.Person)
-                        .ThenInclude(p => p.SchoolFees)
-                            .ThenInclude(sf => sf.Payments)
+                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId
+                                    && !learningPath.IsTemplate)
+                .ToList();
+        }
+
+        public List<SchoolFees> GetSchoolFeesForPeriodStudents(int academicPeriodId)
+        {
+            var learningPathIds = _context.LearningPaths
+                .AsNoTracking()
+                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId
+                                    && !learningPath.IsTemplate)
+                .Select(learningPath => learningPath.Id)
+                .ToList();
+
+            var studentIds = _context.SchoolFees
+                .AsNoTracking()
+                .Where(fees => learningPathIds.Contains(fees.LearningPathId))
+                .Select(fees => fees.StudentId)
+                .Distinct()
+                .ToList();
+
+            return _context.SchoolFees
+                .AsNoTracking()
+                .Where(fees => studentIds.Contains(fees.StudentId))
+                .Include(fees => fees.Payments)
+                .AsSplitQuery()
+                .ToList();
+        }
+
+        public List<SchoolFees> GetSchoolFeesForLearningPath(int learningPathId)
+        {
+            return _context.SchoolFees
+                .AsNoTracking()
+                .Where(fees => fees.LearningPathId == learningPathId)
+                .Include(fees => fees.Payments)
+                .AsSplitQuery()
+                .ToList();
+        }
+
+        public List<SchoolFees> GetSchoolFeesForStudent(int studentId)
+        {
+            return _context.SchoolFees
+                .AsNoTracking()
+                .Where(fees => fees.StudentId == studentId)
+                .Include(fees => fees.Payments)
+                .AsSplitQuery()
                 .ToList();
         }
 
@@ -694,8 +704,7 @@ namespace FcmsPortalUI.Services
             return _context.LearningPaths
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.Person)
-                        .ThenInclude(p => p.SchoolFees)
-                            .ThenInclude(sf => sf.Payments)
+                        
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.CourseGrades)
                         .ThenInclude(cg => cg.TestGrades)
@@ -909,7 +918,7 @@ namespace FcmsPortalUI.Services
         {
             var existingLearningPath = _context.LearningPaths
                    .Include(lp => lp.Students)
-                   .Include(lp => lp.StudentsWithAccess)
+               
                    .Include(lp => lp.Schedule)
                    .FirstOrDefault(lp => lp.Id == learningPath.Id);
 
@@ -950,7 +959,6 @@ namespace FcmsPortalUI.Services
 
             var existingLearningPath = _context.LearningPaths
              .Include(lp => lp.Students)
-             .Include(lp => lp.StudentsWithAccess)
              .FirstOrDefault(lp => lp.Id == learningPathId);
 
             if (existingLearningPath == null)
@@ -968,19 +976,8 @@ namespace FcmsPortalUI.Services
             if (!existingLearningPath.Students.Any(s => s.Id == student.Id))
             {
                 existingLearningPath.Students.Add(student);
+                EnsureSchoolFeesForEnrolment(student.Id, existingLearningPath.Id);
 
-                SetStudentSchoolFees(student, existingLearningPath.FeePerSemester);
-
-                // Get payments only for THIS learning path
-                var paymentsForThisLearningPath = student.Person.SchoolFees.Payments
-                    .Where(p => p.LearningPathId == existingLearningPath.Id)
-                    .Sum(p => p.Amount);
-
-                if (paymentsForThisLearningPath >= existingLearningPath.FeePerSemester * FcmsConstants.PAYMENT_THRESHOLD_FACTOR &&
-                    !existingLearningPath.StudentsWithAccess.Any(s => s.Id == student.Id))
-                {
-                    existingLearningPath.StudentsWithAccess.Add(student);
-                }
                 _context.SaveChanges();
             }
         }
@@ -994,7 +991,6 @@ namespace FcmsPortalUI.Services
 
             var existingLearningPath = _context.LearningPaths
                 .Include(lp => lp.Students)
-                .Include(lp => lp.StudentsWithAccess)
                 .FirstOrDefault(lp => lp.Id == learningPathId);
 
             if (existingLearningPath == null)
@@ -1019,19 +1015,7 @@ namespace FcmsPortalUI.Services
                 if (!existingLearningPath.Students.Any(s => s.Id == student.Id))
                 {
                     existingLearningPath.Students.Add(student);
-
-                    SetStudentSchoolFees(student, existingLearningPath.FeePerSemester);
-
-                    // Get payments only for THIS learning path
-                    var paymentsForThisLearningPath = student.Person.SchoolFees.Payments
-                        .Where(p => p.LearningPathId == existingLearningPath.Id)
-                        .Sum(p => p.Amount);
-
-                    if (paymentsForThisLearningPath >= existingLearningPath.FeePerSemester * FcmsConstants.PAYMENT_THRESHOLD_FACTOR &&
-                        !existingLearningPath.StudentsWithAccess.Any(s => s.Id == student.Id))
-                    {
-                        existingLearningPath.StudentsWithAccess.Add(student);
-                    }
+                    EnsureSchoolFeesForEnrolment(student.Id, existingLearningPath.Id);
 
                     hasChanges = true;
                 }
@@ -1048,8 +1032,7 @@ namespace FcmsPortalUI.Services
             var existingLearningPath = _context.LearningPaths
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.Person)
-                        .ThenInclude(p => p.SchoolFees)
-                .Include(lp => lp.StudentsWithAccess)
+
                 .FirstOrDefault(lp => lp.Id == learningPathId);
 
             if (existingLearningPath == null)
@@ -1069,15 +1052,9 @@ namespace FcmsPortalUI.Services
 
             foreach (var student in existingLearningPath.Students.ToList())
             {
-                if (student.Person?.SchoolFees != null)
-                {
-                    student.Person.SchoolFees.TotalAmount = 0;
-                }
-
                 existingLearningPath.Students.Remove(student);
             }
 
-            existingLearningPath.StudentsWithAccess.Clear();
             existingLearningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
 
             _context.SaveChanges();
@@ -1144,7 +1121,7 @@ namespace FcmsPortalUI.Services
                 }).ToList(),
 
                 Students = new List<Student>(),
-                StudentsWithAccess = new List<Student>()
+     
             };
 
             _context.LearningPaths.Add(template);
@@ -1210,7 +1187,7 @@ namespace FcmsPortalUI.Services
                 }).ToList(),
 
                 Students = new List<Student>(),
-                StudentsWithAccess = new List<Student>()
+  
             };
 
             return newLearningPath;
@@ -1818,138 +1795,119 @@ namespace FcmsPortalUI.Services
         public Payment AddPayment(Payment payment)
         {
             var schoolFees = _context.SchoolFees
-                .Include(sf => sf.Payments)
-                .FirstOrDefault(sf => sf.Id == payment.SchoolFeesId);
+                .Include(fees => fees.Payments)
+                .FirstOrDefault(fees => fees.Id == payment.SchoolFeesId);
 
-            if (schoolFees != null)
-            {
-                schoolFees.Payments.Add(payment);
-                _context.SaveChanges();
+            if (schoolFees == null)
+                throw new ArgumentException("School fees record not found.");
 
-                var student = GetStudentBySchoolFeesId(payment.SchoolFeesId);
-                if (student != null && student.LearningPath != null)
-                {
-                    LogicMethods.UpdatePaymentStatus(student, student.LearningPath);
-                }
-            }
+            if (_context.Payments.Any(existing => existing.Reference == payment.Reference))
+                throw new BusinessRuleException(
+                    $"Payment reference '{payment.Reference}' has already been recorded.");
+
+            if (!LogicMethods.IsPaymentWithinBalance(schoolFees, payment.Amount))
+                throw new BusinessRuleException(
+                    $"Payment of {payment.Amount:N2} exceeds the outstanding balance of {schoolFees.Balance:N2}.");
+
+            payment.LearningPathId = schoolFees.LearningPathId;
+            schoolFees.Payments.Add(payment);
+            _context.SaveChanges();
+
             return payment;
         }
 
         public void UpdatePayment(Payment payment)
         {
-            var existingPayment = _context.Payments.FirstOrDefault(p => p.Id == payment.Id);
-            if (existingPayment != null)
-            {
-                existingPayment.Amount = payment.Amount;
-                existingPayment.Date = payment.Date;
-                existingPayment.PaymentMethod = payment.PaymentMethod;
-                existingPayment.Reference = payment.Reference;
-                existingPayment.Semester = payment.Semester;
-                existingPayment.EducationLevel = payment.EducationLevel;
-                existingPayment.ClassLevel = payment.ClassLevel;
-                existingPayment.AcademicYearStart = payment.AcademicYearStart;
-                existingPayment.LearningPathId = payment.LearningPathId;
+            var existingPayment = _context.Payments
+                .FirstOrDefault(candidate => candidate.Id == payment.Id);
 
-                _context.SaveChanges();
+            if (existingPayment == null)
+                throw new ArgumentException("Payment not found.");
 
-                var student = GetStudentBySchoolFeesId(payment.SchoolFeesId);
-                if (student != null && student.LearningPath != null)
-                {
-                    LogicMethods.UpdatePaymentStatus(student, student.LearningPath);
-                }
-            }
+            var schoolFees = _context.SchoolFees
+                .Include(fees => fees.Payments)
+                .FirstOrDefault(fees => fees.Id == existingPayment.SchoolFeesId);
+
+            if (schoolFees == null)
+                throw new ArgumentException("School fees record not found.");
+
+            if (_context.Payments.Any(candidate => candidate.Reference == payment.Reference
+                                                && candidate.Id != payment.Id))
+                throw new BusinessRuleException(
+                    $"Payment reference '{payment.Reference}' has already been recorded.");
+
+            if (!LogicMethods.IsPaymentWithinBalance(schoolFees, payment.Amount, payment.Id))
+                throw new BusinessRuleException(
+                    $"Payment of {payment.Amount:N2} exceeds the outstanding balance for this term.");
+
+            existingPayment.Amount = payment.Amount;
+            existingPayment.Date = payment.Date;
+            existingPayment.PaymentMethod = payment.PaymentMethod;
+            existingPayment.Reference = payment.Reference;
+
+            _context.SaveChanges();
         }
 
         public void DeletePayment(int paymentId)
         {
-            var payment = _context.Payments.FirstOrDefault(p => p.Id == paymentId);
-            if (payment != null)
-            {
-                var schoolFeesId = payment.SchoolFeesId;
-                _context.Payments.Remove(payment);
-                _context.SaveChanges();
+            var payment = _context.Payments
+                .FirstOrDefault(candidate => candidate.Id == paymentId);
 
-                var student = GetStudentBySchoolFeesId(schoolFeesId);
-                if (student != null && student.LearningPath != null)
-                {
-                    LogicMethods.UpdatePaymentStatus(student, student.LearningPath);
-                }
-            }
+            if (payment == null)
+                return;
+
+            _context.Payments.Remove(payment);
+            _context.SaveChanges();
         }
 
-        public Payment PrepareNewPayment(Student student)
+        public Payment PrepareNewPayment(SchoolFees schoolFees)
         {
-            var payment = new Payment { Date = DateTime.Today };
-
-            if (student.Person.SchoolFees != null)
+            return new Payment
             {
-                payment.SchoolFeesId = student.Person.SchoolFees.Id;
-            }
-
-            if (student.LearningPath != null)
-            {
-                payment.AcademicYearStart = student.LearningPath.AcademicYearStart;
-                payment.Semester = student.LearningPath.Semester;
-                payment.EducationLevel = student.LearningPath.EducationLevel;
-                payment.ClassLevel = student.LearningPath.ClassLevel;
-                payment.LearningPathId = student.LearningPath.Id;
-            }
-            return payment;
+                Date = DateTime.Today,
+                SchoolFeesId = schoolFees.Id,
+                LearningPathId = schoolFees.LearningPathId
+            };
         }
 
         public SchoolFees? GetSchoolFees(int id)
         {
-            var schoolFees = _context.SchoolFees
-                .Include(sf => sf.Payments)
-                .FirstOrDefault(sf => sf.Id == id);
-
-            if (schoolFees == null)
-            {
-                var student = GetStudentBySchoolFeesId(id);
-                if (student != null)
-                {
-                    schoolFees = student.Person.SchoolFees;
-                }
-            }
-            return schoolFees;
-        }
-
-        public List<Payment> GetPaymentsForLearningPath(int schoolFeesId, int learningPathId)
-        {
-            var schoolFees = GetSchoolFees(schoolFeesId);
-            if (schoolFees?.Payments == null)
-                return new List<Payment>();
-
-            return schoolFees.Payments
-                .Where(p => p.LearningPathId == learningPathId)
-                .OrderByDescending(p => p.Date)
-                .ToList();
-        }
-
-        public double GetTotalPaidForLearningPath(int schoolFeesId, int learningPathId)
-        {
-            var schoolFees = GetSchoolFees(schoolFeesId);
-            if (schoolFees?.Payments == null)
-                return 0;
-
-            return schoolFees.Payments
-                .Where(p => p.LearningPathId == learningPathId)
-                .Sum(p => p.Amount);
-        }
-
-        public double GetBalanceForLearningPath(int schoolFeesId, int learningPathId, double totalAmount)
-        {
-            return totalAmount - GetTotalPaidForLearningPath(schoolFeesId, learningPathId);
+            return _context.SchoolFees
+                .Include(fees => fees.Payments)
+                .AsSplitQuery()
+                .FirstOrDefault(fees => fees.Id == id);
         }
 
         public Student? GetStudentBySchoolFeesId(int schoolFeesId)
         {
+            var studentId = _context.SchoolFees
+                .AsNoTracking()
+                .Where(fees => fees.Id == schoolFeesId)
+                .Select(fees => fees.StudentId)
+                .FirstOrDefault();
+
+            if (studentId == 0)
+                return null;
+
             return _context.Students
-                .Include(s => s.Person)
-                    .ThenInclude(p => p.SchoolFees)
-                        .ThenInclude(sf => sf.Payments)
-                .Include(s => s.LearningPath)
-                .FirstOrDefault(s => s.Person.SchoolFees != null && s.Person.SchoolFees.Id == schoolFeesId);
+                .Include(student => student.Person)
+                .Include(student => student.LearningPath)
+                .FirstOrDefault(student => student.Id == studentId);
+        }
+
+        private void EnsureSchoolFeesForEnrolment(int studentId, int learningPathId)
+        {
+            bool alreadyExists = _context.SchoolFees
+                .Any(fees => fees.StudentId == studentId && fees.LearningPathId == learningPathId);
+
+            if (alreadyExists)
+                return;
+
+            _context.SchoolFees.Add(new SchoolFees
+            {
+                StudentId = studentId,
+                LearningPathId = learningPathId
+            });
         }
         #endregion
 
