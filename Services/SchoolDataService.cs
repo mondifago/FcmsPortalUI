@@ -1909,6 +1909,19 @@ namespace FcmsPortalUI.Services
                 LearningPathId = learningPathId
             });
         }
+
+        public Dictionary<int, double> GetTotalPaidByStudentForLearningPath(int learningPathId)
+        {
+            return _context.SchoolFees
+                .AsNoTracking()
+                .Where(fees => fees.LearningPathId == learningPathId)
+                .Select(fees => new
+                {
+                    fees.StudentId,
+                    TotalPaid = fees.Payments.Sum(payment => payment.Amount)
+                })
+                .ToDictionary(row => row.StudentId, row => row.TotalPaid);
+        }
         #endregion
 
         #region Grading
@@ -2486,7 +2499,6 @@ namespace FcmsPortalUI.Services
                 .Include(s => s.LearningPaths)
                     .ThenInclude(lp => lp.Students)
                 .Include(s => s.LearningPaths)
-                    .ThenInclude(lp => lp.StudentsWithAccess)
                 .FirstOrDefault();
 
             if (school == null) return;
@@ -2497,12 +2509,6 @@ namespace FcmsPortalUI.Services
                 if (studentInLearningPath != null)
                 {
                     learningPath.Students.Remove(studentInLearningPath);
-                }
-
-                var studentWithAccess = learningPath.StudentsWithAccess.FirstOrDefault(s => s.Id == student.Id);
-                if (studentWithAccess != null)
-                {
-                    learningPath.StudentsWithAccess.Remove(studentWithAccess);
                 }
             }
 
@@ -2556,8 +2562,8 @@ namespace FcmsPortalUI.Services
             var studentIds = learningPath.Students.Select(s => s.Id).ToList();
             var studentsWithFees = _context.Students
                 .Include(s => s.Person)
-                    .ThenInclude(p => p.SchoolFees)
-                        .ThenInclude(sf => sf.Payments)
+                .Include(s => s.SchoolFees)
+                    .ThenInclude(sf => sf.Payments)
                 .Include(s => s.LearningPath)
                 .Where(s => studentIds.Contains(s.Id))
                 .ToList();
@@ -2766,15 +2772,15 @@ namespace FcmsPortalUI.Services
             if (existing != null)
                 return;
 
-            var learningPaths = GetLearningPathsForPayments(currentPeriod.Id);
+            var learningPaths = GetLearningPathsForPeriod(currentPeriod.Id);
+            var allFees = GetSchoolFeesForPeriodStudents(currentPeriod.Id);
 
-            var allStudents = learningPaths
-                .SelectMany(lp => lp.Students)
-                .Distinct()
+            var summary = LogicMethods.CalculateSchoolPaymentSummary(learningPaths, allFees);
+
+            var learningPathIds = learningPaths.Select(learningPath => learningPath.Id).ToHashSet();
+            var currentFees = allFees
+                .Where(fees => learningPathIds.Contains(fees.LearningPathId))
                 .ToList();
-
-            var summary = LogicMethods.CalculateSchoolPaymentSummary(learningPaths);
-            var learningPathIds = learningPaths.Select(lp => lp.Id).ToHashSet();
 
             var archive = new ArchivedSchoolPaymentSummary
             {
@@ -2792,8 +2798,8 @@ namespace FcmsPortalUI.Services
                 TotalOutstandingBalance = summary.TotalOutstanding,
                 SchoolWidePaymentCompletionRate = summary.PaymentCompletionRate,
                 SchoolWideTimelyCompletionRate = summary.TimelyCompletionRate,
-                AverageStudentPaymentCompletionRateInSchool = LogicMethods.CalculateAveragePaymentCompletionRate(allStudents, learningPathIds),
-                AverageStudentTimelyCompletionRateInSchool = LogicMethods.CalculateAverageTimelyCompletionRate(allStudents, learningPathIds)
+                AverageStudentPaymentCompletionRateInSchool = LogicMethods.CalculateAveragePaymentCompletionRate(currentFees),
+                AverageStudentTimelyCompletionRateInSchool = LogicMethods.CalculateAverageTimelyCompletionRate(currentFees)
             };
 
             _context.ArchivedSchoolPaymentSummaries.Add(archive);
@@ -2815,12 +2821,11 @@ namespace FcmsPortalUI.Services
             if (exists)
                 return;
 
-            var studentsInPath = lp.Students.ToList();
+            var feesInPath = GetSchoolFeesForLearningPath(lp.Id);
 
-            var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp);
-            var learningPathIds = new HashSet<int> { lp.Id };
-            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(studentsInPath, learningPathIds);
-            var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(studentsInPath, learningPathIds);
+            var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp, feesInPath);
+            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(feesInPath);
+            var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(feesInPath);
 
             var archive = new ArchivedLearningPathPayment
             {

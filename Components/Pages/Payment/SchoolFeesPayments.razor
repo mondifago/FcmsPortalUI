@@ -57,12 +57,12 @@ else
                         </div>
                         <div class="col-md-4">
                             <p class="fw-bold">Total Paid:</p>
-                            <p class="fs-5 text-success">@SchoolDataService.GetTotalPaidForLearningPath(schoolFees.Id, student.LearningPath?.Id ?? 0).ToString("C", new CultureInfo("en-NG"))</p>
+                            <p class="fs-5 text-success">@schoolFees.TotalPaid.ToString("C", new CultureInfo("en-NG"))</p>
                         </div>
                         <div class="col-md-4">
                             <p class="fw-bold">Balance:</p>
                             @{
-                                var balance = SchoolDataService.GetBalanceForLearningPath(schoolFees.Id, student.LearningPath?.Id ?? 0, schoolFees.TotalAmount);
+                                var balance = schoolFees.Balance;
                             }
                             <p class="fs-5 @(balance > 0 ? "text-danger" : "text-success")">
                                 @balance.ToString("C", new CultureInfo("en-NG"))
@@ -126,7 +126,7 @@ else
                 </div>
                 <div class="card-body">
                     @{
-                        var paymentsForPeriod = SchoolDataService.GetPaymentsForLearningPath(schoolFees.Id, student.LearningPath?.Id ?? 0);
+                        var paymentsForPeriod = schoolFees.Payments.OrderByDescending(payment => payment.Date).ToList();
                     }
                     @if (!paymentsForPeriod.Any())
                     {
@@ -268,7 +268,7 @@ else
 
                         <div class="form-group mb-3">
                             <label for="editReference">Reference:</label>
-                            <InputNumber id="editReference" @bind-Value="editingPayment.Reference" class="form-control" />
+                            <InputText id="editReference" @bind-Value="editingPayment.Reference" class="form-control" />
                         </div>
 
                         <div class="d-flex justify-content-end">
@@ -283,6 +283,11 @@ else
     <div class="modal-backdrop fade show"></div>
 }
 
+<ErrorDisplayModal IsVisible="showErrorModal"
+                   Title="Payment Error"
+                   Message="@errorMessage"
+                   OnClose="CloseErrorModal" />
+
 @code {
     [Parameter]
     public int SchoolFeesId { get; set; }
@@ -295,29 +300,39 @@ else
     private Payment? selectedPayment = null;
     private bool showPaymentDetailsModal = false;
     private bool showEditPaymentModal = false;
+    private bool showErrorModal;
+    private string errorMessage = string.Empty;
 
     protected override void OnInitialized()
     {
+        LoadPaymentData();
+    }
+
+    private void LoadPaymentData()
+    {
         schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
         student = SchoolDataService.GetStudentBySchoolFeesId(SchoolFeesId) ?? new Student();
-
-        if (student != null)
-        {
-            newPayment = SchoolDataService.PrepareNewPayment(student);
-        }
+        newPayment = SchoolDataService.PrepareNewPayment(schoolFees);
     }
 
     private void AddPayment()
     {
-        SchoolDataService.AddPayment(newPayment);
-        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
-        newPayment = SchoolDataService.PrepareNewPayment(student);
+        try
+        {
+            SchoolDataService.AddPayment(newPayment);
+            LoadPaymentData();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+        }
     }
 
     private void RemovePayment(int paymentId)
     {
         SchoolDataService.DeletePayment(paymentId);
-        schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
+        LoadPaymentData();
     }
 
     private void ViewPaymentDetails(Payment payment)
@@ -343,10 +358,7 @@ else
                 PaymentMethod = payment.PaymentMethod,
                 Reference = payment.Reference,
                 SchoolFeesId = payment.SchoolFeesId,
-                Semester = payment.Semester,
-                EducationLevel = payment.EducationLevel,
-                ClassLevel = payment.ClassLevel,
-                AcademicYearStart = payment.AcademicYearStart,
+               
                 LearningPathId = payment.LearningPathId
             };
         showEditPaymentModal = true;
@@ -360,12 +372,20 @@ else
 
     private void UpdatePayment()
     {
-        if (editingPayment != null)
+        if (editingPayment == null)
+            return;
+
+        try
         {
             SchoolDataService.UpdatePayment(editingPayment);
-            schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
+            showEditPaymentModal = false;
+            LoadPaymentData();
         }
-        CloseEditPaymentModal();
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+        }
     }
 
     private bool showPaymentReport = false;
@@ -378,5 +398,10 @@ else
     private void ClosePaymentReport()
     {
         showPaymentReport = false;
+    }
+
+    private void CloseErrorModal()
+    {
+        showErrorModal = false;
     }
 }

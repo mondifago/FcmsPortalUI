@@ -259,9 +259,6 @@
 
             if (!claims.Any(c => c.Type == "PersonId"))
                 await UserManager.AddClaimAsync(user, new Claim("PersonId", user.Id.ToString()));
-
-            if (user.SchoolFees?.Id > 0 && !claims.Any(c => c.Type == "SchoolId"))
-                await UserManager.AddClaimAsync(user, new Claim("SchoolId", user.SchoolFees.Id.ToString()));
         }
 
         await InvitationService.MarkAsUsedAsync(token);

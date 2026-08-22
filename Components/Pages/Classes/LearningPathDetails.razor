@@ -184,7 +184,7 @@
                                             var rank = i + 1;
                                             if (student != null)
                                             {
-                                                var (statusText, badgeClass) = Util.GetPaymentStatus(student, learningPath.Id);
+                                  
                                                 <tr>
                                                     <td>
                                                         <span class="fw-light @Util.GetRankColorClass(rank)">
@@ -196,7 +196,7 @@
                                                             @Util.GetFullName(student.Person)
                                                         </a>
                                                     </td>
-                                                    <td><span class="badge @badgeClass">@statusText</span></td>
+                                                    <td>₦@(totalPaidByStudent.GetValueOrDefault(student.Id).ToString("N2"))</td>
                                                     <td>@studentGrade.SemesterOverallGrade.ToString("F2")%</td>
                                                     <td>
                                                         <button class="btn btn-sm btn-primary" @onclick="() => ShowStudentDetails(student)">
@@ -211,7 +211,7 @@
                                     {
                                         foreach (var student in learningPath.Students.OrderBy(s => s.Person.FirstName))
                                         {
-                                            var (statusText, badgeClass) = Util.GetPaymentStatus(student, learningPath.Id);
+                                  
                                             <tr>
                                                 <td><span class="text-muted">-</span></td>
                                                 <td>
@@ -219,7 +219,7 @@
                                                         @Util.GetFullName(student.Person)
                                                     </a>
                                                 </td>
-                                                <td><span class="badge @badgeClass">@statusText</span></td>
+                                                <td>₦@(totalPaidByStudent.GetValueOrDefault(student.Id).ToString("N2"))</td>
                                                 <td><span class="badge bg-secondary">No Grades</span></td>
                                                 <td></td>
                                             </tr>
@@ -479,6 +479,7 @@
     private DailyAttendanceLogEntry? todaysAttendance;
     private List<Student> availableStudents = new List<Student>();
     private HashSet<int> selectedStudentIds = new HashSet<int>();
+    private Dictionary<int, double> totalPaidByStudent = new();
     private List<string> unconfiguredCourses = new();
     private Student? selectedStudent;
     private LearningPathGradesPanel? gradesPanel;
@@ -507,6 +508,7 @@
         gradesFinalized = SchoolDataService.AreLearningPathGradesFinalized(learningPath.Id);
         attendanceTakenToday = SchoolDataService.HasAttendanceBeenTaken(learningPath.Id, DateTime.Today);
         unconfiguredCourses = SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
+        totalPaidByStudent = SchoolDataService.GetTotalPaidByStudentForLearningPath(learningPath.Id);
         currentUserId = await PermissionService.GetCurrentUserIdAsync();
         currentUser = await PermissionService.GetCurrentPersonAsync();
     }
@@ -517,6 +519,7 @@
         isReadOnly = LogicMethods.IsLearningPathReadOnly(learningPath.ApprovalStatus);
         gradesFinalized = SchoolDataService.AreLearningPathGradesFinalized(learningPath.Id);
         unconfiguredCourses = SchoolDataService.GetCoursesWithoutGradingConfiguration(learningPath.Id);
+        totalPaidByStudent = SchoolDataService.GetTotalPaidByStudentForLearningPath(learningPath.Id);
         StateHasChanged();
     }
 

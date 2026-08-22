@@ -217,7 +217,8 @@
                     <tbody>
                         @foreach (var learningPath in learningPaths)
                         {
-                            var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath);
+                            var feesForPath = allFees.Where(fees => fees.LearningPathId == learningPath.Id).ToList();
+                            var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath, feesForPath);
 
                             <tr>
                                 <td>
@@ -248,20 +249,24 @@
 
 <SchoolPaymentReportModal IsVisible="showSchoolReport"
                           LearningPaths="learningPaths"
-                          Students="learningPaths.SelectMany(lp => lp.Students).ToList()"
+                          AllFees="allFees"
                           AcademicYear="currentPeriod?.AcademicYear ?? string.Empty"
                           Semester="currentPeriod?.Semester ?? Semester.First"
                           OnClose="CloseSchoolReport"
                           SchoolName="@school.Name" />
 
 <LearningPathPaymentReportModal IsVisible="showLearningPathReport"
-LearningPath="selectedLearningPath"
-OnClose="CloseLearningPathReport" />
+                                LearningPath="selectedLearningPath"
+                                FeesInPath="@(selectedLearningPath == null
+                                    ? new List<SchoolFees>()
+                                    : allFees.Where(fees => fees.LearningPathId == selectedLearningPath.Id).ToList())"
+                                OnClose="CloseLearningPathReport" />
 
 @code {
     private School school = new School();
     private LearningPath? selectedLearningPath = null;
     private List<LearningPath> learningPaths = new();
+    private List<SchoolFees> allFees = new();
     private AcademicPeriod? currentPeriod;
     private int totalLearningPaths = 0;
     private int totalStudents = 0;
@@ -284,17 +289,18 @@ OnClose="CloseLearningPathReport" />
 
     private void LoadRealTimeData()
     {
-        if (currentPeriod != null)
-        {
-            learningPaths = SchoolDataService.GetLearningPathsForPayments(currentPeriod.Id);
+        if (currentPeriod == null)
+            return;
 
-            CalculateSummaryData();
-        }
+        learningPaths = SchoolDataService.GetLearningPathsForPeriod(currentPeriod.Id);
+        allFees = SchoolDataService.GetSchoolFeesForPeriodStudents(currentPeriod.Id);
+
+        CalculateSummaryData();
     }
 
     private void CalculateSummaryData()
     {
-        var summary = LogicMethods.CalculateSchoolPaymentSummary(learningPaths);
+        var summary = LogicMethods.CalculateSchoolPaymentSummary(learningPaths, allFees);
 
         totalLearningPaths = summary.TotalLearningPaths;
         totalStudents = summary.TotalStudents;

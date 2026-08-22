@@ -69,7 +69,7 @@
     [Parameter]public bool IsVisible { get; set; }
     [Parameter]public string? SchoolName { get; set; }
     [Parameter]public List<LearningPath> LearningPaths { get; set; } = new();
-    [Parameter]public List<Student> Students { get; set; } = new();
+    [Parameter] public List<SchoolFees> AllFees { get; set; } = new();
     [Parameter]public string? AcademicYear { get; set; }
     [Parameter]public Semester Semester { get; set; }
     [Parameter] public ArchivedSchoolPaymentSummary? ArchiveEntry { get; set; }
@@ -88,9 +88,9 @@
             return;
         }
 
-        if (LearningPaths.Any() && Students.Any())
+        if (LearningPaths.Any() && AllFees.Any())
         {
-            reportData = LogicMethods.GenerateSchoolPaymentReport(LearningPaths, Students);
+            reportData = LogicMethods.GenerateSchoolPaymentReport(LearningPaths, AllFees);
         }
     }
 

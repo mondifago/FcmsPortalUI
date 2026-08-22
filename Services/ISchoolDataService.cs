@@ -133,6 +133,7 @@ namespace FcmsPortalUI.Services
         Payment PrepareNewPayment(SchoolFees schoolFees);
         SchoolFees? GetSchoolFees(int id);
         Student? GetStudentBySchoolFeesId(int schoolFeesId);
+        Dictionary<int, double> GetTotalPaidByStudentForLearningPath(int learningPathId);
         #endregion
 
         #region Grading

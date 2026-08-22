@@ -1,6 +1,7 @@
 ﻿@page "/students/details/{Id:int}"
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
+@using FcmsPortal
 @using FcmsPortalUI.Services
 @using FcmsPortalUI.DTOs
 @using FcmsPortal.Models
@@ -98,21 +99,21 @@
                                 }
                             </div>
                             <div class="card-body">
-                                @if (student.Person.SchoolFees != null && student.Person.SchoolFees.TotalAmount > 0)
+                                @if (currentFees != null && currentFees.TotalAmount > 0)
                                 {
                                     <div class="row">
                                         <div class="col-12 mb-2">
                                             <h6 class="text-muted">Total School Fees</h6>
-                                            <p class="fs-5">₦@student.Person.SchoolFees.TotalAmount.ToString("N2")</p>
+                                            <p class="fs-5">₦@currentFees.TotalAmount.ToString("N2")</p>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <h6 class="text-muted">Total Amount Paid</h6>
-                                            <p class="text-success fs-5">₦@SchoolDataService.GetTotalPaidForLearningPath(student.Person.SchoolFees.Id, student.LearningPath?.Id ?? 0).ToString("N2")</p>
+                                            <p class="text-success fs-5">₦@currentFees.TotalPaid.ToString("N2")</p>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <h6 class="text-muted">Balance</h6>
                                             @{
-                                                var balance = SchoolDataService.GetBalanceForLearningPath(student.Person.SchoolFees.Id, student.LearningPath?.Id ?? 0, student.Person.SchoolFees.TotalAmount);
+                                                var balance = currentFees.Balance;
                                             }
                                             <p class="@(balance > 0 ? "text-danger" : "text-success") fs-5">
                                                 ₦@balance.ToString("N2")
@@ -372,6 +373,7 @@
 
     private Student? student;
     private Guardian? guardian;
+    private SchoolFees? currentFees;
     private bool showLearningPathModal = false;
     private bool showRemoveConfirmation = false;
     private int selectedLearningPathId = 0;
@@ -379,7 +381,7 @@
 
     protected override void OnInitialized()
     {
-        student = SchoolDataService.GetStudentById(Id);
+        LoadStudent();
 
         if (student == null)
         {
@@ -413,7 +415,7 @@
             return;
 
         SchoolDataService.AddStudentToLearningPath(selectedLearningPathId, student);
-        student = SchoolDataService.GetStudentById(Id);
+        LoadStudent();
         CloseLearningPathModal();
     }
 
@@ -438,16 +440,25 @@
             return;
 
         SchoolDataService.RemoveStudentFromLearningPath(student.LearningPath, student);
-        student = SchoolDataService.GetStudentById(Id);
+        LoadStudent();
 
         CloseRemoveConfirmation();
     }
 
     private void NavigateToManagePayments()
     {
-        if (student?.Person?.SchoolFees == null)
+        if (currentFees == null)
             return;
 
-        NavigationManager.NavigateTo($"/schoolfees/{student.Person.SchoolFees.Id}/payments");
+        NavigationManager.NavigateTo($"/schoolfees/{currentFees.Id}/payments");
+    }
+
+    private void LoadStudent()
+    {
+        student = SchoolDataService.GetStudentById(Id);
+
+        currentFees = student?.LearningPath == null
+            ? null
+            : LogicMethods.GetFeesForLearningPath(student, student.LearningPath.Id);
     }
 }

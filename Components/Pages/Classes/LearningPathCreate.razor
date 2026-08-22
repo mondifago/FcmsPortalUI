@@ -59,7 +59,6 @@
             learningPath = new LearningPath
             {
                 Students = new List<Student>(),
-                StudentsWithAccess = new List<Student>(),
                 Schedule = new List<ScheduleEntry>(),
                 AcademicPeriodId = currentAcademicPeriod.Id,
                 AcademicYearStart = currentAcademicPeriod.AcademicYearStart,
@@ -76,7 +75,6 @@
             learningPath = new LearningPath
             {
                 Students = new List<Student>(),
-                StudentsWithAccess = new List<Student>(),
                 Schedule = new List<ScheduleEntry>(),
                 AcademicYearStart = new DateTime(DateTime.Now.Year, FcmsConstants.SEMESTER_1_STARTMONTH, FcmsConstants.SEMESTER_1_STARTDAY),
                 Semester = semester,
@@ -134,8 +132,6 @@
             if (templatedLearningPath != null)
             {
                 templatedLearningPath.Students = learningPath.Students;
-                templatedLearningPath.StudentsWithAccess = learningPath.StudentsWithAccess;
-
                 learningPath = templatedLearningPath;
 
                 templateApplied = true;
