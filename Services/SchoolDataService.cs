@@ -108,13 +108,11 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault();
         }
 
-
         public bool HasSchool()
         {
             using var context = _contextFactory.CreateDbContext();
             return context.School.Any();
         }
-
 
         public School AddSchool(School school)
         {
@@ -163,7 +161,6 @@ namespace FcmsPortalUI.Services
 
             await context.SaveChangesAsync();
         }
-
 
         public bool HasPrincipal()
         {
@@ -1892,6 +1889,9 @@ namespace FcmsPortalUI.Services
             return _context.Students
                 .Include(student => student.Person)
                 .Include(student => student.LearningPath)
+                .Include(student => student.SchoolFees)
+                .ThenInclude(fees => fees.Payments)
+                .AsSplitQuery()
                 .FirstOrDefault(student => student.Id == studentId);
         }
 
@@ -1921,6 +1921,47 @@ namespace FcmsPortalUI.Services
                     TotalPaid = fees.Payments.Sum(payment => payment.Amount)
                 })
                 .ToDictionary(row => row.StudentId, row => row.TotalPaid);
+        }
+
+        public FeeAdjustment AddFeeAdjustment(FeeAdjustment adjustment)
+        {
+            var schoolFees = _context.SchoolFees
+                .Include(fees => fees.Adjustments)
+                .FirstOrDefault(fees => fees.Id == adjustment.SchoolFeesId);
+
+            if (schoolFees == null)
+                throw new ArgumentException("School fees record not found.");
+
+            double value = adjustment.Amount
+                ?? (schoolFees.LearningPath?.FeePerSemester ?? 0) * (adjustment.Percentage ?? 0);
+
+            if (value <= 0)
+                throw new BusinessRuleException("An adjustment must be greater than zero.");
+
+            if (schoolFees.TotalAdjustments + value > (schoolFees.LearningPath?.FeePerSemester ?? 0))
+                throw new BusinessRuleException("Adjustments cannot exceed the term fee.");
+
+            if (schoolFees.TotalAmount - value < schoolFees.TotalPaid)
+                throw new BusinessRuleException(
+                    $"This adjustment would put the fee below the {schoolFees.TotalPaid:N2} already paid.");
+
+            adjustment.Date = DateTime.Now;
+            schoolFees.Adjustments.Add(adjustment);
+            _context.SaveChanges();
+
+            return adjustment;
+        }
+
+        public void DeleteFeeAdjustment(int adjustmentId)
+        {
+            var adjustment = _context.FeeAdjustments
+                .FirstOrDefault(candidate => candidate.Id == adjustmentId);
+
+            if (adjustment == null)
+                return;
+
+            _context.FeeAdjustments.Remove(adjustment);
+            _context.SaveChanges();
         }
         #endregion
 
@@ -2568,7 +2609,7 @@ namespace FcmsPortalUI.Services
                 .Where(s => studentIds.Contains(s.Id))
                 .ToList();
 
-            foreach (var student in learningPath.Students)
+            foreach (var student in studentsWithFees)
             {
                 var paymentReport = LogicMethods.GenerateStudentPaymentReportEntry(student, learningPath.Id);
 
@@ -2600,7 +2641,7 @@ namespace FcmsPortalUI.Services
                         Date = paymentDetail.Date,
                         Amount = paymentDetail.Amount,
                         PaymentMethod = Enum.TryParse<PaymentMethod>(paymentDetail.PaymentMethod, out var pm) ? pm : PaymentMethod.Cash,
-                        Reference = paymentDetail.Reference.ToString()
+                        Reference = paymentDetail.Reference
                     };
 
                     _context.ArchivedPaymentDetails.Add(archivedDetail);

@@ -1792,3 +1792,27 @@ main {
     }
 
 
+
+/* ===== Payments page ===== */
+.fcms-figure-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #7a6455;
+}
+
+.fcms-figure {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.fcms-breakdown {
+    background-color: #fdf6f0;
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+}
+
+    .fcms-breakdown .border-top {
+        border-color: rgba(90, 62, 43, 0.2) !important;
+    }

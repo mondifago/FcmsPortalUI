@@ -1,190 +1,399 @@
 ﻿@page "/schoolfees/{SchoolFeesId:int}/payments"
+@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortalUI.Services
 @using FcmsPortalUI.Components.Pages.Shared
 @using System.Globalization
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
 
-<h3>Manage Payments</h3>
+<div class="container-fluid mt-3 fcms-payments-page">
 
-@if (schoolFees == null || student == null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Student Payment Summary</h5>
+    @if (schoolFees == null || student == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <div class="card fcms-tab-card mb-3">
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-center flex-wrap fcms-gap-sm">
+                    <div>
+                        <h4 class="mb-0">@Util.GetFullName(student.Person)</h4>
+                        <small class="text-muted">
+                            @student.Person.EducationLevel.ToDisplayName() &middot;
+                            @student.Person.ClassLevel.ToDisplayName() &middot;
+                            @student.LearningPath?.AcademicYear
+                            @student.LearningPath?.Semester.ToTermDisplay()
+                        </small>
+                    </div>
+                   
+                    <div class="d-flex fcms-gap-sm">
+                        <button class="btn btn-sm btn-outline-primary" @onclick="ShowPaymentReport">
+                            <i class="fa fa-file-alt me-1"></i>Report
+                        </button>
+                        <a href="/students/details/@student.Id" class="btn btn-sm btn-success">Done</a>
+                    </div>
                 </div>
-                <div class="card-body">
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-lg-7">
+                <div class="card fcms-tab-card h-100">
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="mb-0">Current Term</h5>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="OpenAdjustmentModal">
+                                <i class="fa fa-tag me-1"></i>Apply Discount
+                            </button>
+                        </div>
+
+                        <!-- headline figures -->
+                        <div class="row text-center g-2 mb-3">
+                            <div class="col-4">
+                                <div class="fcms-figure-label">Fees</div>
+                                <div class="fcms-figure">@Money(schoolFees.TotalAmount)</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="fcms-figure-label">Paid</div>
+                                <div class="fcms-figure text-success">@Money(schoolFees.TotalPaid)</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="fcms-figure-label">Balance</div>
+                                <div class="fcms-figure @(schoolFees.Balance > 0 ? "text-danger" : "text-success")">
+                                    @Money(schoolFees.Balance)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- breakdown -->
+                        <div class="fcms-breakdown">
+                            <div class="d-flex justify-content-between py-1">
+                                <span>Term fee</span>
+                                <span>@Money(schoolFees.LearningPath?.FeePerSemester ?? 0)</span>
+                            </div>
+
+                            @if (schoolFees.Adjustments.Any())
+                            {
+                                @foreach (var adjustment in schoolFees.Adjustments)
+                                {
+                                    <div class="d-flex justify-content-between py-1 text-primary">
+                                        <span>
+                                            <i class="fa fa-tag me-1"></i>@adjustment.Type
+                                            @if (!string.IsNullOrWhiteSpace(adjustment.Reason))
+                                            {
+                                                <small class="text-muted">— @adjustment.Reason</small>
+                                            }
+                                            <button class="btn btn-link btn-sm p-0 ms-2 text-danger"
+                                                    @onclick="() => RemoveAdjustment(adjustment.Id)">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </span>
+                                        <span>&minus; @Money(AdjustmentValue(adjustment))</span>
+                                    </div>
+                                }
+                            }
+
+                            <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                <span>Payable this term</span>
+                                <span>@Money(schoolFees.TotalAmount)</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between py-1 @(broughtForward > 0 ? "text-danger" : "text-muted")">
+                                <span>Brought forward from previous terms</span>
+                                <span>@Money(broughtForward)</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between py-2 border-top fs-5 fw-bold">
+                                <span>Total outstanding</span>
+                                <span class="@((schoolFees.Balance + broughtForward) > 0 ? "text-danger" : "text-success")">
+                                    @Money(schoolFees.Balance + broughtForward)
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card fcms-tab-card h-100">
+                    <div class="card-body">
+                        <h5 class="mb-3">Add Payment</h5>
+
+                        <EditForm Model="@newPayment" OnValidSubmit="AddPayment">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="row g-2">
+                                <div class="col-7">
+                                    <label for="amount" class="form-label small mb-1">Amount</label>
+                                    <InputNumber id="amount" @bind-Value="newPayment.Amount" class="form-control" />
+                                </div>
+                                <div class="col-5">
+                                    <label for="date" class="form-label small mb-1">Date</label>
+                                    <InputDate id="date" @bind-Value="newPayment.Date" class="form-control" />
+                                </div>
+                                <div class="col-5">
+                                    <label for="paymentMethod" class="form-label small mb-1">Method</label>
+                                    <InputSelect id="paymentMethod" @bind-Value="newPayment.PaymentMethod" class="form-select">
+                                        @foreach (var method in Enum.GetValues(typeof(PaymentMethod)))
+                                        {
+                                            <option value="@method">@method</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                                <div class="col-7">
+                                    <label for="reference" class="form-label small mb-1">Reference</label>
+                                    <InputText id="reference" @bind-Value="newPayment.Reference" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="d-grid mt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-plus me-1"></i>Record Payment
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card fcms-tab-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                Payments
+                                <small class="text-muted">
+                                    &mdash; @student.LearningPath?.AcademicYear
+                                    @student.LearningPath?.Semester.ToTermDisplay()
+                                </small>
+                            </h5>
+                            @if (TotalPages > 1)
+                            {
+                                <div class="d-flex align-items-center fcms-gap-sm">
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            disabled="@(currentPage == 1)"
+                                            @onclick="PreviousPage">
+                                        <i class="fa fa-chevron-left"></i>
+                                    </button>
+                                    <small class="text-muted">@currentPage / @TotalPages</small>
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            disabled="@(currentPage == TotalPages)"
+                                            @onclick="NextPage">
+                                        <i class="fa fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!AllPayments.Any())
+                        {
+                            <div class="alert alert-info mb-0">
+                                <i class="fa fa-info-circle me-2"></i>No payments recorded for this term.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0 align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 100px;">Date</th>
+                                            <th style="width: 150px;">Amount</th>
+                                            <th style="width: 120px;">Method</th>
+                                            <th>Reference</th>
+                                            <th style="width: 120px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var payment in PagedPayments)
+                                        {
+                                            <tr>
+                                                <td class="text-nowrap">@payment.Date.ToShortDateString()</td>
+                                                <td class="text-nowrap">@Money(payment.Amount)</td>
+                                                <td>@payment.PaymentMethod</td>
+                                                <td class="text-truncate" style="max-width: 1px;">
+                                                    <small>@payment.Reference</small>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <button class="btn btn-info" @onclick="() => ViewPaymentDetails(payment)">
+                                                            <i class="fa fa-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-warning" @onclick="() => EditPayment(payment)">
+                                                            <i class="fa fa-pencil"></i>
+                                                        </button>
+                                                        <button class="btn btn-danger" @onclick="() => RemovePayment(payment.Id)">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card fcms-tab-card">
+                    <div class="card-body">
+                        <h5 class="mb-3">Previous Terms</h5>
+
+                        @if (!previousFees.Any())
+                        {
+                            <div class="alert alert-info mb-0">
+                                <i class="fa fa-info-circle me-2"></i>No earlier terms on record.
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var fees in previousFees)
+                            {
+                                <div class="fcms-fold-item mb-2">
+                                    <div class="fcms-fold-header d-flex justify-content-between align-items-center"
+                                         role="button"
+                                         @onclick="() => ToggleFold(fees.Id)">
+                                        <div class="fcms-fold-item-main">
+                                            <strong>@fees.LearningPath?.AcademicYear</strong>
+                                            <small class="text-muted">@fees.LearningPath?.Semester.ToTermDisplay()</small>
+                                        </div>
+                                        <div class="d-flex align-items-center fcms-gap-sm">
+                                            <span class="@(fees.Balance > 0 ? "text-danger" : "text-success")">
+                                                @Money(fees.Balance)
+                                            </span>
+                                            <i class="fa @(expandedFoldId == fees.Id ? "fa-chevron-up" : "fa-chevron-down")"></i>
+                                        </div>
+                                    </div>
+
+                                    @if (expandedFoldId == fees.Id)
+                                    {
+                                        <div class="fcms-fold-body small">
+                                            <div class="d-flex justify-content-between py-1">
+                                                <span>Term fee</span>
+                                                <span>@Money(fees.LearningPath?.FeePerSemester ?? 0)</span>
+                                            </div>
+                                            @if (fees.TotalAdjustments > 0)
+                                            {
+                                                <div class="d-flex justify-content-between py-1 text-primary">
+                                                    <span>Discount</span>
+                                                    <span>&minus; @Money(fees.TotalAdjustments)</span>
+                                                </div>
+                                            }
+                                            <div class="d-flex justify-content-between py-1">
+                                                <span>Payable</span>
+                                                <span>@Money(fees.TotalAmount)</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between py-1 text-success">
+                                                <span>Paid</span>
+                                                <span>@Money(fees.TotalPaid)</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                                <span>Carried forward</span>
+                                                <span class="@(fees.Balance > 0 ? "text-danger" : "text-success")">
+                                                    @Money(fees.Balance)
+                                                </span>
+                                            </div>
+
+                                            <div class="d-grid mt-2">
+                                                <button class="btn btn-sm btn-outline-secondary"
+                                                        @onclick="() => ShowTermReport(fees.LearningPathId)">
+                                                    <i class="fa fa-file-alt me-1"></i>Open Report
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <StudentPaymentReportModal IsVisible="showPaymentReport"
+                                   Student="student"
+                                   LearningPathId="reportLearningPathId"
+                                   OnClose="ClosePaymentReport" />
+    }
+
+</div>
+
+@if (showAdjustmentModal)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Apply Adjustment</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAdjustmentModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <InputSelect @bind-Value="newAdjustment.Type" class="form-select">
+                            @foreach (var type in Enum.GetValues(typeof(FeeAdjustmentType)))
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </InputSelect>
+                    </div>
 
                     <div class="mb-3">
-                        <h5 class="mb-2">@Util.GetFullName(student.Person)</h5>
-
-                        <div class="row g-1 small">
-                            <div class="col-6"><strong>Email</strong></div>
-                            <div class="col-6">@student.Person.Email</div>
-
-                            <div class="col-6"><strong>Guardian Email</strong></div>
-                            <div class="col-6">@student.Guardian?.Person.Email</div>
-
-                            <div class="col-6"><strong>Guardian Phone</strong></div>
-                            <div class="col-6">@student.Guardian?.Person.PhoneNumber</div>
-
-                            <div class="col-6"><strong>Academic Year</strong></div>
-                            <div class="col-6">@student.LearningPath?.AcademicYear</div>
-
-                            <div class="col-6"><strong>Term</strong></div>
-                            <div class="col-6">@student.LearningPath?.Semester.ToTermDisplay()</div>
-
-                            <div class="col-6"><strong>Education Level</strong></div>
-                            <div class="col-6">@student.Person.EducationLevel.ToDisplayName()</div>
-
-                            <div class="col-6"><strong>Class Level</strong></div>
-                            <div class="col-6">@student.Person.ClassLevel.ToDisplayName()</div>
-                        </div>
+                        <label class="form-label">Applied as</label>
+                        <select class="form-select" @bind="adjustmentIsPercentage">
+                            <option value="false">Fixed amount</option>
+                            <option value="true">Percentage of term fee</option>
+                        </select>
                     </div>
 
-                    <div class="row mt-3 pt-3 border-top">
-                        <div class="col-md-4">
-                            <p class="fw-bold">Total Amount:</p>
-                            <p class="fs-5">@schoolFees.TotalAmount.ToString("C", new CultureInfo("en-NG"))</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p class="fw-bold">Total Paid:</p>
-                            <p class="fs-5 text-success">@schoolFees.TotalPaid.ToString("C", new CultureInfo("en-NG"))</p>
-                        </div>
-                        <div class="col-md-4">
-                            <p class="fw-bold">Balance:</p>
-                            @{
-                                var balance = schoolFees.Balance;
-                            }
-                            <p class="fs-5 @(balance > 0 ? "text-danger" : "text-success")">
-                                @balance.ToString("C", new CultureInfo("en-NG"))
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Add New Payment</h5>
-                </div>
-                <div class="card-body">
-                    <EditForm Model="@newPayment" OnValidSubmit="AddPayment">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-
-                        <div class="form-group mb-3">
-                            <label for="amount">Amount:</label>
-                            <InputNumber id="amount" @bind-Value="newPayment.Amount" class="form-control" />
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="date">Date:</label>
-                            <InputDate id="date" @bind-Value="newPayment.Date" class="form-control" />
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="paymentMethod">Payment Method:</label>
-                            <InputSelect id="paymentMethod" @bind-Value="newPayment.PaymentMethod" class="form-control">
-                                @foreach (var method in Enum.GetValues(typeof(PaymentMethod)))
-                                {
-                                    <option value="@method">@method</option>
-                                }
-                            </InputSelect>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="reference">Reference:</label>
-                            <InputText id="reference" @bind-Value="newPayment.Reference" class="form-control" />
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Add Payment</button>
-                    </EditForm>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="row">
-        
-
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Payment History</h5>
-                </div>
-                <div class="card-body">
-                    @{
-                        var paymentsForPeriod = schoolFees.Payments.OrderByDescending(payment => payment.Date).ToList();
-                    }
-                    @if (!paymentsForPeriod.Any())
+                    @if (adjustmentIsPercentage)
                     {
-                        <p>No payments recorded for this academic period.</p>
+                        <div class="mb-3">
+                            <label class="form-label">Percentage</label>
+                            <input type="number" class="form-control" step="1" min="0" max="100"
+                                   @bind="adjustmentPercentageInput" />
+                            <small class="text-muted">
+                                @Money((schoolFees?.LearningPath?.FeePerSemester ?? 0) * adjustmentPercentageInput / 100)
+                                off the term fee
+                            </small>
+                        </div>
                     }
                     else
                     {
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Amount</th>
-                                        <th>Date</th>
-                                        <th>Method</th>
-                                        <th>Reference</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var payment in paymentsForPeriod)
-                                    {
-                                        <tr>
-                                            <td>@payment.Amount.ToString("C", new CultureInfo("en-NG"))</td>
-                                            <td>@payment.Date.ToShortDateString()</td>
-                                            <td>@payment.PaymentMethod</td>
-                                            <td>@payment.Reference</td>
-                                            <td>
-                                                <button class="btn btn-info btn-sm me-1" @onclick="() => ViewPaymentDetails(payment)">
-                                                    <i class="fa fa-eye"></i>
-                                                </button>
-                                                <button class="btn btn-warning btn-sm me-1" @onclick="() => EditPayment(payment)">
-                                                    <i class="fa fa-pencil"></i>
-                                                </button>
-                                                <button class="btn btn-danger btn-sm" @onclick="() => RemovePayment(payment.Id)">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" step="0.01" min="0"
+                                   @bind="adjustmentAmountInput" />
                         </div>
                     }
+
+                    <div class="mb-3">
+                        <label class="form-label">Reason / Code</label>
+                        <input type="text" class="form-control"
+                               maxlength="@FcmsConstants.MAX_ADJUSTMENT_REASON_LENGTH"
+                               @bind="newAdjustment.Reason"
+                               placeholder="e.g. sibling discount, promo code" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseAdjustmentModal">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SaveAdjustment">Apply</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="mt-3 d-flex justify-content-end gap-2">
-        <button class="btn btn-success" @onclick="ShowPaymentReport">
-            <i class="fa fa-file-alt"></i> Generate Report
-        </button>
-        <a href="/students/details/@student?.Id" class="btn btn-primary">Done</a>
-    </div>
-
-    <StudentPaymentReportModal IsVisible="showPaymentReport"
-                    Student="student"
-                    OnClose="ClosePaymentReport" />
 }
 
 @if (showPaymentDetailsModal && selectedPayment != null)
@@ -294,14 +503,26 @@ else
 
     private SchoolFees schoolFees = new SchoolFees();
     private Student student = new Student();
-    private LearningPath? selectedPaymentLearningPath = null;
+    private List<SchoolFees> allFees = new();
+    private List<SchoolFees> previousFees = new();
+    private double broughtForward;
     private Payment newPayment = new Payment();
     private Payment? editingPayment = null;
     private Payment? selectedPayment = null;
+    private LearningPath? selectedPaymentLearningPath = null;
     private bool showPaymentDetailsModal = false;
     private bool showEditPaymentModal = false;
     private bool showErrorModal;
     private string errorMessage = string.Empty;
+    private bool showPaymentReport = false;
+    private int? reportLearningPathId;
+    private int? expandedFoldId;
+    private int currentPage = 1;
+    private bool showAdjustmentModal = false;
+    private FeeAdjustment newAdjustment = new();
+    private bool adjustmentIsPercentage = false;
+    private double adjustmentAmountInput;
+    private double adjustmentPercentageInput;
 
     protected override void OnInitialized()
     {
@@ -313,6 +534,123 @@ else
         schoolFees = SchoolDataService.GetSchoolFees(SchoolFeesId) ?? new SchoolFees();
         student = SchoolDataService.GetStudentBySchoolFeesId(SchoolFeesId) ?? new Student();
         newPayment = SchoolDataService.PrepareNewPayment(schoolFees);
+
+        allFees = student.SchoolFees;
+
+        broughtForward = schoolFees.LearningPath == null
+            ? 0
+            : LogicMethods.GetOutstandingBroughtForward(allFees, schoolFees.LearningPath);
+
+        previousFees = allFees
+            .Where(fees => fees.LearningPathId != schoolFees.LearningPathId && fees.LearningPath != null)
+            .OrderByDescending(fees => fees.LearningPath!.SemesterStartDate)
+            .ToList();
+
+        currentPage = 1;
+    }
+
+    private static string Money(double amount)
+    {
+        return amount.ToString("C", new CultureInfo("en-NG"));
+    }
+
+    private double AdjustmentValue(FeeAdjustment adjustment)
+    {
+        return adjustment.Amount
+            ?? (schoolFees.LearningPath?.FeePerSemester ?? 0) * (adjustment.Percentage ?? 0);
+    }
+
+    private List<Payment> AllPayments =>
+        schoolFees.Payments.OrderByDescending(payment => payment.Date).ToList();
+
+    private int TotalPages =>
+        Math.Max(1, (int)Math.Ceiling(AllPayments.Count / (double)FcmsConstants.LIST_PAGE_SIZE));
+
+    private List<Payment> PagedPayments =>
+        AllPayments
+            .Skip((currentPage - 1) * FcmsConstants.LIST_PAGE_SIZE)
+            .Take(FcmsConstants.LIST_PAGE_SIZE)
+            .ToList();
+
+    private void PreviousPage()
+    {
+        if (currentPage > 1)
+            currentPage--;
+    }
+
+    private void NextPage()
+    {
+        if (currentPage < TotalPages)
+            currentPage++;
+    }
+
+    private void ToggleFold(int schoolFeesId)
+    {
+        expandedFoldId = expandedFoldId == schoolFeesId ? null : schoolFeesId;
+    }
+
+    private void ShowTermReport(int learningPathId)
+    {
+        reportLearningPathId = learningPathId;
+        showPaymentReport = true;
+    }
+
+    private void ShowPaymentReport()
+    {
+        reportLearningPathId = schoolFees.LearningPathId;
+        showPaymentReport = true;
+    }
+
+    private void ClosePaymentReport()
+    {
+        showPaymentReport = false;
+        reportLearningPathId = null;
+    }
+
+    private void OpenAdjustmentModal()
+    {
+        newAdjustment = new FeeAdjustment { SchoolFeesId = schoolFees.Id };
+        adjustmentIsPercentage = false;
+        adjustmentAmountInput = 0;
+        adjustmentPercentageInput = 0;
+        showAdjustmentModal = true;
+    }
+
+    private void CloseAdjustmentModal()
+    {
+        showAdjustmentModal = false;
+    }
+
+    private void SaveAdjustment()
+    {
+        if (adjustmentIsPercentage)
+        {
+            newAdjustment.Percentage = adjustmentPercentageInput / 100;
+            newAdjustment.Amount = null;
+        }
+        else
+        {
+            newAdjustment.Amount = adjustmentAmountInput;
+            newAdjustment.Percentage = null;
+        }
+
+        try
+        {
+            SchoolDataService.AddFeeAdjustment(newAdjustment);
+            showAdjustmentModal = false;
+            LoadPaymentData();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+        }
+    }
+
+    private void RemoveAdjustment(int adjustmentId)
+    {
+        SchoolDataService.DeleteFeeAdjustment(adjustmentId);
+        LoadPaymentData();
     }
 
     private void AddPayment()
@@ -351,16 +689,16 @@ else
     private void EditPayment(Payment payment)
     {
         editingPayment = new Payment
-            {
-                Id = payment.Id,
-                Amount = payment.Amount,
-                Date = payment.Date,
-                PaymentMethod = payment.PaymentMethod,
-                Reference = payment.Reference,
-                SchoolFeesId = payment.SchoolFeesId,
-               
-                LearningPathId = payment.LearningPathId
-            };
+        {
+            Id = payment.Id,
+            Amount = payment.Amount,
+            Date = payment.Date,
+            PaymentMethod = payment.PaymentMethod,
+            Reference = payment.Reference,
+            SchoolFeesId = payment.SchoolFeesId,
+
+            LearningPathId = payment.LearningPathId
+        };
         showEditPaymentModal = true;
     }
 
@@ -386,18 +724,6 @@ else
             errorMessage = ex.Message;
             showErrorModal = true;
         }
-    }
-
-    private bool showPaymentReport = false;
-
-    private void ShowPaymentReport()
-    {
-        showPaymentReport = true;
-    }
-
-    private void ClosePaymentReport()
-    {
-        showPaymentReport = false;
     }
 
     private void CloseErrorModal()

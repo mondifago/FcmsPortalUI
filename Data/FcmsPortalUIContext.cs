@@ -41,6 +41,7 @@ namespace FcmsPortalUI.Data
         public DbSet<ArchivedStudentGrade> ArchivedStudentGrades { get; set; }
         public DbSet<ArchivedCourseGrade> ArchivedCourseGrades { get; set; }
         public DbSet<ArchivedTestGrade> ArchivedTestGrades { get; set; }
+        public DbSet<FeeAdjustment> FeeAdjustments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

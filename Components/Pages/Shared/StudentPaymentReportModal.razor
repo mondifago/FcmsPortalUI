@@ -110,15 +110,21 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
+    [Parameter]
+    public int? LearningPathId { get; set; }
+
     private StudentPaymentReportEntry reportData = new StudentPaymentReportEntry();
-
-
 
     protected override void OnParametersSet()
     {
-        if (IsVisible && Student != null && Student.LearningPath != null)
+        if (!IsVisible || Student == null)
+            return;
+
+        int? targetLearningPathId = LearningPathId ?? Student.LearningPath?.Id;
+
+        if (targetLearningPathId.HasValue)
         {
-            reportData = LogicMethods.GenerateStudentPaymentReportEntry(Student, Student.LearningPath.Id);
+            reportData = LogicMethods.GenerateStudentPaymentReportEntry(Student, targetLearningPathId.Value);
         }
     }
 

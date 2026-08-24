@@ -134,6 +134,8 @@ namespace FcmsPortalUI.Services
         SchoolFees? GetSchoolFees(int id);
         Student? GetStudentBySchoolFeesId(int schoolFeesId);
         Dictionary<int, double> GetTotalPaidByStudentForLearningPath(int learningPathId);
+        FeeAdjustment AddFeeAdjustment(FeeAdjustment adjustment);
+        void DeleteFeeAdjustment(int adjustmentId);
         #endregion
 
         #region Grading
