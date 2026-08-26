@@ -148,8 +148,18 @@
                                     </InputSelect>
                                 </div>
                                 <div class="col-7">
-                                    <label for="reference" class="form-label small mb-1">Reference</label>
-                                    <InputText id="reference" @bind-Value="newPayment.Reference" class="form-control" />
+                                    <label for="reference" class="form-label small mb-1">
+                                        Reference
+                                        @if (newPayment.PaymentMethod == PaymentMethod.BankTransfer)
+                                        {
+                                            <span class="text-danger">*</span>
+                                        }
+                                    </label>
+                                    <InputText id="reference" @bind-Value="newPayment.Reference" class="form-control"
+                                               disabled="@(newPayment.PaymentMethod != PaymentMethod.BankTransfer)"
+                                               placeholder="@(newPayment.PaymentMethod == PaymentMethod.BankTransfer
+                                                       ? "Teller / transfer reference"
+                                                       : "Not required for cash")" />
                                 </div>
                             </div>
 
@@ -218,9 +228,7 @@
                                                 <td class="text-nowrap">@payment.Date.ToShortDateString()</td>
                                                 <td class="text-nowrap">@Money(payment.Amount)</td>
                                                 <td>@payment.PaymentMethod</td>
-                                                <td class="text-truncate" style="max-width: 1px;">
-                                                    <small>@payment.Reference</small>
-                                                </td>
+                                                <td class="text-truncate" style="max-width: 1px;"><small>@(string.IsNullOrEmpty(payment.Reference) ? "—" : payment.Reference)</small></td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm" role="group">
                                                         <button class="btn btn-info" @onclick="() => ViewPaymentDetails(payment)">
@@ -342,42 +350,36 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Type</label>
-                        <InputSelect @bind-Value="newAdjustment.Type" class="form-select">
+                        <select class="form-select" @bind="newAdjustment.Type">
                             @foreach (var type in Enum.GetValues(typeof(FeeAdjustmentType)))
                             {
                                 <option value="@type">@type</option>
                             }
-                        </InputSelect>
+                        </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Applied as</label>
-                        <select class="form-select" @bind="adjustmentIsPercentage">
-                            <option value="false">Fixed amount</option>
-                            <option value="true">Percentage of term fee</option>
+                        <select class="form-select" @bind="newAdjustment.Mode">
+                            @foreach (var mode in Enum.GetValues(typeof(FeeAdjustmentMode)))
+                            {
+                                <option value="@mode">@mode</option>
+                            }
                         </select>
                     </div>
 
-                    @if (adjustmentIsPercentage)
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">Percentage</label>
-                            <input type="number" class="form-control" step="1" min="0" max="100"
-                                   @bind="adjustmentPercentageInput" />
+                    <div class="mb-3">
+                        <label class="form-label">
+                            @(newAdjustment.Mode == FeeAdjustmentMode.Percentage ? "Percentage" : "Amount")
+                        </label>
+                        <input type="number" class="form-control" step="0.01" min="0" @bind="newAdjustment.Value" />
+                        @if (newAdjustment.Mode == FeeAdjustmentMode.Percentage)
+                        {
                             <small class="text-muted">
-                                @Money((schoolFees?.LearningPath?.FeePerSemester ?? 0) * adjustmentPercentageInput / 100)
-                                off the term fee
+                                @Money((schoolFees?.LearningPath?.FeePerSemester ?? 0) * newAdjustment.Value / 100) off the term fee
                             </small>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="mb-3">
-                            <label class="form-label">Amount</label>
-                            <input type="number" class="form-control" step="0.01" min="0"
-                                   @bind="adjustmentAmountInput" />
-                        </div>
-                    }
+                        }
+                    </div>
 
                     <div class="mb-3">
                         <label class="form-label">Reason / Code</label>
@@ -520,9 +522,6 @@
     private int currentPage = 1;
     private bool showAdjustmentModal = false;
     private FeeAdjustment newAdjustment = new();
-    private bool adjustmentIsPercentage = false;
-    private double adjustmentAmountInput;
-    private double adjustmentPercentageInput;
 
     protected override void OnInitialized()
     {
@@ -556,8 +555,7 @@
 
     private double AdjustmentValue(FeeAdjustment adjustment)
     {
-        return adjustment.Amount
-            ?? (schoolFees.LearningPath?.FeePerSemester ?? 0) * (adjustment.Percentage ?? 0);
+        return schoolFees.ResolveAdjustment(adjustment);
     }
 
     private List<Payment> AllPayments =>
@@ -609,10 +607,12 @@
 
     private void OpenAdjustmentModal()
     {
-        newAdjustment = new FeeAdjustment { SchoolFeesId = schoolFees.Id };
-        adjustmentIsPercentage = false;
-        adjustmentAmountInput = 0;
-        adjustmentPercentageInput = 0;
+        newAdjustment = new FeeAdjustment
+        {
+            SchoolFeesId = schoolFees.Id,
+            Type = FeeAdjustmentType.Discount,
+            Mode = FeeAdjustmentMode.FixedAmount
+        };
         showAdjustmentModal = true;
     }
 
@@ -623,17 +623,6 @@
 
     private void SaveAdjustment()
     {
-        if (adjustmentIsPercentage)
-        {
-            newAdjustment.Percentage = adjustmentPercentageInput / 100;
-            newAdjustment.Amount = null;
-        }
-        else
-        {
-            newAdjustment.Amount = adjustmentAmountInput;
-            newAdjustment.Percentage = null;
-        }
-
         try
         {
             SchoolDataService.AddFeeAdjustment(newAdjustment);

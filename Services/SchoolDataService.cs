@@ -1793,14 +1793,30 @@ namespace FcmsPortalUI.Services
         {
             var schoolFees = _context.SchoolFees
                 .Include(fees => fees.Payments)
+                .Include(fees => fees.Adjustments)
+                .AsSplitQuery()
                 .FirstOrDefault(fees => fees.Id == payment.SchoolFeesId);
 
             if (schoolFees == null)
                 throw new ArgumentException("School fees record not found.");
 
-            if (_context.Payments.Any(existing => existing.Reference == payment.Reference))
+            payment.Reference = string.IsNullOrWhiteSpace(payment.Reference)
+                ? null
+                : payment.Reference.Trim();
+
+            if (!LogicMethods.IsPaymentReferenceRequired(payment.PaymentMethod))
+                payment.Reference = null;
+
+            if (LogicMethods.IsPaymentReferenceRequired(payment.PaymentMethod) && payment.Reference == null)
+                throw new BusinessRuleException(
+                    "A bank transfer requires the teller or transfer reference.");
+
+            if (payment.Reference != null &&
+                _context.Payments.Any(existing => existing.Reference == payment.Reference))
+            {
                 throw new BusinessRuleException(
                     $"Payment reference '{payment.Reference}' has already been recorded.");
+            }
 
             if (!LogicMethods.IsPaymentWithinBalance(schoolFees, payment.Amount))
                 throw new BusinessRuleException(
@@ -1813,6 +1829,7 @@ namespace FcmsPortalUI.Services
             return payment;
         }
 
+
         public void UpdatePayment(Payment payment)
         {
             var existingPayment = _context.Payments
@@ -1823,15 +1840,31 @@ namespace FcmsPortalUI.Services
 
             var schoolFees = _context.SchoolFees
                 .Include(fees => fees.Payments)
+                .Include(fees => fees.Adjustments)
+                .AsSplitQuery()
                 .FirstOrDefault(fees => fees.Id == existingPayment.SchoolFeesId);
 
             if (schoolFees == null)
                 throw new ArgumentException("School fees record not found.");
 
-            if (_context.Payments.Any(candidate => candidate.Reference == payment.Reference
+            payment.Reference = string.IsNullOrWhiteSpace(payment.Reference)
+                ? null
+                : payment.Reference.Trim();
+
+            if (!LogicMethods.IsPaymentReferenceRequired(payment.PaymentMethod))
+                payment.Reference = null;
+
+            if (LogicMethods.IsPaymentReferenceRequired(payment.PaymentMethod) && payment.Reference == null)
+                throw new BusinessRuleException(
+                    "A bank transfer requires the teller or transfer reference.");
+
+            if (payment.Reference != null &&
+                _context.Payments.Any(candidate => candidate.Reference == payment.Reference
                                                 && candidate.Id != payment.Id))
+            {
                 throw new BusinessRuleException(
                     $"Payment reference '{payment.Reference}' has already been recorded.");
+            }
 
             if (!LogicMethods.IsPaymentWithinBalance(schoolFees, payment.Amount, payment.Id))
                 throw new BusinessRuleException(
@@ -1927,21 +1960,26 @@ namespace FcmsPortalUI.Services
         {
             var schoolFees = _context.SchoolFees
                 .Include(fees => fees.Adjustments)
+                .Include(fees => fees.Payments)
+                .AsSplitQuery()
                 .FirstOrDefault(fees => fees.Id == adjustment.SchoolFeesId);
 
             if (schoolFees == null)
                 throw new ArgumentException("School fees record not found.");
 
-            double value = adjustment.Amount
-                ?? (schoolFees.LearningPath?.FeePerSemester ?? 0) * (adjustment.Percentage ?? 0);
+            double termFee = schoolFees.LearningPath?.FeePerSemester ?? 0;
+
+            double value = adjustment.Mode == FeeAdjustmentMode.Percentage
+                ? termFee * adjustment.Value / 100
+                : adjustment.Value;
 
             if (value <= 0)
                 throw new BusinessRuleException("An adjustment must be greater than zero.");
 
-            if (schoolFees.TotalAdjustments + value > (schoolFees.LearningPath?.FeePerSemester ?? 0))
+            if (schoolFees.TotalAdjustments + value > termFee)
                 throw new BusinessRuleException("Adjustments cannot exceed the term fee.");
 
-            if (schoolFees.TotalAmount - value < schoolFees.TotalPaid)
+            if (termFee - (schoolFees.TotalAdjustments + value) < schoolFees.TotalPaid)
                 throw new BusinessRuleException(
                     $"This adjustment would put the fee below the {schoolFees.TotalPaid:N2} already paid.");
 
