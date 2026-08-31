@@ -103,10 +103,13 @@
                                 <span>@Money(schoolFees.TotalAmount)</span>
                             </div>
 
-                            <div class="d-flex justify-content-between py-1 @(broughtForward > 0 ? "text-danger" : "text-muted")">
-                                <span>Brought forward from previous terms</span>
-                                <span>@Money(broughtForward)</span>
-                            </div>
+                            @if (broughtForward != 0)
+                            {
+                                <div class="d-flex justify-content-between py-1 @(broughtForward > 0 ? "text-danger" : "text-success")">
+                                    <span>@(broughtForward > 0 ? "Brought forward from previous terms" : "Credit brought forward")</span>
+                                    <span>@Money(Math.Abs(broughtForward))</span>
+                                </div>
+                            }
 
                             <div class="d-flex justify-content-between py-2 border-top fs-5 fw-bold">
                                 <span>Total outstanding</span>

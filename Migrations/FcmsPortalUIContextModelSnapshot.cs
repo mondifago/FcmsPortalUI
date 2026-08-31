@@ -842,17 +842,11 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<double?>("Amount")
-                        .HasColumnType("double");
-
-                    b.Property<int?>("AuthorizedById")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<double?>("Percentage")
-                        .HasColumnType("double");
+                    b.Property<int>("Mode")
+                        .HasColumnType("int");
 
                     b.Property<string>("Reason")
                         .IsRequired()
@@ -865,11 +859,14 @@ namespace FcmsPortalUI.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
+                    b.Property<double>("Value")
+                        .HasColumnType("double");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SchoolFeesId");
 
-                    b.ToTable("FeeAdjustment");
+                    b.ToTable("FeeAdjustments");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.FileAttachment", b =>
@@ -1138,7 +1135,6 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Reference")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 

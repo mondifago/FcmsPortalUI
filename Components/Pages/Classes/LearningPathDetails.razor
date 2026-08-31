@@ -467,7 +467,7 @@
 }
 
 <ErrorDisplayModal IsVisible="showErrorModal"
-                   Title="Approval Error"
+                   Title="@errorModalTitle"
                    Message="@errorMessage"
                    OnClose="CloseErrorModal" />
 
@@ -497,6 +497,7 @@
     private bool attendanceTakenToday;
     private bool isReadOnly;
     private bool showErrorModal;
+    private string errorModalTitle = "Error";
     private bool showRestoreConfirm = false;
     private bool gradesFinalized;
     private string errorMessage = string.Empty;
@@ -571,8 +572,15 @@
             .Where(s => selectedStudentIds.Contains(s.Id))
             .ToList();
 
-        SchoolDataService.AddMultipleStudentsToLearningPath(Id, studentsToAdd);
+        double amountTransferred = SchoolDataService.AddMultipleStudentsToLearningPath(Id, studentsToAdd);
         CloseAddStudentsModal();
+
+        if (amountTransferred > 0)
+        {
+            errorModalTitle = "Payment Transferred";
+            errorMessage = $"₦{amountTransferred:N2} was transferred from the previous learning path.";
+            showErrorModal = true;
+        }
     }
 
     private void SubmitForReview()
@@ -597,6 +605,7 @@
         }
         catch (BusinessRuleException ex)
         {
+            errorModalTitle = "Approval Error";
             errorMessage = ex.Message;
             showErrorModal = true;
         }
@@ -704,5 +713,6 @@
     private void CloseErrorModal()
     {
         showErrorModal = false;
+        errorModalTitle = "Error";
     }
 }

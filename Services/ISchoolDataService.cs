@@ -71,8 +71,8 @@ namespace FcmsPortalUI.Services
         int? GetLearningPathIdByClassSessionId(int classSessionId);
         void UpdateLearningPath(LearningPath learningPath);
         Task<bool> DeleteLearningPathAsync(int id);
-        void AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd);
-        void AddStudentToLearningPath(int learningPathId, Student student);
+        double AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd);
+        double AddStudentToLearningPath(int learningPathId, Student student);
         void ApproveLearningPath(int learningPathId);
         #endregion
 
@@ -136,6 +136,8 @@ namespace FcmsPortalUI.Services
         Dictionary<int, double> GetTotalPaidByStudentForLearningPath(int learningPathId);
         FeeAdjustment AddFeeAdjustment(FeeAdjustment adjustment);
         void DeleteFeeAdjustment(int adjustmentId);
+        Dictionary<int, int> GetEnrolledStudentCountsForPeriod(int academicPeriodId);
+        int GetEnrolledStudentCount(int learningPathId);
         #endregion
 
         #region Grading

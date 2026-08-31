@@ -1816,3 +1816,7 @@ main {
     .fcms-breakdown .border-top {
         border-color: rgba(90, 62, 43, 0.2) !important;
     }
+
+.fcms-payment-panel .fcms-breakdown {
+    background-color: #fdf6f0;
+}

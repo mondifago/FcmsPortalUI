@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20260822085202_InitialCreate")]
+    [Migration("20260826143455_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -845,17 +845,11 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<double?>("Amount")
-                        .HasColumnType("double");
-
-                    b.Property<int?>("AuthorizedById")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<double?>("Percentage")
-                        .HasColumnType("double");
+                    b.Property<int>("Mode")
+                        .HasColumnType("int");
 
                     b.Property<string>("Reason")
                         .IsRequired()
@@ -868,11 +862,14 @@ namespace FcmsPortalUI.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
+                    b.Property<double>("Value")
+                        .HasColumnType("double");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SchoolFeesId");
 
-                    b.ToTable("FeeAdjustment");
+                    b.ToTable("FeeAdjustments");
                 });
 
             modelBuilder.Entity("FcmsPortal.Models.FileAttachment", b =>
@@ -1141,7 +1138,6 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Reference")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 

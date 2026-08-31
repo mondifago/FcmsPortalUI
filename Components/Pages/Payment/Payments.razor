@@ -218,8 +218,7 @@
                         @foreach (var learningPath in learningPaths)
                         {
                             var feesForPath = allFees.Where(fees => fees.LearningPathId == learningPath.Id).ToList();
-                            var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath, feesForPath);
-
+                            var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath, feesForPath, enrolledCounts.GetValueOrDefault(learningPath.Id));
                             <tr>
                                 <td>
                                     <a href="/learningpaths/details/@learningPath.Id">
@@ -267,6 +266,7 @@
     private LearningPath? selectedLearningPath = null;
     private List<LearningPath> learningPaths = new();
     private List<SchoolFees> allFees = new();
+    private Dictionary<int, int> enrolledCounts = new();
     private AcademicPeriod? currentPeriod;
     private int totalLearningPaths = 0;
     private int totalStudents = 0;
@@ -293,6 +293,7 @@
             return;
 
         learningPaths = SchoolDataService.GetLearningPathsForPeriod(currentPeriod.Id);
+        enrolledCounts = SchoolDataService.GetEnrolledStudentCountsForPeriod(currentPeriod.Id);
         allFees = SchoolDataService.GetSchoolFeesForPeriodStudents(currentPeriod.Id);
 
         CalculateSummaryData();

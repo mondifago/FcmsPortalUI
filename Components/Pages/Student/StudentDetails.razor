@@ -90,48 +90,125 @@
                 </div>
                 <AuthorizeView Roles="Developer,Principal,Admin">
                     <Authorized>
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">Payment Information</h5>
-                                @if (student.LearningPath != null)
-                                {
-                                    <small class="text-muted">@Util.GetLearningPathName(student.LearningPath)</small>
-                                }
-                            </div>
-                            <div class="card-body">
-                                @if (currentFees != null && currentFees.TotalAmount > 0)
-                                {
-                                    <div class="row">
-                                        <div class="col-12 mb-2">
-                                            <h6 class="text-muted">Total School Fees</h6>
-                                            <p class="fs-5">₦@currentFees.TotalAmount.ToString("N2")</p>
+
+                        @if (currentFees != null)
+                        {
+                            <div class="card fcms-tab-card fcms-payment-panel mt-4">
+                                <div class="card-body">
+
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="mb-0">Current Academic Period</h5>
+                                            <small class="text-muted">
+                                                @Util.GetLearningPathName(currentFees.LearningPath!)
+                                            </small>
                                         </div>
-                                        <div class="col-md-6 mb-2">
-                                            <h6 class="text-muted">Total Amount Paid</h6>
-                                            <p class="text-success fs-5">₦@currentFees.TotalPaid.ToString("N2")</p>
+                                        @if (student!.LearningPath == null)
+                                        {
+                                            <span class="badge bg-secondary">Not Enrolled</span>
+                                        }
+                                    </div>
+
+                                    <div class="row text-center g-2 mb-3">
+                                        <div class="col-4">
+                                            <div class="fcms-figure-label">Fees</div>
+                                            <div class="fcms-figure">₦@currentFees.TotalAmount.ToString("N2")</div>
                                         </div>
-                                        <div class="col-md-6 mb-2">
-                                            <h6 class="text-muted">Balance</h6>
-                                            @{
-                                                var balance = currentFees.Balance;
-                                            }
-                                            <p class="@(balance > 0 ? "text-danger" : "text-success") fs-5">
-                                                ₦@balance.ToString("N2")
-                                            </p>
+                                        <div class="col-4">
+                                            <div class="fcms-figure-label">Paid</div>
+                                            <div class="fcms-figure text-success">₦@currentFees.TotalPaid.ToString("N2")</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="fcms-figure-label">Balance</div>
+                                            <div class="fcms-figure @(currentFees.Balance > 0 ? "text-danger" : "text-success")">
+                                                ₦@currentFees.Balance.ToString("N2")
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="mt-3">
-                                        <button class="btn btn-primary" @onclick="NavigateToManagePayments">
-                                            <i class="fa fa-file-invoice-dollar me-1"></i> Manage Payments
+
+                                    <div class="fcms-breakdown">
+                                        <div class="d-flex justify-content-between py-1">
+                                            <span>Term fee</span>
+                                            <span>₦@((currentFees.LearningPath?.FeePerSemester ?? 0).ToString("N2"))</span>
+                                        </div>
+
+                                        @if (currentFees.TotalAdjustments > 0)
+                                        {
+                                            <div class="d-flex justify-content-between py-1 text-primary">
+                                                <span><i class="fa fa-tag me-1"></i>Adjustments</span>
+                                                <span>&minus; ₦@currentFees.TotalAdjustments.ToString("N2")</span>
+                                            </div>
+                                        }
+
+                                        <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                            <span>Payable this term</span>
+                                            <span>₦@currentFees.TotalAmount.ToString("N2")</span>
+                                        </div>
+
+                                        @if (broughtForward != 0)
+                                        {
+                                            <div class="d-flex justify-content-between py-1 @(broughtForward > 0 ? "text-danger" : "text-success")">
+                                                <span>@(broughtForward > 0 ? "Brought forward" : "Credit brought forward")</span>
+                                                <span>₦@Math.Abs(broughtForward).ToString("N2")</span>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between py-2 border-top fs-5 fw-bold">
+                                                <span>Total outstanding</span>
+                                                <span class="@((currentFees.Balance + broughtForward) > 0 ? "text-danger" : "text-success")">
+                                                    ₦@((currentFees.Balance + broughtForward).ToString("N2"))
+                                                </span>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    @if (student.LearningPath != null)
+                                    {
+                                        <div class="mt-3">
+                                            <button class="btn btn-primary" @onclick="NavigateToManagePayments">
+                                                <i class="fa fa-file-invoice-dollar me-1"></i> Manage Payments
+                                            </button>
+                                        </div>
+                                    }
+
+                                </div>
+                            </div>
+                        }
+
+                        @if (previousFees.Any())
+                        {
+                            <div class="card fcms-tab-card fcms-payment-panel mt-4">
+                                <div class="card-body">
+
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="mb-0">Previous Academic Periods</h5>
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => showHistoryModal = true">
+                                            <i class="fa fa-clock-rotate-left me-1"></i>View History
                                         </button>
                                     </div>
-                                }
-                                else
-                                {
-                                    <p class="text-muted">No payment information available for this student.</p>
-                                }
+
+                                    <div class="row text-center g-2">
+                                        <div class="col-4">
+                                            <div class="fcms-figure-label">Terms</div>
+                                            <div class="fcms-figure">@previousFees.Count</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="fcms-figure-label">Total Paid</div>
+                                            <div class="fcms-figure text-success">
+                                                ₦@previousFees.Sum(fees => fees.TotalPaid).ToString("N2")
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="fcms-figure-label">@(previousOutstanding < 0 ? "Credit" : "Outstanding")</div>
+                                            <div class="fcms-figure @(previousOutstanding > 0 ? "text-danger" : "text-success")">
+                                                ₦@Math.Abs(previousOutstanding).ToString("N2")
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
                             </div>
-                        </div>
+                        }
+
                     </Authorized>
                 </AuthorizeView>
             </div>
@@ -324,6 +401,76 @@
     <div class="modal-backdrop fade show"></div>
 }
 
+@if (showHistoryModal)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal show" style="display:block;">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Payment History</h5>
+                    <button type="button" class="btn-close" @onclick="() => showHistoryModal = false"></button>
+                </div>
+                <div class="modal-body">
+                    @foreach (var fees in previousFees)
+                    {
+                        <div class="fcms-fold-item mb-2">
+                            <div class="fcms-fold-header d-flex justify-content-between align-items-center"
+                                 role="button"
+                                 @onclick="() => ToggleFold(fees.Id)">
+                                <div class="fcms-fold-item-main">
+                                    <strong>@fees.LearningPath?.AcademicYear</strong>
+                                    <small class="text-muted">@fees.LearningPath?.Semester.ToTermDisplay()</small>
+                                </div>
+                                <div class="d-flex align-items-center fcms-gap-sm">
+                                    <span class="@(fees.Balance > 0 ? "text-danger" : "text-success")">
+                                        ₦@fees.Balance.ToString("N2")
+                                    </span>
+                                    <i class="fa @(expandedFoldId == fees.Id ? "fa-chevron-up" : "fa-chevron-down")"></i>
+                                </div>
+                            </div>
+
+                            @if (expandedFoldId == fees.Id)
+                            {
+                                <div class="fcms-fold-body small">
+                                    <div class="d-flex justify-content-between py-1">
+                                        <span>Term fee</span>
+                                        <span>₦@((fees.LearningPath?.FeePerSemester ?? 0).ToString("N2"))</span>
+                                    </div>
+                                    @if (fees.TotalAdjustments > 0)
+                                    {
+                                        <div class="d-flex justify-content-between py-1 text-primary">
+                                            <span>Adjustments</span>
+                                            <span>&minus; ₦@fees.TotalAdjustments.ToString("N2")</span>
+                                        </div>
+                                    }
+                                    <div class="d-flex justify-content-between py-1">
+                                        <span>Payable</span>
+                                        <span>₦@fees.TotalAmount.ToString("N2")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-1 text-success">
+                                        <span>Paid</span>
+                                        <span>₦@fees.TotalPaid.ToString("N2")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                        <span>Carried forward</span>
+                                        <span class="@(fees.Balance > 0 ? "text-danger" : "text-success")">
+                                            ₦@fees.Balance.ToString("N2")
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showHistoryModal = false">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (showRemoveConfirmation)
 {
     <div class="modal show" style="display: block" tabindex="-1">
@@ -367,6 +514,11 @@
     <div class="modal-backdrop fade show"></div>
 }
 
+<ErrorDisplayModal IsVisible="showErrorModal"
+                   Title="@errorModalTitle"
+                   Message="@errorMessage"
+                   OnClose="CloseErrorModal" />
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -378,6 +530,16 @@
     private bool showRemoveConfirmation = false;
     private int selectedLearningPathId = 0;
     private List<LearningPathListItem> availableLearningPaths = new();
+
+    private List<SchoolFees> previousFees = new();
+    private double broughtForward;
+    private double previousOutstanding;
+    private bool showHistoryModal;
+    private int? expandedFoldId;
+
+    private bool showErrorModal;
+    private string errorModalTitle = "Error";
+    private string errorMessage = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -414,9 +576,16 @@
         if (selectedLearningPathId == 0 || student == null)
             return;
 
-        SchoolDataService.AddStudentToLearningPath(selectedLearningPathId, student);
+        double amountTransferred = SchoolDataService.AddStudentToLearningPath(selectedLearningPathId, student);
         LoadStudent();
         CloseLearningPathModal();
+
+        if (amountTransferred > 0)
+        {
+            errorModalTitle = "Payment Transferred";
+            errorMessage = $"₦{amountTransferred:N2} was transferred from the previous learning path.";
+            showErrorModal = true;
+        }
     }
 
     private bool IsStudentInLearningPath()
@@ -445,20 +614,57 @@
         CloseRemoveConfirmation();
     }
 
+    private void LoadStudent()
+    {
+        student = SchoolDataService.GetStudentById(Id);
+
+        currentFees = null;
+        previousFees = new List<SchoolFees>();
+        broughtForward = 0;
+        previousOutstanding = 0;
+
+        if (student == null)
+            return;
+
+        var currentPeriod = SchoolDataService.GetCurrentAcademicPeriod();
+        var allFees = student.SchoolFees.Where(fees => fees.LearningPath != null).ToList();
+
+        if (currentPeriod != null)
+        {
+            currentFees = allFees
+                .FirstOrDefault(fees => fees.LearningPath!.AcademicPeriodId == currentPeriod.Id);
+
+            previousFees = allFees
+                .Where(fees => fees.LearningPath!.AcademicPeriodId != currentPeriod.Id)
+                .OrderByDescending(fees => fees.LearningPath!.SemesterStartDate)
+                .ToList();
+        }
+
+        previousOutstanding = previousFees.Sum(fees => fees.Balance);
+
+        if (currentFees?.LearningPath != null)
+        {
+            broughtForward = LogicMethods.GetOutstandingBroughtForward(
+                student.SchoolFees, currentFees.LearningPath);
+        }
+    }
+
+    private void ToggleFold(int schoolFeesId)
+    {
+        expandedFoldId = expandedFoldId == schoolFeesId ? null : schoolFeesId;
+    }
+
     private void NavigateToManagePayments()
     {
-        if (currentFees == null)
+        if (currentFees == null || student?.LearningPath == null)
             return;
 
         NavigationManager.NavigateTo($"/schoolfees/{currentFees.Id}/payments");
     }
 
-    private void LoadStudent()
+    private void CloseErrorModal()
     {
-        student = SchoolDataService.GetStudentById(Id);
-
-        currentFees = student?.LearningPath == null
-            ? null
-            : LogicMethods.GetFeesForLearningPath(student, student.LearningPath.Id);
+        showErrorModal = false;
+        errorModalTitle = "Error";
     }
 }

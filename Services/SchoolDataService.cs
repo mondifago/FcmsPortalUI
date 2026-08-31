@@ -947,7 +947,7 @@ namespace FcmsPortalUI.Services
             }
         }
 
-        public void AddStudentToLearningPath(int learningPathId, Student student)
+        public double AddStudentToLearningPath(int learningPathId, Student student)
         {
             if (learningPathId == 0)
                 throw new ArgumentNullException(nameof(learningPathId));
@@ -970,16 +970,20 @@ namespace FcmsPortalUI.Services
             if (existingLearningPath.Students == null)
                 existingLearningPath.Students = new List<Student>();
 
+            double amountTransferred = 0;
+
             if (!existingLearningPath.Students.Any(s => s.Id == student.Id))
             {
                 existingLearningPath.Students.Add(student);
-                EnsureSchoolFeesForEnrolment(student.Id, existingLearningPath.Id);
+                amountTransferred = EnsureSchoolFeesForEnrolment(student.Id, existingLearningPath.Id);
 
                 _context.SaveChanges();
             }
+
+            return amountTransferred;
         }
 
-        public void AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd)
+        public double AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd)
         {
             if (learningPathId == 0)
                 throw new ArgumentNullException(nameof(learningPathId));
@@ -1003,6 +1007,7 @@ namespace FcmsPortalUI.Services
                 existingLearningPath.Students = new List<Student>();
 
             bool hasChanges = false;
+            double amountTransferred = 0;
 
             foreach (var student in studentsToAdd)
             {
@@ -1012,7 +1017,7 @@ namespace FcmsPortalUI.Services
                 if (!existingLearningPath.Students.Any(s => s.Id == student.Id))
                 {
                     existingLearningPath.Students.Add(student);
-                    EnsureSchoolFeesForEnrolment(student.Id, existingLearningPath.Id);
+                    amountTransferred += EnsureSchoolFeesForEnrolment(student.Id, existingLearningPath.Id);
 
                     hasChanges = true;
                 }
@@ -1022,6 +1027,8 @@ namespace FcmsPortalUI.Services
             {
                 _context.SaveChanges();
             }
+
+            return amountTransferred;
         }
 
         public void ApproveLearningPath(int learningPathId)
@@ -1928,19 +1935,45 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(student => student.Id == studentId);
         }
 
-        private void EnsureSchoolFeesForEnrolment(int studentId, int learningPathId)
+        private double EnsureSchoolFeesForEnrolment(int studentId, int learningPathId)
         {
             bool alreadyExists = _context.SchoolFees
                 .Any(fees => fees.StudentId == studentId && fees.LearningPathId == learningPathId);
 
             if (alreadyExists)
-                return;
+                return 0;
 
-            _context.SchoolFees.Add(new SchoolFees
+            int academicPeriodId = _context.LearningPaths
+                .Where(learningPath => learningPath.Id == learningPathId)
+                .Select(learningPath => learningPath.AcademicPeriodId)
+                .FirstOrDefault();
+
+            var feesInSamePeriod = _context.SchoolFees
+                .Include(fees => fees.Payments)
+                .FirstOrDefault(fees => fees.StudentId == studentId
+                                     && fees.LearningPath!.AcademicPeriodId == academicPeriodId);
+
+            if (feesInSamePeriod == null)
             {
-                StudentId = studentId,
-                LearningPathId = learningPathId
-            });
+                _context.SchoolFees.Add(new SchoolFees
+                {
+                    StudentId = studentId,
+                    LearningPathId = learningPathId
+                });
+
+                return 0;
+            }
+
+            double amountMoved = feesInSamePeriod.Payments.Sum(payment => payment.Amount);
+
+            feesInSamePeriod.LearningPathId = learningPathId;
+
+            foreach (var payment in feesInSamePeriod.Payments)
+            {
+                payment.LearningPathId = learningPathId;
+            }
+
+            return amountMoved;
         }
 
         public Dictionary<int, double> GetTotalPaidByStudentForLearningPath(int learningPathId)
@@ -2000,6 +2033,25 @@ namespace FcmsPortalUI.Services
 
             _context.FeeAdjustments.Remove(adjustment);
             _context.SaveChanges();
+        }
+
+        public Dictionary<int, int> GetEnrolledStudentCountsForPeriod(int academicPeriodId)
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId
+                                    && !learningPath.IsTemplate)
+                .Select(learningPath => new { learningPath.Id, Count = learningPath.Students.Count })
+                .ToDictionary(row => row.Id, row => row.Count);
+        }
+
+        public int GetEnrolledStudentCount(int learningPathId)
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Where(learningPath => learningPath.Id == learningPathId)
+                .Select(learningPath => learningPath.Students.Count)
+                .FirstOrDefault();
         }
         #endregion
 
@@ -2901,8 +2953,8 @@ namespace FcmsPortalUI.Services
                 return;
 
             var feesInPath = GetSchoolFeesForLearningPath(lp.Id);
-
-            var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp, feesInPath);
+            var enrolledCount = GetEnrolledStudentCount(lp.Id);
+            var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp, feesInPath, enrolledCount);
             var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(feesInPath);
             var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(feesInPath);
 

@@ -1105,25 +1105,24 @@ namespace FcmsPortalUI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "FeeAdjustment",
+                name: "FeeAdjustments",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     SchoolFeesId = table.Column<int>(type: "int", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
-                    Amount = table.Column<double>(type: "double", nullable: true),
-                    Percentage = table.Column<double>(type: "double", nullable: true),
+                    Mode = table.Column<int>(type: "int", nullable: false),
+                    Value = table.Column<double>(type: "double", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Reason = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AuthorizedById = table.Column<int>(type: "int", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FeeAdjustment", x => x.Id);
+                    table.PrimaryKey("PK_FeeAdjustments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_FeeAdjustment_SchoolFees_SchoolFeesId",
+                        name: "FK_FeeAdjustments_SchoolFees_SchoolFeesId",
                         column: x => x.SchoolFeesId,
                         principalTable: "SchoolFees",
                         principalColumn: "Id",
@@ -1140,7 +1139,7 @@ namespace FcmsPortalUI.Migrations
                     Amount = table.Column<double>(type: "double", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     PaymentMethod = table.Column<int>(type: "int", nullable: false),
-                    Reference = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                    Reference = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     SchoolFeesId = table.Column<int>(type: "int", nullable: false),
                     Semester = table.Column<int>(type: "int", nullable: false),
@@ -1497,8 +1496,8 @@ namespace FcmsPortalUI.Migrations
                 column: "ClassSessionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FeeAdjustment_SchoolFeesId",
-                table: "FeeAdjustment",
+                name: "IX_FeeAdjustments_SchoolFeesId",
+                table: "FeeAdjustments",
                 column: "SchoolFeesId");
 
             migrationBuilder.CreateIndex(
@@ -1723,7 +1722,7 @@ namespace FcmsPortalUI.Migrations
                 name: "DailyAttendancePresentStudents");
 
             migrationBuilder.DropTable(
-                name: "FeeAdjustment");
+                name: "FeeAdjustments");
 
             migrationBuilder.DropTable(
                 name: "FileAttachments");
