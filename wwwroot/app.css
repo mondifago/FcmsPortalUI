@@ -1795,10 +1795,9 @@ main {
 
 /* ===== Payments page ===== */
 .fcms-figure-label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #7a6455;
+    font-size: 1.0rem;
+
+
 }
 
 .fcms-figure {
@@ -1819,4 +1818,8 @@ main {
 
 .fcms-payment-panel .fcms-breakdown {
     background-color: #fdf6f0;
+}
+
+.fcms-payment-panel .fcms-figure {
+    font-size: 1.25rem;
 }

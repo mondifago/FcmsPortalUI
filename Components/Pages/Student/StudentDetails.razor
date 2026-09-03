@@ -109,20 +109,20 @@
                                         }
                                     </div>
 
-                                    <div class="row text-center g-2 mb-3">
-                                        <div class="col-4">
-                                            <div class="fcms-figure-label">Fees</div>
-                                            <div class="fcms-figure">₦@currentFees.TotalAmount.ToString("N2")</div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center py-1">
+                                            <span class="fcms-figure-label">Fees</span>
+                                            <span class="fcms-figure">₦@currentFees.TotalAmount.ToString("N2")</span>
                                         </div>
-                                        <div class="col-4">
-                                            <div class="fcms-figure-label">Paid</div>
-                                            <div class="fcms-figure text-success">₦@currentFees.TotalPaid.ToString("N2")</div>
+                                        <div class="d-flex justify-content-between align-items-center py-1">
+                                            <span class="fcms-figure-label">Paid</span>
+                                            <span class="fcms-figure text-success">₦@currentFees.TotalPaid.ToString("N2")</span>
                                         </div>
-                                        <div class="col-4">
-                                            <div class="fcms-figure-label">Balance</div>
-                                            <div class="fcms-figure @(currentFees.Balance > 0 ? "text-danger" : "text-success")">
+                                        <div class="d-flex justify-content-between align-items-center py-1">
+                                            <span class="fcms-figure-label">Balance</span>
+                                            <span class="fcms-figure @(currentFees.Balance > 0 ? "text-danger" : "text-success")">
                                                 ₦@currentFees.Balance.ToString("N2")
-                                            </div>
+                                            </span>
                                         </div>
                                     </div>
 
@@ -493,14 +493,6 @@
                             (@student.LearningPath.AcademicYear) @student.LearningPath.Semester.ToTermDisplay())
                         </div>
                     }
-
-                    <div class="alert alert-warning">
-                        <strong>This action will:</strong>
-                        <ul class="mb-0">
-                            <li>Remove the student from the learning path</li>
-                            <li>Reset their school fees to zero</li>
-                        </ul>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CloseRemoveConfirmation">Cancel</button>
@@ -608,8 +600,17 @@
         if (student == null || student.LearningPath == null)
             return;
 
-        SchoolDataService.RemoveStudentFromLearningPath(student.LearningPath, student);
-        LoadStudent();
+        try
+        {
+            SchoolDataService.RemoveStudentFromLearningPath(student.LearningPath, student);
+            LoadStudent();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorModalTitle = "Cannot Remove Student";
+            errorMessage = ex.Message;
+            showErrorModal = true;
+        }
 
         CloseRemoveConfirmation();
     }

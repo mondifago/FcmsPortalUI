@@ -629,16 +629,42 @@ namespace FcmsPortalUI.Services
 
             var existingLearningPath = _context.LearningPaths
                 .Include(lp => lp.Students)
-
                 .FirstOrDefault(lp => lp.Id == learningPath.Id);
 
             if (existingLearningPath == null)
                 throw new ArgumentException("Learning path not found in database.");
 
-            if (!existingLearningPath.Students.Contains(student))
+            var enrolledStudent = existingLearningPath.Students
+                .FirstOrDefault(candidate => candidate.Id == student.Id);
+
+            if (enrolledStudent == null)
                 return;
 
-            existingLearningPath.Students.Remove(student);
+            bool hasGrades = _context.CourseGrades
+                .Any(courseGrade => courseGrade.StudentId == student.Id
+                                 && courseGrade.LearningPathId == existingLearningPath.Id
+                                 && courseGrade.TestGrades.Any());
+
+            if (hasGrades)
+            {
+                throw new BusinessRuleException(
+                    $"{Util.GetFullName(student.Person)} has grades recorded for " +
+                    $"{Util.GetLearningPathName(existingLearningPath)} and cannot be removed from it. ");
+            }
+
+            bool hasAttendance = _context.DailyAttendanceLogEntries
+                .Any(log => log.LearningPathId == existingLearningPath.Id
+                         && (log.PresentStudents.Any(candidate => candidate.Id == student.Id)
+                          || log.AbsentStudents.Any(candidate => candidate.Id == student.Id)));
+
+            if (hasAttendance)
+            {
+                throw new BusinessRuleException(
+                    $"{Util.GetFullName(student.Person)} has attendance recorded for " +
+                    $"{Util.GetLearningPathName(existingLearningPath)} and cannot be removed from it.");
+            }
+
+            existingLearningPath.Students.Remove(enrolledStudent);
 
             _context.SaveChanges();
         }
