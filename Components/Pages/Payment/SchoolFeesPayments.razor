@@ -270,56 +270,70 @@
                         {
                             @foreach (var fees in previousFees)
                             {
-                                <div class="fcms-fold-item mb-2">
-                                    <div class="fcms-fold-header d-flex justify-content-between align-items-center"
+                                var isExpanded = expandedFoldIds.Contains(fees.Id);
+                                var broughtForward = LogicMethods.GetOutstandingBroughtForward(allFees, fees.LearningPath!);
+                                var totalPayable = LogicMethods.GetTotalPayable(allFees, fees);
+                                var carriedForward = LogicMethods.GetCarriedForward(allFees, fees);
+
+                                <div class="mb-2">
+                                    <div class="fcms-fold-header d-flex justify-content-between align-items-center p-2"
                                          role="button"
                                          @onclick="() => ToggleFold(fees.Id)">
                                         <div class="fcms-fold-item-main">
                                             <strong>@fees.LearningPath?.AcademicYear</strong>
-                                            <small class="text-muted">@fees.LearningPath?.Semester.ToTermDisplay()</small>
+                                            <small class="text-muted">
+                                                @fees.LearningPath?.ClassLevel.ToDisplayName() &middot; @fees.LearningPath?.Semester.ToTermDisplay()
+                                            </small>
                                         </div>
                                         <div class="d-flex align-items-center fcms-gap-sm">
-                                            <span class="@(fees.Balance > 0 ? "text-danger" : "text-success")">
-                                                @Money(fees.Balance)
+                                            <span class="@(carriedForward > 0 ? "text-danger" : "text-success")">
+                                                @Money(carriedForward)
                                             </span>
-                                            <i class="fa @(expandedFoldId == fees.Id ? "fa-chevron-up" : "fa-chevron-down")"></i>
+                                            <i class="fa @(isExpanded ? "fa-chevron-up" : "fa-chevron-down")"></i>
                                         </div>
                                     </div>
 
-                                    @if (expandedFoldId == fees.Id)
+                                    @if (isExpanded)
                                     {
-                                        <div class="fcms-fold-body small">
-                                            <div class="d-flex justify-content-between py-1">
-                                                <span>Term fee</span>
-                                                <span>@Money(fees.LearningPath?.FeePerSemester ?? 0)</span>
-                                            </div>
-                                            @if (fees.TotalAdjustments > 0)
-                                            {
-                                                <div class="d-flex justify-content-between py-1 text-primary">
+                                        <div class="fcms-fold-body d-flex flex-column p-2 small">
+                                            <div class="fcms-fold-item d-flex flex-column rounded p-2">
+                                                <div class="d-flex justify-content-between py-1">
+                                                    <span>Brought forward</span>
+                                                    <span>@Money(broughtForward)</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between py-1">
+                                                    <span>Term fee</span>
+                                                    <span>@Money(fees.LearningPath?.FeePerSemester ?? 0)</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between py-1 @(fees.TotalAdjustments > 0 ? "text-primary" : "")">
                                                     <span>Discount</span>
                                                     <span>&minus; @Money(fees.TotalAdjustments)</span>
                                                 </div>
-                                            }
-                                            <div class="d-flex justify-content-between py-1">
-                                                <span>Payable</span>
-                                                <span>@Money(fees.TotalAmount)</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between py-1 text-success">
-                                                <span>Paid</span>
-                                                <span>@Money(fees.TotalPaid)</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between py-1 border-top fw-bold">
-                                                <span>Carried forward</span>
-                                                <span class="@(fees.Balance > 0 ? "text-danger" : "text-success")">
-                                                    @Money(fees.Balance)
-                                                </span>
-                                            </div>
+                                                <div class="d-flex justify-content-between py-1 border-top">
+                                                    <span>Term payable</span>
+                                                    <span>@Money(fees.TotalAmount)</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between py-1 fw-bold">
+                                                    <span>Total payable</span>
+                                                    <span>@Money(totalPayable)</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between py-1 text-success">
+                                                    <span>Paid</span>
+                                                    <span>@Money(fees.TotalPaid)</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                                    <span>Carried forward</span>
+                                                    <span class="@(carriedForward > 0 ? "text-danger" : "text-success")">
+                                                        @Money(carriedForward)
+                                                    </span>
+                                                </div>
 
-                                            <div class="d-grid mt-2">
-                                                <button class="btn btn-sm btn-outline-secondary"
-                                                        @onclick="() => ShowTermReport(fees.LearningPathId)">
-                                                    <i class="fa fa-file-alt me-1"></i>Open Report
-                                                </button>
+                                                <div class="d-grid mt-2 pt-2 border-top">
+                                                    <button class="btn btn-sm btn-outline-secondary"
+                                                            @onclick="() => ShowTermReport(fees.LearningPathId)">
+                                                        <i class="fa fa-file-alt me-1"></i>Open Report
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     }
@@ -521,7 +535,7 @@
     private string errorMessage = string.Empty;
     private bool showPaymentReport = false;
     private int? reportLearningPathId;
-    private int? expandedFoldId;
+    private HashSet<int> expandedFoldIds = new();
     private int currentPage = 1;
     private bool showAdjustmentModal = false;
     private FeeAdjustment newAdjustment = new();
@@ -587,7 +601,14 @@
 
     private void ToggleFold(int schoolFeesId)
     {
-        expandedFoldId = expandedFoldId == schoolFeesId ? null : schoolFeesId;
+        if (expandedFoldIds.Contains(schoolFeesId))
+        {
+            expandedFoldIds.Remove(schoolFeesId);
+        }
+        else
+        {
+            expandedFoldIds.Add(schoolFeesId);
+        }
     }
 
     private void ShowTermReport(int learningPathId)
