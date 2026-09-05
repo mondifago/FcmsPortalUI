@@ -1,0 +1,160 @@
+﻿@using FcmsPortal
+@using FcmsPortal.Models
+@inject IJSRuntime JSRuntime
+
+<div class="modal @(IsVisible ? "show" : "")" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Fee Ledger</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Student == null)
+                {
+                    <p>Loading...</p>
+                }
+                else
+                {
+                    <div class="payment-report">
+                        <h2>Fee Ledger</h2>
+
+                        <div class="report-section">
+                            <div class="report-grid">
+                                <div>
+                                    <p><strong>Student:</strong> @Util.GetFullName(Student.Person)</p>
+                                </div>
+                                <div>
+                                    <p><strong>Closing balance:</strong> @Util.Money(ClosingBalance)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Academic Period</th>
+                                        <th class="text-end">Brought forward</th>
+                                        <th class="text-end">Term fee</th>
+                                        <th class="text-end">Discount</th>
+                                        <th class="text-end">Term payable</th>
+                                        <th class="text-end">Total payable</th>
+                                        <th class="text-end">Paid</th>
+                                        <th class="text-end">Carried forward</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (!ledgerRows.Any())
+                                    {
+                                        <tr>
+                                            <td colspan="8" class="text-center">No fee records available.</td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var fees in ledgerRows)
+                                        {
+                                            var broughtForward = LogicMethods.GetOutstandingBroughtForward(allFees, fees.LearningPath!);
+                                            var totalPayable = LogicMethods.GetTotalPayable(allFees, fees);
+                                            var carriedForward = LogicMethods.GetCarriedForward(allFees, fees);
+
+                                            <tr>
+                                                <td>
+                                                    @fees.LearningPath?.AcademicYear
+                                                    <small class="text-muted d-block">
+                                                        @fees.LearningPath?.ClassLevel.ToDisplayName() &middot; @fees.LearningPath?.Semester.ToTermDisplay()
+                                                    </small>
+                                                </td>
+                                                <td class="text-end">@Util.Money(broughtForward)</td>
+                                                <td class="text-end">@Util.Money(fees.LearningPath?.FeePerSemester ?? 0)</td>
+                                                <td class="text-end">@Util.Money(fees.TotalAdjustments)</td>
+                                                <td class="text-end">@Util.Money(fees.TotalAmount)</td>
+                                                <td class="text-end fw-bold">@Util.Money(totalPayable)</td>
+                                                <td class="text-end text-success">@Util.Money(fees.TotalPaid)</td>
+                                                <td class="text-end fw-bold @(carriedForward > 0 ? "text-danger" : "text-success")">
+                                                    @Util.Money(carriedForward)
+                                                </td>
+                                            </tr>
+                                        }
+
+                                        <tr class="fw-bold border-top">
+                                            <td>Total</td>
+                                            <td></td>
+                                            <td class="text-end">@Util.Money(TotalTermFees)</td>
+                                            <td class="text-end">@Util.Money(TotalDiscounts)</td>
+                                            <td class="text-end">@Util.Money(TotalTermPayable)</td>
+                                            <td></td>
+                                            <td class="text-end text-success">@Util.Money(TotalPaid)</td>
+                                            <td class="text-end @(ClosingBalance > 0 ? "text-danger" : "text-success")">
+                                                @Util.Money(ClosingBalance)
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="timestamp text-muted">
+                            <em>Ledger generated on @DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")</em>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+                <button type="button" class="btn btn-primary" @onclick="PrintLedger">Print</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public Student? Student { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private List<SchoolFees> allFees = new();
+    private List<SchoolFees> ledgerRows = new();
+
+    private double TotalTermFees => ledgerRows.Sum(fees => fees.LearningPath?.FeePerSemester ?? 0);
+    private double TotalDiscounts => ledgerRows.Sum(fees => fees.TotalAdjustments);
+    private double TotalTermPayable => ledgerRows.Sum(fees => fees.TotalAmount);
+    private double TotalPaid => ledgerRows.Sum(fees => fees.TotalPaid);
+    private double ClosingBalance => TotalTermPayable - TotalPaid;
+
+    protected override void OnParametersSet()
+    {
+        if (!IsVisible || Student == null)
+        {
+            return;
+        }
+
+        allFees = Student.SchoolFees ?? new List<SchoolFees>();
+
+        ledgerRows = allFees
+            .Where(fees => fees.LearningPath != null)
+            .OrderBy(fees => fees.LearningPath!.SemesterStartDate)
+            .ToList();
+    }
+
+    private async Task PrintLedger()
+    {
+        await JSRuntime.InvokeVoidAsync("window.print");
+    }
+
+    private void Close()
+    {
+        OnClose.InvokeAsync();
+    }
+}

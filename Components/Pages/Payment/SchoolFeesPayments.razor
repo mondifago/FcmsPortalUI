@@ -29,7 +29,7 @@
                             @student.LearningPath?.Semester.ToTermDisplay()
                         </small>
                     </div>
-                   
+
                     <div class="d-flex fcms-gap-sm">
                         <button class="btn btn-sm btn-outline-primary" @onclick="ShowPaymentReport">
                             <i class="fa fa-file-alt me-1"></i>Report
@@ -161,8 +161,8 @@
                                     <InputText id="reference" @bind-Value="newPayment.Reference" class="form-control"
                                                disabled="@(newPayment.PaymentMethod != PaymentMethod.BankTransfer)"
                                                placeholder="@(newPayment.PaymentMethod == PaymentMethod.BankTransfer
-                                                       ? "Teller / transfer reference"
-                                                       : "Not required for cash")" />
+                                                                                           ? "Teller / transfer reference"
+                                                                                           : "Not required for cash")" />
                                 </div>
                             </div>
 
@@ -258,7 +258,15 @@
             <div class="col-lg-5">
                 <div class="card fcms-tab-card">
                     <div class="card-body">
-                        <h5 class="mb-3">Previous Terms</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Previous Terms</h5>
+                            @if (previousFees.Any())
+                            {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => showLedger = true">
+                                    <i class="fa fa-book me-1"></i>View Ledger
+                                </button>
+                            }
+                        </div>
 
                         @if (!previousFees.Any())
                         {
@@ -268,75 +276,49 @@
                         }
                         else
                         {
-                            @foreach (var fees in previousFees)
-                            {
-                                var isExpanded = expandedFoldIds.Contains(fees.Id);
-                                var broughtForward = LogicMethods.GetOutstandingBroughtForward(allFees, fees.LearningPath!);
-                                var totalPayable = LogicMethods.GetTotalPayable(allFees, fees);
-                                var carriedForward = LogicMethods.GetCarriedForward(allFees, fees);
+                            <div class="fcms-breakdown">
+                                @foreach (var yearGroup in PagedPreviousFees.GroupBy(fees => fees.LearningPath!.AcademicYear))
+                                {
+                                    <div class="@(yearGroup.Key == FirstPagedAcademicYear ? "" : "border-top mt-2 pt-2")">
+                                        <strong>@yearGroup.Key</strong>
 
-                                <div class="mb-2">
-                                    <div class="fcms-fold-header d-flex justify-content-between align-items-center p-2"
-                                         role="button"
-                                         @onclick="() => ToggleFold(fees.Id)">
-                                        <div class="fcms-fold-item-main">
-                                            <strong>@fees.LearningPath?.AcademicYear</strong>
-                                            <small class="text-muted">
-                                                @fees.LearningPath?.ClassLevel.ToDisplayName() &middot; @fees.LearningPath?.Semester.ToTermDisplay()
-                                            </small>
-                                        </div>
-                                        <div class="d-flex align-items-center fcms-gap-sm">
-                                            <span class="@(carriedForward > 0 ? "text-danger" : "text-success")">
-                                                @Money(carriedForward)
-                                            </span>
-                                            <i class="fa @(isExpanded ? "fa-chevron-up" : "fa-chevron-down")"></i>
-                                        </div>
-                                    </div>
+                                        @foreach (var fees in yearGroup)
+                                        {
+                                            var carriedForward = LogicMethods.GetCarriedForward(allFees, fees);
 
-                                    @if (isExpanded)
-                                    {
-                                        <div class="fcms-fold-body d-flex flex-column p-2 small">
-                                            <div class="fcms-fold-item d-flex flex-column rounded p-2">
-                                                <div class="d-flex justify-content-between py-1">
-                                                    <span>Brought forward</span>
-                                                    <span>@Money(broughtForward)</span>
-                                                </div>
-                                                <div class="d-flex justify-content-between py-1">
-                                                    <span>Term fee</span>
-                                                    <span>@Money(fees.LearningPath?.FeePerSemester ?? 0)</span>
-                                                </div>
-                                                <div class="d-flex justify-content-between py-1 @(fees.TotalAdjustments > 0 ? "text-primary" : "")">
-                                                    <span>Discount</span>
-                                                    <span>&minus; @Money(fees.TotalAdjustments)</span>
-                                                </div>
-                                                <div class="d-flex justify-content-between py-1 border-top">
-                                                    <span>Term payable</span>
-                                                    <span>@Money(fees.TotalAmount)</span>
-                                                </div>
-                                                <div class="d-flex justify-content-between py-1 fw-bold">
-                                                    <span>Total payable</span>
-                                                    <span>@Money(totalPayable)</span>
-                                                </div>
-                                                <div class="d-flex justify-content-between py-1 text-success">
-                                                    <span>Paid</span>
-                                                    <span>@Money(fees.TotalPaid)</span>
-                                                </div>
-                                                <div class="d-flex justify-content-between py-1 border-top fw-bold">
-                                                    <span>Carried forward</span>
+                                            <div class="d-flex justify-content-between align-items-center py-1">
+                                                <small class="text-muted">
+                                                    @fees.LearningPath?.ClassLevel.ToDisplayName() &middot; @fees.LearningPath?.Semester.ToTermDisplay()
+                                                </small>
+                                                <div class="d-flex align-items-center fcms-gap-sm">
                                                     <span class="@(carriedForward > 0 ? "text-danger" : "text-success")">
                                                         @Money(carriedForward)
                                                     </span>
-                                                </div>
-
-                                                <div class="d-grid mt-2 pt-2 border-top">
                                                     <button class="btn btn-sm btn-outline-secondary"
                                                             @onclick="() => ShowTermReport(fees.LearningPathId)">
-                                                        <i class="fa fa-file-alt me-1"></i>Open Report
+                                                        <i class="fa fa-file-alt me-1"></i>Report
                                                     </button>
                                                 </div>
                                             </div>
-                                        </div>
-                                    }
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            @if (PreviousTotalPages > 1)
+                            {
+                                <div class="d-flex justify-content-center align-items-center fcms-gap-sm mt-3">
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            disabled="@(previousPage == 1)"
+                                            @onclick="PreviousTermsPrevPage">
+                                        <i class="fa fa-chevron-left"></i>
+                                    </button>
+                                    <small class="text-muted">@previousPage / @PreviousTotalPages</small>
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            disabled="@(previousPage == PreviousTotalPages)"
+                                            @onclick="PreviousTermsNextPage">
+                                        <i class="fa fa-chevron-right"></i>
+                                    </button>
                                 </div>
                             }
                         }
@@ -350,6 +332,10 @@
                                    Student="student"
                                    LearningPathId="reportLearningPathId"
                                    OnClose="ClosePaymentReport" />
+
+        <StudentFeeLedgerModal IsVisible="showLedger"
+                               Student="student"
+                               OnClose="() => showLedger = false" />
     }
 
 </div>
@@ -535,7 +521,8 @@
     private string errorMessage = string.Empty;
     private bool showPaymentReport = false;
     private int? reportLearningPathId;
-    private HashSet<int> expandedFoldIds = new();
+    private bool showLedger = false;
+    private int previousPage = 1;
     private int currentPage = 1;
     private bool showAdjustmentModal = false;
     private FeeAdjustment newAdjustment = new();
@@ -563,6 +550,7 @@
             .ToList();
 
         currentPage = 1;
+        previousPage = 1;
     }
 
     private static string Money(double amount)
@@ -599,16 +587,28 @@
             currentPage++;
     }
 
-    private void ToggleFold(int schoolFeesId)
+    private int PreviousTotalPages =>
+        Math.Max(1, (int)Math.Ceiling(previousFees.Count / (double)FcmsConstants.LIST_PAGE_SIZE));
+
+    private string FirstPagedAcademicYear =>
+        PagedPreviousFees.FirstOrDefault()?.LearningPath?.AcademicYear ?? string.Empty;
+
+    private List<SchoolFees> PagedPreviousFees =>
+        previousFees
+            .Skip((previousPage - 1) * FcmsConstants.LIST_PAGE_SIZE)
+            .Take(FcmsConstants.LIST_PAGE_SIZE)
+            .ToList();
+
+    private void PreviousTermsPrevPage()
     {
-        if (expandedFoldIds.Contains(schoolFeesId))
-        {
-            expandedFoldIds.Remove(schoolFeesId);
-        }
-        else
-        {
-            expandedFoldIds.Add(schoolFeesId);
-        }
+        if (previousPage > 1)
+            previousPage--;
+    }
+
+    private void PreviousTermsNextPage()
+    {
+        if (previousPage < PreviousTotalPages)
+            previousPage++;
     }
 
     private void ShowTermReport(int learningPathId)

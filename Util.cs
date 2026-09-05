@@ -3,6 +3,7 @@ using FcmsPortal.Constants;
 using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace FcmsPortalUI
@@ -419,6 +420,11 @@ namespace FcmsPortalUI
             };
 
             return messageStore;
+        }
+
+        public static string Money(double amount)
+        {
+            return amount.ToString("C", new CultureInfo("en-NG"));
         }
     }
 }
