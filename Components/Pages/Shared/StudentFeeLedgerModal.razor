@@ -25,7 +25,7 @@
                                     <p><strong>Student:</strong> @Util.GetFullName(Student.Person)</p>
                                 </div>
                                 <div>
-                                    <p><strong>Closing balance:</strong> @Util.Money(ClosingBalance)</p>
+                                    <p><strong>Closing balance:</strong> @Util.Money(ledgerData.ClosingBalance)</p>
                                 </div>
                             </div>
                         </div>
@@ -45,7 +45,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if (!ledgerRows.Any())
+                                    @if (!ledgerData.Entries.Any())
                                     {
                                         <tr>
                                             <td colspan="8" class="text-center">No fee records available.</td>
@@ -53,27 +53,23 @@
                                     }
                                     else
                                     {
-                                        @foreach (var fees in ledgerRows)
+                                        @foreach (var entry in ledgerData.Entries)
                                         {
-                                            var broughtForward = LogicMethods.GetOutstandingBroughtForward(allFees, fees.LearningPath!);
-                                            var totalPayable = LogicMethods.GetTotalPayable(allFees, fees);
-                                            var carriedForward = LogicMethods.GetCarriedForward(allFees, fees);
-
                                             <tr>
                                                 <td>
-                                                    @fees.LearningPath?.AcademicYear
+                                                    @entry.AcademicYear
                                                     <small class="text-muted d-block">
-                                                        @fees.LearningPath?.ClassLevel.ToDisplayName() &middot; @fees.LearningPath?.Semester.ToTermDisplay()
+                                                        @entry.ClassLevel.ToDisplayName() &middot; @entry.Semester.ToTermDisplay()
                                                     </small>
                                                 </td>
-                                                <td class="text-end">@Util.Money(broughtForward)</td>
-                                                <td class="text-end">@Util.Money(fees.LearningPath?.FeePerSemester ?? 0)</td>
-                                                <td class="text-end">@Util.Money(fees.TotalAdjustments)</td>
-                                                <td class="text-end">@Util.Money(fees.TotalAmount)</td>
-                                                <td class="text-end fw-bold">@Util.Money(totalPayable)</td>
-                                                <td class="text-end text-success">@Util.Money(fees.TotalPaid)</td>
-                                                <td class="text-end fw-bold @(carriedForward > 0 ? "text-danger" : "text-success")">
-                                                    @Util.Money(carriedForward)
+                                                <td class="text-end">@Util.Money(entry.BroughtForward)</td>
+                                                <td class="text-end">@Util.Money(entry.TermFee)</td>
+                                                <td class="text-end">@Util.Money(entry.Discount)</td>
+                                                <td class="text-end">@Util.Money(entry.TermPayable)</td>
+                                                <td class="text-end fw-bold">@Util.Money(entry.TotalPayable)</td>
+                                                <td class="text-end text-success">@Util.Money(entry.Paid)</td>
+                                                <td class="text-end fw-bold @(entry.CarriedForward > 0 ? "text-danger" : "text-success")">
+                                                    @Util.Money(entry.CarriedForward)
                                                 </td>
                                             </tr>
                                         }
@@ -83,7 +79,7 @@
                         </div>
 
                         <div class="timestamp text-muted">
-                            <em>Ledger generated on @DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")</em>
+                            <em>Ledger generated on @ledgerData.DateAndTimeLedgerGenerated.ToString("yyyy-MM-dd HH:mm:ss")</em>
                         </div>
                     </div>
                 }
@@ -111,14 +107,7 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    private List<SchoolFees> allFees = new();
-    private List<SchoolFees> ledgerRows = new();
-
-    private double TotalTermFees => ledgerRows.Sum(fees => fees.LearningPath?.FeePerSemester ?? 0);
-    private double TotalDiscounts => ledgerRows.Sum(fees => fees.TotalAdjustments);
-    private double TotalTermPayable => ledgerRows.Sum(fees => fees.TotalAmount);
-    private double TotalPaid => ledgerRows.Sum(fees => fees.TotalPaid);
-    private double ClosingBalance => TotalTermPayable - TotalPaid;
+    private StudentFeeLedger ledgerData = new();
 
     protected override void OnParametersSet()
     {
@@ -127,12 +116,7 @@
             return;
         }
 
-        allFees = Student.SchoolFees ?? new List<SchoolFees>();
-
-        ledgerRows = allFees
-            .Where(fees => fees.LearningPath != null)
-            .OrderBy(fees => fees.LearningPath!.SemesterStartDate)
-            .ToList();
+        ledgerData = LogicMethods.GenerateStudentFeeLedger(Student);
     }
 
     private async Task PrintLedger()

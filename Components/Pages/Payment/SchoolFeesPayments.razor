@@ -56,7 +56,7 @@
                         <div class="row text-center g-2 mb-3">
                             <div class="col-4">
                                 <div class="fcms-figure-label">Total Payable</div>
-                                <div class="fcms-figure">@Money(schoolFees.TotalAmount + broughtForward)</div>
+                                <div class="fcms-figure">@Money(totalPayable)</div>
                             </div>
                             <div class="col-4">
                                 <div class="fcms-figure-label">Paid</div>
@@ -65,7 +65,7 @@
                             <div class="col-4">
                                 <div class="fcms-figure-label">Total Outstanding</div>
                                 <div class="fcms-figure @(schoolFees.Balance > 0 ? "text-danger" : "text-success")">
-                                    @Money(schoolFees.Balance + broughtForward)
+                                    @Money(totalOutstanding)
                                 </div>
                             </div>
                         </div>
@@ -114,13 +114,13 @@
                             {
                                 <div class="d-flex justify-content-between py-1 border-top fw-bold">
                                     <span>Total payable</span>
-                                    <span>@Money(schoolFees.TotalAmount + broughtForward)</span>
+                                    <span>@Money(totalPayable)</span>
                                 </div>
                             }
                             <div class="d-flex justify-content-between py-2 border-top fs-5 fw-bold">
                                 <span>Total outstanding</span>
-                                <span class="@((schoolFees.Balance + broughtForward) > 0 ? "text-danger" : "text-success")">
-                                    @Money(schoolFees.Balance + broughtForward)
+                                <span class="@(totalOutstanding > 0 ? "text-danger" : "text-success")">
+                                    @Money(totalOutstanding)
                                 </span>
                             </div>
                         </div>
@@ -517,6 +517,8 @@
     private List<SchoolFees> allFees = new();
     private List<SchoolFees> previousFees = new();
     private double broughtForward;
+    private double totalPayable;
+    private double totalOutstanding;
     private Payment newPayment = new Payment();
     private Payment? editingPayment = null;
     private Payment? selectedPayment = null;
@@ -549,6 +551,8 @@
         broughtForward = schoolFees.LearningPath == null
             ? 0
             : LogicMethods.GetOutstandingBroughtForward(allFees, schoolFees.LearningPath);
+        totalPayable = LogicMethods.GetTotalPayable(allFees, schoolFees);
+        totalOutstanding = LogicMethods.GetCarriedForward(allFees, schoolFees);
 
         previousFees = allFees
             .Where(fees => fees.LearningPathId != schoolFees.LearningPathId && fees.LearningPath != null)
