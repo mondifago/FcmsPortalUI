@@ -55,24 +55,24 @@
                         <!-- headline figures -->
                         <div class="row text-center g-2 mb-3">
                             <div class="col-4">
-                                <div class="fcms-figure-label">Fees</div>
-                                <div class="fcms-figure">@Money(schoolFees.TotalAmount)</div>
+                                <div class="fcms-figure-label">Total Payable</div>
+                                <div class="fcms-figure">@Money(schoolFees.TotalAmount + broughtForward)</div>
                             </div>
                             <div class="col-4">
                                 <div class="fcms-figure-label">Paid</div>
                                 <div class="fcms-figure text-success">@Money(schoolFees.TotalPaid)</div>
                             </div>
                             <div class="col-4">
-                                <div class="fcms-figure-label">Balance</div>
+                                <div class="fcms-figure-label">Total Outstanding</div>
                                 <div class="fcms-figure @(schoolFees.Balance > 0 ? "text-danger" : "text-success")">
-                                    @Money(schoolFees.Balance)
+                                    @Money(schoolFees.Balance + broughtForward)
                                 </div>
                             </div>
                         </div>
 
                         <!-- breakdown -->
                         <div class="fcms-breakdown">
-                            <div class="d-flex justify-content-between py-1">
+                            <div class="d-flex justify-content-between py-1 fw-bold">
                                 <span>Term fee</span>
                                 <span>@Money(schoolFees.LearningPath?.FeePerSemester ?? 0)</span>
                             </div>
@@ -98,8 +98,8 @@
                                 }
                             }
 
-                            <div class="d-flex justify-content-between py-1 border-top fw-bold">
-                                <span>Payable this term</span>
+                            <div class="d-flex justify-content-between py-1 border-top">
+                                <span>Term Payable</span>
                                 <span>@Money(schoolFees.TotalAmount)</span>
                             </div>
 
@@ -110,7 +110,13 @@
                                     <span>@Money(Math.Abs(broughtForward))</span>
                                 </div>
                             }
-
+                            @if (broughtForward != 0)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                    <span>Total payable</span>
+                                    <span>@Money(schoolFees.TotalAmount + broughtForward)</span>
+                                </div>
+                            }
                             <div class="d-flex justify-content-between py-2 border-top fs-5 fw-bold">
                                 <span>Total outstanding</span>
                                 <span class="@((schoolFees.Balance + broughtForward) > 0 ? "text-danger" : "text-success")">

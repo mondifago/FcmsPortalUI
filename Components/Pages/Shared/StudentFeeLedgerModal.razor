@@ -77,19 +77,6 @@
                                                 </td>
                                             </tr>
                                         }
-
-                                        <tr class="fw-bold border-top">
-                                            <td>Total</td>
-                                            <td></td>
-                                            <td class="text-end">@Util.Money(TotalTermFees)</td>
-                                            <td class="text-end">@Util.Money(TotalDiscounts)</td>
-                                            <td class="text-end">@Util.Money(TotalTermPayable)</td>
-                                            <td></td>
-                                            <td class="text-end text-success">@Util.Money(TotalPaid)</td>
-                                            <td class="text-end @(ClosingBalance > 0 ? "text-danger" : "text-success")">
-                                                @Util.Money(ClosingBalance)
-                                            </td>
-                                        </tr>
                                     }
                                 </tbody>
                             </table>

@@ -25,14 +25,19 @@
                                 <div>
                                     <p><strong>Student:</strong> @Util.GetFullName(Student.Person)</p>
                                     <p><strong>Address:</strong>@reportData.StudentAddress</p>
+                                    <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>
+                                    <p><strong>Term:</strong> @reportData.Semester.ToTermDisplay()</p>
                                     <p><strong>Learning Path:</strong> @Util.GetLearningPathName(Student.LearningPath)</p>
                                 </div>
                                 <div>
-                                    <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>
-                                    <p><strong>Term:</strong> @reportData.Semester.ToTermDisplay()</p>
-                                    <p><strong>Total Fees:</strong> @reportData.TotalFees.ToString("C", new CultureInfo("en-NG"))</p>
-                                    <p><strong>Total Paid:</strong> @reportData.TotalPaid.ToString("C", new CultureInfo("en-NG"))</p>
-                                    <p><strong>Balance:</strong> @reportData.OutstandingBalance.ToString("C", new CultureInfo("en-NG"))</p>
+                                    <p><strong>Term fee:</strong> @Util.Money(reportData.TermFee)</p>
+                                    <p><strong>Discount:</strong> @Util.Money(reportData.Discount)</p>
+                                    <p><strong>Term Payable:</strong> @Util.Money(reportData.TotalFees)</p>
+                                    <p><strong>Brought forward:</strong> @Util.Money(reportData.BroughtForwardOutstanding)</p>
+                                    <p><strong>Total Payable:</strong> @Util.Money(reportData.BroughtForwardOutstanding + reportData.TotalFees)</p>
+                                    <p><strong>Total Paid:</strong> @Util.Money(reportData.TotalPaid)</p>
+                                    <p><strong>Total Outstanding:</strong> @Util.Money(reportData.TotalOutstanding)</p>
+                                    <p><strong>Carried forward:</strong> @Util.Money(reportData.TotalOutstanding)</p>
                                 </div>
                             </div>
                         </div>
