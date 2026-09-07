@@ -88,6 +88,7 @@
                         }
                     </div>
                 </div>
+
                 <AuthorizeView Roles="Developer,Principal,Admin">
                     <Authorized>
 
@@ -109,57 +110,27 @@
                                         }
                                     </div>
 
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between align-items-center py-1">
-                                            <span class="fcms-figure-label">Fees</span>
-                                            <span class="fcms-figure">₦@currentFees.TotalAmount.ToString("N2")</span>
+                                    <div class="fcms-breakdown">
+                                        <div class="d-flex justify-content-between py-1">
+                                            <span>Term fee</span>
+                                            <span>@Util.Money(currentFees.LearningPath?.FeePerSemester ?? 0)</span>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center py-1">
-                                            <span class="fcms-figure-label">Paid</span>
-                                            <span class="fcms-figure text-success">₦@currentFees.TotalPaid.ToString("N2")</span>
+                                        <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                            <span>Total Payable</span>
+                                            <span>@Util.Money(totalPayable)</span>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center py-1">
-                                            <span class="fcms-figure-label">Balance</span>
-                                            <span class="fcms-figure @(currentFees.Balance > 0 ? "text-danger" : "text-success")">
-                                                ₦@currentFees.Balance.ToString("N2")
+                                        <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                            <span>Paid</span>
+                                            <span class="text-success">@Util.Money(currentFees.TotalPaid)</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between py-1 border-top fw-bold">
+                                            <span>Total Outstanding</span>
+                                            <span class="@(totalOutstanding > 0 ? "text-danger" : "text-success")">
+                                                @Util.Money(totalOutstanding)
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div class="fcms-breakdown">
-                                        <div class="d-flex justify-content-between py-1">
-                                            <span>Term fee</span>
-                                            <span>₦@((currentFees.LearningPath?.FeePerSemester ?? 0).ToString("N2"))</span>
-                                        </div>
-
-                                        @if (currentFees.TotalAdjustments > 0)
-                                        {
-                                            <div class="d-flex justify-content-between py-1 text-primary">
-                                                <span><i class="fa fa-tag me-1"></i>Discount</span>
-                                                <span>&minus; ₦@currentFees.TotalAdjustments.ToString("N2")</span>
-                                            </div>
-                                        }
-
-                                        <div class="d-flex justify-content-between py-1 border-top fw-bold">
-                                            <span>Payable this term</span>
-                                            <span>₦@currentFees.TotalAmount.ToString("N2")</span>
-                                        </div>
-
-                                        @if (broughtForward != 0)
-                                        {
-                                            <div class="d-flex justify-content-between py-1 @(broughtForward > 0 ? "text-danger" : "text-success")">
-                                                <span>@(broughtForward > 0 ? "Brought forward" : "Credit brought forward")</span>
-                                                <span>₦@Math.Abs(broughtForward).ToString("N2")</span>
-                                            </div>
-
-                                            <div class="d-flex justify-content-between py-2 border-top fs-5 fw-bold">
-                                                <span>Total outstanding</span>
-                                                <span class="@((currentFees.Balance + broughtForward) > 0 ? "text-danger" : "text-success")">
-                                                    ₦@((currentFees.Balance + broughtForward).ToString("N2"))
-                                                </span>
-                                            </div>
-                                        }
-                                    </div>
                                     <div class="d-flex justify-content-between fcms-gap-sm mt-3">
                                         @if (student.LearningPath != null)
                                         {
@@ -423,7 +394,8 @@
     private bool showLearningPathModal = false;
     private bool showRemoveConfirmation = false;
     private int selectedLearningPathId = 0;
-    private double broughtForward;
+    private double totalPayable;
+    private double totalOutstanding;
     private bool showLedger = false;
     private bool showErrorModal;
     private string errorModalTitle = "Error";
@@ -516,7 +488,8 @@
         student = SchoolDataService.GetStudentById(Id);
 
         currentFees = null;
-        broughtForward = 0;
+        totalPayable = 0;
+        totalOutstanding = 0;
 
         if (student == null)
             return;
@@ -530,10 +503,10 @@
                 .FirstOrDefault(fees => fees.LearningPath!.AcademicPeriodId == currentPeriod.Id);
         }
 
-        if (currentFees?.LearningPath != null)
+        if (currentFees != null)
         {
-            broughtForward = LogicMethods.GetOutstandingBroughtForward(
-                student.SchoolFees, currentFees.LearningPath);
+            totalPayable = LogicMethods.GetTotalPayable(student.SchoolFees, currentFees);
+            totalOutstanding = LogicMethods.GetCarriedForward(student.SchoolFees, currentFees);
         }
     }
 
