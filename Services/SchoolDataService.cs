@@ -1833,6 +1833,13 @@ namespace FcmsPortalUI.Services
             if (schoolFees == null)
                 throw new ArgumentException("School fees record not found.");
 
+            var studentFees = _context.SchoolFees
+                .Include(fees => fees.Payments)
+                .Include(fees => fees.Adjustments)
+                .AsSplitQuery()
+                .Where(fees => fees.StudentId == schoolFees.StudentId)
+                .ToList();
+
             payment.Reference = string.IsNullOrWhiteSpace(payment.Reference)
                 ? null
                 : payment.Reference.Trim();
@@ -1851,9 +1858,9 @@ namespace FcmsPortalUI.Services
                     $"Payment reference '{payment.Reference}' has already been recorded.");
             }
 
-            if (!LogicMethods.IsPaymentWithinBalance(schoolFees, payment.Amount))
+            if (!LogicMethods.IsPaymentWithinBalance(studentFees, schoolFees, payment.Amount))
                 throw new BusinessRuleException(
-                    $"Payment of {payment.Amount:N2} exceeds the outstanding balance of {schoolFees.Balance:N2}.");
+                    $"Payment of {payment.Amount:N2} exceeds the total outstanding of {LogicMethods.GetCarriedForward(studentFees, schoolFees):N2}.");
 
             payment.LearningPathId = schoolFees.LearningPathId;
             schoolFees.Payments.Add(payment);
@@ -1880,6 +1887,13 @@ namespace FcmsPortalUI.Services
             if (schoolFees == null)
                 throw new ArgumentException("School fees record not found.");
 
+            var studentFees = _context.SchoolFees
+                .Include(fees => fees.Payments)
+                .Include(fees => fees.Adjustments)
+                .AsSplitQuery()
+                .Where(fees => fees.StudentId == schoolFees.StudentId)
+                .ToList();
+
             payment.Reference = string.IsNullOrWhiteSpace(payment.Reference)
                 ? null
                 : payment.Reference.Trim();
@@ -1899,9 +1913,9 @@ namespace FcmsPortalUI.Services
                     $"Payment reference '{payment.Reference}' has already been recorded.");
             }
 
-            if (!LogicMethods.IsPaymentWithinBalance(schoolFees, payment.Amount, payment.Id))
+            if (!LogicMethods.IsPaymentWithinBalance(studentFees, schoolFees, payment.Amount, payment.Id))
                 throw new BusinessRuleException(
-                    $"Payment of {payment.Amount:N2} exceeds the outstanding balance for this term.");
+                    $"Payment of {payment.Amount:N2} exceeds the total outstanding for this student.");
 
             existingPayment.Amount = payment.Amount;
             existingPayment.Date = payment.Date;
