@@ -44,8 +44,23 @@
             <!-- ROW 1 -->
             <div class="row g-3 mb-3">
 
+                <!-- Brought Forward -->
+                <div class="col-md-3">
+                    <div class="card border shadow-sm p-3 h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="fa fa-history text-warning fs-3"></i>
+                            <div>
+                                <p class="kpi-title">Total Brought Forward</p>
+                                <p class="kpi-value text-warning">
+                                    @totalBroughtForward.ToString("C", new CultureInfo("en-NG"))
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Expected Revenue -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card border shadow-sm p-3 h-100">
                         <div class="d-flex align-items-center gap-3">
                             <i class="fa fa-money-bill-wave text-primary fs-3"></i>
@@ -60,7 +75,7 @@
                 </div>
 
                 <!-- Amount Received -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card border shadow-sm p-3 h-100">
                         <div class="d-flex align-items-center gap-3">
                             <i class="fa fa-coins text-success fs-3"></i>
@@ -75,12 +90,12 @@
                 </div>
 
                 <!-- Outstanding Balance -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card border shadow-sm p-3 h-100">
                         <div class="d-flex align-items-center gap-3">
                             <i class="fa fa-wallet text-danger fs-3"></i>
                             <div>
-                                <p class="kpi-title">Outstanding Balance</p>
+                                <p class="kpi-title">Total Outstanding</p>
                                 <p class="kpi-value text-danger">
                                     @totalOutstandingBalance.ToString("C", new CultureInfo("en-NG"))
                                 </p>
@@ -277,6 +292,7 @@
     private double totalOutstandingBalance = 0;
     private double schoolWidePaymentCompletionRate = 0;
     private double schoolWideTimelyCompletionRate = 0;
+    private double totalBroughtForward;
     private bool showSchoolReport = false;
     private bool showLearningPathReport = false;
 
@@ -307,6 +323,7 @@
         totalStudents = summary.TotalStudents;
         fullyPaidStudents = summary.FullyPaidStudents;
         studentsWithBalance = summary.StudentsWithBalance;
+        totalBroughtForward = summary.TotalBroughtForwardOutstanding;
         totalExpectedRevenue = summary.TotalExpectedRevenue;
         totalAmountReceived = summary.TotalAmountReceived;
         totalOutstandingBalance = summary.TotalOutstanding;
