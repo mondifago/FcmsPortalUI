@@ -2969,7 +2969,7 @@ namespace FcmsPortalUI.Services
                 TotalOutstandingBalance = summary.TotalOutstanding,
                 SchoolWidePaymentCompletionRate = summary.PaymentCompletionRate,
                 SchoolWideTimelyCompletionRate = summary.TimelyCompletionRate,
-                AverageStudentPaymentCompletionRateInSchool = LogicMethods.CalculateAveragePaymentCompletionRate(currentFees),
+                AverageStudentPaymentCompletionRateInSchool = LogicMethods.CalculateAveragePaymentCompletionRate(allFees, currentFees),
                 AverageStudentTimelyCompletionRateInSchool = LogicMethods.CalculateAverageTimelyCompletionRate(currentFees)
             };
 
@@ -2995,7 +2995,7 @@ namespace FcmsPortalUI.Services
             var feesInPath = GetSchoolFeesForLearningPath(lp.Id);
             var enrolledCount = GetEnrolledStudentCount(lp.Id);
             var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp, feesInPath, enrolledCount);
-            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(feesInPath);
+            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(feesInPath, feesInPath);
             var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(feesInPath);
 
             var archive = new ArchivedLearningPathPayment
