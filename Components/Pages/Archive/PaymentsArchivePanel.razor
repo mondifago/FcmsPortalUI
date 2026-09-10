@@ -2,6 +2,7 @@
 @using FcmsPortal.Enums
 @using FcmsPortal.Models
 @using FcmsPortalUI.Services
+@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 
 <div>
@@ -55,58 +56,6 @@
     <!-- Summary Cards Section  -->
     @if (showSummaryAndTable)
     {
-        <div class="row mb-4">
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Total Students</h6>
-                        <h4 class="text-primary">@totalStudents</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Total Fees</h6>
-                        <h4 class="text-primary">₦@totalFees.ToString("N0")</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Total Paid</h6>
-                        <h4 class="text-success">₦@totalPaid.ToString("N0")</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Outstanding</h6>
-                        <h4 class="text-danger">₦@totalOutstanding.ToString("N0")</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Payment Rate</h6>
-                        <h4 class="text-info">@averagePaymentRate.ToString("F1")%</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h6 class="card-title">Timely Rate</h6>
-                        <h4 class="text-info">@averageTimelyRate.ToString("F1")%</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Students Table -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Student Payment Records</h5>
@@ -119,10 +68,11 @@
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>School Fees</th>
-                                    <th>Total Paid</th>
-                                    <th>Payment Completion Rate</th>
-                                    <th>Timely Completion Rate</th>
+                                    <th class="text-end">School Fees</th>
+                                    <th class="text-end">Brought Forward</th>
+                                    <th class="text-end">Total Payable</th>
+                                    <th class="text-end">Paid</th>
+                                    <th class="text-end">Outstanding</th>
                                     <th>Payment Details</th>
                                 </tr>
                             </thead>
@@ -131,10 +81,13 @@
                                 {
                                     <tr>
                                         <td>@student.StudentName</td>
-                                        <td>₦@student.TotalFees.ToString("N0")</td>
-                                        <td>₦@student.TotalPaid.ToString("N0")</td>
-                                        <td>@student.PaymentCompletionRate.ToString("F1")%</td>
-                                        <td>@student.TimelyCompletionRate.ToString("F1")%</td>
+                                        <td class="text-end">@Util.Money(student.TotalFees)</td>
+                                        <td class="text-end">@Util.Money(student.BroughtForward)</td>
+                                        <td class="text-end fw-bold">@Util.Money(student.TotalPayable)</td>
+                                        <td class="text-end text-success">@Util.Money(student.TotalPaid)</td>
+                                        <td class="text-end fw-bold @(student.CarriedForward > 0 ? "text-danger" : "text-success")">
+                                            @Util.Money(student.CarriedForward)
+                                        </td>
                                         <td>
                                             <button type="button" class="btn btn-sm btn-outline-primary"
                                                     @onclick="() => ShowPaymentDetails(student)">
@@ -158,121 +111,10 @@
     }
 </div>
 
-
-<!-- Payment Details Modal -->
-@if (selectedStudentForDetails != null)
-{
-    <div class="modal fade show" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h4 class="mb-0">
-                        <i class="fa fa-money-bill-wave me-2"></i>
-                        Payment Details - @selectedStudentForDetails.StudentName
-                    </h4>
-                    <button type="button" class="btn-close btn-close-white" @onclick="ClosePaymentDetails"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <div class="bg-light p-3 border-bottom">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Academic Year</small>
-                                <strong>@selectedStudentForDetails.AcademicYear</strong>
-                            </div>
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Term</small>
-                                <strong>@selectedStudentForDetails.Semester.ToTermDisplay()</strong>
-                            </div>
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">Learning Path</small>
-                                <strong>@selectedStudentForDetails.LearningPathName</strong>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-3">
-                                <small class="text-muted d-block">Total Fees</small>
-                                <strong class="text-primary">₦@selectedStudentForDetails.TotalFees.ToString("N0")</strong>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted d-block">Total Paid</small>
-                                <strong class="text-success">₦@selectedStudentForDetails.TotalPaid.ToString("N0")</strong>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted d-block">Outstanding</small>
-                                <strong class="text-danger">₦@selectedStudentForDetails.OutstandingBalance.ToString("N0")</strong>
-                            </div>
-                            <div class="col-md-3">
-                                <small class="text-muted d-block">Payment Rate</small>
-                                <strong class="text-info">@selectedStudentForDetails.PaymentCompletionRate.ToString("F1")%</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if (selectedStudentPaymentDetails.Any())
-                    {
-                        <div class="table-container">
-                            <div class="table-responsive">
-                                <table class="table table-sm attendance-table mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th class="student-name">Date</th>
-                                            <th class="summary-col">Amount</th>
-                                            <th class="summary-col">Method</th>
-                                            <th class="summary-col">Reference</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var payment in selectedStudentPaymentDetails.OrderByDescending(p => p.Date))
-                                        {
-                                            <tr>
-                                                <td class="student-name">@payment.Date.ToString("dd/MM/yyyy")</td>
-                                                <td class="text-center">₦@payment.Amount.ToString("N0")</td>
-                                                <td class="text-center">@payment.PaymentMethod</td>
-                                                <td class="text-center">@payment.Reference</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                    <tfoot class="table-light">
-                                        <tr>
-                                            <th class="student-name">Total</th>
-                                            <th class="summary-data text-center">₦@selectedStudentPaymentDetails.Sum(p => p.Amount).ToString("N0")</th>
-                                            <th class="summary-data text-center">@selectedStudentPaymentDetails.Count() payments</th>
-                                            <th class="summary-data text-center">-</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-center py-5">
-                            <i class="fa fa-money-bill-wave fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No Payment Records</h5>
-                            <p class="text-muted">No payment records found for this student.</p>
-                        </div>
-                    }
-                </div>
-                <div class="modal-footer bg-light">
-                    <div class="row w-100">
-                        <div class="col-md-8">
-                            <small class="text-muted">
-                                <i class="fa fa-check text-success me-1"></i> Paid
-                                <span class="ms-3">
-                                    <i class="fa fa-clock text-warning me-1"></i> Outstanding: ₦@selectedStudentForDetails.OutstandingBalance.ToString("N0")
-                                </span>
-                            </small>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <button type="button" class="btn btn-secondary" @onclick="ClosePaymentDetails">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-}
+<StudentPaymentReportModal IsVisible="selectedStudentForDetails != null"
+                           ArchiveEntry="selectedStudentForDetails"
+                           ArchivePaymentDetails="selectedStudentPaymentDetails"
+                           OnClose="ClosePaymentDetails" />
 
 @code {
     private EducationLevel selectedEducationLevel = EducationLevel.None;
@@ -283,12 +125,6 @@
     private List<ClassLevel> availableClassLevels = new();
     private List<ArchivedStudentPayment> archivedStudents = new();
     private List<ArchivedPaymentDetail> selectedStudentPaymentDetails = new();
-    private int totalStudents = 0;
-    private double totalFees = 0;
-    private double totalPaid = 0;
-    private double totalOutstanding = 0;
-    private double averagePaymentRate = 0;
-    private double averageTimelyRate = 0;
     private bool showSummaryAndTable = false;
     private string selectedAcademicYear = string.Empty;
 
@@ -330,14 +166,12 @@
         if (IsValidLearningPathSelected())
         {
             LoadArchivedStudentPayments();
-            CalculateSummaryData();
             showSummaryAndTable = true;
         }
         else
         {
             showSummaryAndTable = false;
             archivedStudents.Clear();
-            ClearSummaryData();
         }
     }
 
@@ -355,33 +189,6 @@
             selectedEducationLevel,
             selectedClassLevel,
             selectedSemester);
-    }
-
-    private void CalculateSummaryData()
-    {
-        if (archivedStudents.Any())
-        {
-            totalStudents = archivedStudents.Count;
-            totalFees = archivedStudents.Sum(s => s.TotalFees);
-            totalPaid = archivedStudents.Sum(s => s.TotalPaid);
-            totalOutstanding = archivedStudents.Sum(s => s.OutstandingBalance);
-            averagePaymentRate = archivedStudents.Average(s => s.PaymentCompletionRate);
-            averageTimelyRate = archivedStudents.Average(s => s.TimelyCompletionRate);
-        }
-        else
-        {
-            ClearSummaryData();
-        }
-    }
-
-    private void ClearSummaryData()
-    {
-        totalStudents = 0;
-        totalFees = 0;
-        totalPaid = 0;
-        totalOutstanding = 0;
-        averagePaymentRate = 0;
-        averageTimelyRate = 0;
     }
 
     private void ShowPaymentDetails(ArchivedStudentPayment student)

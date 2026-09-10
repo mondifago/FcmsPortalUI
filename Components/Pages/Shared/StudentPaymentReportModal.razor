@@ -23,11 +23,11 @@
                         <div class="report-section">
                             <div class="report-grid">
                                 <div>
-                                    <p><strong>Student:</strong> @Util.GetFullName(Student.Person)</p>
+                                    <p><strong>Student:</strong> @reportData.StudentFullName</p>
                                     <p><strong>Address:</strong>@reportData.StudentAddress</p>
                                     <p><strong>Academic Year:</strong> @reportData.AcademicYear</p>
                                     <p><strong>Term:</strong> @reportData.Semester.ToTermDisplay()</p>
-                                    <p><strong>Learning Path:</strong> @Util.GetLearningPathName(Student.LearningPath)</p>
+                                    <p><strong>Learning Path:</strong> @reportData.LearningPathName</p>
                                 </div>
                                 <div>
                                     <p><strong>Term fee:</strong> @Util.Money(reportData.TermFee)</p>
@@ -118,6 +118,12 @@
     [Parameter]
     public int? LearningPathId { get; set; }
 
+    [Parameter] 
+    public ArchivedStudentPayment? ArchiveEntry { get; set; }
+
+    [Parameter] 
+    public List<ArchivedPaymentDetail> ArchivePaymentDetails { get; set; } = new();
+
     private StudentPaymentReportEntry reportData = new StudentPaymentReportEntry();
 
     protected override void OnParametersSet()
@@ -126,6 +132,12 @@
             return;
 
         int? targetLearningPathId = LearningPathId ?? Student.LearningPath?.Id;
+
+        if (ArchiveEntry != null)
+        {
+            reportData = LogicMethods.GenerateArchivedStudentPaymentReport(ArchiveEntry, ArchivePaymentDetails);
+            return;
+        }
 
         if (targetLearningPathId.HasValue)
         {
