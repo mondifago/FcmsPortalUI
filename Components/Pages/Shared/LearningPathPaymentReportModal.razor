@@ -80,6 +80,7 @@
     [Parameter]public ArchivedLearningPathPayment? ArchiveEntry { get; set; }
     [Parameter] public List<SchoolFees> FeesInPath { get; set; } = new();
     [Parameter]public EventCallback OnClose { get; set; }
+    [Parameter] public List<SchoolFees> AllStudentFees { get; set; } = new();
 
     private LearningPathPaymentReportEntry reportData = new LearningPathPaymentReportEntry();
 
@@ -96,7 +97,7 @@
 
         if (LearningPath != null)
         {
-            reportData = LogicMethods.GenerateLearningPathPaymentReport(LearningPath, FeesInPath);
+            reportData = LogicMethods.GenerateLearningPathPaymentReport(LearningPath, AllStudentFees, FeesInPath);
         }
     }
 

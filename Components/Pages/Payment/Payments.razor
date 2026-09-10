@@ -233,7 +233,7 @@
                         @foreach (var learningPath in learningPaths)
                         {
                             var feesForPath = allFees.Where(fees => fees.LearningPathId == learningPath.Id).ToList();
-                            var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath, feesForPath, enrolledCounts.GetValueOrDefault(learningPath.Id));
+                            var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath, allFees, feesForPath, enrolledCounts.GetValueOrDefault(learningPath.Id));
                             <tr>
                                 <td>
                                     <a href="/learningpaths/details/@learningPath.Id">
@@ -271,6 +271,7 @@
 
 <LearningPathPaymentReportModal IsVisible="showLearningPathReport"
                                 LearningPath="selectedLearningPath"
+                                AllStudentFees="allFees"
                                 FeesInPath="@(selectedLearningPath == null
                                     ? new List<SchoolFees>()
                                     : allFees.Where(fees => fees.LearningPathId == selectedLearningPath.Id).ToList())"

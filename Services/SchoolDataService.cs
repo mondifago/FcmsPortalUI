@@ -2994,8 +2994,18 @@ namespace FcmsPortalUI.Services
 
             var feesInPath = GetSchoolFeesForLearningPath(lp.Id);
             var enrolledCount = GetEnrolledStudentCount(lp.Id);
-            var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp, feesInPath, enrolledCount);
-            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(feesInPath, feesInPath);
+
+            var studentIds = feesInPath.Select(fees => fees.StudentId).Distinct().ToList();
+
+            var allStudentFees = _context.SchoolFees
+                .AsNoTracking()
+                .Where(fees => studentIds.Contains(fees.StudentId))
+                .Include(fees => fees.Payments)
+                .AsSplitQuery()
+                .ToList();
+
+            var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp, allStudentFees, feesInPath, enrolledCount);
+            var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(allStudentFees, feesInPath);
             var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(feesInPath);
 
             var archive = new ArchivedLearningPathPayment
