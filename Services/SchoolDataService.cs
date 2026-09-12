@@ -2975,9 +2975,7 @@ namespace FcmsPortalUI.Services
                 TotalOutstandingBalance = summary.TotalOutstanding,
                 TotalBroughtForwardOutstanding = summary.TotalBroughtForwardOutstanding,
                 SchoolWidePaymentCompletionRate = summary.PaymentCompletionRate,
-                SchoolWideTimelyCompletionRate = summary.TimelyCompletionRate,
-                //AverageStudentPaymentCompletionRateInSchool = LogicMethods.CalculateAveragePaymentCompletionRate(allFees, currentFees),
-                //AverageStudentTimelyCompletionRateInSchool = LogicMethods.CalculateAverageTimelyCompletionRate(currentFees)
+                SchoolWideTimelyCompletionRate = summary.TimelyCompletionRate
             };
 
             _context.ArchivedSchoolPaymentSummaries.Add(archive);
@@ -3012,8 +3010,6 @@ namespace FcmsPortalUI.Services
                 .ToList();
 
             var summary = LogicMethods.CalculateLearningPathPaymentSummary(lp, allStudentFees, feesInPath, enrolledCount);
-            //var avgPaymentRate = LogicMethods.CalculateAveragePaymentCompletionRate(allStudentFees, feesInPath);
-            //var avgTimelyRate = LogicMethods.CalculateAverageTimelyCompletionRate(feesInPath);
 
             var archive = new ArchivedLearningPathPayment
             {
@@ -3029,9 +3025,7 @@ namespace FcmsPortalUI.Services
                 TotalPaid = summary.TotalPaid,
                 Outstanding = summary.Outstanding,
                 LearningPathPaymentCompletionRate = summary.PaymentCompletionRate,
-                //AverageStudentPaymentCompletionRateInPath = avgPaymentRate,
                 LearningPathTimelyCompletionRate = summary.TimelyCompletionRate,
-                //AverageStudentTimelyCompletionRateInPath = avgTimelyRate,
                 SemesterStartDate = lp.SemesterStartDate,
                 SemesterEndDate = lp.SemesterEndDate,
                 ArchivedDate = DateTime.Now

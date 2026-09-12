@@ -55,30 +55,19 @@
 
             <div class="card-body">
 
-                <!-- KPI ROW 1 -->
+                <!-- ROW 1 -->
                 <div class="row g-3 mb-3">
 
-                    <!-- Total Students -->
+                    <!-- Brought Forward -->
                     <div class="col-md-3">
-                        <div class="card border shadow-sm p-3">
+                        <div class="card border shadow-sm p-3 h-100">
                             <div class="d-flex align-items-center gap-3">
-                                <i class="fa fa-users text-primary fs-3"></i>
+                                <i class="fa fa-history text-warning fs-3"></i>
                                 <div>
-                                    <p class="kpi-title">Total Students</p>
-                                    <p class="kpi-value">@summary.TotalStudents</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Total Learning Paths -->
-                    <div class="col-md-3">
-                        <div class="card border shadow-sm p-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <i class="fa fa-layer-group text-info fs-3"></i>
-                                <div>
-                                    <p class="kpi-title">Learning Paths</p>
-                                    <p class="kpi-value">@summary.TotalLearningPaths</p>
+                                    <p class="kpi-title">Total Brought Forward</p>
+                                    <p class="kpi-value text-warning">
+                                        @summary.TotalBroughtForwardOutstanding.ToString("C", new CultureInfo("en-NG"))
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -86,11 +75,11 @@
 
                     <!-- Expected Revenue -->
                     <div class="col-md-3">
-                        <div class="card border shadow-sm p-3">
+                        <div class="card border shadow-sm p-3 h-100">
                             <div class="d-flex align-items-center gap-3">
-                                <i class="fa fa-money-bill-wave text-success fs-3"></i>
+                                <i class="fa fa-money-bill-wave text-primary fs-3"></i>
                                 <div>
-                                    <p class="kpi-title">Expected Revenue</p>
+                                    <p class="kpi-title">Total Expected Revenue</p>
                                     <p class="kpi-value">
                                         @summary.TotalExpectedRevenue.ToString("C", new CultureInfo("en-NG"))
                                     </p>
@@ -99,14 +88,14 @@
                         </div>
                     </div>
 
-                    <!-- Total Paid -->
+                    <!-- Amount Received -->
                     <div class="col-md-3">
-                        <div class="card border shadow-sm p-3">
+                        <div class="card border shadow-sm p-3 h-100">
                             <div class="d-flex align-items-center gap-3">
-                                <i class="fa fa-coins text-warning fs-3"></i>
+                                <i class="fa fa-coins text-success fs-3"></i>
                                 <div>
-                                    <p class="kpi-title">Total Paid</p>
-                                    <p class="kpi-value">
+                                    <p class="kpi-title">Total Amount Received</p>
+                                    <p class="kpi-value text-success">
                                         @summary.TotalAmountReceived.ToString("C", new CultureInfo("en-NG"))
                                     </p>
                                 </div>
@@ -114,59 +103,113 @@
                         </div>
                     </div>
 
-                </div>
-
-                <!-- KPI ROW 2 -->
-                <div class="row g-3 mb-3">
-
-                
-
-                    <!-- Completion Rate -->
+                    <!-- Outstanding Balance -->
                     <div class="col-md-3">
-                        <div class="card border shadow-sm p-3">
-                            <p class="kpi-title mb-1">Completion Rate</p>
-                            <div class="progress">
-                                <div class="progress-bar bg-primary"
-                                     style="width:@summary.SchoolWidePaymentCompletionRate%">
-                                </div>
-                            </div>
-                            <p class="kpi-bar-value">@summary.SchoolWidePaymentCompletionRate.ToString("F2")%</p>
-                        </div>
-                    </div>
-
-                    <!-- Timely Completion -->
-                    <div class="col-md-3">
-                        <div class="card border shadow-sm p-3">
-                            <p class="kpi-title mb-1">Timely Completion</p>
-                            <div class="progress">
-                                <div class="progress-bar bg-info"
-                                     style="width:@summary.SchoolWideTimelyCompletionRate%">
-                                </div>
-                            </div>
-                            <p class="kpi-bar-value">@summary.SchoolWideTimelyCompletionRate.ToString("F2")%</p>
-                        </div>
-                    </div>
-
-                    
-
-                </div>
-
-                <!-- KPI ROW 3 -->
-                <div class="row g-3 mb-4">
-                    <!-- Outstanding -->
-                    <div class="col-md-3">
-                        <div class="card border shadow-sm p-3">
+                        <div class="card border shadow-sm p-3 h-100">
                             <div class="d-flex align-items-center gap-3">
                                 <i class="fa fa-wallet text-danger fs-3"></i>
                                 <div>
-                                    <p class="kpi-title">Outstanding</p>
-                                    <p class="kpi-value">
+                                    <p class="kpi-title">Total Outstanding</p>
+                                    <p class="kpi-value text-danger">
                                         @summary.TotalOutstandingBalance.ToString("C", new CultureInfo("en-NG"))
                                     </p>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                </div>
+
+                <!-- ROW 2 -->
+                <div class="row g-3 mb-3">
+
+                    <!-- Payment Completion Rate -->
+                    <div class="col-md-6">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <p class="kpi-title mb-1">Payment Completion Rate</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-info"
+                                     style="width:@summary.SchoolWidePaymentCompletionRate%">
+                                </div>
+                            </div>
+                            <p class="kpi-bar-value text-info">
+                                @summary.SchoolWidePaymentCompletionRate.ToString("F2")%
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Timely Completion Rate -->
+                    <div class="col-md-6">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <p class="kpi-title mb-1">Timely Completion Rate</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning"
+                                     style="width:@summary.SchoolWideTimelyCompletionRate%">
+                                </div>
+                            </div>
+                            <p class="kpi-bar-value text-warning">
+                                @summary.SchoolWideTimelyCompletionRate.ToString("F2")%
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ROW 3 -->
+                <div class="row g-3 mb-3">
+
+                    <!-- Learning Paths -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-layer-group text-primary fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Learning Paths</p>
+                                    <p class="kpi-value">@summary.TotalLearningPaths</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Students -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-users text-info fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Total Students</p>
+                                    <p class="kpi-value">@summary.TotalStudents</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fully Paid Students -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-check-circle text-success fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Fully Paid Students</p>
+                                    <p class="kpi-value text-success">@summary.FullyPaidStudents</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Students With Balance -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-exclamation-circle text-warning fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Students With Balance</p>
+                                    <p class="kpi-value text-warning">@summary.StudentsWithBalance</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- BUTTON INSIDE SAME CARD -->
