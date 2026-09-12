@@ -4,6 +4,7 @@ using FcmsPortalUI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    partial class FcmsPortalUIContextModelSnapshot : ModelSnapshot
+    [Migration("20260912023410_ArchivedSchoolPaymentProperties")]
+    partial class ArchivedSchoolPaymentProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -262,6 +265,12 @@ namespace FcmsPortalUI.Migrations
                     b.Property<DateTime>("ArchivedDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<double>("AverageStudentPaymentCompletionRateInPath")
+                        .HasColumnType("double");
+
+                    b.Property<double>("AverageStudentTimelyCompletionRateInPath")
+                        .HasColumnType("double");
+
                     b.Property<int>("ClassLevel")
                         .HasColumnType("int");
 
@@ -355,6 +364,12 @@ namespace FcmsPortalUI.Migrations
 
                     b.Property<DateTime>("ArchivedDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<double>("AverageStudentPaymentCompletionRateInSchool")
+                        .HasColumnType("double");
+
+                    b.Property<double>("AverageStudentTimelyCompletionRateInSchool")
+                        .HasColumnType("double");
 
                     b.Property<int>("FullyPaidStudents")
                         .HasColumnType("int");
