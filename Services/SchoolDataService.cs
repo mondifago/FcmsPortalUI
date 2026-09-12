@@ -3074,7 +3074,6 @@ namespace FcmsPortalUI.Services
             if (archivedStudent == null)
                 return;
 
-            // Attach the finalized report card snapshot
             archivedStudent.ArchivedReportCard = reportCard;
 
             _context.ArchivedStudentGrades.Update(archivedStudent);
@@ -3086,7 +3085,6 @@ namespace FcmsPortalUI.Services
             if (learningPath == null)
                 throw new ArgumentNullException(nameof(learningPath));
 
-            // Reload LearningPath from database with all the pieces we need
             var dbLearningPath = _context.LearningPaths
                 .Include(lp => lp.Students)
                     .ThenInclude(s => s.Person)
@@ -3102,7 +3100,6 @@ namespace FcmsPortalUI.Services
             if (dbLearningPath == null)
                 throw new InvalidOperationException("Learning path not found for archiving grades.");
 
-            // Avoid duplicate archive for same learning path / year / semester
             bool alreadyArchived = _context.ArchivedLearningPathGrades
                 .AsNoTracking()
                 .Any(a =>
@@ -3115,7 +3112,6 @@ namespace FcmsPortalUI.Services
             if (alreadyArchived)
                 return;
 
-            // Rank students using existing logic
             var gradeReport = LogicMethods.GenerateLearningPathGradeReport(dbLearningPath);
 
             var rankLookup = new Dictionary<int, (int Rank, double Grade)>();
@@ -3146,14 +3142,12 @@ namespace FcmsPortalUI.Services
 
             foreach (var student in dbLearningPath.Students)
             {
-                // Semester overall & rank
                 if (!rankLookup.TryGetValue(student.Id, out var rankInfo))
                 {
                     var fallbackGrade = LogicMethods.CalculateSemesterOverallGrade(student, dbLearningPath);
                     rankInfo = (0, fallbackGrade);
                 }
 
-                // Per-semester grades for promotion
                 var semesterGrades = GetStudentAllSemesterGrades(
                     student.Id,
                     dbLearningPath.EducationLevel,
@@ -3169,11 +3163,9 @@ namespace FcmsPortalUI.Services
 
                 string promotionStatus = Util.GetPromotionStatusForArchive(dbLearningPath, isPromoted);
 
-                // Attendance snapshot
                 var (presentDays, totalDays, attendanceRate) =
                     LogicMethods.CalculateStudentAttendance(dbLearningPath.AttendanceLog, student.Id);
 
-                // Guardian snapshot from live data
                 var guardian = GetGuardianByStudentId(student.Id);
 
                 var archivedStudent = new ArchivedStudentGrade
@@ -3208,7 +3200,6 @@ namespace FcmsPortalUI.Services
                 totalSemesterGrade += rankInfo.Grade;
                 countedStudents++;
 
-                // Capture all course grades + individual test grades
                 var courseGrades = student.CourseGrades
                     .Where(cg => cg.LearningPathId == dbLearningPath.Id)
                     .ToList();
