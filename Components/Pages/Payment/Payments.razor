@@ -13,7 +13,7 @@
 <div class="container-fluid mt-3">
     <h2 class="mb-4">School Payments Summary</h2>
 
-    <div class="card mb-4 bg-light">
+    <div class="fcms-info-strip mb-4">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
@@ -34,231 +34,252 @@
         </div>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4>Basic Information</h4>
+    <ul class="nav fcms-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabSchool ? "active" : "")"
+                    @onclick="() => activeTab = TabSchool">
+                School Payments
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == TabClasses ? "active" : "")"
+                    @onclick="() => activeTab = TabClasses">
+                Class Payments
+            </button>
+        </li>
+    </ul>
+
+    @if (activeTab == TabSchool)
+    {
+        <div class="card fcms-tab-card mb-4">
+            <div class="card-header">
+                <h4>Basic Information</h4>
+            </div>
+
+            <div class="card-body">
+
+                <!-- ROW 1 -->
+                <div class="row g-3 mb-3">
+
+                    <!-- Brought Forward -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-history text-warning fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Total Brought Forward</p>
+                                    <p class="kpi-value text-warning">
+                                        @totalBroughtForward.ToString("C", new CultureInfo("en-NG"))
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expected Revenue -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-money-bill-wave text-primary fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Total Expected Revenue</p>
+                                    <p class="kpi-value">
+                                        @totalExpectedRevenue.ToString("C", new CultureInfo("en-NG"))
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amount Received -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-coins text-success fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Total Amount Received</p>
+                                    <p class="kpi-value text-success">
+                                        @totalAmountReceived.ToString("C", new CultureInfo("en-NG"))
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Outstanding Balance -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-wallet text-danger fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Total Outstanding</p>
+                                    <p class="kpi-value text-danger">
+                                        @totalOutstandingBalance.ToString("C", new CultureInfo("en-NG"))
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ROW 2 -->
+                <div class="row g-3 mb-3">
+
+                    <!-- Payment Completion Rate -->
+                    <div class="col-md-6">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <p class="kpi-title mb-1">Payment Completion Rate</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-info"
+                                     style="width:@schoolWidePaymentCompletionRate%">
+                                </div>
+                            </div>
+                            <p class="kpi-bar-value text-info">
+                                @schoolWidePaymentCompletionRate.ToString("F2")%
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Timely Completion Rate -->
+                    <div class="col-md-6">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <p class="kpi-title mb-1">Timely Completion Rate</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning"
+                                     style="width:@schoolWideTimelyCompletionRate%">
+                                </div>
+                            </div>
+                            <p class="kpi-bar-value text-warning">
+                                @schoolWideTimelyCompletionRate.ToString("F2")%
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ROW 3 -->
+                <div class="row g-3 mb-3">
+
+                    <!-- Learning Paths -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-layer-group text-primary fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Learning Paths</p>
+                                    <p class="kpi-value">@totalLearningPaths</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Students -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-users text-info fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Total Students</p>
+                                    <p class="kpi-value">@totalStudents</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fully Paid Students -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-check-circle text-success fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Fully Paid Students</p>
+                                    <p class="kpi-value text-success">@fullyPaidStudents</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Students With Balance -->
+                    <div class="col-md-3">
+                        <div class="card border shadow-sm p-3 h-100">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa fa-exclamation-circle text-warning fs-3"></i>
+                                <div>
+                                    <p class="kpi-title">Students With Balance</p>
+                                    <p class="kpi-value text-warning">@studentsWithBalance</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- REPORT BUTTON -->
+                <div class="d-flex justify-content-center mt-4">
+                    <button class="btn btn-primary btn-lg" @onclick="ShowSchoolReport">
+                        <i class="fa fa-file-alt me-2"></i> Generate School Report
+                    </button>
+                </div>
+
+            </div>
         </div>
+    }
 
-        <div class="card-body">
-
-            <!-- ROW 1 -->
-            <div class="row g-3 mb-3">
-
-                <!-- Brought Forward -->
-                <div class="col-md-3">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa fa-history text-warning fs-3"></i>
-                            <div>
-                                <p class="kpi-title">Total Brought Forward</p>
-                                <p class="kpi-value text-warning">
-                                    @totalBroughtForward.ToString("C", new CultureInfo("en-NG"))
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Expected Revenue -->
-                <div class="col-md-3">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa fa-money-bill-wave text-primary fs-3"></i>
-                            <div>
-                                <p class="kpi-title">Total Expected Revenue</p>
-                                <p class="kpi-value">
-                                    @totalExpectedRevenue.ToString("C", new CultureInfo("en-NG"))
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Amount Received -->
-                <div class="col-md-3">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa fa-coins text-success fs-3"></i>
-                            <div>
-                                <p class="kpi-title">Total Amount Received</p>
-                                <p class="kpi-value text-success">
-                                    @totalAmountReceived.ToString("C", new CultureInfo("en-NG"))
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Outstanding Balance -->
-                <div class="col-md-3">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa fa-wallet text-danger fs-3"></i>
-                            <div>
-                                <p class="kpi-title">Total Outstanding</p>
-                                <p class="kpi-value text-danger">
-                                    @totalOutstandingBalance.ToString("C", new CultureInfo("en-NG"))
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+    @if (activeTab == TabClasses)
+    {
+        <div class="card fcms-tab-card mb-4">
+            <div class="card-header">
+                <h4>Learning Path Payment Details</h4>
             </div>
-
-            <!-- ROW 2 -->
-            <div class="row g-3 mb-3">
-
-                <!-- Payment Completion Rate -->
-                <div class="col-md-6">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <p class="kpi-title mb-1">Payment Completion Rate</p>
-                        <div class="progress">
-                            <div class="progress-bar bg-info"
-                                 style="width:@schoolWidePaymentCompletionRate%">
-                            </div>
-                        </div>
-                        <p class="kpi-bar-value text-info">
-                            @schoolWidePaymentCompletionRate.ToString("F2")%
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Timely Completion Rate -->
-                <div class="col-md-6">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <p class="kpi-title mb-1">Timely Completion Rate</p>
-                        <div class="progress">
-                            <div class="progress-bar bg-warning"
-                                 style="width:@schoolWideTimelyCompletionRate%">
-                            </div>
-                        </div>
-                        <p class="kpi-bar-value text-warning">
-                            @schoolWideTimelyCompletionRate.ToString("F2")%
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- ROW 3 -->
-            <div class="row g-3 mb-3">
-
-                <!-- Learning Paths -->
-                <div class="col-md-3">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa fa-layer-group text-primary fs-3"></i>
-                            <div>
-                                <p class="kpi-title">Learning Paths</p>
-                                <p class="kpi-value">@totalLearningPaths</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Students -->
-                <div class="col-md-3">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa fa-users text-info fs-3"></i>
-                            <div>
-                                <p class="kpi-title">Total Students</p>
-                                <p class="kpi-value">@totalStudents</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fully Paid Students -->
-                <div class="col-md-3">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa fa-check-circle text-success fs-3"></i>
-                            <div>
-                                <p class="kpi-title">Fully Paid Students</p>
-                                <p class="kpi-value text-success">@fullyPaidStudents</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Students With Balance -->
-                <div class="col-md-3">
-                    <div class="card border shadow-sm p-3 h-100">
-                        <div class="d-flex align-items-center gap-3">
-                            <i class="fa fa-exclamation-circle text-warning fs-3"></i>
-                            <div>
-                                <p class="kpi-title">Students With Balance</p>
-                                <p class="kpi-value text-warning">@studentsWithBalance</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- REPORT BUTTON -->
-            <div class="d-flex justify-content-center mt-4">
-                <button class="btn btn-primary btn-lg" @onclick="ShowSchoolReport">
-                    <i class="fa fa-file-alt me-2"></i> Generate School Report
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4>Learning Path Payment Details</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Learning Path</th>
-                            <th>Students</th>
-                            <th>School Fees</th>
-                            <th>Expected Revenue</th>
-                            <th>Total Paid</th>
-                            <th>Balance</th>
-                            <th>Payment Rate</th>
-                            <th>Timely Rate</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var learningPath in learningPaths)
-                        {
-                            var feesForPath = allFees.Where(fees => fees.LearningPathId == learningPath.Id).ToList();
-                            var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath, allFees, feesForPath, enrolledCounts.GetValueOrDefault(learningPath.Id));
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
                             <tr>
-                                <td>
-                                    <a href="/learningpaths/details/@learningPath.Id">
-                                        @learningPath.EducationLevel.ToDisplayName() - @learningPath.ClassLevel.ToDisplayName()
-                                    </a>
-                                </td>
-                                <td>@paymentSummary.StudentCount</td>
-                                <td>@paymentSummary.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@paymentSummary.ExpectedRevenue.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@paymentSummary.TotalPaid.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@paymentSummary.Outstanding.ToString("C", new CultureInfo("en-NG"))</td>
-                                <td>@paymentSummary.PaymentCompletionRate.ToString("F2")%</td>
-                                <td>@paymentSummary.TimelyCompletionRate.ToString("F2")%</td>
-                                <td>
-                                    <button class="btn btn-sm btn-info" @onclick="() => ShowLearningPathReport(learningPath)">
-                                        <i class="fa fa-file-alt"></i> Report
-                                    </button>
-                                </td>
+                                <th>Learning Path</th>
+                                <th>Students</th>
+                                <th>School Fees</th>
+                                <th>Expected Revenue</th>
+                                <th>Total Paid</th>
+                                <th>Balance</th>
+                                <th>Payment Rate</th>
+                                <th>Timely Rate</th>
+                                <th>Action</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var learningPath in learningPaths)
+                            {
+                                var feesForPath = allFees.Where(fees => fees.LearningPathId == learningPath.Id).ToList();
+                                var paymentSummary = LogicMethods.CalculateLearningPathPaymentSummary(learningPath, allFees, feesForPath, enrolledCounts.GetValueOrDefault(learningPath.Id));
+                                <tr>
+                                    <td>
+                                        <a href="/learningpaths/details/@learningPath.Id" class="text-decoration-none">
+                                            @learningPath.ClassLevel.ToDisplayName()
+                                        </a>
+                                    </td>
+                                    <td>@paymentSummary.StudentCount</td>
+                                    <td>@paymentSummary.FeePerSemester.ToString("C", new CultureInfo("en-NG"))</td>
+                                    <td>@paymentSummary.ExpectedRevenue.ToString("C", new CultureInfo("en-NG"))</td>
+                                    <td>@paymentSummary.TotalPaid.ToString("C", new CultureInfo("en-NG"))</td>
+                                    <td>@paymentSummary.Outstanding.ToString("C", new CultureInfo("en-NG"))</td>
+                                    <td>@paymentSummary.PaymentCompletionRate.ToString("F2")%</td>
+                                    <td>@paymentSummary.TimelyCompletionRate.ToString("F2")%</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" @onclick="() => ShowLearningPathReport(learningPath)">
+                                            <i class="fa fa-file-alt"></i> Report
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
+    }
+   
 </div>
 
 <SchoolPaymentReportModal IsVisible="showSchoolReport"
@@ -296,6 +317,9 @@
     private double totalBroughtForward;
     private bool showSchoolReport = false;
     private bool showLearningPathReport = false;
+    private const string TabSchool = "school";
+    private const string TabClasses = "classes";
+    private string activeTab = TabSchool;
 
     protected override void OnInitialized()
     {
