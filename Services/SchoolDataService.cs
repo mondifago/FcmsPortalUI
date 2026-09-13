@@ -1833,6 +1833,10 @@ namespace FcmsPortalUI.Services
             if (schoolFees == null)
                 throw new ArgumentException("School fees record not found.");
 
+            if (!LogicMethods.IsPaymentPeriodEditable(schoolFees.LearningPath, GetCurrentAcademicPeriod()))
+                throw new BusinessRuleException(
+                    "Payments cannot be recorded against a closed academic period.");
+
             var studentFees = _context.SchoolFees
                 .Include(fees => fees.Payments)
                 .Include(fees => fees.Adjustments)
@@ -1887,6 +1891,10 @@ namespace FcmsPortalUI.Services
             if (schoolFees == null)
                 throw new ArgumentException("School fees record not found.");
 
+            if (!LogicMethods.IsPaymentPeriodEditable(schoolFees.LearningPath, GetCurrentAcademicPeriod()))
+                throw new BusinessRuleException(
+                    "Payments from a closed academic period cannot be modified.");
+
             var studentFees = _context.SchoolFees
                 .Include(fees => fees.Payments)
                 .Include(fees => fees.Adjustments)
@@ -1928,10 +1936,15 @@ namespace FcmsPortalUI.Services
         public void DeletePayment(int paymentId)
         {
             var payment = _context.Payments
+                .Include(candidate => candidate.SchoolFees)
                 .FirstOrDefault(candidate => candidate.Id == paymentId);
 
             if (payment == null)
                 return;
+
+            if (!LogicMethods.IsPaymentPeriodEditable(payment.SchoolFees?.LearningPath, GetCurrentAcademicPeriod()))
+                throw new BusinessRuleException(
+                    "Payments from a closed academic period cannot be deleted.");
 
             _context.Payments.Remove(payment);
             _context.SaveChanges();
@@ -2040,6 +2053,10 @@ namespace FcmsPortalUI.Services
             if (schoolFees == null)
                 throw new ArgumentException("School fees record not found.");
 
+            if (!LogicMethods.IsPaymentPeriodEditable(schoolFees.LearningPath, GetCurrentAcademicPeriod()))
+                throw new BusinessRuleException(
+                    "Discounts cannot be applied to a closed academic period.");
+
             double termFee = schoolFees.LearningPath?.FeePerSemester ?? 0;
 
             double value = adjustment.Mode == FeeAdjustmentMode.Percentage
@@ -2066,10 +2083,15 @@ namespace FcmsPortalUI.Services
         public void DeleteFeeAdjustment(int adjustmentId)
         {
             var adjustment = _context.FeeAdjustments
+                .Include(candidate => candidate.SchoolFees)
                 .FirstOrDefault(candidate => candidate.Id == adjustmentId);
 
             if (adjustment == null)
                 return;
+
+            if (!LogicMethods.IsPaymentPeriodEditable(adjustment.SchoolFees?.LearningPath, GetCurrentAcademicPeriod()))
+                throw new BusinessRuleException(
+                    "Discounts cannot be removed from a closed academic period.");
 
             _context.FeeAdjustments.Remove(adjustment);
             _context.SaveChanges();
