@@ -8,6 +8,9 @@
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Developer,Principal")]
+
 <PageTitle>Payment Summary</PageTitle>
 
 <div class="container-fluid mt-3">

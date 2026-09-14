@@ -3906,6 +3906,7 @@ namespace FcmsPortalUI.Services
                     ClassLevel = lp.ClassLevel,
                     Semester = lp.Semester,
                     AcademicYearStart = lp.AcademicYearStart,
+                    AcademicPeriodId = lp.AcademicPeriodId,
                     ApprovalStatus = lp.ApprovalStatus
                 })
                 .ToList();

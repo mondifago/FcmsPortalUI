@@ -9,6 +9,9 @@
 @inject NavigationManager NavigationManager
 @inject ISchoolDataService SchoolDataService
 
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Developer,Principal,Admin")]
+
 <div class="container-fluid mt-3 fcms-payments-page">
 
     @if (schoolFees == null || student == null)
@@ -431,16 +434,16 @@
                         <dd class="col-sm-8">@selectedPayment.Reference</dd>
 
                         <dt class="col-sm-4">Academic Year:</dt>
-                        <dd class="col-sm-8">@selectedPayment.AcademicYear</dd>
+                        <dd class="col-sm-8">@schoolFees.LearningPath?.AcademicYear</dd>
 
-                        <dt>Education Level:</dt>
-                        <dd>@selectedPayment.EducationLevel.ToDisplayName()</dd>
+                        <dt class="col-sm-4">Education Level:</dt>
+                        <dd class="col-sm-8">@schoolFees.LearningPath?.EducationLevel.ToDisplayName()</dd>
 
-                        <dt>Class Level:</dt>
-                        <dd>@selectedPayment.ClassLevel.ToDisplayName()</dd>
+                        <dt class="col-sm-4">Class Level:</dt>
+                        <dd class="col-sm-8">@schoolFees.LearningPath?.ClassLevel.ToDisplayName()</dd>
 
                         <dt class="col-sm-4">Term:</dt>
-                        <dd class="col-sm-8">@selectedPayment.Semester.ToTermDisplay()</dd>
+                        <dd class="col-sm-8">@schoolFees.LearningPath?.Semester.ToTermDisplay()</dd>
                     </dl>
                 </div>
                 <div class="modal-footer">
@@ -487,8 +490,18 @@
                         </div>
 
                         <div class="form-group mb-3">
-                            <label for="editReference">Reference:</label>
-                            <InputText id="editReference" @bind-Value="editingPayment.Reference" class="form-control" />
+                            <label for="editReference">
+                                Reference:
+                                @if (editingPayment.PaymentMethod == PaymentMethod.BankTransfer)
+                                {
+                                    <span class="text-danger">*</span>
+                                }
+                            </label>
+                            <InputText id="editReference" @bind-Value="editingPayment.Reference" class="form-control"
+                                       disabled="@(editingPayment.PaymentMethod != PaymentMethod.BankTransfer)"
+                                       placeholder="@(editingPayment.PaymentMethod == PaymentMethod.BankTransfer
+                                                          ? "Teller / transfer reference"
+                                                          : "Not required for cash")" />
                         </div>
 
                         <div class="d-flex justify-content-end">
@@ -522,7 +535,7 @@
     private Payment newPayment = new Payment();
     private Payment? editingPayment = null;
     private Payment? selectedPayment = null;
-    private LearningPath? selectedPaymentLearningPath = null;
+    
     private bool showPaymentDetailsModal = false;
     private bool showEditPaymentModal = false;
     private bool showErrorModal;
@@ -706,7 +719,6 @@
     {
         showPaymentDetailsModal = false;
         selectedPayment = null;
-        selectedPaymentLearningPath = null;
     }
 
     private void EditPayment(Payment payment)
