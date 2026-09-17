@@ -94,8 +94,11 @@ namespace FcmsPortalUI.Data
                 .HasOne(cs => cs.Teacher)
                 .WithMany(t => t.ClassSessions)
                 .HasForeignKey(cs => cs.TeacherId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ClassSession>()
+               .HasIndex(cs => new { cs.ClassLevel, cs.Semester, cs.Course, cs.SessionNumber });
+
 
             // ---- SchoolFees ----
 

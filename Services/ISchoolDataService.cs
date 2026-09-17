@@ -26,6 +26,7 @@ namespace FcmsPortalUI.Services
         void UpdateStaff(Staff staff);
         bool DeleteStaff(int staffId);
         string? ValidateStaffDeletion(int staffId);
+        List<Staff> GetTeachers();
         #endregion
 
         #region Guardians
@@ -94,6 +95,12 @@ namespace FcmsPortalUI.Services
         #region Class Sessions
         bool UpdateClassSession(ClassSession classSession);
         ClassSession? GetClassSessionById(int classSessionId);
+        List<ClassSessionListItem> GetClassSessionList(ClassLevel classLevel, Semester semester);
+        ClassSession? GetClassSessionForEdit(int classSessionId);
+        int GetNextSessionNumber(ClassLevel classLevel, Semester semester, string course);
+        ClassSession AddClassSession(ClassSession classSession);
+        void UpdateClassSessionDetails(ClassSession edited);
+        Task DeleteClassSessionsAsync(List<int> classSessionIds);
         #endregion
 
         #region Homework

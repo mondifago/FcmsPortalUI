@@ -1,0 +1,146 @@
+﻿@using FcmsPortal.Enums
+@using FcmsPortal.Models
+@using FcmsPortalUI.Services
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">@(ClassSessionId > 0 ? "Edit Session" : "Add Session")</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">@ClassLevel.ToDisplayName() · @Term.ToTermDisplay()</p>
+
+                <EditForm Model="classSession" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label for="sessionCourse" class="form-label">Course<span class="text-danger">*</span></label>
+                        <InputSelect id="sessionCourse" class="form-select" @bind-Value="classSession.Course" @bind-Value:after="OnCourseChanged">
+                            <option value="">-- Select Course --</option>
+                            @foreach (var course in courses)
+                            {
+                                <option value="@course">@course</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => classSession.Course)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sessionNumber" class="form-label">Session Number</label>
+                        <InputNumber id="sessionNumber" class="form-control" @bind-Value="classSession.SessionNumber"
+                                     disabled="@(ClassSessionId == 0 || classSession.Course != originalCourse)" />
+                        <ValidationMessage For="@(() => classSession.SessionNumber)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sessionTopic" class="form-label">Topic<span class="text-danger">*</span></label>
+                        <InputText id="sessionTopic" class="form-control" @bind-Value="classSession.Topic" />
+                        <ValidationMessage For="@(() => classSession.Topic)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sessionDescription" class="form-label">Description<span class="text-danger">*</span></label>
+                        <InputText id="sessionDescription" class="form-control" @bind-Value="classSession.Description" />
+                        <ValidationMessage For="@(() => classSession.Description)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sessionTeacher" class="form-label">Teacher</label>
+                        <InputSelect id="sessionTeacher" class="form-select" @bind-Value="classSession.TeacherId">
+                            <option value="">-- No teacher yet --</option>
+                            @foreach (var teacher in teachers)
+                            {
+                                <option value="@teacher.Id">@Util.GetFullName(teacher.Person)</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public int ClassSessionId { get; set; }
+    [Parameter] public EducationLevel EducationLevel { get; set; }
+    [Parameter] public ClassLevel ClassLevel { get; set; }
+    [Parameter] public Semester Term { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private ClassSession classSession = new();
+    private List<string> courses = new();
+    private List<Staff> teachers = new();
+    private string originalCourse = string.Empty;
+    private int originalSessionNumber = 0;
+    private bool wasVisible = false;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && !wasVisible)
+        {
+            LoadForm();
+        }
+
+        wasVisible = IsVisible;
+    }
+
+    private void LoadForm()
+    {
+        courses = CourseDefaults.GetCourseNames(EducationLevel);
+        teachers = SchoolDataService.GetTeachers();
+        classSession = new ClassSession { ClassLevel = ClassLevel, Semester = Term };
+
+        if (ClassSessionId > 0)
+        {
+            classSession = SchoolDataService.GetClassSessionForEdit(ClassSessionId) ?? classSession;
+        }
+
+        originalCourse = classSession.Course;
+        originalSessionNumber = classSession.SessionNumber;
+    }
+
+    private void OnCourseChanged()
+    {
+        if (classSession.Course == originalCourse)
+        {
+            classSession.SessionNumber = originalSessionNumber;
+            return;
+        }
+
+        classSession.SessionNumber = SchoolDataService.GetNextSessionNumber(ClassLevel, Term, classSession.Course);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (ClassSessionId > 0)
+        {
+            SchoolDataService.UpdateClassSessionDetails(classSession);
+        }
+        else
+        {
+            SchoolDataService.AddClassSession(classSession);
+        }
+
+        await OnSaved.InvokeAsync();
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}

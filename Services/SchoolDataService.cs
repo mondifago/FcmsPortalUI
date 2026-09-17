@@ -336,6 +336,15 @@ namespace FcmsPortalUI.Services
             return null;
         }
 
+        public List<Staff> GetTeachers()
+        {
+            return _context.Staff
+                .AsNoTracking()
+                .Include(st => st.Person)
+                .Where(st => st.UserRole == UserRole.Teacher)
+                .OrderBy(st => st.Person.FirstName)
+                .ToList();
+        }
         #endregion
 
         #region Guardians
@@ -1374,6 +1383,151 @@ namespace FcmsPortalUI.Services
             return true;
         }
 
+        public List<ClassSessionListItem> GetClassSessionList(ClassLevel classLevel, Semester semester)
+        {
+            return _context.ClassSessions
+                .AsNoTracking()
+                .Where(cs => cs.ClassLevel == classLevel && cs.Semester == semester)
+                .OrderBy(cs => cs.Course)
+                .ThenBy(cs => cs.SessionNumber)
+                .Select(cs => new ClassSessionListItem
+                {
+                    Id = cs.Id,
+                    SessionNumber = cs.SessionNumber,
+                    Course = cs.Course,
+                    Topic = cs.Topic,
+                    TeacherName = cs.Teacher == null
+                        ? null
+                        : cs.Teacher.Person.FirstName + " " + cs.Teacher.Person.LastName,
+                    ScheduledAt = _context.ScheduleEntries
+                        .Where(se => se.ClassSessionId == cs.Id)
+                        .OrderBy(se => se.DateTime)
+                        .Select(se => (DateTime?)se.DateTime)
+                        .FirstOrDefault(),
+                    ClosedAt = cs.ClosedAt
+                })
+                .ToList();
+        }
+
+        public ClassSession? GetClassSessionForEdit(int classSessionId)
+        {
+            return _context.ClassSessions
+                .AsNoTracking()
+                .FirstOrDefault(cs => cs.Id == classSessionId);
+        }
+
+        public int GetNextSessionNumber(ClassLevel classLevel, Semester semester, string course)
+        {
+            var highestSessionNumber = _context.ClassSessions
+                .AsNoTracking()
+                .Where(cs => cs.ClassLevel == classLevel && cs.Semester == semester && cs.Course == course)
+                .Max(cs => (int?)cs.SessionNumber);
+
+            return LogicMethods.GetNextSessionNumber(highestSessionNumber);
+        }
+
+        public ClassSession AddClassSession(ClassSession classSession)
+        {
+            classSession.SessionNumber = GetNextSessionNumber(classSession.ClassLevel, classSession.Semester, classSession.Course);
+            _context.ClassSessions.Add(classSession);
+            _context.SaveChanges();
+            return classSession;
+        }
+
+        public void UpdateClassSessionDetails(ClassSession edited)
+        {
+            var existing = _context.ClassSessions.FirstOrDefault(cs => cs.Id == edited.Id);
+
+            if (existing == null)
+                return;
+
+            var courseSessions = LoadCourseSessions(existing.ClassLevel, existing.Semester, existing.Course);
+            var orderedIds = courseSessions.Select(cs => cs.Id).ToList();
+
+            if (existing.Course == edited.Course)
+            {
+                ApplySessionNumbers(courseSessions, LogicMethods.MoveInSequence(orderedIds, existing.Id, edited.SessionNumber));
+            }
+            else
+            {
+                ApplySessionNumbers(courseSessions, LogicMethods.RemoveFromSequence(orderedIds, existing.Id));
+
+                var newCourseSessions = LoadCourseSessions(existing.ClassLevel, existing.Semester, edited.Course);
+                newCourseSessions.Add(existing);
+                var newOrderedIds = newCourseSessions.Select(cs => cs.Id).ToList();
+                ApplySessionNumbers(newCourseSessions, LogicMethods.MoveInSequence(newOrderedIds, existing.Id, newOrderedIds.Count));
+
+                existing.Course = edited.Course;
+            }
+
+            existing.Topic = edited.Topic;
+            existing.Description = edited.Description;
+            existing.TeacherId = edited.TeacherId;
+
+            _context.SaveChanges();
+        }
+
+        public async Task DeleteClassSessionsAsync(List<int> classSessionIds)
+        {
+            var studyMaterials = await _context.ClassSessions
+                .Where(cs => classSessionIds.Contains(cs.Id))
+                .SelectMany(cs => cs.StudyMaterials)
+                .ToListAsync();
+
+            foreach (var material in studyMaterials)
+            {
+                await DeleteFileAsync(material);
+            }
+
+            var shells = await _context.ScheduleEntries
+                .Where(se => se.ClassSessionId.HasValue && classSessionIds.Contains(se.ClassSessionId.Value))
+                .ToListAsync();
+
+            foreach (var shell in shells)
+            {
+                shell.ClassSessionId = null;
+            }
+
+            var sessions = await _context.ClassSessions
+                .Where(cs => classSessionIds.Contains(cs.Id))
+                .ToListAsync();
+
+            _context.ClassSessions.RemoveRange(sessions);
+            await _context.SaveChangesAsync();
+
+            var affectedCourses = sessions
+                .Select(cs => (cs.ClassLevel, cs.Semester, cs.Course))
+                .Distinct()
+                .ToList();
+
+            foreach (var (classLevel, semester, course) in affectedCourses)
+            {
+                var remainingSessions = LoadCourseSessions(classLevel, semester, course);
+                ApplySessionNumbers(remainingSessions, remainingSessions.Select(cs => cs.Id).ToList());
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        private List<ClassSession> LoadCourseSessions(ClassLevel classLevel, Semester semester, string course)
+        {
+            return _context.ClassSessions
+                .Where(cs => cs.ClassLevel == classLevel && cs.Semester == semester && cs.Course == course)
+                .OrderBy(cs => cs.SessionNumber)
+                .ThenBy(cs => cs.Id)
+                .ToList();
+        }
+
+        private static void ApplySessionNumbers(List<ClassSession> sessions, List<int> orderedIds)
+        {
+            var sessionNumbers = LogicMethods.AssignSequenceNumbers(orderedIds);
+
+            foreach (var session in sessions)
+            {
+                if (sessionNumbers.TryGetValue(session.Id, out var sessionNumber))
+                    session.SessionNumber = sessionNumber;
+            }
+        }
         #endregion
 
         #region Homework

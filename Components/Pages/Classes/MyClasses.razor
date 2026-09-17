@@ -18,7 +18,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap fcms-gap-sm">
         <h2 class="mb-0">@pageHeading</h2>
 
-        @if (canManageSchedules && activePathId > 0)
+        @if (canManageSchedules && activePathId > 0 && activeTab == TabTimetable)
         {
             <button class="btn btn-primary" @onclick="() => showCreateModal = true">
                 <i class="fa fa-plus me-1"></i> Add Class Schedule
@@ -50,9 +50,11 @@
         <div class="card mb-3">
             <div class="card-body">
                 <div class="row">
+
                     <div class="col-md-3">
                         <label class="form-label">Academic Year:</label>
-                        <select class="form-select" @bind="staffYear" @bind:after="OnStaffFiltersChanged">
+                        <select class="form-select" @bind="staffYear" @bind:after="OnStaffFiltersChanged"
+                                disabled="@(activeTab == TabSessions)">
                             <option value="">Select Academic Year</option>
                             @foreach (var year in availableYears)
                             {
@@ -60,10 +62,11 @@
                             }
                         </select>
                     </div>
+
                     <div class="col-md-3">
                         <label class="form-label">Education Level:</label>
                         <select class="form-select" @bind="staffEducationLevel" @bind:after="OnStaffFiltersChanged"
-                                disabled="@(string.IsNullOrEmpty(staffYear))">
+                                disabled="@(string.IsNullOrEmpty(staffYear) && activeTab != TabSessions)">
                             <option value="">Select Education Level</option>
                             @foreach (var level in Enum.GetValues<EducationLevel>().Where(l => l != EducationLevel.None))
                             {
@@ -106,9 +109,9 @@
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link @(activeTab == TabOne ? "active" : "")"
-                    @onclick="() => activeTab = TabOne">
-                Tab1
+            <button class="nav-link @(activeTab == TabSessions ? "active" : "")"
+                    @onclick="() => activeTab = TabSessions">
+                Class Sessions
             </button>
         </li>
         <li class="nav-item">
@@ -260,12 +263,21 @@
         }
     }
 
-    @if (activeTab == TabOne)
+    @if (activeTab == TabSessions)
     {
-        <div class="text-center text-muted py-4">
-            <i class="fa fa-hourglass-half fa-2x mb-2 fcms-icon-soft"></i>
-            <p class="mb-0">Coming soon</p>
-        </div>
+        @if (canManageSessions)
+        {
+            <ClassSessionsPanel SelectedEducationLevel="SelectedEducationLevel"
+                                SelectedClassLevel="SelectedClassLevel"
+                                SelectedTerm="SelectedTerm" />
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+                <i class="fa fa-hourglass-half fa-2x mb-2 fcms-icon-soft"></i>
+                <p class="mb-0">Coming soon</p>
+            </div>
+        }
     }
 
     @if (activeTab == TabTwo)
@@ -298,7 +310,7 @@
 
 @code {
     private const string TabTimetable = "timetable";
-    private const string TabOne = "template";
+    private const string TabSessions = "sessions";
     private const string TabTwo = "tab2";
 
     private string activeTab = TabTimetable;
@@ -308,6 +320,7 @@
     private bool isGuardian = false;
     private bool isStaffViewer = false;
     private bool canManageSchedules = false;
+    private bool canManageSessions = false;
 
     private Guardian? guardianProfile;
     private int activeWardId = 0;
@@ -336,6 +349,9 @@
     private string pageHeading = "My Classes";
     private List<string> availableYears = new();
     private List<ClassLevel> availableClassLevels = new();
+    private EducationLevel SelectedEducationLevel => Enum.TryParse<EducationLevel>(staffEducationLevel, out var level) ? level : EducationLevel.None;
+    private ClassLevel SelectedClassLevel => Enum.TryParse<ClassLevel>(staffClassLevel, out var level) ? level : ClassLevel.None;
+    private Semester? SelectedTerm => Enum.TryParse<Semester>(staffTerm, out var term) ? term : null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -351,6 +367,7 @@
         isGuardian = await PermissionService.IsInRoleAsync("Guardian");
         canManageSchedules = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
         isStaffViewer = canManageSchedules;
+        canManageSessions = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin");
 
         if (isStudent)
         {

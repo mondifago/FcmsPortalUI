@@ -1823,3 +1823,7 @@ main {
 .fcms-payment-panel .fcms-figure {
     font-size: 1.25rem;
 }
+
+.fcms-session-closed > td {
+    --bs-table-bg-state: #e6f4ea;
+}

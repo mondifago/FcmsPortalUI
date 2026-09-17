@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Components\Pages\Class Session\" />
     <Folder Include="Migrations\" />
     <Folder Include="uploads\" />
     <Folder Include="uploads\ClassSession-2-Materials\" />
