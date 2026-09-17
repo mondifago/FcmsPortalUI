@@ -76,14 +76,6 @@ namespace FcmsPortalUI.Services
         void ApproveLearningPath(int learningPathId);
         #endregion
 
-        #region Learning Path Templates
-        void CreateTemplateFromLearningPath(LearningPath learningPath);
-        string GenerateTemplateKey(EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
-        LearningPath? GetTemplate(EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
-        bool HasTemplate(EducationLevel educationLevel, ClassLevel classLevel, Semester semester);
-        LearningPath? ApplyTemplateToNewLearningPath(LearningPath template, DateTime newAcademicYearStart);
-        #endregion
-
         #region Calendar & Scheduling
         ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId);
         ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);

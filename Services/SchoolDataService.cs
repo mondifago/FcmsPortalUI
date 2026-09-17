@@ -941,8 +941,6 @@ namespace FcmsPortalUI.Services
         {
             var existingLearningPath = _context.LearningPaths
                    .Include(lp => lp.Students)
-               
-                   .Include(lp => lp.Schedule)
                    .FirstOrDefault(lp => lp.Id == learningPath.Id);
 
             if (existingLearningPath != null)
@@ -964,7 +962,6 @@ namespace FcmsPortalUI.Services
                 existingLearningPath.AcademicYearStart = learningPath.AcademicYearStart;
                 existingLearningPath.IsTemplate = learningPath.IsTemplate;
                 existingLearningPath.TemplateKey = learningPath.TemplateKey;
-                existingLearningPath.Schedule = learningPath.Schedule;
                 existingLearningPath.SubmittedById = learningPath.SubmittedById;
                 existingLearningPath.SubmittedByName = learningPath.SubmittedByName;
                 existingLearningPath.DateSubmitted = learningPath.DateSubmitted;
@@ -1088,139 +1085,6 @@ namespace FcmsPortalUI.Services
             existingLearningPath.ApprovalStatus = PrincipalApprovalStatus.Approved;
 
             _context.SaveChanges();
-        }
-        #endregion
-
-        #region Learning Path Templates
-        public void CreateTemplateFromLearningPath(LearningPath learningPath)
-        {
-            if (learningPath == null) return;
-
-            var school = _context.School.FirstOrDefault();
-            if (school == null)
-                throw new InvalidOperationException("No school found. Cannot create template without a school.");
-
-            var scheduleSource = _context.ScheduleEntries
-                .Include(se => se.ClassSession)
-                    .ThenInclude(cs => cs.Teacher)
-                .Where(se => se.LearningPathId == learningPath.Id)
-                .ToList();
-
-            string templateKey = GenerateTemplateKey(learningPath.EducationLevel, learningPath.ClassLevel, learningPath.Semester);
-
-            var existingTemplate = _context.LearningPaths
-                .FirstOrDefault(lp => lp.IsTemplate && lp.TemplateKey == templateKey);
-
-            if (existingTemplate != null)
-            {
-                _context.LearningPaths.Remove(existingTemplate);
-            }
-
-            var template = new LearningPath
-            {
-                SchoolId = school.Id,
-                School = school,
-                EducationLevel = learningPath.EducationLevel,
-                ClassLevel = learningPath.ClassLevel,
-                Semester = learningPath.Semester,
-                AcademicYearStart = learningPath.AcademicYearStart,
-                SemesterStartDate = learningPath.SemesterStartDate,
-                SemesterEndDate = learningPath.SemesterEndDate,
-                ExamsStartDate = learningPath.ExamsStartDate,
-                FeePerSemester = learningPath.FeePerSemester,
-                IsTemplate = true,
-                TemplateKey = templateKey,
-                ApprovalStatus = PrincipalApprovalStatus.Pending,
-
-                Schedule = scheduleSource.Select(s => new ScheduleEntry
-                {
-                    Title = s.Title,
-                    DateTime = s.DateTime,
-                    Duration = s.Duration,
-                    Venue = s.Venue,
-                    ClassSession = s.ClassSession != null ? new ClassSession
-                    {
-                        Course = s.ClassSession.Course,
-                        Topic = s.ClassSession.Topic,
-                        Description = s.ClassSession.Description,
-                        LessonPlan = s.ClassSession.LessonPlan,
-                        Teacher = s.ClassSession.Teacher,
-                        StudyMaterials = new List<FileAttachment>(),
-                        DiscussionThreads = new List<DiscussionThread>()
-                    } : null
-                }).ToList(),
-
-                Students = new List<Student>(),
-     
-            };
-
-            _context.LearningPaths.Add(template);
-            _context.SaveChanges();
-        }
-
-        public string GenerateTemplateKey(EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
-        {
-            return $"{educationLevel}_{classLevel}_{semester}";
-        }
-
-        public LearningPath? GetTemplate(EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
-        {
-            string templateKey = GenerateTemplateKey(educationLevel, classLevel, semester);
-            return _context.LearningPaths
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                .FirstOrDefault(lp => lp.IsTemplate && lp.TemplateKey == templateKey);
-        }
-
-        public bool HasTemplate(EducationLevel educationLevel, ClassLevel classLevel, Semester semester)
-        {
-            return GetTemplate(educationLevel, classLevel, semester) != null;
-        }
-
-        public LearningPath? ApplyTemplateToNewLearningPath(LearningPath template, DateTime newAcademicYearStart)
-        {
-            if (template == null || !template.IsTemplate) return null;
-
-            var templateYearStart = template.AcademicYearStart;
-            var dateOffset = newAcademicYearStart - templateYearStart;
-
-            var newLearningPath = new LearningPath
-            {
-                EducationLevel = template.EducationLevel,
-                ClassLevel = template.ClassLevel,
-                Semester = template.Semester,
-                AcademicYearStart = newAcademicYearStart,
-                SemesterStartDate = template.SemesterStartDate.Add(dateOffset),
-                SemesterEndDate = template.SemesterEndDate.Add(dateOffset),
-                ExamsStartDate = template.ExamsStartDate.Add(dateOffset),
-                FeePerSemester = template.FeePerSemester,
-                IsTemplate = false,
-                TemplateKey = null,
-                ApprovalStatus = PrincipalApprovalStatus.Pending,
-
-                Schedule = template.Schedule.Select(s => new ScheduleEntry
-                {
-                    Title = s.Title,
-                    DateTime = s.DateTime.Add(dateOffset),
-                    Duration = s.Duration,
-                    Venue = s.Venue,
-                    ClassSession = s.ClassSession != null ? new ClassSession
-                    {
-                        Course = s.ClassSession.Course,
-                        Topic = s.ClassSession.Topic,
-                        Description = s.ClassSession.Description,
-                        LessonPlan = s.ClassSession.LessonPlan,
-                        Teacher = s.ClassSession.Teacher,
-                        StudyMaterials = new List<FileAttachment>(),
-                        DiscussionThreads = new List<DiscussionThread>()
-                    } : null
-                }).ToList(),
-
-                Students = new List<Student>(),
-  
-            };
-
-            return newLearningPath;
         }
         #endregion
 
