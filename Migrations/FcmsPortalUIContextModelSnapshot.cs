@@ -66,6 +66,12 @@ namespace FcmsPortalUI.Migrations
                     b.Property<DateTime?>("ExamsStartDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("MidTermBreakEnd")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("MidTermBreakStart")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("Semester")
                         .HasColumnType("int");
 
@@ -1417,7 +1423,9 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ClassSessionId");
 
-                    b.HasIndex("LearningPathId");
+                    b.HasIndex("DateTime");
+
+                    b.HasIndex("LearningPathId", "DateTime");
 
                     b.ToTable("ScheduleEntries");
                 });
@@ -2191,7 +2199,8 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasOne("FcmsPortal.Models.ClassSession", "ClassSession")
                         .WithMany()
-                        .HasForeignKey("ClassSessionId");
+                        .HasForeignKey("ClassSessionId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("FcmsPortal.Models.LearningPath", "LearningPath")
                         .WithMany("Schedule")

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FcmsPortalUI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,7 +25,9 @@ namespace FcmsPortalUI.Migrations
                     Semester = table.Column<int>(type: "int", nullable: false),
                     SemesterStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     SemesterEndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    ExamsStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    ExamsStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    MidTermBreakStart = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    MidTermBreakEnd = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -103,9 +105,7 @@ namespace FcmsPortalUI.Migrations
                     TotalPaid = table.Column<double>(type: "double", nullable: false),
                     Outstanding = table.Column<double>(type: "double", nullable: false),
                     LearningPathPaymentCompletionRate = table.Column<double>(type: "double", nullable: false),
-                    AverageStudentPaymentCompletionRateInPath = table.Column<double>(type: "double", nullable: false),
                     LearningPathTimelyCompletionRate = table.Column<double>(type: "double", nullable: false),
-                    AverageStudentTimelyCompletionRateInPath = table.Column<double>(type: "double", nullable: false),
                     SemesterStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     SemesterEndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     ArchivedDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
@@ -132,10 +132,9 @@ namespace FcmsPortalUI.Migrations
                     TotalExpectedRevenue = table.Column<double>(type: "double", nullable: false),
                     TotalAmountReceived = table.Column<double>(type: "double", nullable: false),
                     TotalOutstandingBalance = table.Column<double>(type: "double", nullable: false),
+                    TotalBroughtForwardOutstanding = table.Column<double>(type: "double", nullable: false),
                     SchoolWidePaymentCompletionRate = table.Column<double>(type: "double", nullable: false),
                     SchoolWideTimelyCompletionRate = table.Column<double>(type: "double", nullable: false),
-                    AverageStudentPaymentCompletionRateInSchool = table.Column<double>(type: "double", nullable: false),
-                    AverageStudentTimelyCompletionRateInSchool = table.Column<double>(type: "double", nullable: false),
                     SemesterStartDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     SemesterEndDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     ArchivedDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
@@ -155,6 +154,8 @@ namespace FcmsPortalUI.Migrations
                     StudentId = table.Column<int>(type: "int", nullable: false),
                     StudentName = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    StudentAddress = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     LearningPathId = table.Column<int>(type: "int", nullable: false),
                     LearningPathName = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -166,6 +167,11 @@ namespace FcmsPortalUI.Migrations
                     TotalFees = table.Column<double>(type: "double", nullable: false),
                     TotalPaid = table.Column<double>(type: "double", nullable: false),
                     OutstandingBalance = table.Column<double>(type: "double", nullable: false),
+                    CarriedForward = table.Column<double>(type: "double", nullable: false),
+                    TermFee = table.Column<double>(type: "double", nullable: false),
+                    Discount = table.Column<double>(type: "double", nullable: false),
+                    BroughtForward = table.Column<double>(type: "double", nullable: false),
+                    TotalPayable = table.Column<double>(type: "double", nullable: false),
                     PaymentCompletionRate = table.Column<double>(type: "double", nullable: false),
                     TimelyCompletionRate = table.Column<double>(type: "double", nullable: false),
                     ArchivedDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
@@ -722,7 +728,10 @@ namespace FcmsPortalUI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Course = table.Column<string>(type: "longtext", nullable: false)
+                    SessionNumber = table.Column<int>(type: "int", nullable: false),
+                    ClassLevel = table.Column<int>(type: "int", nullable: false),
+                    Semester = table.Column<int>(type: "int", nullable: false),
+                    Course = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Topic = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
@@ -730,12 +739,13 @@ namespace FcmsPortalUI.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     LessonPlan = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    TeacherId = table.Column<int>(type: "int", nullable: false),
+                    TeacherId = table.Column<int>(type: "int", nullable: true),
                     TeacherRemarks = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RemarksSubmittedByName = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     RemarksSubmittedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ClosedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     VideoUrl = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     VideoTitle = table.Column<string>(type: "longtext", nullable: true)
@@ -749,7 +759,7 @@ namespace FcmsPortalUI.Migrations
                         column: x => x.TeacherId,
                         principalTable: "Staff",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -1014,7 +1024,8 @@ namespace FcmsPortalUI.Migrations
                         name: "FK_ScheduleEntries_ClassSessions_ClassSessionId",
                         column: x => x.ClassSessionId,
                         principalTable: "ClassSessions",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ScheduleEntries_LearningPaths_LearningPathId",
                         column: x => x.LearningPathId,
@@ -1142,10 +1153,6 @@ namespace FcmsPortalUI.Migrations
                     Reference = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     SchoolFeesId = table.Column<int>(type: "int", nullable: false),
-                    Semester = table.Column<int>(type: "int", nullable: false),
-                    AcademicYearStart = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    EducationLevel = table.Column<int>(type: "int", nullable: false),
-                    ClassLevel = table.Column<int>(type: "int", nullable: false),
                     LearningPathId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -1446,6 +1453,11 @@ namespace FcmsPortalUI.Migrations
                 column: "SchoolId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ClassSessions_ClassLevel_Semester_Course_SessionNumber",
+                table: "ClassSessions",
+                columns: new[] { "ClassLevel", "Semester", "Course", "SessionNumber" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ClassSessions_TeacherId",
                 table: "ClassSessions",
                 column: "TeacherId");
@@ -1594,9 +1606,14 @@ namespace FcmsPortalUI.Migrations
                 column: "ClassSessionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ScheduleEntries_LearningPathId",
+                name: "IX_ScheduleEntries_DateTime",
                 table: "ScheduleEntries",
-                column: "LearningPathId");
+                column: "DateTime");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScheduleEntries_LearningPathId_DateTime",
+                table: "ScheduleEntries",
+                columns: new[] { "LearningPathId", "DateTime" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_School_CurrentAcademicPeriodId",

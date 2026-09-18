@@ -99,6 +99,17 @@ namespace FcmsPortalUI.Data
             modelBuilder.Entity<ClassSession>()
                .HasIndex(cs => new { cs.ClassLevel, cs.Semester, cs.Course, cs.SessionNumber });
 
+            modelBuilder.Entity<ScheduleEntry>()
+                .HasOne(se => se.ClassSession)
+                .WithMany()
+                .HasForeignKey(se => se.ClassSessionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ScheduleEntry>()
+                .HasIndex(se => new { se.LearningPathId, se.DateTime });
+
+            modelBuilder.Entity<ScheduleEntry>()
+                .HasIndex(se => se.DateTime);
 
             // ---- SchoolFees ----
 

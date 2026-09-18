@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FcmsPortalUI.Migrations
 {
     [DbContext(typeof(FcmsPortalUIContext))]
-    [Migration("20260826143455_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260918175826_InitCreate")]
+    partial class InitCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -67,6 +67,12 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("ExamsStartDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("MidTermBreakEnd")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("MidTermBreakStart")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("Semester")
@@ -265,12 +271,6 @@ namespace FcmsPortalUI.Migrations
                     b.Property<DateTime>("ArchivedDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<double>("AverageStudentPaymentCompletionRateInPath")
-                        .HasColumnType("double");
-
-                    b.Property<double>("AverageStudentTimelyCompletionRateInPath")
-                        .HasColumnType("double");
-
                     b.Property<int>("ClassLevel")
                         .HasColumnType("int");
 
@@ -365,12 +365,6 @@ namespace FcmsPortalUI.Migrations
                     b.Property<DateTime>("ArchivedDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<double>("AverageStudentPaymentCompletionRateInSchool")
-                        .HasColumnType("double");
-
-                    b.Property<double>("AverageStudentTimelyCompletionRateInSchool")
-                        .HasColumnType("double");
-
                     b.Property<int>("FullyPaidStudents")
                         .HasColumnType("int");
 
@@ -393,6 +387,9 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("int");
 
                     b.Property<double>("TotalAmountReceived")
+                        .HasColumnType("double");
+
+                    b.Property<double>("TotalBroughtForwardOutstanding")
                         .HasColumnType("double");
 
                     b.Property<double>("TotalExpectedRevenue")
@@ -510,8 +507,17 @@ namespace FcmsPortalUI.Migrations
                     b.Property<DateTime>("ArchivedDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<double>("BroughtForward")
+                        .HasColumnType("double");
+
+                    b.Property<double>("CarriedForward")
+                        .HasColumnType("double");
+
                     b.Property<int>("ClassLevel")
                         .HasColumnType("int");
+
+                    b.Property<double>("Discount")
+                        .HasColumnType("double");
 
                     b.Property<int>("EducationLevel")
                         .HasColumnType("int");
@@ -532,12 +538,19 @@ namespace FcmsPortalUI.Migrations
                     b.Property<int>("Semester")
                         .HasColumnType("int");
 
+                    b.Property<string>("StudentAddress")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
 
                     b.Property<string>("StudentName")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<double>("TermFee")
+                        .HasColumnType("double");
 
                     b.Property<double>("TimelyCompletionRate")
                         .HasColumnType("double");
@@ -546,6 +559,9 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("double");
 
                     b.Property<double>("TotalPaid")
+                        .HasColumnType("double");
+
+                    b.Property<double>("TotalPayable")
                         .HasColumnType("double");
 
                     b.HasKey("Id");
@@ -668,9 +684,16 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ClassLevel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Course")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -688,7 +711,13 @@ namespace FcmsPortalUI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("TeacherId")
+                    b.Property<int>("Semester")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SessionNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TeacherId")
                         .HasColumnType("int");
 
                     b.Property<string>("TeacherRemarks")
@@ -710,6 +739,8 @@ namespace FcmsPortalUI.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TeacherId");
+
+                    b.HasIndex("ClassLevel", "Semester", "Course", "SessionNumber");
 
                     b.ToTable("ClassSessions");
                 });
@@ -1116,20 +1147,11 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("AcademicYearStart")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<double>("Amount")
                         .HasColumnType("double");
 
-                    b.Property<int>("ClassLevel")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<int>("EducationLevel")
-                        .HasColumnType("int");
 
                     b.Property<int>("LearningPathId")
                         .HasColumnType("int");
@@ -1142,9 +1164,6 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<int>("SchoolFeesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Semester")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -1407,7 +1426,9 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasIndex("ClassSessionId");
 
-                    b.HasIndex("LearningPathId");
+                    b.HasIndex("DateTime");
+
+                    b.HasIndex("LearningPathId", "DateTime");
 
                     b.ToTable("ScheduleEntries");
                 });
@@ -1913,8 +1934,7 @@ namespace FcmsPortalUI.Migrations
                     b.HasOne("FcmsPortal.Models.Staff", "Teacher")
                         .WithMany("ClassSessions")
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Teacher");
                 });
@@ -2182,7 +2202,8 @@ namespace FcmsPortalUI.Migrations
 
                     b.HasOne("FcmsPortal.Models.ClassSession", "ClassSession")
                         .WithMany()
-                        .HasForeignKey("ClassSessionId");
+                        .HasForeignKey("ClassSessionId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("FcmsPortal.Models.LearningPath", "LearningPath")
                         .WithMany("Schedule")
