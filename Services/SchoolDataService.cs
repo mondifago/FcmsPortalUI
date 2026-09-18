@@ -1524,27 +1524,11 @@ namespace FcmsPortalUI.Services
         #region Homework
         public Homework? GetHomeworkById(int id)
         {
-            var learningPaths = _context.LearningPaths
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.HomeworkDetails)
-                            .ThenInclude(h => h.Submissions)
-                                .ThenInclude(sub => sub.Student)
-                                    .ThenInclude(st => st.Person)
-                .ToList();
-
-            foreach (var learningPath in learningPaths)
-            {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession?.HomeworkDetails != null)
-                    {
-                        if (schedule.ClassSession.HomeworkDetails.Id == id)
-                            return schedule.ClassSession.HomeworkDetails;
-                    }
-                }
-            }
-            return null;
+            return _context.Homework
+                .Include(h => h.Submissions)
+                    .ThenInclude(sub => sub.Student)
+                        .ThenInclude(st => st.Person)
+                .FirstOrDefault(h => h.Id == id);
         }
 
         public HomeworkSubmission? SubmitHomework(int homeworkId, Student student, string answer)
@@ -1572,52 +1556,29 @@ namespace FcmsPortalUI.Services
 
         public bool DeleteHomework(int id)
         {
-            var learningPaths = _context.LearningPaths
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.HomeworkDetails)
-                .ToList();
+            var homework = _context.Set<Homework>()
+                .Include(h => h.ClassSession)
+                .FirstOrDefault(h => h.Id == id);
 
-            foreach (var learningPath in learningPaths)
+            if (homework == null)
+                return false;
+
+            if (homework.ClassSession != null)
             {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession?.HomeworkDetails != null &&
-                        schedule.ClassSession.HomeworkDetails.Id == id)
-                    {
-                        schedule.ClassSession.HomeworkDetails = null;
-                        _context.SaveChanges();
-                        return true;
-                    }
-                }
+                homework.ClassSession.HomeworkDetails = null;
             }
-            return false;
+
+            _context.Set<Homework>().Remove(homework);
+            _context.SaveChanges();
+            return true;
         }
 
         public HomeworkSubmission? GetHomeworkSubmissionById(int id)
         {
-            var learningPaths = _context.LearningPaths
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.HomeworkDetails)
-                            .ThenInclude(h => h.Submissions)
-                                .ThenInclude(sub => sub.Student)
-                                    .ThenInclude(st => st.Person)
-                .ToList();
-
-            foreach (var learningPath in learningPaths)
-            {
-                foreach (var schedule in learningPath.Schedule)
-                {
-                    if (schedule.ClassSession?.HomeworkDetails != null)
-                    {
-                        var submission = schedule.ClassSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Id == id);
-                        if (submission != null)
-                            return submission;
-                    }
-                }
-            }
-            return null;
+            return _context.HomeworkSubmissions
+                .Include(sub => sub.Student)
+                    .ThenInclude(st => st.Person)
+                .FirstOrDefault(sub => sub.Id == id);
         }
 
         public HomeworkSubmission? AddHomeworkSubmission(HomeworkSubmission submission)
