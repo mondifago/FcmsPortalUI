@@ -1,11 +1,7 @@
 ﻿@using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortal
-@using FcmsPortalUI.Components.Pages.Classes
-@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
-@inject NavigationManager NavigationManager
 @inject ValidationService ValidationService
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
@@ -34,15 +30,8 @@
                             <div class="col-md-12">
                                 <label for="scheduleType" class="form-label">Schedule Type<span class="text-danger">*</span></label>
                                 <select id="scheduleType" class="form-select" @bind="scheduleType" @bind:after="OnScheduleTypeChanged">
-                                    <option value="@ScheduleType.Event" disabled="@RestrictToClassOnly" class="@(RestrictToClassOnly ? "text-muted" : "")">
-                                        Event @(RestrictToClassOnly ? "(Not available)" : "")
-                                    </option>
-                                    <option value="@ScheduleType.Meeting" disabled="@RestrictToClassOnly" class="@(RestrictToClassOnly ? "text-muted" : "")">
-                                        Meeting @(RestrictToClassOnly ? "(Not available)" : "")
-                                    </option>
-                                    <option value="@ScheduleType.ClassSession" disabled="@(!AllowClassSchedule)">
-                                        Class Schedule @(AllowClassSchedule ? "" : "(Not available)")
-                                    </option>
+                                    <option value="@ScheduleType.Event">Event</option>
+                                    <option value="@ScheduleType.Meeting">Meeting</option>
                                 </select>
                             </div>
                         </div>
@@ -128,62 +117,6 @@
                             </div>
                         }
 
-                        @if (scheduleType == ScheduleType.ClassSession && AllowClassSchedule)
-                        {
-                            <div class="mb-3 mt-4">
-                                @if (scheduleEntry.ClassSession == null)
-                                {
-                                    <button type="button" class="btn btn-info" @onclick="ShowClassSessionModal">
-                                        <i class="fa fa-plus-circle"></i> Add Class Session
-                                    </button>
-                                    <ValidationMessage For="@(() => scheduleEntry.ClassSession)" />
-                                }
-                                else
-                                {
-                                    <div class="card mb-3">
-                                        <div class="card-header d-flex justify-content-between align-items-center bg-info text-white">
-                                            <h5 class="mb-0">Class Session Information</h5>
-                                            <div class="btn-group">
-                                                <button type="button" class="btn btn-sm btn-light" @onclick="ShowClassSessionModal">
-                                                    <i class="fa fa-edit"></i> Edit
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-danger" @onclick="ShowDeleteConfirmation">
-                                                    <i class="fa fa-trash"></i> Delete
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <dl class="row">
-                                                <dt class="col-sm-3">Course:</dt>
-                                                <dd class="col-sm-9">@scheduleEntry.ClassSession.Course</dd>
-
-                                                <dt class="col-sm-3">Topic:</dt>
-                                                <dd class="col-sm-9">@scheduleEntry.ClassSession.Topic</dd>
-
-                                                <dt class="col-sm-3">Teacher:</dt>
-                                                <dd class="col-sm-9">
-                                                    @if (scheduleEntry.ClassSession.Teacher != null)
-                                                    {
-                                                        <span>@scheduleEntry.ClassSession.Teacher.Person.FirstName @scheduleEntry.ClassSession.Teacher.Person.LastName</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="text-muted">No teacher assigned</span>
-                                                    }
-                                                </dd>
-
-                                                @if (!string.IsNullOrEmpty(scheduleEntry.ClassSession.Description))
-                                                {
-                                                    <dt class="col-sm-3">Description:</dt>
-                                                    <dd class="col-sm-9">@scheduleEntry.ClassSession.Description</dd>
-                                                }
-                                            </dl>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        }
-
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit" class="btn btn-primary">Update Schedule</button>
                             <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
@@ -200,28 +133,9 @@
     <div class="modal-backdrop fade show"></div>
 }
 
-<ClassSessionEdit IsVisible="showClassSessionModal"
-                  EducationLevel="learningPath?.EducationLevel ?? EducationLevel.None"
-                  ExistingClassSession="scheduleEntry?.ClassSession"
-                  ScheduleEntry="scheduleEntry"
-             
-                  OnClose="CloseClassSessionModal" />
-
-<ConfirmDeleteModal IsVisible="showDeleteConfirmation"
-                    Title="Delete Class Session"
-                    Message="Are you sure you want to remove this class session from the schedule entry? This action cannot be undone."
-                    OnConfirm="DeleteClassSession"
-                    OnCancel="HideDeleteConfirmation" />
-
 @code {
     [Parameter]
     public bool IsVisible { get; set; }
-
-    [Parameter]
-    public int? LearningPathId { get; set; }
-
-    [Parameter]
-    public int? ScheduleId { get; set; }
 
     [Parameter]
     public ScheduleEntry? ExistingScheduleEntry { get; set; }
@@ -232,21 +146,12 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
-    [Parameter]
-    public bool AllowClassSchedule { get; set; } = true;
-
-    [Parameter]
-    public bool RestrictToClassOnly { get; set; } = false;
-
-    private LearningPath? learningPath;
     private EditContext? editContext;
     private ValidationMessageStore? messageStore;
     private ScheduleEntry scheduleEntry = new ScheduleEntry();
     private string startTimeString = "09:00";
     private DateTime scheduleDate = DateTime.Today;
     private int durationMinutes = 60;
-    private bool showClassSessionModal = false;
-    private bool showDeleteConfirmation = false;
     private ScheduleType scheduleType = ScheduleType.Event;
 
     protected override void OnParametersSet()
@@ -273,14 +178,8 @@
         messageStore = Util.CreateFieldAwareMessageStore(editContext);
     }
 
-
     private void LoadScheduleEntry()
     {
-        if (LearningPathId.HasValue)
-        {
-            learningPath = SchoolDataService.GetLearningPathForSchedules(LearningPathId.Value);
-        }
-
         scheduleEntry = new ScheduleEntry();
 
         if (ExistingScheduleEntry != null)
@@ -288,89 +187,35 @@
             scheduleEntry = ExistingScheduleEntry;
         }
 
-        if (ExistingScheduleEntry == null && LearningPathId.HasValue && ScheduleId.HasValue)
+        scheduleDate = scheduleEntry.DateTime.Date;
+        startTimeString = scheduleEntry.DateTime.ToString("HH:mm");
+        durationMinutes = (int)scheduleEntry.Duration.TotalMinutes;
+
+        if (!string.IsNullOrEmpty(scheduleEntry.Meeting))
         {
-            var foundEntry = learningPath?.Schedule?.FirstOrDefault(s => s.Id == ScheduleId.Value);
-            if (foundEntry != null)
-            {
-                scheduleEntry = foundEntry;
-            }
+            scheduleType = ScheduleType.Meeting;
         }
 
-        /*if (scheduleEntry.ClassSession != null && scheduleEntry.ClassSession.TeacherId > 0)
+        if (string.IsNullOrEmpty(scheduleEntry.Meeting) && !string.IsNullOrEmpty(scheduleEntry.Event))
         {
-            scheduleEntry.ClassSession.Teacher = SchoolDataService.GetStaffById(scheduleEntry.ClassSession.TeacherId);
-        }*/
+            scheduleType = ScheduleType.Event;
+        }
 
-        if (scheduleEntry != null)
+        if (scheduleEntry.IsRecurring && !scheduleEntry.EndDate.HasValue)
         {
-            scheduleDate = scheduleEntry.DateTime.Date;
-            startTimeString = scheduleEntry.DateTime.ToString("HH:mm");
-            durationMinutes = (int)scheduleEntry.Duration.TotalMinutes;
+            scheduleEntry.EndDate = DateTime.Today.AddMonths(3);
+        }
 
-            if (scheduleEntry.ClassSession != null)
-            {
-                scheduleType = ScheduleType.ClassSession;
-            }
-
-            if (scheduleEntry.ClassSession == null && !string.IsNullOrEmpty(scheduleEntry.Meeting))
-            {
-                scheduleType = ScheduleType.Meeting;
-            }
-
-            if (scheduleEntry.ClassSession == null && string.IsNullOrEmpty(scheduleEntry.Meeting) && !string.IsNullOrEmpty(scheduleEntry.Event))
-            {
-                scheduleType = ScheduleType.Event;
-            }
-
-            if (scheduleEntry.IsRecurring && !scheduleEntry.EndDate.HasValue)
-            {
-                scheduleEntry.EndDate = DateTime.Today.AddMonths(3);
-            }
-
-            if (scheduleEntry.RecurrenceInterval == 0)
-            {
-                scheduleEntry.RecurrenceInterval = 1;
-            }
+        if (scheduleEntry.RecurrenceInterval == 0)
+        {
+            scheduleEntry.RecurrenceInterval = 1;
         }
     }
-
 
     private void OnScheduleTypeChanged()
     {
         scheduleEntry.Event = null;
         scheduleEntry.Meeting = null;
-        scheduleEntry.ClassSession = null;
-    }
-
-    private void ShowClassSessionModal()
-    {
-        showClassSessionModal = true;
-    }
-
-    private void CloseClassSessionModal()
-    {
-        showClassSessionModal = false;
-    }
-
-    
-
-
-    private void ShowDeleteConfirmation()
-    {
-        showDeleteConfirmation = true;
-    }
-
-    private void HideDeleteConfirmation()
-    {
-        showDeleteConfirmation = false;
-    }
-
-    private void DeleteClassSession()
-    {
-        scheduleEntry.ClassSession = null;
-        showDeleteConfirmation = false;
-        StateHasChanged();
     }
 
     private void HandleSubmit(EditContext context)
@@ -395,7 +240,8 @@
                 scheduleEntry.Event = scheduleEntry.Title;
             }
         }
-        else if (scheduleType == ScheduleType.Meeting)
+
+        if (scheduleType == ScheduleType.Meeting)
         {
             if (string.IsNullOrEmpty(scheduleEntry.Meeting))
             {
@@ -403,34 +249,7 @@
             }
         }
 
-        bool success = false;
-
-        if (scheduleEntry.IsRecurring && LearningPathId.HasValue)
-        {
-            int originalId = scheduleEntry.Id;
-            var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
-            SchoolDataService.DeleteScheduleEntry(LearningPathId.Value, originalId);
-
-            if (recurringEntries.Count > 0)
-            {
-                recurringEntries[0].Id = originalId;
-            }
-
-            foreach (var entry in recurringEntries)
-            {
-                SchoolDataService.AddScheduleEntry(LearningPathId.Value, entry);
-            }
-
-            success = true;
-        }
-        else if (LearningPathId.HasValue)
-        {
-            success = SchoolDataService.UpdateScheduleEntry(LearningPathId.Value, scheduleEntry);
-        }
-        else
-        {
-            success = SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
-        }
+        var success = SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
 
         if (success)
         {

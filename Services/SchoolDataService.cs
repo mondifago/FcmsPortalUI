@@ -784,17 +784,6 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(lp => lp.Id == id);
         }
 
-        public LearningPath? GetLearningPathForSchedules(int id)
-        {
-            return _context.LearningPaths
-                .AsNoTracking()
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.Teacher)
-                            .ThenInclude(t => t.Person)
-                .FirstOrDefault(lp => lp.Id == id);
-        }
-
         public List<ScheduleEntry> GetLearningPathCalendarSchedules(int learningPathId)
         {
             return _context.ScheduleEntries
@@ -1311,6 +1300,8 @@ namespace FcmsPortalUI.Services
 
             if (existing == null)
                 return false;
+            if (existing.LearningPathId.HasValue)
+                return false;
 
             context.Entry(existing).CurrentValues.SetValues(scheduleEntry);
 
@@ -1326,7 +1317,7 @@ namespace FcmsPortalUI.Services
             if (scheduleEntry == null)
                 return false;
 
-            if (scheduleEntry.LearningPathId.HasValue && scheduleEntry.ClassSession != null)
+            if (scheduleEntry.LearningPathId.HasValue)
             {
                 return false;
             }

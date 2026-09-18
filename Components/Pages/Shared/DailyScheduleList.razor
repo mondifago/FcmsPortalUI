@@ -82,13 +82,6 @@
     </div>
 </div>
 
-<ScheduleEntryEdit IsVisible="showEditModal"
-                   LearningPathId="LearningPathId"
-                   ExistingScheduleEntry="selectedScheduleForEdit"
-                   AllowClassSchedule="AllowClassSchedule"
-                   OnSave="HandleScheduleUpdated"
-                   OnClose="CloseEditModal" />
-
 @code {
     [Parameter] public string Title { get; set; } = "Schedules";
     [Parameter] public DateTime SelectedDate { get; set; }
@@ -101,12 +94,8 @@
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Schedules";
     [Parameter] public EventCallback<DateTime> SelectedDateChanged { get; set; }
     [Parameter] public ScheduleType? FilterByType { get; set; }
-    [Parameter] public int? LearningPathId { get; set; }
-    [Parameter] public bool AllowClassSchedule { get; set; } = true;
     [Parameter] public bool IsGeneralCalendar { get; set; } = false;
 
-    private bool showEditModal = false;
-    private ScheduleEntry? selectedScheduleForEdit;
     private Dictionary<int, LearningPath?> learningPathCache = new();
   
     protected override void OnParametersSet()
@@ -172,34 +161,13 @@
         OnEdit.InvokeAsync(schedule);
     }
 
-    private void CloseEditModal()
-    {
-        showEditModal = false;
-        selectedScheduleForEdit = null;
-    }
-
-    private void HandleScheduleUpdated(ScheduleEntry updatedSchedule)
-    {
-        var scheduleIndex = Schedules.FindIndex(s => s.Id == updatedSchedule.Id);
-        if (scheduleIndex >= 0)
-        {
-            Schedules[scheduleIndex] = updatedSchedule;
-        }
-
-        CloseEditModal();
-        StateHasChanged();
-    }
-
     private bool CanEditSchedule(ScheduleEntry schedule)
     {
-        if (schedule.ClassSession != null)
+        if (schedule.LearningPathId.HasValue)
         {
             return false;
         }
-        if (IsGeneralCalendar)
-        {
-            return true;
-        }
-        return AllowClassSchedule;
+
+        return IsGeneralCalendar;
     }
 }

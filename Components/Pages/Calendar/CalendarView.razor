@@ -180,18 +180,13 @@
                         OnCancel="CancelDelete" />
 }
 
-<ScheduleEntryCreate IsVisible="showAddEventModal"
-                     LearningPathId="null"
+<ScheduleEntryCreate IsVisible="showAddEventModal"  
                      DateParam="@null"
-                     AllowClassSchedule="false"
-                     RestrictToClassOnly="false"
                      OnSave="SaveScheduleEntryAsync"
                      OnClose="CloseAddEventModal" />
 
 <ScheduleEntryEdit IsVisible="showEditModal"
                    ExistingScheduleEntry="selectedSchedule"
-                   AllowClassSchedule="false"
-                   RestrictToClassOnly="false"
                    OnSave="UpdateScheduleEntryAsync"
                    OnClose="CloseEditModal" />
 

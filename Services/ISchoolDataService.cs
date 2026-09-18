@@ -53,7 +53,6 @@ namespace FcmsPortalUI.Services
 
         #region Learning Paths
         LearningPath AddLearningPath(LearningPath learningPath);
-   
         void RemoveStudentFromLearningPath(LearningPath learningPath, Student student);
         List<LearningPath> GetLearningPathsForPeriod(int academicPeriodId);
         List<SchoolFees> GetSchoolFeesForPeriodStudents(int academicPeriodId);
@@ -64,7 +63,6 @@ namespace FcmsPortalUI.Services
         LearningPath? GetLearningPathBasicInfo(int id);
         LearningPath? GetLearningPathForAttendanceReport(int id);
         LearningPath? GetLearningPathForGradeManagement(int id);
-        LearningPath? GetLearningPathForSchedules(int id);
         List<ScheduleEntry> GetLearningPathCalendarSchedules(int learningPathId);
         LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId);
         Dictionary<int, LearningPath?> GetLearningPathsByScheduleEntries(List<int> scheduleEntryIds);

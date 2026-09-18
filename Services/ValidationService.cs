@@ -190,29 +190,6 @@ namespace FcmsPortalUI.Services
                 isValid = false;
             }
 
-            if (scheduleType == ScheduleType.ClassSession && scheduleEntry.ClassSession == null)
-            {
-                var field = new FieldIdentifier(scheduleEntry, nameof(scheduleEntry.ClassSession));
-                messageStore.Add(field, "A class session must be added for class schedules.");
-                isValid = false;
-            }
-
-            context.NotifyValidationStateChanged();
-            return isValid;
-        }
-
-        public bool ValidateClassSession(EditContext context, ClassSession classSession, ValidationMessageStore messageStore)
-        {
-            messageStore.Clear();
-            bool isValid = context.Validate();
-
-            var teacherField = new FieldIdentifier(classSession, nameof(classSession.TeacherId));
-            if (classSession.TeacherId <= 0)
-            {
-                messageStore.Add(teacherField, "Teacher is required.");
-                isValid = false;
-            }
-
             context.NotifyValidationStateChanged();
             return isValid;
         }

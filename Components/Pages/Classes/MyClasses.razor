@@ -18,12 +18,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap fcms-gap-sm">
         <h2 class="mb-0">@pageHeading</h2>
 
-        @if (canManageSchedules && activePathId > 0 && activeTab == TabTimetable)
-        {
-            <button class="btn btn-primary" @onclick="() => showCreateModal = true">
-                <i class="fa fa-plus me-1"></i> Add Class Schedule
-            </button>
-        }
+        
     </div>
 
     @if (isGuardian && guardianProfile != null && guardianProfile.Wards.Count > 1)
@@ -152,29 +147,7 @@
             <div class="card timetable-card">
                 <div class="card-body">
 
-                    @if (canManageSchedules)
-                    {
-                        <div class="d-flex align-items-center flex-wrap mb-2 fcms-gap-sm">
-                            @if (!selectMode)
-                            {
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="EnterSelectMode">
-                                    <i class="fa fa-check-square me-1"></i>Select
-                                </button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-sm btn-warning" disabled="@(selectedEntryIds.Count != 1)" @onclick="EditSelected">
-                                    <i class="fa fa-pencil me-1"></i>Edit
-                                </button>
-                                <button class="btn btn-sm btn-danger" disabled="@(!selectedEntryIds.Any())" @onclick="DeleteSelected">
-                                    <i class="fa fa-trash me-1"></i>Delete (@selectedEntryIds.Count)
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="ExitSelectMode">
-                                    <i class="fa fa-times me-1"></i>Cancel
-                                </button>
-                            }
-                        </div>
-                    }
+                    
 
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap fcms-gap-sm">
                         <button class="btn btn-sm btn-fcms" @onclick="PreviousWeek">
@@ -220,16 +193,9 @@
                                     {
                                         <div class="d-flex align-items-center rounded fcms-fold-item">
 
-                                            @if (selectMode)
-                                            {
-                                                <div class="ps-2">
-                                                    <input type="checkbox"
-                                                           checked="@selectedEntryIds.Contains(entry.Id)"
-                                                           @onchange="e => ToggleEntrySelection(entry.Id, e)" />
-                                                </div>
-                                            }
+                                            
 
-                                            <div class="flex-grow-1 d-flex justify-content-between align-items-center flex-wrap p-2 fcms-fold-item-main @(!selectMode && entry.ClassSession != null ? "fcms-clickable" : "")"
+                                            <div class="flex-grow-1 d-flex justify-content-between align-items-center flex-wrap p-2 fcms-fold-item-main @(entry.ClassSession != null ? "fcms-clickable" : "")"
                                                  @onclick="() => OpenSession(entry)">
 
                                                 <div>
@@ -289,24 +255,7 @@
     }
 </div>
 
-<ScheduleEntryCreate IsVisible="showCreateModal"
-                     LearningPathId="activePathId"
-                     RestrictToClassOnly="true"
-                     OnSave="HandleScheduleCreated"
-                     OnClose="() => showCreateModal = false" />
 
-<ScheduleEntryEdit IsVisible="showEditModal"
-                   LearningPathId="activePathId"
-                   ScheduleId="entryIdToEdit"
-                   RestrictToClassOnly="true"
-                   OnSave="HandleScheduleEdited"
-                   OnClose="() => showEditModal = false" />
-
-<ConfirmDeleteModal IsVisible="showDeleteConfirmation"
-                    Title="Confirm Delete"
-                    Message="@deleteMessage"
-                    OnConfirm="ConfirmDeleteSelected"
-                    OnCancel="() => showDeleteConfirmation = false" />
 
 @code {
     private const string TabTimetable = "timetable";
@@ -319,7 +268,7 @@
     private bool isStudent = false;
     private bool isGuardian = false;
     private bool isStaffViewer = false;
-    private bool canManageSchedules = false;
+
     private bool canManageSessions = false;
 
     private Guardian? guardianProfile;
@@ -333,14 +282,6 @@
     private DateTime currentWeekStart;
     private HashSet<DateTime> expandedDays = new();
 
-    private bool showCreateModal = false;
-
-    private bool selectMode = false;
-    private HashSet<int> selectedEntryIds = new();
-    private bool showEditModal = false;
-    private int? entryIdToEdit;
-    private bool showDeleteConfirmation = false;
-    private string deleteMessage = "";
 
     private string staffYear = "";
     private string staffEducationLevel = "";
@@ -365,8 +306,7 @@
 
         isStudent = await PermissionService.IsInRoleAsync("Student");
         isGuardian = await PermissionService.IsInRoleAsync("Guardian");
-        canManageSchedules = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
-        isStaffViewer = canManageSchedules;
+        isStaffViewer = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
         canManageSessions = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin");
 
         if (isStudent)
@@ -429,11 +369,7 @@
             : new List<ScheduleEntry>();
     }
 
-    private void HandleScheduleCreated(ScheduleEntry entry)
-    {
-        LoadTimetable();
-        showCreateModal = false;
-    }
+   
 
     private static DateTime GetWeekStart(DateTime date)
     {
@@ -516,70 +452,8 @@
         }
     }
 
-    private void EnterSelectMode()
-    {
-        selectMode = true;
-        selectedEntryIds.Clear();
-    }
-
-    private void ExitSelectMode()
-    {
-        selectMode = false;
-        selectedEntryIds.Clear();
-    }
-
-    private void ToggleEntrySelection(int entryId, ChangeEventArgs e)
-    {
-        var isChecked = e.Value is bool b && b;
-
-        if (isChecked)
-        {
-            selectedEntryIds.Add(entryId);
-        }
-        else
-        {
-            selectedEntryIds.Remove(entryId);
-        }
-    }
-
-    private void EditSelected()
-    {
-        entryIdToEdit = selectedEntryIds.First();
-        showEditModal = true;
-    }
-
-    private void HandleScheduleEdited(ScheduleEntry entry)
-    {
-        LoadTimetable();
-        showEditModal = false;
-        ExitSelectMode();
-    }
-
-    private void DeleteSelected()
-    {
-        deleteMessage = $"Are you sure you want to delete {selectedEntryIds.Count} schedule(s)?";
-        showDeleteConfirmation = true;
-    }
-
-    private void ConfirmDeleteSelected()
-    {
-        foreach (var entryId in selectedEntryIds.ToList())
-        {
-            var deleted = SchoolDataService.DeleteScheduleEntry(activePathId, entryId);
-            if (deleted)
-            {
-                selectedEntryIds.Remove(entryId);
-            }
-        }
-
-        LoadTimetable();
-        showDeleteConfirmation = false;
-    }
-
     private void OnStaffFiltersChanged()
     {
-        ExitSelectMode();
-
         availableClassLevels = new List<ClassLevel>();
         if (Enum.TryParse<EducationLevel>(staffEducationLevel, out var eduLevel))
         {
