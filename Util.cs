@@ -359,6 +359,46 @@ namespace FcmsPortalUI
             };
         }
 
+        public static string GetClassSessionCode(ClassLevel classLevel, Semester semester, string course, int sessionNumber)
+        {
+            return $"{classLevel.ToCode()}-T{(int)semester}-{GetCourseCode(course)}-{sessionNumber:D3}";
+        }
+
+        public static string ToCode(this ClassLevel classLevel)
+        {
+            return classLevel switch
+            {
+                ClassLevel.KG_Daycare => "DYC",
+                ClassLevel.KG_PlayGroup => "PLG",
+                ClassLevel.KG_PreNursery => "PNS",
+                ClassLevel.KG_Nursery => "NUR",
+                ClassLevel.PRI_1 => "PRI1",
+                ClassLevel.PRI_2 => "PRI2",
+                ClassLevel.PRI_3 => "PRI3",
+                ClassLevel.PRI_4 => "PRI4",
+                ClassLevel.PRI_5 => "PRI5",
+                ClassLevel.PRI_6 => "PRI6",
+                ClassLevel.JC_1 => "JSS1",
+                ClassLevel.JC_2 => "JSS2",
+                ClassLevel.JC_3 => "JSS3",
+                ClassLevel.SC_1 => "SSS1",
+                ClassLevel.SC_2 => "SSS2",
+                ClassLevel.SC_3 => "SSS3",
+                ClassLevel.None => "",
+                _ => classLevel.ToString().Replace("_", "")
+            };
+        }
+
+        private static string GetCourseCode(string course)
+        {
+            var letters = new string(course.Where(char.IsLetter).ToArray());
+
+            if (letters.Length == 0)
+                return "GEN";
+
+            return letters.Substring(0, Math.Min(3, letters.Length)).ToUpperInvariant();
+        }
+
         public static string? GetYouTubeEmbedUrl(string? url)
         {
             if (string.IsNullOrWhiteSpace(url))

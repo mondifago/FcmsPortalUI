@@ -368,19 +368,18 @@
 
     private string activeReportTab = TabAttendance;
 
-    private School school = new School();
     private LearningPath? selectedLearningPath = null;
     private DailyAttendanceLogEntry dailyAttendanceData = new();
     private SemesterAttendanceReport semesterAttendanceReport = new();
     private List<ClassSessionReport> filteredSessionReports = new List<ClassSessionReport>();
     private List<GradesReport> filteredGradesReports = new List<GradesReport>();
-    private List<LearningPath> filteredLearningPaths = new();
+    private List<LearningPathListItem> filteredLearningPaths = new();
     private List<string> availableAcademicYears = new();
     private List<AcademicPeriod> academicPeriods = new();
     private bool showDailyAttendanceModal = false;
     private bool showSemesterAttendanceModal = false;
     private string selectedLearningPathName = string.Empty;
-
+    private List<ClassSessionReport> classSessionReports = new();
     // Attendance tab filters
     private string attendanceYear = "";
     private string attendanceSemester = "";
@@ -400,7 +399,7 @@
 
     protected override void OnInitialized()
     {
-        school = SchoolDataService.GetSchoolLearningPathsForReports();
+        classSessionReports = SchoolDataService.GetClassSessionReportsForDate(sessionDate);
         LoadAvailableAcademicYears();
 
         var (defaultYear, defaultSemester) = ResolveDefaultPeriod();
@@ -487,9 +486,19 @@
 
     private void LoadFilteredLearningPaths()
     {
-        filteredLearningPaths = school.LearningPaths
-            .Where(lp => lp.AcademicYear == attendanceYear &&
-                         lp.Semester.ToString() == attendanceSemester)
+        filteredLearningPaths = new List<LearningPathListItem>();
+
+        if (!Enum.TryParse<Semester>(attendanceSemester, out var semester))
+            return;
+
+        var period = academicPeriods
+            .FirstOrDefault(ap => ap.AcademicYear == attendanceYear && ap.Semester == semester);
+
+        if (period == null)
+            return;
+
+        filteredLearningPaths = SchoolDataService.GetLearningPathsForList()
+            .Where(lp => lp.AcademicPeriodId == period.Id)
             .ToList();
     }
 
@@ -498,7 +507,9 @@
         var learningPath = filteredLearningPaths.FirstOrDefault(lp => lp.Id == learningPathId);
 
         dailyAttendanceData = SchoolDataService.GetAttendanceForDate(learningPathId, attendanceDate) ?? new DailyAttendanceLogEntry();
-        selectedLearningPathName = learningPath != null ? Util.GetLearningPathName(learningPath) : "Unknown";
+        selectedLearningPathName = learningPath != null
+             ? $"{learningPath.EducationLevel.ToDisplayName()} - {learningPath.ClassLevel.ToDisplayName()} ({learningPath.AcademicYear} {learningPath.Semester.ToTermDisplay()})"
+             : "Unknown";
         showDailyAttendanceModal = true;
     }
 
@@ -547,27 +558,6 @@
         filteredSessionReports.Clear();
         if (string.IsNullOrEmpty(sessionYear) || string.IsNullOrEmpty(sessionSemester))
             return;
-
-        var learningPaths = school.LearningPaths
-            .Where(lp => lp.AcademicYear == sessionYear && lp.Semester.ToString() == sessionSemester)
-            .ToList();
-
-        foreach (var learningPath in learningPaths)
-        {
-            if (learningPath.Schedule == null) continue;
-
-            var scheduleEntries = learningPath.Schedule
-                .Where(s => s.ClassSession != null && !string.IsNullOrEmpty(s.ClassSession.TeacherRemarks) && s.DateTime.Date == sessionDate.Date)
-                .ToList();
-
-            foreach (var schedule in scheduleEntries)
-            {
-                var report = LogicMethods.CreateClassSessionReport(schedule);
-                if (report != null)
-                    report.LearningPathName = learningPath.ClassLevel.ToDisplayName();
-                filteredSessionReports.Add(report);
-            }
-        }
 
         var ordered = filteredSessionReports
              .OrderByDescending(r => r.TimeSubmitted)

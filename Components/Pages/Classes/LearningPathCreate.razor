@@ -37,7 +37,6 @@
             learningPath = new LearningPath
             {
                 Students = new List<Student>(),
-                Schedule = new List<ScheduleEntry>(),
                 AcademicPeriodId = currentAcademicPeriod.Id,
                 AcademicYearStart = currentAcademicPeriod.AcademicYearStart,
                 Semester = currentAcademicPeriod.Semester,
@@ -53,7 +52,6 @@
             learningPath = new LearningPath
             {
                 Students = new List<Student>(),
-                Schedule = new List<ScheduleEntry>(),
                 AcademicYearStart = new DateTime(DateTime.Now.Year, FcmsConstants.SEMESTER_1_STARTMONTH, FcmsConstants.SEMESTER_1_STARTDAY),
                 Semester = semester,
                 SemesterStartDate = startDate,

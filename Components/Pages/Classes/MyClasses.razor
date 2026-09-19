@@ -47,21 +47,8 @@
                 <div class="row">
 
                     <div class="col-md-3">
-                        <label class="form-label">Academic Year:</label>
-                        <select class="form-select" @bind="staffYear" @bind:after="OnStaffFiltersChanged"
-                                disabled="@(activeTab == TabSessions)">
-                            <option value="">Select Academic Year</option>
-                            @foreach (var year in availableYears)
-                            {
-                                <option value="@year">@year</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="col-md-3">
                         <label class="form-label">Education Level:</label>
-                        <select class="form-select" @bind="staffEducationLevel" @bind:after="OnStaffFiltersChanged"
-                                disabled="@(string.IsNullOrEmpty(staffYear) && activeTab != TabSessions)">
+                        <select class="form-select" @bind="staffEducationLevel" @bind:after="OnStaffFiltersChanged">
                             <option value="">Select Education Level</option>
                             @foreach (var level in Enum.GetValues<EducationLevel>().Where(l => l != EducationLevel.None))
                             {
@@ -119,7 +106,7 @@
 
     @if (activeTab == TabTimetable)
     {
-        @if (activePathId == 0)
+        @if (activeClassLevel == ClassLevel.None || activeTerm == null)
         {
             <div class="text-center py-4">
                 <i class="fa fa-calendar-week fa-3x text-muted mb-3"></i>
@@ -207,7 +194,7 @@
                                                     }
                                                     else
                                                     {
-                                                        <span class="ms-2 fcms-text-sm">@entry.Title</span>
+                                                        <span class="ms-2 fcms-text-sm text-muted">Unassigned</span>
                                                     }
                                                 </div>
 
@@ -268,31 +255,26 @@
     private bool isStudent = false;
     private bool isGuardian = false;
     private bool isStaffViewer = false;
-
     private bool canManageSessions = false;
 
     private Guardian? guardianProfile;
     private int activeWardId = 0;
-    private List<LearningPathListItem> pathOptions = new();
-
-  
-    private int activePathId = 0;
-    private List<ScheduleEntry> termSchedules = new();
 
     private DateTime currentWeekStart;
     private HashSet<DateTime> expandedDays = new();
 
-
-    private string staffYear = "";
     private string staffEducationLevel = "";
     private string staffClassLevel = "";
     private string staffTerm = "";
     private string pageHeading = "My Classes";
-    private List<string> availableYears = new();
+  
     private List<ClassLevel> availableClassLevels = new();
     private EducationLevel SelectedEducationLevel => Enum.TryParse<EducationLevel>(staffEducationLevel, out var level) ? level : EducationLevel.None;
     private ClassLevel SelectedClassLevel => Enum.TryParse<ClassLevel>(staffClassLevel, out var level) ? level : ClassLevel.None;
     private Semester? SelectedTerm => Enum.TryParse<Semester>(staffTerm, out var term) ? term : null;
+    private ClassLevel activeClassLevel = ClassLevel.None;
+    private Semester? activeTerm;
+    private List<ClassSchedule> termSchedules = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -312,8 +294,7 @@
         if (isStudent)
         {
             var student = SchoolDataService.GetStudentByPersonId(currentPerson.Id);
-            activePathId = student?.LearningPathId ?? 0;
-            SetPageHeading();
+            SetActiveClass(student?.LearningPathId ?? 0);
         }
 
         if (isGuardian)
@@ -326,12 +307,6 @@
             }
         }
 
-        if (isStaffViewer)
-        {
-            pathOptions = SchoolDataService.GetLearningPathsForList().ToList();
-            availableYears = pathOptions.Select(p => p.AcademicYear).Distinct().OrderByDescending(y => y).ToList();
-        }
-
         LoadTimetable();
         GoToToday();
     }
@@ -340,36 +315,46 @@
     {
         activeWardId = wardId;
         var ward = guardianProfile?.Wards.FirstOrDefault(w => w.Id == wardId);
-        activePathId = ward?.LearningPathId ?? 0;
-        SetPageHeading();
+        SetActiveClass(ward?.LearningPathId ?? 0);
         LoadTimetable();
         GoToToday();
     }
 
-    private void SetPageHeading()
+    private void SetActiveClass(int learningPathId)
     {
+        activeClassLevel = ClassLevel.None;
+        activeTerm = null;
         pageHeading = "My Classes";
 
-        if (activePathId > 0)
-        {
-            var path = SchoolDataService.GetLearningPathsForList()
-                .FirstOrDefault(p => p.Id == activePathId);
+        if (learningPathId <= 0)
+            return;
 
-            if (path != null)
-            {
-                pageHeading = $"{path.ClassLevel.ToDisplayName()} Classes";
-            }
-        }
+        var path = SchoolDataService.GetLearningPathsForList()
+            .FirstOrDefault(p => p.Id == learningPathId);
+
+        if (path == null)
+            return;
+
+        activeClassLevel = path.ClassLevel;
+        activeTerm = path.Semester;
+        pageHeading = $"{path.ClassLevel.ToDisplayName()} Classes";
     }
 
     private void LoadTimetable()
     {
-        termSchedules = activePathId > 0
-            ? SchoolDataService.GetLearningPathCalendarSchedules(activePathId)
-            : new List<ScheduleEntry>();
+        termSchedules = activeClassLevel != ClassLevel.None && activeTerm != null
+            ? SchoolDataService.GetClassSchedules(activeClassLevel, activeTerm.Value)
+            : new List<ClassSchedule>();
     }
 
-   
+    private void ResolveStaffPath()
+    {
+        activeClassLevel = SelectedClassLevel;
+        activeTerm = SelectedTerm;
+
+        LoadTimetable();
+        GoToToday();
+    }
 
     private static DateTime GetWeekStart(DateTime date)
     {
@@ -436,7 +421,7 @@
         return days;
     }
 
-    private List<ScheduleEntry> GetEntriesForDay(DateTime day)
+    private List<ClassSchedule> GetEntriesForDay(DateTime day)
     {
         return termSchedules
             .Where(se => se.DateTime.Date == day.Date)
@@ -444,7 +429,7 @@
             .ToList();
     }
 
-    private void OpenSession(ScheduleEntry entry)
+    private void OpenSession(ClassSchedule entry)
     {
         if (entry.ClassSession != null)
         {
@@ -469,32 +454,9 @@
         ResolveStaffPath();
     }
 
-    private void ResolveStaffPath()
-    {
-        activePathId = 0;
-
-        if (!string.IsNullOrEmpty(staffYear) &&
-            Enum.TryParse<EducationLevel>(staffEducationLevel, out var eduLevel) &&
-            Enum.TryParse<ClassLevel>(staffClassLevel, out var classLevel) &&
-            Enum.TryParse<Semester>(staffTerm, out var term))
-        {
-            var match = pathOptions.FirstOrDefault(p =>
-                p.AcademicYear == staffYear &&
-                p.EducationLevel == eduLevel &&
-                p.ClassLevel == classLevel &&
-                p.Semester == term);
-
-            activePathId = match?.Id ?? 0;
-        }
-
-        LoadTimetable();
-        GoToToday();
-    }
-
     private bool StaffFiltersComplete()
     {
-        return !string.IsNullOrEmpty(staffYear) &&
-               !string.IsNullOrEmpty(staffEducationLevel) &&
+        return !string.IsNullOrEmpty(staffEducationLevel) &&
                !string.IsNullOrEmpty(staffClassLevel) &&
                !string.IsNullOrEmpty(staffTerm);
     }

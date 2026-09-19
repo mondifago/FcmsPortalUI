@@ -639,7 +639,7 @@
 
     private string selectedPdfUrl = string.Empty;
     private ClassSession classSession = new();
-    private ScheduleEntry scheduleEntry = new();
+    private ClassSchedule scheduleEntry = new();
     private LearningPath relatedLearningPath = new();
     private List<Student> enrolledStudents = new List<Student>();
     private Staff currentTeacher = new();
@@ -684,7 +684,7 @@
 
         if (classSession != null)
         {
-            scheduleEntry = SchoolDataService.GetScheduleEntryByClassSessionId(Id) ?? new ScheduleEntry();
+            scheduleEntry = SchoolDataService.GetClassScheduleByClassSessionId(Id) ?? new ClassSchedule();
 
             currentUserId = await PermissionService.GetCurrentUserIdAsync();
             currentUser = await PermissionService.GetCurrentPersonAsync();

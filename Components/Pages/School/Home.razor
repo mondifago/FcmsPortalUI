@@ -55,7 +55,7 @@
                                                 <i class="fa fa-book-open hbar-row-icon"></i>
                                                 <span>
                                                     <strong>@schedule.ClassSession?.Course</strong>
-                                                    <small>(@(schedule.LearningPath?.ClassLevel.ToDisplayName()))</small>
+                                                    <small>(@schedule.ClassLevel.ToDisplayName())</small>
                                                     at @schedule.DateTime.ToString("h:mm tt")
                                                 </span>
 
@@ -69,7 +69,7 @@
                                         </div>
                                     }
                                 </div>
-                                @if (todayTeacherClasses.Any() && todayTeacherClasses.First().LearningPathId > 0)
+                                @if (todayTeacherClasses.Any())
                                 {
                                     <div class="hbar-view-all">
                                         <a href="/myclasses"
@@ -657,7 +657,7 @@
 
     // Student Dashboard Data
     private Student? currentStudent;
-    private List<ScheduleEntry> todayStudentClasses = new();
+    private List<ClassSchedule> todayStudentClasses = new();
     private List<PendingHomeworkItem> pendingStudentHomework = new();
     private List<(string Course, GradeType GradeType, double Score, int SortKey)> recentStudentGrades = new();
     private LearningPath? studentLearningPath;
@@ -674,13 +674,13 @@
 
     // Guardian Dashboard Data
     private Guardian? currentGuardian;
-    private List<(string WardName, ScheduleEntry Schedule)> wardTodayClasses = new();
+    private List<(string WardName, ClassSchedule Schedule)> wardTodayClasses = new();
     private List<(string WardName, PendingHomeworkItem Homework)> wardPendingHomework = new();
     private List<(string WardName, string Course, GradeType GradeType, double Score, int SortKey)> wardRecentGrades = new();
 
     // Teacher Dashboard Data
     private Staff? currentTeacher;
-    private List<ScheduleEntry> todayTeacherClasses = new();
+    private List<ClassSchedule> todayTeacherClasses = new();
     private List<TeacherSubmissionItem> recentHomeworkSubmissions = new();
 
     protected override async Task OnInitializedAsync()

@@ -1,4 +1,5 @@
-﻿@using FcmsPortal.Enums
+﻿@using FcmsPortal
+@using FcmsPortal.Enums
 @using FcmsPortal.Models
 @using FcmsPortalUI.DTOs
 @using FcmsPortalUI.Services
@@ -74,7 +75,7 @@ else
                         <tbody>
                             @foreach (var session in VisibleSessions)
                             {
-                                <tr @key="session.Id" class="@(session.IsClosed ? "fcms-session-closed" : "")">
+                                <tr @key="session.Id" class="@RowClass(session)">
                                     @if (selectMode)
                                     {
                                         <td>
@@ -83,7 +84,7 @@ else
                                                    @onchange="() => ToggleSelection(session.Id)" />
                                         </td>
                                     }
-                                    <td>@session.SessionNumber</td>
+                                    <td>@Util.GetClassSessionCode(SelectedClassLevel, SelectedTerm!.Value, session.Course, session.SessionNumber)</td>
                                     <td>@session.Course</td>
                                     <td>@session.Topic</td>
                                     <td>
@@ -163,6 +164,19 @@ else
         courses = CourseDefaults.GetCourseNames(SelectedEducationLevel);
         ExitSelectMode();
         LoadSessions();
+    }
+
+    private string RowClass(ClassSessionListItem session)
+    {
+        var state = LogicMethods.GetSessionState(session.ScheduledAt, session.ScheduledEnd - session.ScheduledAt, session.ClosedAt, DateTime.Now);
+
+        if (state == SessionState.Completed)
+            return "fcms-session-closed";
+
+        if (state == SessionState.InProgress)
+            return "fcms-session-in-progress";
+
+        return "";
     }
 
     private void LoadSessions()
