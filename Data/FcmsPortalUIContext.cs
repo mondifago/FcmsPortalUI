@@ -17,6 +17,7 @@ namespace FcmsPortalUI.Data
         public DbSet<LearningPath> LearningPaths { get; set; }
         public DbSet<StudentReportCard> StudentReportCards { get; set; }
         public DbSet<ScheduleEntry> ScheduleEntries { get; set; }
+        public DbSet<ClassSchedule> ClassSchedules { get; set; }
         public DbSet<ClassSession> ClassSessions { get; set; }
         public DbSet<DiscussionThread> DiscussionThreads { get; set; }
         public DbSet<FirstPost> FirstPosts { get; set; }
@@ -91,26 +92,24 @@ namespace FcmsPortalUI.Data
                 .HasForeignKey(s => s.LearningPathId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ClassSession>()
-                .HasOne(cs => cs.Teacher)
-                .WithMany(t => t.ClassSessions)
-                .HasForeignKey(cs => cs.TeacherId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<ClassSession>()
-               .HasIndex(cs => new { cs.ClassLevel, cs.Semester, cs.Course, cs.SessionNumber });
-
-            modelBuilder.Entity<ScheduleEntry>()
-                .HasOne(se => se.ClassSession)
+            modelBuilder.Entity<ClassSchedule>()
+                .HasOne(cs => cs.ClassSession)
                 .WithMany()
-                .HasForeignKey(se => se.ClassSessionId)
+                .HasForeignKey(cs => cs.ClassSessionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<ScheduleEntry>()
-                .HasIndex(se => new { se.LearningPathId, se.DateTime });
+            modelBuilder.Entity<ClassSchedule>()
+                .HasIndex(cs => cs.ClassSessionId)
+                .IsUnique();
+
+            modelBuilder.Entity<ClassSchedule>()
+                .HasIndex(cs => new { cs.ClassLevel, cs.Semester, cs.DateTime });
 
             modelBuilder.Entity<ScheduleEntry>()
                 .HasIndex(se => se.DateTime);
+
+            modelBuilder.Entity<LearningPath>()
+                .HasIndex(lp => new { lp.ClassLevel, lp.Semester, lp.AcademicYearStart });
 
             // ---- SchoolFees ----
 

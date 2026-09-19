@@ -53,6 +53,7 @@ namespace FcmsPortalUI.Services
 
         #region Learning Paths
         LearningPath AddLearningPath(LearningPath learningPath);
+        int? GetCurrentLearningPathId(ClassLevel classLevel, Semester semester);
         void RemoveStudentFromLearningPath(LearningPath learningPath, Student student);
         List<LearningPath> GetLearningPathsForPeriod(int academicPeriodId);
         List<SchoolFees> GetSchoolFeesForPeriodStudents(int academicPeriodId);
@@ -63,9 +64,6 @@ namespace FcmsPortalUI.Services
         LearningPath? GetLearningPathBasicInfo(int id);
         LearningPath? GetLearningPathForAttendanceReport(int id);
         LearningPath? GetLearningPathForGradeManagement(int id);
-        List<ScheduleEntry> GetLearningPathCalendarSchedules(int learningPathId);
-        LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId);
-        Dictionary<int, LearningPath?> GetLearningPathsByScheduleEntries(List<int> scheduleEntryIds);
         LearningPath? GetLearningPathWithAttendanceByClassSessionId(int classSessionId, DateTime sessionDate);
         int? GetLearningPathIdByClassSessionId(int classSessionId);
         void UpdateLearningPath(LearningPath learningPath);
@@ -76,18 +74,26 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Calendar & Scheduling
-        ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId);
-        ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
         IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules();
         Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync();
-        bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry);
-        bool DeleteScheduleEntry(int learningPathId, int scheduleEntryId);
         ScheduleEntry? AddGeneralScheduleEntry(ScheduleEntry scheduleEntry);
         void UpdateScheduleInSchoolCalendar(ScheduleEntry scheduleEntry);
         void RemoveScheduleFromSchoolCalendar(ScheduleEntry scheduleEntry);
         bool UpdateGeneralCalendarScheduleEntry(ScheduleEntry scheduleEntry);
         bool DeleteGeneralCalendarScheduleEntry(int scheduleEntryId);
-        List<ScheduleEntry> GetAllSchedules();
+        #endregion
+
+        #region Class Schedules
+        List<ClassSchedule> GetClassSchedules(ClassLevel classLevel, Semester semester);
+        ClassSchedule? GetClassScheduleByClassSessionId(int classSessionId);
+        ClassSchedule CreateClassSchedule(ClassSchedule classSchedule);
+        public List<ClassSchedule> CreateClassSchedules(ClassSchedule template, List<DateTime> occurrences);
+        public bool UpdateClassSchedule(ClassSchedule classSchedule);
+        bool DeleteClassSchedule(int classScheduleId);
+        bool PlaceSession(int classScheduleId, int classSessionId);
+        bool UnplaceSession(int classScheduleId);
+        bool MoveSession(int fromClassScheduleId, int toClassScheduleId);
+
         #endregion
 
         #region Class Sessions

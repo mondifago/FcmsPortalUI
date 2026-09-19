@@ -40,8 +40,7 @@ namespace FcmsPortalUI.Services
                     Id = s.Id,
                     Name = s.Name,
                     LearningPaths = s.LearningPaths
-                        .Where(lp => !lp.IsTemplate)
-                        .Select(lp => new LearningPath
+                        .Where(lp => new LearningPath
                         {
                             Id = lp.Id,
                             AcademicYearStart = lp.AcademicYearStart,
@@ -629,6 +628,16 @@ namespace FcmsPortalUI.Services
             return learningPath;
         }
 
+        public int? GetCurrentLearningPathId(ClassLevel classLevel, Semester semester)
+        {
+            return _context.LearningPaths
+                .AsNoTracking()
+                .Where(lp => lp.ClassLevel == classLevel && lp.Semester == semester)
+                .OrderByDescending(lp => lp.AcademicYearStart)
+                .Select(lp => (int?)lp.Id)
+                .FirstOrDefault();
+        }
+
         public void RemoveStudentFromLearningPath(LearningPath learningPath, Student student)
         {
             if (learningPath == null)
@@ -682,8 +691,7 @@ namespace FcmsPortalUI.Services
         {
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId
-                                    && !learningPath.IsTemplate)
+                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId)
                 .ToList();
         }
 
@@ -691,8 +699,7 @@ namespace FcmsPortalUI.Services
         {
             var learningPathIds = _context.LearningPaths
                 .AsNoTracking()
-                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId
-                                    && !learningPath.IsTemplate)
+                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId)
                 .Select(learningPath => learningPath.Id)
                 .ToList();
 
@@ -784,68 +791,46 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault(lp => lp.Id == id);
         }
 
-        public List<ScheduleEntry> GetLearningPathCalendarSchedules(int learningPathId)
-        {
-            return _context.ScheduleEntries
-                .AsNoTracking()
-                .Where(se => se.LearningPathId == learningPathId)
-                .Include(se => se.ClassSession)
-                .ToList();
-        }
-
         public bool LearningPathCombinationExists(int excludeId, EducationLevel educationLevel, ClassLevel classLevel, int academicPeriodId)
         {
             return _context.LearningPaths
-                .Any(lp => !lp.IsTemplate &&
-                           lp.Id != excludeId &&
+                .Any(lp => lp.Id != excludeId &&
                            lp.EducationLevel == educationLevel &&
                            lp.ClassLevel == classLevel &&
                            lp.AcademicPeriodId == academicPeriodId);
         }
-
-        public LearningPath? GetLearningPathByScheduleEntry(int scheduleEntryId)
-        {
-            return _context.LearningPaths
-                .Include(lp => lp.Schedule)
-                .FirstOrDefault(lp => lp.Schedule.Any(s => s.Id == scheduleEntryId));
-        }
-
-        public Dictionary<int, LearningPath?> GetLearningPathsByScheduleEntries(List<int> scheduleEntryIds)
-        {
-            return _context.ScheduleEntries
-                .AsNoTracking()
-                .Where(se => scheduleEntryIds.Contains(se.Id))
-                .Include(se => se.LearningPath)
-                .ToDictionary(se => se.Id, se => se.LearningPath);
-        }
-
         public LearningPath? GetLearningPathWithAttendanceByClassSessionId(int classSessionId, DateTime sessionDate)
         {
+            var learningPathId = GetLearningPathIdByClassSessionId(classSessionId);
+
+            if (learningPathId == null)
+                return null;
+
             var targetDate = sessionDate.Date;
 
-            var scheduleEntry = _context.ScheduleEntries
+            return _context.LearningPaths
                 .AsNoTracking()
-                .Include(se => se.LearningPath)
-                    .ThenInclude(lp => lp.Students)
-                        .ThenInclude(s => s.Person)
-                .Include(se => se.LearningPath)
-                    .ThenInclude(lp => lp.AttendanceLog.Where(al => al.TimeStamp.Date == targetDate))
-                        .ThenInclude(al => al.PresentStudents)
-                .Include(se => se.LearningPath)
-                    .ThenInclude(lp => lp.AttendanceLog.Where(al => al.TimeStamp.Date == targetDate))
-                        .ThenInclude(al => al.AbsentStudents)
-                .FirstOrDefault(se => se.ClassSessionId == classSessionId);
-
-            return scheduleEntry?.LearningPath;
+                .Include(lp => lp.Students)
+                    .ThenInclude(s => s.Person)
+                .Include(lp => lp.AttendanceLog.Where(al => al.TimeStamp.Date == targetDate))
+                    .ThenInclude(al => al.PresentStudents)
+                .Include(lp => lp.AttendanceLog.Where(al => al.TimeStamp.Date == targetDate))
+                    .ThenInclude(al => al.AbsentStudents)
+                .AsSplitQuery()
+                .FirstOrDefault(lp => lp.Id == learningPathId);
         }
 
         public int? GetLearningPathIdByClassSessionId(int classSessionId)
         {
-            return _context.ScheduleEntries
+            var classSession = _context.ClassSessions
                 .AsNoTracking()
-                .Where(se => se.ClassSessionId == classSessionId)
-                .Select(se => se.LearningPathId)
-                .FirstOrDefault();
+                .Select(cs => new { cs.Id, cs.ClassLevel, cs.Semester })
+                .FirstOrDefault(cs => cs.Id == classSessionId);
+
+            if (classSession == null)
+                return null;
+
+            return GetCurrentLearningPathId(classSession.ClassLevel, classSession.Semester);
         }
 
         public async Task<bool> DeleteLearningPathAsync(int id)
@@ -865,31 +850,6 @@ namespace FcmsPortalUI.Services
                     $"{Util.GetLearningPathName(learningPath)} cannot be deleted because {blocker}.");
             }
 
-            var scheduleEntries = await _context.ScheduleEntries
-                .Where(se => se.LearningPathId == id)
-                .ToListAsync();
-
-            var classSessionIds = scheduleEntries
-                .Where(se => se.ClassSessionId.HasValue)
-                .Select(se => se.ClassSessionId!.Value)
-                .ToList();
-
-            var studyMaterials = await _context.ClassSessions
-                .Where(cs => classSessionIds.Contains(cs.Id))
-                .SelectMany(cs => cs.StudyMaterials)
-                .ToListAsync();
-
-            foreach (var material in studyMaterials)
-            {
-                await DeleteFileAsync(material);
-            }
-
-            var classSessions = await _context.ClassSessions
-                .Where(cs => classSessionIds.Contains(cs.Id))
-                .ToListAsync();
-
-            _context.ScheduleEntries.RemoveRange(scheduleEntries);
-            _context.ClassSessions.RemoveRange(classSessions);
             _context.LearningPaths.Remove(learningPath);
             await _context.SaveChangesAsync();
 
@@ -898,9 +858,6 @@ namespace FcmsPortalUI.Services
 
         private string? GetLearningPathDeletionBlocker(LearningPath learningPath)
         {
-            if (learningPath.IsTemplate)
-                return "it is a template";
-
             var statusBlocker = learningPath.ApprovalStatus switch
             {
                 PrincipalApprovalStatus.Review => "it has been submitted for approval",
@@ -925,12 +882,6 @@ namespace FcmsPortalUI.Services
 
             if (_context.StudentReportCards.Any(rc => rc.LearningPathId == learningPath.Id))
                 return "report cards have been generated for it";
-
-            if (_context.ScheduleEntries.Any(se => se.LearningPathId == learningPath.Id &&
-                                                   se.ClassSession != null &&
-                                                   se.ClassSession.HomeworkDetails != null &&
-                                                   se.ClassSession.HomeworkDetails.Submissions.Any()))
-                return "students have submitted homework in it";
 
             return null;
         }
@@ -958,8 +909,6 @@ namespace FcmsPortalUI.Services
                 existingLearningPath.ClassLevel = learningPath.ClassLevel;
                 existingLearningPath.Semester = learningPath.Semester;
                 existingLearningPath.AcademicYearStart = learningPath.AcademicYearStart;
-                existingLearningPath.IsTemplate = learningPath.IsTemplate;
-                existingLearningPath.TemplateKey = learningPath.TemplateKey;
                 existingLearningPath.SubmittedById = learningPath.SubmittedById;
                 existingLearningPath.SubmittedByName = learningPath.SubmittedByName;
                 existingLearningPath.DateSubmitted = learningPath.DateSubmitted;
@@ -1087,35 +1036,10 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Calendar & Scheduling
-        public ScheduleEntry? GetScheduleEntryByClassSessionId(int classSessionId)
-        {
-            return _context.ScheduleEntries
-                .AsNoTracking()
-                .Include(se => se.LearningPath)
-                .FirstOrDefault(se => se.ClassSessionId == classSessionId);
-        }
-
-        public ScheduleEntry? AddScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)
-        {
-            if (!_context.LearningPaths.Any(lp => lp.Id == learningPathId))
-                return null;
-
-            scheduleEntry.LearningPathId = learningPathId;
-
-            _context.ScheduleEntries.Add(scheduleEntry);
-            _context.SaveChanges();
-
-            AddGeneralScheduleEntry(scheduleEntry);
-            return scheduleEntry;
-        }
-
         public IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules()
         {
             return _context.ScheduleEntries
                 .AsNoTracking()
-                .Include(s => s.ClassSession)
-                    .ThenInclude(cs => cs.Teacher)
-                        .ThenInclude(t => t.Person)
                 .ToList();
         }
 
@@ -1125,64 +1049,8 @@ namespace FcmsPortalUI.Services
 
             return await context.ScheduleEntries
                 .AsNoTracking()
-                .Include(se => se.ClassSession)
-                    .ThenInclude(cs => cs.Teacher)
-                        .ThenInclude(t => t.Person)
                 .OrderBy(se => se.DateTime)
                 .ToListAsync();
-        }
-
-        public bool UpdateScheduleEntry(int learningPathId, ScheduleEntry scheduleEntry)
-        {
-            var existing = _context.ScheduleEntries
-                .Include(se => se.ClassSession)
-                .FirstOrDefault(se => se.Id == scheduleEntry.Id && se.LearningPathId == learningPathId);
-
-            if (existing == null)
-                return false;
-
-            existing.DateTime = scheduleEntry.DateTime;
-            existing.Duration = scheduleEntry.Duration;
-            existing.Venue = scheduleEntry.Venue;
-            existing.Title = scheduleEntry.Title;
-            existing.Event = scheduleEntry.Event;
-            existing.Meeting = scheduleEntry.Meeting;
-            existing.IsRecurring = scheduleEntry.IsRecurring;
-            existing.RecurrencePattern = scheduleEntry.RecurrencePattern;
-            existing.RecurrenceInterval = scheduleEntry.RecurrenceInterval;
-            existing.EndDate = scheduleEntry.EndDate;
-            existing.DaysOfWeek = scheduleEntry.DaysOfWeek;
-            existing.ClassSessionId = scheduleEntry.ClassSessionId;
-
-            if (existing.ClassSession != null && scheduleEntry.ClassSession != null)
-            {
-                existing.ClassSession.Course = scheduleEntry.ClassSession.Course;
-                existing.ClassSession.Topic = scheduleEntry.ClassSession.Topic;
-                existing.ClassSession.Description = scheduleEntry.ClassSession.Description;
-                existing.ClassSession.LessonPlan = scheduleEntry.ClassSession.LessonPlan;
-                existing.ClassSession.TeacherId = scheduleEntry.ClassSession.TeacherId;
-            }
-
-            _context.SaveChanges();
-            UpdateScheduleInSchoolCalendar(existing);
-
-            return true;
-        }
-
-        public bool DeleteScheduleEntry(int learningPathId, int scheduleEntryId)
-        {
-            var entry = _context.ScheduleEntries
-                .Include(se => se.ClassSession)
-                .FirstOrDefault(se => se.Id == scheduleEntryId && se.LearningPathId == learningPathId);
-
-            if (entry == null)
-                return false;
-
-            _context.ScheduleEntries.Remove(entry);
-            _context.SaveChanges();
-            RemoveScheduleFromSchoolCalendar(entry);
-
-            return true;
         }
 
         public ScheduleEntry? AddGeneralScheduleEntry(ScheduleEntry scheduleEntry)
@@ -1300,8 +1168,6 @@ namespace FcmsPortalUI.Services
 
             if (existing == null)
                 return false;
-            if (existing.LearningPathId.HasValue)
-                return false;
 
             context.Entry(existing).CurrentValues.SetValues(scheduleEntry);
 
@@ -1317,22 +1183,147 @@ namespace FcmsPortalUI.Services
             if (scheduleEntry == null)
                 return false;
 
-            if (scheduleEntry.LearningPathId.HasValue)
-            {
-                return false;
-            }
-
             _context.ScheduleEntries.Remove(scheduleEntry);
             _context.SaveChanges();
             return true;
         }
+        #endregion
 
-        public List<ScheduleEntry> GetAllSchedules()
+        #region Class Schedules
+        public List<ClassSchedule> GetClassSchedules(ClassLevel classLevel, Semester semester)
         {
-            return _context.ScheduleEntries
-                .Include(se => se.ClassSession)
+            return _context.ClassSchedules
                 .AsNoTracking()
+                .Where(cs => cs.ClassLevel == classLevel && cs.Semester == semester)
+                .Include(cs => cs.ClassSession)
+                .OrderBy(cs => cs.DateTime)
                 .ToList();
+        }
+
+        public ClassSchedule? GetClassScheduleByClassSessionId(int classSessionId)
+        {
+            return _context.ClassSchedules
+                .AsNoTracking()
+                .FirstOrDefault(cs => cs.ClassSessionId == classSessionId);
+        }
+
+        public ClassSchedule CreateClassSchedule(ClassSchedule classSchedule)
+        {
+            _context.ClassSchedules.Add(classSchedule);
+            _context.SaveChanges();
+            return classSchedule;
+        }
+
+        public List<ClassSchedule> CreateClassSchedules(ClassSchedule template, List<DateTime> occurrences)
+        {
+            var created = occurrences
+                .Select(occurrence => new ClassSchedule
+                {
+                    ClassLevel = template.ClassLevel,
+                    Semester = template.Semester,
+                    DateTime = occurrence,
+                    Duration = template.Duration,
+                    Venue = template.Venue
+                })
+                .ToList();
+
+            _context.ClassSchedules.AddRange(created);
+            _context.SaveChanges();
+            return created;
+        }
+
+        public bool UpdateClassSchedule(ClassSchedule classSchedule)
+        {
+            var existing = _context.ClassSchedules.FirstOrDefault(cs => cs.Id == classSchedule.Id);
+
+            if (existing == null)
+                return false;
+
+            existing.DateTime = classSchedule.DateTime;
+            existing.Duration = classSchedule.Duration;
+            existing.Venue = classSchedule.Venue;
+
+            _context.SaveChanges();
+            return true;
+        }
+
+        public bool DeleteClassSchedule(int classScheduleId)
+        {
+            var classSchedule = _context.ClassSchedules.FirstOrDefault(cs => cs.Id == classScheduleId);
+
+            if (classSchedule == null)
+                return false;
+
+            if (classSchedule.ClassSessionId.HasValue)
+                throw new BusinessRuleException("This schedule holds a class session. Remove the session from it first.");
+
+            _context.ClassSchedules.Remove(classSchedule);
+            _context.SaveChanges();
+            return true;
+        }
+
+        public bool PlaceSession(int classScheduleId, int classSessionId)
+        {
+            var classSchedule = _context.ClassSchedules.FirstOrDefault(cs => cs.Id == classScheduleId);
+
+            if (classSchedule == null)
+                return false;
+
+            var classSession = _context.ClassSessions
+                .AsNoTracking()
+                .Select(cs => new { cs.Id, cs.ClassLevel, cs.Semester })
+                .FirstOrDefault(cs => cs.Id == classSessionId);
+
+            if (classSession == null)
+                return false;
+
+            if (classSchedule.ClassSessionId.HasValue)
+                throw new BusinessRuleException("This schedule already holds a class session.");
+
+            if (classSession.ClassLevel != classSchedule.ClassLevel || classSession.Semester != classSchedule.Semester)
+                throw new BusinessRuleException("A session can only be placed in a schedule of its own class and term.");
+
+            if (_context.ClassSchedules.Any(cs => cs.ClassSessionId == classSessionId))
+                throw new BusinessRuleException("This session is already on the timetable.");
+
+            classSchedule.ClassSessionId = classSessionId;
+            _context.SaveChanges();
+            return true;
+        }
+
+        public bool UnplaceSession(int classScheduleId)
+        {
+            var classSchedule = _context.ClassSchedules.FirstOrDefault(cs => cs.Id == classScheduleId);
+
+            if (classSchedule == null)
+                return false;
+
+            classSchedule.ClassSessionId = null;
+            _context.SaveChanges();
+            return true;
+        }
+
+        public bool MoveSession(int fromClassScheduleId, int toClassScheduleId)
+        {
+            var from = _context.ClassSchedules.FirstOrDefault(cs => cs.Id == fromClassScheduleId);
+            var to = _context.ClassSchedules.FirstOrDefault(cs => cs.Id == toClassScheduleId);
+
+            if (from == null || to == null || !from.ClassSessionId.HasValue)
+                return false;
+
+            if (to.ClassSessionId.HasValue)
+                throw new BusinessRuleException("The target schedule already holds a class session.");
+
+            if (to.ClassLevel != from.ClassLevel || to.Semester != from.Semester)
+                throw new BusinessRuleException("A session can only be moved within its own class and term.");
+
+            var classSessionId = from.ClassSessionId.Value;
+            from.ClassSessionId = null;
+            _context.SaveChanges();
+
+            to.ClassSessionId = classSessionId;
+            _context.SaveChanges();
+            return true;
         }
         #endregion
 
@@ -1390,10 +1381,13 @@ namespace FcmsPortalUI.Services
                     TeacherName = cs.Teacher == null
                         ? null
                         : cs.Teacher.Person.FirstName + " " + cs.Teacher.Person.LastName,
-                    ScheduledAt = _context.ScheduleEntries
-                        .Where(se => se.ClassSessionId == cs.Id)
-                        .OrderBy(se => se.DateTime)
-                        .Select(se => (DateTime?)se.DateTime)
+                    ScheduledAt = _context.ClassSchedules
+                        .Where(sched => sched.ClassSessionId == cs.Id)
+                        .Select(sched => (DateTime?)sched.DateTime)
+                        .FirstOrDefault(),
+                    ScheduledEnd = _context.ClassSchedules
+                        .Where(sched => sched.ClassSessionId == cs.Id)
+                        .Select(sched => (DateTime?)sched.DateTime.Add(sched.Duration))
                         .FirstOrDefault(),
                     ClosedAt = cs.ClosedAt
                 })
@@ -1460,6 +1454,14 @@ namespace FcmsPortalUI.Services
 
         public async Task DeleteClassSessionsAsync(List<int> classSessionIds)
         {
+            var placed = await _context.ClassSchedules
+                .Where(sched => sched.ClassSessionId.HasValue && classSessionIds.Contains(sched.ClassSessionId.Value))
+                .Select(sched => sched.ClassSession!.Course + " " + sched.ClassSession.SessionNumber)
+                .ToListAsync();
+
+            if (placed.Any())
+                throw new BusinessRuleException($"These sessions are on the timetable: {string.Join(", ", placed)}. Remove each from its schedule first.");
+
             var studyMaterials = await _context.ClassSessions
                 .Where(cs => classSessionIds.Contains(cs.Id))
                 .SelectMany(cs => cs.StudyMaterials)
@@ -1468,15 +1470,6 @@ namespace FcmsPortalUI.Services
             foreach (var material in studyMaterials)
             {
                 await DeleteFileAsync(material);
-            }
-
-            var shells = await _context.ScheduleEntries
-                .Where(se => se.ClassSessionId.HasValue && classSessionIds.Contains(se.ClassSessionId.Value))
-                .ToListAsync();
-
-            foreach (var shell in shells)
-            {
-                shell.ClassSessionId = null;
             }
 
             var sessions = await _context.ClassSessions
@@ -2071,8 +2064,7 @@ namespace FcmsPortalUI.Services
         {
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId
-                                    && !learningPath.IsTemplate)
+                .Where(learningPath => learningPath.AcademicPeriodId == academicPeriodId)
                 .Select(learningPath => new { learningPath.Id, Count = learningPath.Students.Count })
                 .ToDictionary(row => row.Id, row => row.Count);
         }
@@ -3315,7 +3307,6 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
-
         public Announcement CreateAnnouncement(Announcement announcement)
         {
             using var context = _contextFactory.CreateDbContext();
@@ -3369,7 +3360,6 @@ namespace FcmsPortalUI.Services
                 .OrderByDescending(q => q.DateAdded)
                 .ToList();
         }
-
 
         public Quote CreateQuote(Quote quote)
         {
@@ -3534,26 +3524,28 @@ namespace FcmsPortalUI.Services
                 .FirstOrDefault();
         }
 
-        public List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount)
+        public List<ClassSchedule> GetTodayClassSessionsForStudent(int studentId, int maxCount)
         {
             var student = _context.Students
                 .AsNoTracking()
+                .Include(s => s.LearningPath)
                 .FirstOrDefault(s => s.Id == studentId);
 
-            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
-                return new List<ScheduleEntry>();
+            if (student?.LearningPath == null)
+                return new List<ClassSchedule>();
 
             var now = DateTime.Now;
             var tomorrow = DateTime.Today.AddDays(1);
 
-            return _context.ScheduleEntries
+            return _context.ClassSchedules
                 .AsNoTracking()
-                .Include(se => se.ClassSession)
-                .Where(se => se.LearningPathId == student.LearningPathId &&
-                             se.DateTime >= now &&
-                             se.DateTime < tomorrow &&
-                             se.ClassSession != null)
-                .OrderBy(se => se.DateTime)
+                .Include(sched => sched.ClassSession)
+                .Where(sched => sched.ClassLevel == student.LearningPath.ClassLevel &&
+                                sched.Semester == student.LearningPath.Semester &&
+                                sched.ClassSessionId != null &&
+                                sched.DateTime >= now &&
+                                sched.DateTime < tomorrow)
+                .OrderBy(sched => sched.DateTime)
                 .Take(maxCount)
                 .ToList();
         }
@@ -3676,8 +3668,7 @@ namespace FcmsPortalUI.Services
 
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(lp => !lp.IsTemplate &&
-                             lp.AcademicPeriodId == academicPeriod.Id &&
+                .Where(lp => lp.AcademicPeriodId == academicPeriod.Id &&
                              lp.DateSubmitted.HasValue &&
                              lp.ApprovalStatus == PrincipalApprovalStatus.Review)
                 .OrderByDescending(lp => lp.DateSubmitted)
@@ -3721,32 +3712,24 @@ namespace FcmsPortalUI.Services
             if (academicPeriod == null) return 0;
 
             return _context.LearningPaths.AsNoTracking()
-                .Count(lp => lp.AcademicPeriodId == academicPeriod.Id &&
-                             !lp.IsTemplate && 
+                .Count(lp => lp.AcademicPeriodId == academicPeriod.Id && 
                              lp.ApprovalStatus != PrincipalApprovalStatus.Approved &&
                              lp.ApprovalStatus == PrincipalApprovalStatus.Pending);
         }
 
-        public List<ScheduleEntry> GetTodayClassSessionsForTeacher(int teacherId, int maxCount)
+        public List<ClassSchedule> GetTodayClassSessionsForTeacher(int teacherId, int maxCount)
         {
-            var academicPeriod = GetCurrentAcademicPeriod();
-            if (academicPeriod == null)
-                return new List<ScheduleEntry>();
-
             var now = DateTime.Now;
             var tomorrow = DateTime.Today.AddDays(1);
 
-            return _context.ScheduleEntries
+            return _context.ClassSchedules
                 .AsNoTracking()
-                .Include(se => se.ClassSession)
-                 .Include(se => se.LearningPath)
-
-               .Where(se => se.LearningPathId.HasValue &&
-                             se.ClassSession != null &&
-                             se.ClassSession.TeacherId == teacherId &&
-                             se.DateTime >= now &&
-                             se.DateTime < tomorrow)
-                .OrderBy(se => se.DateTime)
+                .Include(sched => sched.ClassSession)
+                .Where(sched => sched.ClassSession != null &&
+                                sched.ClassSession.TeacherId == teacherId &&
+                                sched.DateTime >= now &&
+                                sched.DateTime < tomorrow)
+                .OrderBy(sched => sched.DateTime)
                 .Take(maxCount)
                 .ToList();
         }
@@ -3844,7 +3827,7 @@ namespace FcmsPortalUI.Services
         {
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(lp => !lp.IsTemplate)
+                
                 .OrderBy(lp => lp.ClassLevel)
                     .ThenBy(lp => lp.Id)
                 .Select(lp => new LearningPathListItem
@@ -3863,8 +3846,7 @@ namespace FcmsPortalUI.Services
         {
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(lp => !lp.IsTemplate &&
-                             lp.ApprovalStatus != PrincipalApprovalStatus.Approved &&
+                .Where(lp =>lp.ApprovalStatus != PrincipalApprovalStatus.Approved &&
                              lp.EducationLevel == educationLevel &&
                              lp.ClassLevel == classLevel)
                 .OrderByDescending(lp => lp.AcademicYearStart)
