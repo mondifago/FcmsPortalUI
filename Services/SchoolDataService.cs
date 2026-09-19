@@ -31,54 +31,6 @@ namespace FcmsPortalUI.Services
         }
 
         #region School
-        public School? GetSchoolLearningPathsForReports()
-        {
-            var school = _context.School
-                .AsNoTracking()
-                .Select(s => new School
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    LearningPaths = s.LearningPaths
-                        .Where(lp => new LearningPath
-                        {
-                            Id = lp.Id,
-                            AcademicYearStart = lp.AcademicYearStart,
-                            Semester = lp.Semester,
-                            EducationLevel = lp.EducationLevel,
-                            ClassLevel = lp.ClassLevel,
-                            ApprovalStatus = lp.ApprovalStatus,
-                            Schedule = lp.Schedule
-                                .Select(se => new ScheduleEntry
-                                {
-                                    Id = se.Id,
-                                    DateTime = se.DateTime,
-                                    ClassSession = se.ClassSession != null ? new ClassSession
-                                    {
-                                        Id = se.ClassSession.Id,
-                                        Course = se.ClassSession.Course,
-                                        Topic = se.ClassSession.Topic,
-                                        TeacherRemarks = se.ClassSession.TeacherRemarks,
-                                        RemarksSubmittedByName = se.ClassSession.RemarksSubmittedByName,
-                                        RemarksSubmittedAt = se.ClassSession.RemarksSubmittedAt,
-                                        Teacher = se.ClassSession.Teacher != null ? new Staff
-                                        {
-                                            Id = se.ClassSession.Teacher.Id,
-                                            Person = new Person
-                                            {
-                                                FirstName = se.ClassSession.Teacher.Person.FirstName,
-                                                LastName = se.ClassSession.Teacher.Person.LastName
-                                            }
-                                        } : null
-                                    } : null
-                                }).ToList()
-                        }).ToList()
-                })
-                .FirstOrDefault();
-
-            return school;
-        }
-
         public School? GetSchoolBasicInfo()
         {
             var school = _context.School
@@ -307,29 +259,18 @@ namespace FcmsPortalUI.Services
                 return null;
             }
 
-            var assignedClassSessions = _context.LearningPaths
-                .AsNoTracking()
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                        .ThenInclude(cs => cs.Teacher)
-                .Where(lp => !lp.IsTemplate && lp.AcademicPeriodId == currentPeriod.Id)
-                .SelectMany(lp => lp.Schedule
-                    .Where(s => s.ClassSession != null && s.ClassSession.Teacher != null && s.ClassSession.Teacher.Id == staffId)
-                    .Select(s => new { LearningPath = lp, ClassSession = s.ClassSession }))
-                .ToList();
+            var assignedClasses = _context.ClassSessions
+                 .AsNoTracking()
+                 .Where(cs => cs.TeacherId == staffId && cs.Semester == currentPeriod.Semester)
+                 .Select(cs => cs.ClassLevel)
+                 .ToList();
 
-            if (assignedClassSessions.Any())
+            if (assignedClasses.Any())
             {
                 var staffName = $"{staff.Person.FirstName} {staff.Person.LastName}";
-                var sessionCount = assignedClassSessions.Count;
-                var learningPathNames = assignedClassSessions
-                    .Select(x => $"{x.LearningPath.EducationLevel} - {x.LearningPath.ClassLevel}")
-                    .Distinct()
-                    .ToList();
+                var classNames = string.Join(", ", assignedClasses.Distinct().Select(classLevel => classLevel.ToDisplayName()));
 
-                var classNames = string.Join(", ", learningPathNames);
-
-                return $"Cannot delete {staffName}. This staff member is assigned to {sessionCount} class session(s) in the current semester ({currentPeriod.Semester} {currentPeriod.AcademicYear}) for: {classNames}. Please remove the staff from all assigned class sessions before deleting.";
+                return $"Cannot delete {staffName}. This staff member is assigned to {assignedClasses.Count} class session(s) this term ({currentPeriod.Semester} {currentPeriod.AcademicYear}) for: {classNames}. Please remove the staff from all assigned class sessions before deleting.";
             }
 
             return null;
@@ -573,7 +514,7 @@ namespace FcmsPortalUI.Services
             // Block deletion if student is enrolled in any active learning path
             var activeLearningPath = _context.LearningPaths
                 .AsNoTracking()
-                .Where(lp => !lp.IsTemplate && lp.ApprovalStatus != PrincipalApprovalStatus.Approved)
+                .Where(lp => lp.ApprovalStatus != PrincipalApprovalStatus.Approved)
                 .FirstOrDefault(lp => lp.Students.Any(s => s.Id == studentId));
 
             if (activeLearningPath != null)
@@ -1512,6 +1453,34 @@ namespace FcmsPortalUI.Services
                     session.SessionNumber = sessionNumber;
             }
         }
+
+        public List<ClassSessionReport> GetClassSessionReportsForDate(DateTime sessionDate)
+        {
+            var targetDate = sessionDate.Date;
+
+            return _context.ClassSchedules
+                .AsNoTracking()
+                .Include(sched => sched.ClassSession)
+                    .ThenInclude(cs => cs!.Teacher)
+                        .ThenInclude(t => t!.Person)
+                .Where(sched => sched.DateTime.Date == targetDate &&
+                                sched.ClassSession != null &&
+                                sched.ClassSession.TeacherRemarks != "")
+                .OrderByDescending(sched => sched.ClassSession!.RemarksSubmittedAt)
+                .ToList()
+                .Select(sched => new ClassSessionReport
+                {
+                    ClassSessionId = sched.ClassSession!.Id,
+                    LearningPathName = sched.ClassLevel.ToDisplayName(),
+                    Course = sched.ClassSession.Course,
+                    Topic = sched.ClassSession.Topic,
+                    SubmittedBy = !string.IsNullOrEmpty(sched.ClassSession.RemarksSubmittedByName)
+                        ? sched.ClassSession.RemarksSubmittedByName
+                        : sched.ClassSession.Teacher?.Person?.LastName ?? "Unknown",
+                    TimeSubmitted = sched.ClassSession.RemarksSubmittedAt ?? sched.DateTime
+                })
+                .ToList();
+        }
         #endregion
 
         #region Homework
@@ -2173,7 +2142,7 @@ namespace FcmsPortalUI.Services
             return _context.LearningPaths
                 .AsNoTracking()
                 .Include(lp => lp.Students)
-                .Where(lp => lp.AcademicPeriodId == academicPeriod.Id && !lp.IsTemplate &&
+                .Where(lp => lp.AcademicPeriodId == academicPeriod.Id &&
                              (lp.ApprovalStatus == PrincipalApprovalStatus.Review ||
                               lp.ApprovalStatus == PrincipalApprovalStatus.Approved))
                 .ToList();
@@ -2412,51 +2381,14 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Curriculum
-        public List<Curriculum> GetFullCurriculum()
+        public List<ClassSession> GetCurriculumSessions(ClassLevel classLevel, Semester semester)
         {
-            var currentPeriod = GetCurrentAcademicPeriod();
-            if (currentPeriod == null)
-                return new List<Curriculum>();
-
-            var learningPaths = _context.LearningPaths
+            return _context.ClassSessions
                 .AsNoTracking()
-                .Include(lp => lp.Schedule)
-                    .ThenInclude(s => s.ClassSession)
-                .Where(lp => !lp.IsTemplate &&
-                             lp.AcademicPeriodId == currentPeriod.Id)
+                .Where(cs => cs.ClassLevel == classLevel && cs.Semester == semester)
+                .OrderBy(cs => cs.Course)
+                .ThenBy(cs => cs.SessionNumber)
                 .ToList();
-
-            return LogicMethods.GenerateCurriculumFromLearningPaths(learningPaths);
-        }
-
-        public List<Curriculum> FilterCurriculum(
-                                 List<Curriculum> curriculum,
-                                 EducationLevel educationLevel,
-                                 ClassLevel classLevel,
-                                 Semester? semester = null
-                             )
-        {
-
-            var filteredCurricula = curriculum
-                .Where(c => c.EducationLevel == educationLevel && c.ClassLevel == classLevel)
-                .Select(c => new Curriculum
-                {
-                    AcademicYear = c.AcademicYear,
-                    EducationLevel = c.EducationLevel,
-                    ClassLevel = c.ClassLevel,
-                    Semesters = semester == null
-                        ? c.Semesters
-                        : c.Semesters
-                            .Where(s => s.Semester == semester)
-                            .Select(s => new SemesterCurriculum
-                            {
-                                Semester = s.Semester,
-                                ClassSessions = s.ClassSessions
-                            }).ToList()
-                })
-                .ToList();
-
-            return filteredCurricula;
         }
         #endregion
 
@@ -3554,25 +3486,26 @@ namespace FcmsPortalUI.Services
         {
             var student = _context.Students
                 .AsNoTracking()
+                .Include(s => s.LearningPath)
                 .FirstOrDefault(s => s.Id == studentId);
 
-            if (student == null || student.LearningPathId == null || student.LearningPathId == 0)
+            if (student?.LearningPath == null)
                 return new List<PendingHomeworkItem>();
 
-            return _context.ScheduleEntries
+            return _context.ClassSessions
                 .AsNoTracking()
-                .Where(se => se.LearningPathId == student.LearningPathId &&
-                             se.ClassSession != null &&
-                             se.ClassSession.HomeworkDetails != null &&
-                             !se.ClassSession.HomeworkDetails.Submissions.Any(s => s.StudentId == studentId))
-                .OrderBy(se => se.ClassSession!.HomeworkDetails!.DueDate)
-                .Select(se => new PendingHomeworkItem
+                .Where(cs => cs.ClassLevel == student.LearningPath.ClassLevel &&
+                             cs.Semester == student.LearningPath.Semester &&
+                             cs.HomeworkDetails != null &&
+                             !cs.HomeworkDetails.Submissions.Any(sub => sub.StudentId == studentId))
+                .OrderBy(cs => cs.HomeworkDetails!.DueDate)
+                .Select(cs => new PendingHomeworkItem
                 {
-                    HomeworkId = se.ClassSession!.HomeworkDetails!.Id,
-                    Title = se.ClassSession.HomeworkDetails.Title,
-                    Course = se.ClassSession.Course,
-                    AssignedDate = se.ClassSession.HomeworkDetails.AssignedDate,
-                    DueDate = se.ClassSession.HomeworkDetails.DueDate
+                    HomeworkId = cs.HomeworkDetails!.Id,
+                    Title = cs.HomeworkDetails.Title,
+                    Course = cs.Course,
+                    AssignedDate = cs.HomeworkDetails.AssignedDate,
+                    DueDate = cs.HomeworkDetails.DueDate
                 })
                 .Take(maxCount)
                 .ToList();
@@ -3628,29 +3561,22 @@ namespace FcmsPortalUI.Services
 
         public List<(string Course, string ClassLevelName, DateTime Timestamp)> GetTodayTeacherRemarks(int maxCount)
         {
-            var academicPeriod = GetCurrentAcademicPeriod();
-            if (academicPeriod == null)
-                return new List<(string, string, DateTime)>();
-
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
 
-            return _context.ScheduleEntries
+            return _context.ClassSessions
                 .AsNoTracking()
-                .Include(se => se.ClassSession)
-                .Where(se => se.LearningPathId.HasValue &&
-                             se.ClassSession != null &&
-                             !string.IsNullOrEmpty(se.ClassSession.TeacherRemarks) &&
-                             se.ClassSession.RemarksSubmittedAt.HasValue &&
-                             se.ClassSession.RemarksSubmittedAt.Value >= today &&
-                             se.ClassSession.RemarksSubmittedAt.Value < tomorrow)
-                .OrderByDescending(se => se.ClassSession.RemarksSubmittedAt)
+                .Where(cs => cs.TeacherRemarks != "" &&
+                             cs.RemarksSubmittedAt.HasValue &&
+                             cs.RemarksSubmittedAt.Value >= today &&
+                             cs.RemarksSubmittedAt.Value < tomorrow)
+                .OrderByDescending(cs => cs.RemarksSubmittedAt)
                 .Take(maxCount)
-                .Select(se => new
+                .Select(cs => new
                 {
-                    se.ClassSession.Course,
-                    se.LearningPath.ClassLevel,
-                    Timestamp = se.ClassSession.RemarksSubmittedAt!.Value
+                    cs.Course,
+                    cs.ClassLevel,
+                    Timestamp = cs.RemarksSubmittedAt!.Value
                 })
                 .ToList()
                 .Select(x => new ValueTuple<string, string, DateTime>(

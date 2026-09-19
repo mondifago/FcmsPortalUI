@@ -146,8 +146,6 @@ namespace FcmsPortalUI
         {
             if (!string.IsNullOrEmpty(schedule.Title))
                 return schedule.Title;
-            if (schedule.ClassSession != null)
-                return $"{schedule.ClassSession.Course} - {schedule.ClassSession.Topic}";
             if (!string.IsNullOrEmpty(schedule.Meeting))
                 return schedule.Meeting;
             if (!string.IsNullOrEmpty(schedule.Event))
@@ -157,8 +155,6 @@ namespace FcmsPortalUI
 
         public static string GetScheduleTypeColor(ScheduleEntry schedule)
         {
-            if (schedule.ClassSession != null)
-                return "bg-info";
             if (!string.IsNullOrEmpty(schedule.Meeting))
                 return "bg-warning";
             if (!string.IsNullOrEmpty(schedule.Event))
@@ -168,8 +164,6 @@ namespace FcmsPortalUI
 
         public static string GetScheduleTypeIcon(ScheduleEntry schedule)
         {
-            if (schedule.ClassSession != null)
-                return "chalkboard-teacher";
             if (!string.IsNullOrEmpty(schedule.Meeting))
                 return "users";
             if (!string.IsNullOrEmpty(schedule.Event))
@@ -179,13 +173,11 @@ namespace FcmsPortalUI
 
         public static string GetScheduleTypeDisplayName(ScheduleEntry schedule)
         {
-            if (schedule.ClassSession != null)
-                return "Class";
             if (!string.IsNullOrEmpty(schedule.Meeting))
                 return "Meeting";
             if (!string.IsNullOrEmpty(schedule.Event))
                 return "Event";
-            return "Add Session";
+            return "Schedule";
         }
 
         public static string GetPromotionStatusForArchive(LearningPath learningPath, bool isPromoted)

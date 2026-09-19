@@ -51,21 +51,8 @@
                                         {
                                             <div class="calendar-events">
                                                 @{
-                                                    var classSessions = sessionsOnDay.Where(s => s.ClassSession != null).ToList();
                                                     var events = sessionsOnDay.Where(s => !string.IsNullOrEmpty(s.Event)).ToList();
                                                     var meetings = sessionsOnDay.Where(s => !string.IsNullOrEmpty(s.Meeting)).ToList();
-                                                }
-
-                                                @if (classSessions.Any())
-                                                {
-                                                    <div class="calendar-event mb-1" @onclick:stopPropagation
-                                                         @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.ClassSession)">
-                                                        <div class="card bg-info text-white px-1 py-0 small-badge">
-                                                            <small>
-                                                                @classSessions.Count Classes
-                                                            </small>
-                                                        </div>
-                                                    </div>
                                                 }
 
                                                 @if (events.Any())

@@ -36,15 +36,7 @@
                     <div class="mb-3">
                         <label class="form-label">Schedule Types</label>
 
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showClasses"
-                                   @bind="showClasses" @bind:after="ApplyFilters">
-                            <label class="form-check-label" for="showClasses">
-                                <span class="badge bg-info">
-                                    <i class="fa fa-chalkboard-teacher me-1"></i> Classes
-                                </span>
-                            </label>
-                        </div>
+                        
 
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="showMeetings"
@@ -207,7 +199,7 @@
     private DateTime currentDate = DateTime.Now;
     private DateTime? selectedDate = null;
     private string viewMode = "month";
-    private bool showClasses = true;
+
     private bool showMeetings = true;
     private bool showEvents = true;
     private bool showDailyView = false;
@@ -234,7 +226,6 @@
             .ToList();
 
         return schedulesForDay.Where(s =>
-            (showClasses && s.ClassSessionId != null) ||
             (showMeetings && !string.IsNullOrWhiteSpace(s.Meeting)) ||
             (showEvents && !string.IsNullOrWhiteSpace(s.Event))
         ).ToList();

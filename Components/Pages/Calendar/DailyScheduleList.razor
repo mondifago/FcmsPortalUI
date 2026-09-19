@@ -1,7 +1,6 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
-@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 
 <div class="card">
@@ -34,14 +33,7 @@
                         <div class="d-flex w-100 justify-content-between align-items-center">
                             <div>
                                 <h5 class="mb-1">@Util.GetScheduleTitle(schedule)</h5>
-                                @if (schedule.ClassSession != null && learningPathCache.TryGetValue(schedule.Id, out var lp) && lp != null)
-                                {
-                                    <small class="text-primary">
-                                        <i class="fa fa-graduation-cap me-1"></i>
-                                        @Util.GetLearningPathName(lp)
-                                    </small>
-                                    <br />
-                                }
+                                
 
                                 <p class="mb-1">
                                     <small>
@@ -95,39 +87,7 @@
     [Parameter] public EventCallback<DateTime> SelectedDateChanged { get; set; }
     [Parameter] public ScheduleType? FilterByType { get; set; }
     [Parameter] public bool IsGeneralCalendar { get; set; } = false;
-
-    private Dictionary<int, LearningPath?> learningPathCache = new();
   
-    protected override void OnParametersSet()
-    {
-        LoadLearningPaths();
-    }
-
-    private void LoadLearningPaths()
-    {
-        var classSchedules = Schedules
-            .Where(s => s.ClassSession != null)
-            .ToList();
-
-        if (!classSchedules.Any())
-            return;
-
-        var scheduleIdsToLoad = classSchedules
-            .Where(s => !learningPathCache.ContainsKey(s.Id))
-            .Select(s => s.Id)
-            .ToList();
-
-        if (scheduleIdsToLoad.Any())
-        {
-            var loadedPaths = SchoolDataService.GetLearningPathsByScheduleEntries(scheduleIdsToLoad);
-
-            foreach (var kvp in loadedPaths)
-            {
-                learningPathCache[kvp.Key] = kvp.Value;
-            }
-        }
-    }
-
     private async Task PreviousDay()
     {
         SelectedDate = SelectedDate.AddDays(-1);
@@ -149,7 +109,6 @@
 
         return FilterByType switch
         {
-            ScheduleType.ClassSession => Schedules.Where(s => s.ClassSession != null).ToList(),
             ScheduleType.Event => Schedules.Where(s => !string.IsNullOrEmpty(s.Event)).ToList(),
             ScheduleType.Meeting => Schedules.Where(s => !string.IsNullOrEmpty(s.Meeting)).ToList(),
             _ => Schedules
@@ -163,11 +122,6 @@
 
     private bool CanEditSchedule(ScheduleEntry schedule)
     {
-        if (schedule.LearningPathId.HasValue)
-        {
-            return false;
-        }
-
         return IsGeneralCalendar;
     }
 }

@@ -12,7 +12,6 @@ namespace FcmsPortalUI.Services
         bool HasSchool();
         bool HasPrincipal();
         Task UpdateSchoolAsync(School updatedSchool);
-        public School? GetSchoolLearningPathsForReports();
         School? GetSchoolBasicInfo();
         School? GetSchoolForSettings();
         #endregion
@@ -105,6 +104,7 @@ namespace FcmsPortalUI.Services
         ClassSession AddClassSession(ClassSession classSession);
         void UpdateClassSessionDetails(ClassSession edited);
         Task DeleteClassSessionsAsync(List<int> classSessionIds);
+        List<ClassSessionReport> GetClassSessionReportsForDate(DateTime sessionDate);
         #endregion
 
         #region Homework
@@ -159,8 +159,7 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Curriculum
-        List<Curriculum> GetFullCurriculum();
-        List<Curriculum> FilterCurriculum(List<Curriculum> curriculum, EducationLevel educationLevel, ClassLevel classLevel, Semester? semester = null);
+        List<ClassSession> GetCurriculumSessions(ClassLevel classLevel, Semester semester);
         #endregion
 
         #region Attendance
@@ -233,7 +232,7 @@ namespace FcmsPortalUI.Services
 
         #region Dashboard
         ScheduleEntry? GetLatestEventOrMeetingForDate(DateTime date);
-        List<ScheduleEntry> GetTodayClassSessionsForStudent(int studentId, int maxCount);
+        List<ClassSchedule> GetTodayClassSessionsForStudent(int studentId, int maxCount);
         List<PendingHomeworkItem> GetPendingHomeworkForStudent(int studentId, int maxCount);
         List<(string Course, GradeType GradeType, double Score, int SortKey)> GetRecentGradesForStudent(int studentId, int maxCount);
         List<(string LearningPathName, DateTime Timestamp)> GetTodayAttendanceReports(int maxCount);
@@ -243,7 +242,7 @@ namespace FcmsPortalUI.Services
         int GetStudentCount();
         int GetGuardianCount();
         int GetActiveClassCount();
-        List<ScheduleEntry> GetTodayClassSessionsForTeacher(int teacherId, int maxCount);
+        List<ClassSchedule> GetTodayClassSessionsForTeacher(int teacherId, int maxCount);
         List<TeacherSubmissionItem> GetRecentHomeworkSubmissionsForTeacher(int teacherId, int maxCount);
         #endregion
 
