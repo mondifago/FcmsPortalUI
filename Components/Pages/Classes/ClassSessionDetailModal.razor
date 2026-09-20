@@ -1,0 +1,74 @@
+﻿@using FcmsPortal
+@using FcmsPortal.Enums
+@using FcmsPortalUI.DTOs
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content fcms-modal-panel">
+            <div class="modal-body">
+                <div class="fcms-session-picker">
+                    <div class="d-flex justify-content-between align-items-center fcms-list-toolbar mb-3">
+                        <h5 class="modal-title fcms-picker-title mb-0">Session Details</h5>
+                        <button type="button" class="fcms-picker-close" @onclick="Close">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+
+                    @if (Session != null)
+                    {
+                        <dl class="row mb-0">
+                            <dt class="col-4">Session</dt>
+                            <dd class="col-8">@Util.GetClassSessionCode(ClassLevel, Term, Session.Course, Session.SessionNumber)</dd>
+
+                            <dt class="col-4">Course</dt>
+                            <dd class="col-8">@Session.Course</dd>
+
+                            <dt class="col-4">Topic</dt>
+                            <dd class="col-8">@Session.Topic</dd>
+
+                            <dt class="col-4">Description</dt>
+                            <dd class="col-8">@Session.Description</dd>
+
+                            <dt class="col-4">Teacher</dt>
+                            <dd class="col-8">@(Session.TeacherName ?? "Not assigned")</dd>
+
+                            <dt class="col-4">Scheduled</dt>
+                            <dd class="col-8">
+                                @(Session.ScheduledAt == null
+                                    ? "Not scheduled"
+                                    : Session.ScheduledAt.Value.ToString("ddd, MMM d, yyyy h:mm tt"))
+                            </dd>
+
+                            <dt class="col-4">State</dt>
+                            <dd class="col-8 mb-0">@LogicMethods.GetSessionState(Session.ScheduledAt, Session.ScheduledEnd - Session.ScheduledAt, Session.ClosedAt, DateTime.Now)</dd>
+                        </dl>
+                    }
+
+                    <div class="fcms-list-toolbar mt-3"></div>
+
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public ClassSessionListItem? Session { get; set; }
+    [Parameter] public ClassLevel ClassLevel { get; set; }
+    [Parameter] public Semester Term { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}

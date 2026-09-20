@@ -1347,6 +1347,7 @@ namespace FcmsPortalUI.Services
                     SessionNumber = cs.SessionNumber,
                     Course = cs.Course,
                     Topic = cs.Topic,
+                    Description = cs.Description,
                     TeacherName = cs.Teacher == null
                         ? null
                         : cs.Teacher.Person.FirstName + " " + cs.Teacher.Person.LastName,

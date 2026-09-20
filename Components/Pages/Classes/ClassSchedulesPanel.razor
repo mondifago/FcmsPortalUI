@@ -119,7 +119,7 @@ else
                         ExistingSchedule="editingSchedule"
                         ClassLevel="SelectedClassLevel"
                         Term="@(SelectedTerm ?? Semester.First)"
-                        DefaultDate="currentWeekStart"
+                        DefaultDate="DateTime.Today"
                         OnSaved="HandleSaved"
                         OnClose="() => showFormModal = false" />
 
@@ -141,11 +141,13 @@ else
     private ClassLevel loadedClassLevel = ClassLevel.None;
     private Semester? loadedTerm;
     private List<ClassScheduleListItem> schedules = new();
+    private ClassScheduleListItem? editingSchedule;
+
     private DateTime currentWeekStart = GetWeekStart(DateTime.Today);
     private bool showFormModal = false;
-    private ClassSchedule? editingSchedule;
+   
     private bool showDeleteConfirmation = false;
-    private ClassSchedule? scheduleToDelete;
+    private ClassScheduleListItem? scheduleToDelete;
     private bool showErrorModal = false;
     private string errorMessage = string.Empty;
     private bool showPickerModal = false;
@@ -223,13 +225,13 @@ else
         showFormModal = true;
     }
 
-    private void OpenEdit(ClassSchedule schedule)
+    private void OpenEdit(ClassScheduleListItem schedule)
     {
         editingSchedule = schedule;
         showFormModal = true;
     }
 
-    private void AskDelete(ClassSchedule schedule)
+    private void AskDelete(ClassScheduleListItem schedule)
     {
         scheduleToDelete = schedule;
         showDeleteConfirmation = true;
