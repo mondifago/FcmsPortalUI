@@ -97,9 +97,9 @@
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link @(activeTab == TabTwo ? "active" : "")"
-                    @onclick="() => activeTab = TabTwo">
-                Tab2
+            <button class="nav-link @(activeTab == TabSchedules ? "active" : "")"
+                    @onclick="() => activeTab = TabSchedules">
+                Class Schedule
             </button>
         </li>
     </ul>
@@ -233,12 +233,20 @@
         }
     }
 
-    @if (activeTab == TabTwo)
+    @if (activeTab == TabSchedules)
     {
-        <div class="text-center text-muted py-4">
-            <i class="fa fa-hourglass-half fa-2x mb-2 fcms-icon-soft"></i>
-            <p class="mb-0">Coming soon</p>
-        </div>
+        @if (canManageSessions)
+        {
+            <ClassSchedulesPanel SelectedClassLevel="SelectedClassLevel"
+                                 SelectedTerm="SelectedTerm" />
+        }
+        else
+        {
+            <div class="text-center text-muted py-4">
+                <i class="fa fa-hourglass-half fa-2x mb-2 fcms-icon-soft"></i>
+                <p class="mb-0">Coming soon</p>
+            </div>
+        }
     }
 </div>
 
@@ -247,7 +255,7 @@
 @code {
     private const string TabTimetable = "timetable";
     private const string TabSessions = "sessions";
-    private const string TabTwo = "tab2";
+    private const string TabSchedules = "schedules";
 
     private string activeTab = TabTimetable;
 

@@ -1831,3 +1831,81 @@ main {
 .fcms-session-in-progress > td {
     --bs-table-bg-state: #fdf3e3;
 }
+
+
+
+
+
+
+.fcms-session-picker {
+    background-color: #f0d5c4;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.fcms-session-picker-list {
+    background-color: #fdf6f0;
+    border-radius: 12px;
+    padding: 0.75rem;
+    min-height: 140px;
+}
+
+.fcms-session-tile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background-color: #f0d5c4;
+    color: #5a3e2b;
+    border-radius: 10px;
+    padding: 0.35rem 0.75rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
+
+.fcms-session-picker-list .fcms-session-tile:last-child {
+    margin-bottom: 0;
+}
+
+.fcms-session-tile-selected {
+    outline: 2px solid #5a3e2b;
+}
+
+.fcms-session-tile-static {
+    display: inline-flex;
+    margin-bottom: 0;
+    cursor: default;
+}
+
+.fcms-modal-panel {
+    background-color: #f0d5c4;
+    color: #5a3e2b;
+}
+
+.fcms-picker-title {
+    color: #5a3e2b;
+}
+
+.fcms-picker-close {
+    background: none;
+    border: none;
+    color: #5a3e2b;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0 0.25rem;
+}
+
+.fcms-tile-code,
+.fcms-tile-topic,
+.fcms-tile-dot {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.fcms-tile-dot {
+    opacity: 0.6;
+}
+
+.fcms-tile-detail {
+    flex: 1 1 auto;
+    min-width: 0;
+}

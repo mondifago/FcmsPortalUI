@@ -1,0 +1,276 @@
+﻿@using FcmsPortal
+@using FcmsPortal.Constants
+@using FcmsPortal.Enums
+@using FcmsPortal.Models
+@using FcmsPortalUI.DTOs
+@using FcmsPortalUI.Services
+@using FcmsPortalUI.Components.Pages.Shared
+@inject ISchoolDataService SchoolDataService
+
+@if (SelectedClassLevel == ClassLevel.None || SelectedTerm == null)
+{
+    <div class="text-center py-4">
+        <i class="fa fa-calendar-week fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Select a class level and term to manage its schedules</h5>
+    </div>
+}
+else
+{
+    <div class="card fcms-tab-card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center flex-wrap mb-3 fcms-gap-sm">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="PreviousWeek">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+                <span class="fcms-text-sm">@currentWeekStart.ToString("MMM d") - @currentWeekStart.AddDays(6).ToString("MMM d, yyyy")</span>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="NextWeek">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="GoToToday">Today</button>
+                <button class="btn btn-sm btn-primary ms-auto" @onclick="OpenCreate">
+                    <i class="fa fa-plus me-1"></i>Add Schedule
+                </button>
+            </div>
+
+            @if (!schedules.Any())
+            {
+                <p class="text-muted mb-0">No schedules in this week.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover fcms-grid">
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>Time</th>
+                                <th>Teacher</th>
+                                <th>Venue</th>
+                                <th>Session</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var schedule in schedules)
+                            {
+                                <tr @key="schedule.Id">
+                                    <td>@schedule.DateTime.ToString("ddd, MMM d")</td>
+                                    <td>@schedule.DateTime.ToString("h:mm tt") - @schedule.DateTime.Add(schedule.Duration).ToString("h:mm tt")</td>
+                                    <td>
+                                        @if (string.IsNullOrEmpty(schedule.TeacherName))
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                        else
+                                        {
+                                            @schedule.TeacherName
+                                        }
+                                    </td>
+                                    <td>@schedule.Venue</td>
+                                    <td>
+                                        @if (schedule.ClassSessionId == null)
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenPicker(schedule.Id)">
+                                                <i class="fa fa-plus me-1"></i>Insert session
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <div class="fcms-session-tile fcms-session-tile-static">
+                                                <strong class="fcms-text-sm">@Util.GetClassSessionCode(SelectedClassLevel, SelectedTerm!.Value, schedule.Course, schedule.SessionNumber)</strong>
+                                                <span class="fcms-text-xs text-truncate">@schedule.Topic</span>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        @if (schedule.ClassSessionId != null)
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary me-1" title="Remove session"
+                                                    @onclick="() => Unplace(schedule.Id)">
+                                                <i class="fa fa-arrow-right"></i>
+                                            </button>
+                                        }
+                                        <button class="btn btn-sm btn-outline-warning me-1" title="Edit"
+                                                @onclick="() => OpenEdit(schedule)">
+                                            <i class="fa fa-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" title="Delete"
+                                                @onclick="() => AskDelete(schedule)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<ClassSessionPickerModal IsVisible="showPickerModal"
+                         ClassLevel="SelectedClassLevel"
+                         Term="@(SelectedTerm ?? Semester.First)"
+                         OnInsert="HandleInsert"
+                         OnCancel="() => showPickerModal = false" />
+
+<ClassScheduleFormModal IsVisible="showFormModal"
+                        ExistingSchedule="editingSchedule"
+                        ClassLevel="SelectedClassLevel"
+                        Term="@(SelectedTerm ?? Semester.First)"
+                        DefaultDate="currentWeekStart"
+                        OnSaved="HandleSaved"
+                        OnClose="() => showFormModal = false" />
+
+<ConfirmDeleteModal IsVisible="showDeleteConfirmation"
+                    Title="Delete Schedule"
+                    Message="Delete this schedule?"
+                    OnConfirm="ConfirmDelete"
+                    OnCancel="() => showDeleteConfirmation = false" />
+
+<ErrorDisplayModal IsVisible="showErrorModal"
+                   Title="Not allowed"
+                   Message="@errorMessage"
+                   OnClose="() => showErrorModal = false" />
+
+@code {
+    [Parameter] public ClassLevel SelectedClassLevel { get; set; }
+    [Parameter] public Semester? SelectedTerm { get; set; }
+
+    private ClassLevel loadedClassLevel = ClassLevel.None;
+    private Semester? loadedTerm;
+    private List<ClassScheduleListItem> schedules = new();
+    private DateTime currentWeekStart = GetWeekStart(DateTime.Today);
+    private bool showFormModal = false;
+    private ClassSchedule? editingSchedule;
+    private bool showDeleteConfirmation = false;
+    private ClassSchedule? scheduleToDelete;
+    private bool showErrorModal = false;
+    private string errorMessage = string.Empty;
+    private bool showPickerModal = false;
+    private int pickerScheduleId = 0;
+
+    protected override void OnParametersSet()
+    {
+        if (SelectedClassLevel == loadedClassLevel && SelectedTerm == loadedTerm)
+            return;
+
+        loadedClassLevel = SelectedClassLevel;
+        loadedTerm = SelectedTerm;
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        schedules = new List<ClassScheduleListItem>();
+
+        if (SelectedClassLevel == ClassLevel.None || SelectedTerm == null)
+            return;
+
+        schedules = SchoolDataService.GetClassSchedulesForWeek(SelectedClassLevel, SelectedTerm.Value, currentWeekStart);
+    }
+
+    private static DateTime GetWeekStart(DateTime date)
+    {
+        return date.AddDays(-(((int)date.DayOfWeek + 6) % 7)).Date;
+    }
+
+    private void PreviousWeek()
+    {
+        currentWeekStart = currentWeekStart.AddDays(-FcmsConstants.DAYS_IN_WEEK);
+        LoadData();
+    }
+
+    private void NextWeek()
+    {
+        currentWeekStart = currentWeekStart.AddDays(FcmsConstants.DAYS_IN_WEEK);
+        LoadData();
+    }
+
+    private void GoToToday()
+    {
+        currentWeekStart = GetWeekStart(DateTime.Today);
+        LoadData();
+    }
+
+    private void OpenPicker(int scheduleId)
+    {
+        pickerScheduleId = scheduleId;
+        showPickerModal = true;
+    }
+
+    private void HandleInsert(int sessionId)
+    {
+        showPickerModal = false;
+
+        try
+        {
+            SchoolDataService.PlaceSession(pickerScheduleId, sessionId);
+            LoadData();
+        }
+        catch (BusinessRuleException ex)
+        {
+            ShowError(ex.Message);
+        }
+
+        pickerScheduleId = 0;
+    }
+
+    private void OpenCreate()
+    {
+        editingSchedule = null;
+        showFormModal = true;
+    }
+
+    private void OpenEdit(ClassSchedule schedule)
+    {
+        editingSchedule = schedule;
+        showFormModal = true;
+    }
+
+    private void AskDelete(ClassSchedule schedule)
+    {
+        scheduleToDelete = schedule;
+        showDeleteConfirmation = true;
+    }
+
+    private void ConfirmDelete()
+    {
+        showDeleteConfirmation = false;
+
+        if (scheduleToDelete == null)
+            return;
+
+        try
+        {
+            SchoolDataService.DeleteClassSchedule(scheduleToDelete.Id);
+            LoadData();
+        }
+        catch (BusinessRuleException ex)
+        {
+            ShowError(ex.Message);
+        }
+
+        scheduleToDelete = null;
+    }
+
+    private void Unplace(int scheduleId)
+    {
+        SchoolDataService.UnplaceSession(scheduleId);
+        LoadData();
+    }
+
+    private void HandleSaved()
+    {
+        showFormModal = false;
+        editingSchedule = null;
+        LoadData();
+    }
+
+    private void ShowError(string message)
+    {
+        errorMessage = message;
+        showErrorModal = true;
+    }
+}

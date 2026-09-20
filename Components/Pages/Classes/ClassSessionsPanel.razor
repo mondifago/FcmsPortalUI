@@ -40,7 +40,6 @@ else
                         <i class="fa fa-times me-1"></i>Cancel
                     </button>
                 }
-
                 <select class="form-select form-select-sm w-auto ms-auto" @bind="courseFilter">
                     <option value="">All courses</option>
                     @foreach (var course in courses)
@@ -141,7 +140,6 @@ else
     private string courseFilter = string.Empty;
     private ClassLevel loadedClassLevel = ClassLevel.None;
     private Semester? loadedTerm;
-
     private bool selectMode = false;
     private HashSet<int> selectedIds = new();
     private bool showFormModal = false;

@@ -1141,6 +1141,34 @@ namespace FcmsPortalUI.Services
                 .ToList();
         }
 
+        public List<ClassScheduleListItem> GetClassSchedulesForWeek(ClassLevel classLevel, Semester semester, DateTime weekStart)
+        {
+            var weekEnd = weekStart.Date.AddDays(FcmsConstants.DAYS_IN_WEEK);
+
+            return _context.ClassSchedules
+                .AsNoTracking()
+                .Where(sched => sched.ClassLevel == classLevel &&
+                                sched.Semester == semester &&
+                                sched.DateTime >= weekStart.Date &&
+                                sched.DateTime < weekEnd)
+                .OrderBy(sched => sched.DateTime)
+                .Select(sched => new ClassScheduleListItem
+                {
+                    Id = sched.Id,
+                    DateTime = sched.DateTime,
+                    Duration = sched.Duration,
+                    Venue = sched.Venue,
+                    ClassSessionId = sched.ClassSessionId,
+                    Course = sched.ClassSession == null ? string.Empty : sched.ClassSession.Course,
+                    SessionNumber = sched.ClassSession == null ? 0 : sched.ClassSession.SessionNumber,
+                    Topic = sched.ClassSession == null ? string.Empty : sched.ClassSession.Topic,
+                    TeacherName = sched.ClassSession == null || sched.ClassSession.Teacher == null
+                        ? null
+                        : sched.ClassSession.Teacher.Person.FirstName + " " + sched.ClassSession.Teacher.Person.LastName
+                })
+                .ToList();
+        }
+
         public ClassSchedule? GetClassScheduleByClassSessionId(int classSessionId)
         {
             return _context.ClassSchedules
@@ -1478,6 +1506,30 @@ namespace FcmsPortalUI.Services
                         ? sched.ClassSession.RemarksSubmittedByName
                         : sched.ClassSession.Teacher?.Person?.LastName ?? "Unknown",
                     TimeSubmitted = sched.ClassSession.RemarksSubmittedAt ?? sched.DateTime
+                })
+                .ToList();
+        }
+
+        public List<ClassSessionListItem> GetUnplacedSessions(ClassLevel classLevel, Semester semester)
+        {
+            return _context.ClassSessions
+                .AsNoTracking()
+                .Where(cs => cs.ClassLevel == classLevel &&
+                             cs.Semester == semester &&
+                             !_context.ClassSchedules.Any(sched => sched.ClassSessionId == cs.Id))
+                .OrderBy(cs => cs.Course)
+                .ThenBy(cs => cs.SessionNumber)
+                .Select(cs => new ClassSessionListItem
+                {
+                    Id = cs.Id,
+                    SessionNumber = cs.SessionNumber,
+                    Course = cs.Course,
+                    Topic = cs.Topic,
+                    Description = cs.Description,
+                    TeacherName = cs.Teacher == null
+                        ? null
+                        : cs.Teacher.Person.FirstName + " " + cs.Teacher.Person.LastName,
+                    ClosedAt = cs.ClosedAt
                 })
                 .ToList();
         }

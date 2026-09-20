@@ -6,6 +6,7 @@
         public int SessionNumber { get; set; }
         public string Course { get; set; } = string.Empty;
         public string Topic { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public string? TeacherName { get; set; }
         public DateTime? ScheduledAt { get; set; }
         public DateTime? ClosedAt { get; set; }

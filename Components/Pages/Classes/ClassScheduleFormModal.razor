@@ -1,0 +1,200 @@
+﻿@using FcmsPortal
+@using FcmsPortal.Constants
+@using FcmsPortal.Enums
+@using FcmsPortal.Models
+@using FcmsPortalUI.Services
+@using FcmsPortalUI.DTOs
+@inject ISchoolDataService SchoolDataService
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">@(ExistingSchedule != null ? "Edit Schedule" : "Add Schedule")</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">@ClassLevel.ToDisplayName() · @Term.ToTermDisplay()</p>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" @bind="scheduleDate" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Start Time</label>
+                        <input type="time" class="form-control" value="@startTimeString" @oninput="OnStartTimeChanged" />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Duration (minutes)</label>
+                        <input type="number" class="form-control" @bind="durationMinutes" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Venue</label>
+                        <input type="text" class="form-control" @bind="venue" />
+                    </div>
+                </div>
+
+                @if (ExistingSchedule == null)
+                {
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="isRecurring" @bind="isRecurring" />
+                        <label class="form-check-label" for="isRecurring">Repeat</label>
+                    </div>
+
+                    @if (isRecurring)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Pattern</label>
+                                <select class="form-select" @bind="pattern">
+                                    @foreach (var value in Enum.GetValues<RecurrenceType>())
+                                    {
+                                        <option value="@value">@value</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Interval</label>
+                                <input type="number" class="form-control" @bind="interval" min="1" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Until</label>
+                                <input type="date" class="form-control" @bind="endDate" />
+                            </div>
+                        </div>
+                    }
+                }
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="Save">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public ClassScheduleListItem? ExistingSchedule { get; set; }
+    [Parameter] public ClassLevel ClassLevel { get; set; }
+    [Parameter] public Semester Term { get; set; }
+    [Parameter] public DateTime DefaultDate { get; set; } = DateTime.Today;
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+
+    private DateTime scheduleDate = DateTime.Today;
+    private string startTimeString = $"{FcmsConstants.DEFAULT_SCHEDULE_START_HOUR:D2}:00";
+    private int durationMinutes = FcmsConstants.DEFAULT_CLASS_DURATION_MINUTES;
+    private string venue = string.Empty;
+    private bool isRecurring = false;
+    private RecurrenceType pattern = RecurrenceType.Weekly;
+    private int interval = 1;
+    private DateTime endDate = DateTime.Today.AddMonths(FcmsConstants.DEFAULT_RECURRENCE_END_MONTHS);
+    private bool wasVisible = false;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && !wasVisible)
+        {
+            LoadForm();
+        }
+
+        wasVisible = IsVisible;
+    }
+
+    private void LoadForm()
+    {
+        isRecurring = false;
+        pattern = RecurrenceType.Weekly;
+        interval = 1;
+
+        if (ExistingSchedule != null)
+        {
+            scheduleDate = ExistingSchedule.DateTime.Date;
+            startTimeString = ExistingSchedule.DateTime.ToString("HH:mm");
+            durationMinutes = (int)ExistingSchedule.Duration.TotalMinutes;
+            venue = ExistingSchedule.Venue;
+            return;
+        }
+
+        scheduleDate = DefaultDate.Date;
+        startTimeString = $"{FcmsConstants.DEFAULT_SCHEDULE_START_HOUR:D2}:00";
+        durationMinutes = FcmsConstants.DEFAULT_CLASS_DURATION_MINUTES;
+        venue = string.Empty;
+        endDate = DefaultDate.Date.AddMonths(FcmsConstants.DEFAULT_RECURRENCE_END_MONTHS);
+    }
+
+    private void OnStartTimeChanged(ChangeEventArgs e)
+    {
+        startTimeString = e.Value?.ToString() ?? string.Empty;
+    }
+
+    private async Task Save()
+    {
+        if (!TimeOnly.TryParse(startTimeString, out var startTime))
+        {
+            startTime = new TimeOnly(FcmsConstants.DEFAULT_SCHEDULE_START_HOUR, 0);
+        }
+
+        var startDateTime = scheduleDate.Date.Add(startTime.ToTimeSpan());
+
+        if (ExistingSchedule != null)
+        {
+            SchoolDataService.UpdateClassSchedule(new ClassSchedule
+            {
+                Id = ExistingSchedule.Id,
+                ClassLevel = ClassLevel,
+                Semester = Term,
+                DateTime = startDateTime,
+                Duration = TimeSpan.FromMinutes(durationMinutes),
+                Venue = venue
+            });
+
+            await OnSaved.InvokeAsync();
+            return;
+        }
+
+        var template = new ClassSchedule
+        {
+            ClassLevel = ClassLevel,
+            Semester = Term,
+            DateTime = startDateTime,
+            Duration = TimeSpan.FromMinutes(durationMinutes),
+            Venue = venue
+        };
+
+        if (!isRecurring)
+        {
+            SchoolDataService.CreateClassSchedule(template);
+            await OnSaved.InvokeAsync();
+            return;
+        }
+
+        var plan = new RecurrencePlan
+        {
+            StartDateTime = startDateTime,
+            Pattern = pattern,
+            Interval = interval,
+            EndDate = endDate
+        };
+
+        SchoolDataService.CreateClassSchedules(template, LogicMethods.GenerateOccurrenceDates(plan));
+        await OnSaved.InvokeAsync();
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}

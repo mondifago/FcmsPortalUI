@@ -84,6 +84,7 @@ namespace FcmsPortalUI.Services
 
         #region Class Schedules
         List<ClassSchedule> GetClassSchedules(ClassLevel classLevel, Semester semester);
+        List<ClassScheduleListItem> GetClassSchedulesForWeek(ClassLevel classLevel, Semester semester, DateTime weekStart);
         ClassSchedule? GetClassScheduleByClassSessionId(int classSessionId);
         ClassSchedule CreateClassSchedule(ClassSchedule classSchedule);
         public List<ClassSchedule> CreateClassSchedules(ClassSchedule template, List<DateTime> occurrences);
@@ -105,6 +106,7 @@ namespace FcmsPortalUI.Services
         void UpdateClassSessionDetails(ClassSession edited);
         Task DeleteClassSessionsAsync(List<int> classSessionIds);
         List<ClassSessionReport> GetClassSessionReportsForDate(DateTime sessionDate);
+        List<ClassSessionListItem> GetUnplacedSessions(ClassLevel classLevel, Semester semester);
         #endregion
 
         #region Homework
