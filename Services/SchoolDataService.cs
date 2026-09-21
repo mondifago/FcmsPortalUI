@@ -1131,13 +1131,28 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Class Schedules
-        public List<ClassSchedule> GetClassSchedules(ClassLevel classLevel, Semester semester)
+        public List<ClassScheduleListItem> GetClassScheduleList(ClassLevel classLevel, Semester semester)
         {
             return _context.ClassSchedules
                 .AsNoTracking()
-                .Where(cs => cs.ClassLevel == classLevel && cs.Semester == semester)
-                .Include(cs => cs.ClassSession)
-                .OrderBy(cs => cs.DateTime)
+                .Where(sched => sched.ClassLevel == classLevel && sched.Semester == semester)
+                .OrderBy(sched => sched.DateTime)
+                .Select(sched => new ClassScheduleListItem
+                {
+                    Id = sched.Id,
+                    DateTime = sched.DateTime,
+                    Duration = sched.Duration,
+                    Venue = sched.Venue,
+                    ClassSessionId = sched.ClassSessionId,
+                    Course = sched.ClassSession == null ? string.Empty : sched.ClassSession.Course,
+                    SessionNumber = sched.ClassSession == null ? 0 : sched.ClassSession.SessionNumber,
+                    Topic = sched.ClassSession == null ? string.Empty : sched.ClassSession.Topic,
+                    Description = sched.ClassSession == null ? string.Empty : sched.ClassSession.Description,
+                    ClosedAt = sched.ClassSession == null ? null : sched.ClassSession.ClosedAt,
+                    TeacherName = sched.ClassSession == null || sched.ClassSession.Teacher == null
+                        ? null
+                        : sched.ClassSession.Teacher.Person.FirstName + " " + sched.ClassSession.Teacher.Person.LastName
+                })
                 .ToList();
         }
 
@@ -1162,6 +1177,8 @@ namespace FcmsPortalUI.Services
                     Course = sched.ClassSession == null ? string.Empty : sched.ClassSession.Course,
                     SessionNumber = sched.ClassSession == null ? 0 : sched.ClassSession.SessionNumber,
                     Topic = sched.ClassSession == null ? string.Empty : sched.ClassSession.Topic,
+                    Description = sched.ClassSession == null ? string.Empty : sched.ClassSession.Description,
+                    ClosedAt = sched.ClassSession == null ? null : sched.ClassSession.ClosedAt,
                     TeacherName = sched.ClassSession == null || sched.ClassSession.Teacher == null
                         ? null
                         : sched.ClassSession.Teacher.Person.FirstName + " " + sched.ClassSession.Teacher.Person.LastName

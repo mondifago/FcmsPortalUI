@@ -76,7 +76,8 @@ else
                                         }
                                         else
                                         {
-                                            <div class="fcms-session-tile fcms-session-tile-static">
+                                            <div class="fcms-session-tile fcms-session-tile-static fcms-clickable"
+                                                 @onclick="() => OpenSessionDetails(schedule)">
                                                 <strong class="fcms-text-sm">@Util.GetClassSessionCode(SelectedClassLevel, SelectedTerm!.Value, schedule.Course, schedule.SessionNumber)</strong>
                                                 <span class="fcms-text-xs text-truncate">@schedule.Topic</span>
                                             </div>
@@ -108,6 +109,12 @@ else
         </div>
     </div>
 }
+
+<ClassSessionDetailModal IsVisible="showDetailModal"
+                         Session="detailSession"
+                         ClassLevel="SelectedClassLevel"
+                         Term="@(SelectedTerm ?? Semester.First)"
+                         OnClose="() => showDetailModal = false" />
 
 <ClassSessionPickerModal IsVisible="showPickerModal"
                          ClassLevel="SelectedClassLevel"
@@ -152,6 +159,9 @@ else
     private string errorMessage = string.Empty;
     private bool showPickerModal = false;
     private int pickerScheduleId = 0;
+
+    private bool showDetailModal = false;
+    private ClassSessionListItem? detailSession;
 
     protected override void OnParametersSet()
     {
@@ -274,5 +284,25 @@ else
     {
         errorMessage = message;
         showErrorModal = true;
+    }
+
+    private void OpenSessionDetails(ClassScheduleListItem schedule)
+    {
+        if (schedule.ClassSessionId == null)
+            return;
+
+        detailSession = new ClassSessionListItem
+        {
+            Id = schedule.ClassSessionId.Value,
+            SessionNumber = schedule.SessionNumber,
+            Course = schedule.Course,
+            Topic = schedule.Topic,
+            Description = schedule.Description,
+            TeacherName = schedule.TeacherName,
+            ScheduledAt = schedule.DateTime,
+            ScheduledEnd = schedule.DateTime.Add(schedule.Duration)
+        };
+
+        showDetailModal = true;
     }
 }

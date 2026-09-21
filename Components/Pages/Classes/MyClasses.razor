@@ -4,7 +4,6 @@
 @using FcmsPortal.Enums
 @using FcmsPortalUI.Services
 @using FcmsPortalUI.DTOs
-@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject IPermissionService PermissionService
 @inject NavigationManager NavigationManager
@@ -17,8 +16,6 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap fcms-gap-sm">
         <h2 class="mb-0">@pageHeading</h2>
-
-        
     </div>
 
     @if (isGuardian && guardianProfile != null && guardianProfile.Wards.Count > 1)
@@ -45,7 +42,6 @@
         <div class="card mb-3">
             <div class="card-body">
                 <div class="row">
-
                     <div class="col-md-3">
                         <label class="form-label">Education Level:</label>
                         <select class="form-select" @bind="staffEducationLevel" @bind:after="OnStaffFiltersChanged">
@@ -86,7 +82,7 @@
     <ul class="nav fcms-tabs mb-3">
         <li class="nav-item">
             <button class="nav-link @(activeTab == TabTimetable ? "active" : "")"
-                    @onclick="() => activeTab = TabTimetable">
+                    @onclick="OpenTimetableTab">
                 Timetable
             </button>
         </li>
@@ -133,9 +129,6 @@
         {
             <div class="card timetable-card">
                 <div class="card-body">
-
-                    
-
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap fcms-gap-sm">
                         <button class="btn btn-sm btn-fcms" @onclick="PreviousWeek">
                             <i class="fa fa-arrow-left"></i>
@@ -178,30 +171,28 @@
                                 <div class="d-flex flex-column p-2 fcms-fold-body">
                                     @foreach (var entry in dayEntries)
                                     {
+                                        var state = LogicMethods.GetSessionState(entry.DateTime, entry.ClosedAt, DateTime.Now);
                                         <div class="d-flex align-items-center rounded fcms-fold-item">
-
-                                            
-
-                                            <div class="flex-grow-1 d-flex justify-content-between align-items-center flex-wrap p-2 fcms-fold-item-main @(entry.ClassSession != null ? "fcms-clickable" : "")"
+                                            <div class="flex-grow-1 d-flex justify-content-between align-items-center flex-wrap p-2 fcms-fold-item-main @(entry.ClassSessionId != null ? "fcms-clickable" : "")"
                                                  @onclick="() => OpenSession(entry)">
-
                                                 <div>
                                                     <strong class="fcms-text-sm">@entry.DateTime.ToString("h:mm tt") - @entry.DateTime.Add(entry.Duration).ToString("h:mm tt")</strong>
-                                                    @if (entry.ClassSession != null)
+                                                    @if (entry.ClassSessionId != null)
                                                     {
-                                                        <span class="ms-2 fcms-text-sm">@entry.ClassSession.Course</span>
-                                                        <small class="text-muted d-block fcms-text-xs">@entry.ClassSession.Topic</small>
+                                                        <span class="ms-2 fcms-text-sm">@entry.Course</span>
+                                                        <small class="text-muted d-block fcms-text-xs">
+                                                            @entry.Topic · @entry.Description · @(entry.TeacherName ?? "No teacher")
+                                                        </small>
                                                     }
                                                     else
                                                     {
                                                         <span class="ms-2 fcms-text-sm text-muted">Unassigned</span>
                                                     }
                                                 </div>
-
                                                 <small class="text-muted fcms-text-sm">
+                                                    <span class="@SessionStateBadgeClass(state) ms-1">@state</span>
                                                     <i class="fa fa-location-dot me-1"></i>@entry.Venue
                                                 </small>
-
                                             </div>
                                         </div>
                                     }
@@ -256,33 +247,31 @@
     private const string TabTimetable = "timetable";
     private const string TabSessions = "sessions";
     private const string TabSchedules = "schedules";
-
     private string activeTab = TabTimetable;
 
     private Person? currentPerson;
+    private Guardian? guardianProfile;
     private bool isStudent = false;
     private bool isGuardian = false;
     private bool isStaffViewer = false;
     private bool canManageSessions = false;
-
-    private Guardian? guardianProfile;
     private int activeWardId = 0;
-
-    private DateTime currentWeekStart;
-    private HashSet<DateTime> expandedDays = new();
 
     private string staffEducationLevel = "";
     private string staffClassLevel = "";
     private string staffTerm = "";
     private string pageHeading = "My Classes";
-  
+
+    private List<ClassScheduleListItem> termSchedules = new();
+    private DateTime currentWeekStart;
+    private HashSet<DateTime> expandedDays = new();
     private List<ClassLevel> availableClassLevels = new();
     private EducationLevel SelectedEducationLevel => Enum.TryParse<EducationLevel>(staffEducationLevel, out var level) ? level : EducationLevel.None;
     private ClassLevel SelectedClassLevel => Enum.TryParse<ClassLevel>(staffClassLevel, out var level) ? level : ClassLevel.None;
     private Semester? SelectedTerm => Enum.TryParse<Semester>(staffTerm, out var term) ? term : null;
     private ClassLevel activeClassLevel = ClassLevel.None;
     private Semester? activeTerm;
-    private List<ClassSchedule> termSchedules = new();
+   
 
     protected override async Task OnInitializedAsync()
     {
@@ -351,8 +340,8 @@
     private void LoadTimetable()
     {
         termSchedules = activeClassLevel != ClassLevel.None && activeTerm != null
-            ? SchoolDataService.GetClassSchedules(activeClassLevel, activeTerm.Value)
-            : new List<ClassSchedule>();
+            ? SchoolDataService.GetClassScheduleList(activeClassLevel, activeTerm.Value)
+            : new List<ClassScheduleListItem>();
     }
 
     private void ResolveStaffPath()
@@ -429,7 +418,7 @@
         return days;
     }
 
-    private List<ClassSchedule> GetEntriesForDay(DateTime day)
+    private List<ClassScheduleListItem> GetEntriesForDay(DateTime day)
     {
         return termSchedules
             .Where(se => se.DateTime.Date == day.Date)
@@ -437,11 +426,11 @@
             .ToList();
     }
 
-    private void OpenSession(ClassSchedule entry)
+    private void OpenSession(ClassScheduleListItem entry)
     {
-        if (entry.ClassSession != null)
+        if (entry.ClassSessionId.HasValue)
         {
-            NavigationManager.NavigateTo($"/classsession/details/{entry.ClassSession.Id}");
+            NavigationManager.NavigateTo($"/classsession/details/{entry.ClassSessionId}");
         }
     }
 
@@ -467,5 +456,22 @@
         return !string.IsNullOrEmpty(staffEducationLevel) &&
                !string.IsNullOrEmpty(staffClassLevel) &&
                !string.IsNullOrEmpty(staffTerm);
+    }
+
+    private static string SessionStateBadgeClass(SessionState state)
+    {
+        if (state == SessionState.Completed)
+            return "badge bg-success";
+
+        if (state == SessionState.InProgress)
+            return "badge bg-primary";
+
+        return "badge bg-danger";
+    }
+
+    private void OpenTimetableTab()
+    {
+        activeTab = TabTimetable;
+        LoadTimetable();
     }
 }

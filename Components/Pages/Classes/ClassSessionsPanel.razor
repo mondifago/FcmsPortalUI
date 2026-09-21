@@ -22,8 +22,7 @@ else
                 <button class="btn btn-sm btn-primary" @onclick="OpenCreate">
                     <i class="fa fa-plus me-1"></i>Add Session
                 </button>
-
-                <select class="form-select form-select-sm w-auto ms-auto" @bind="courseFilter">
+                <select class="form-select form-select-sm w-auto ms-auto" @bind="courseFilter" @bind:after="ResetPage">
                     <option value="">All courses</option>
                     @foreach (var course in courses)
                     {
@@ -43,20 +42,17 @@ else
                     <table class="table table-striped table-hover fcms-grid">
                         <thead>
                             <tr>
-                                
                                 <th>Session No.</th>
                                 <th>Course</th>
                                 <th>Topic</th>
                                 <th>Teacher</th>
                                 <th>Date</th>
-                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var session in PagedSessions)
                             {
                                 <tr @key="session.Id" class="@RowClass(session)">
-                                   
                                     <td>@Util.GetClassSessionCode(SelectedClassLevel, SelectedTerm!.Value, session.Course, session.SessionNumber)</td>
                                     <td>@session.Course</td>
                                     <td>@session.Topic</td>
@@ -159,7 +155,8 @@ else
     private int editingSessionId = 0;
     private bool showDeleteConfirmation = false;
     private string deleteMessage = string.Empty;
-
+    private bool showErrorModal = false;
+    private string errorMessage = string.Empty;
     private int page = 0;
 
     private List<ClassSessionListItem> PagedSessions => VisibleSessions
@@ -181,8 +178,6 @@ else
 
     protected override void OnParametersSet()
     {
-        ResetPage();
-
         if (SelectedClassLevel == loadedClassLevel && SelectedTerm == loadedTerm)
             return;
 
@@ -190,13 +185,14 @@ else
         loadedTerm = SelectedTerm;
         courseFilter = string.Empty;
         courses = CourseDefaults.GetCourseNames(SelectedEducationLevel);
-      
+        ResetPage();
+
         LoadSessions();
     }
 
     private string RowClass(ClassSessionListItem session)
     {
-        var state = LogicMethods.GetSessionState(session.ScheduledAt, session.ScheduledEnd - session.ScheduledAt, session.ClosedAt, DateTime.Now);
+        var state = LogicMethods.GetSessionState(session.ScheduledAt, session.ClosedAt, DateTime.Now);
 
         if (state == SessionState.Completed)
             return "fcms-session-closed";
@@ -262,14 +258,6 @@ else
         }
 
         sessionToDelete = null;
-    }
-
-    private async Task ConfirmDelete()
-    {
-        await SchoolDataService.DeleteClassSessionsAsync(selectedIds.ToList());
-        showDeleteConfirmation = false;
-        LoadSessions();
-        ResetPage();
     }
 
     private void HandleSaved()

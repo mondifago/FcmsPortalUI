@@ -83,7 +83,7 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Class Schedules
-        List<ClassSchedule> GetClassSchedules(ClassLevel classLevel, Semester semester);
+        List<ClassScheduleListItem> GetClassScheduleList(ClassLevel classLevel, Semester semester);
         List<ClassScheduleListItem> GetClassSchedulesForWeek(ClassLevel classLevel, Semester semester, DateTime weekStart);
         ClassSchedule? GetClassScheduleByClassSessionId(int classSessionId);
         ClassSchedule CreateClassSchedule(ClassSchedule classSchedule);
