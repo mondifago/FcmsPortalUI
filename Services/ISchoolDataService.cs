@@ -109,6 +109,7 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Class Session Records
+        void CloseClassSession(int classSessionId, string closedByName);
         ClassSessionRecord? GetCurrentClassSessionRecord(int classSessionId);
         void SaveTeacherRemarks(int classSessionId, string remarks, string submittedByName);
         void SaveHomework(int classSessionId, Homework homework);

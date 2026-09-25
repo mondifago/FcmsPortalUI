@@ -1555,7 +1555,40 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Class Session Records
-        private ClassSessionRecord GetOrCreateCurrentRecord(int classSessionId)
+
+        public void CloseClassSession(int classSessionId, string closedByName)
+        {
+            var (record, _) = GetOpenCurrentRecord(classSessionId);
+
+            var scheduledAt = _context.ClassSchedules
+                .AsNoTracking()
+                .Where(sched => sched.ClassSessionId == classSessionId)
+                .Select(sched => (DateTime?)sched.DateTime)
+                .FirstOrDefault();
+
+            var recordId = record?.Id;
+            var hasUngradedSubmissions = recordId.HasValue &&
+                _context.HomeworkSubmissions.Any(hs => hs.Homework!.ClassSessionRecordId == recordId && !hs.IsGraded);
+
+            var blocker = LogicMethods.GetClassSessionCloseBlocker(
+                LogicMethods.GetSessionState(scheduledAt, record?.ClosedAt, DateTime.Now),
+                !string.IsNullOrWhiteSpace(record?.TeacherRemarks),
+                hasUngradedSubmissions);
+
+            if (blocker != null)
+                throw new BusinessRuleException(blocker);
+
+            record!.ClosedAt = DateTime.Now;
+            record.ClosedByName = closedByName;
+            _context.SaveChanges();
+        }
+        private static void ThrowIfSessionClosed(bool isClosed)
+        {
+            if (isClosed)
+                throw new BusinessRuleException("This session is closed for the current term.");
+        }
+
+        private (ClassSessionRecord? Record, int CurrentPeriodId) GetOpenCurrentRecord(int classSessionId)
         {
             var session = _context.ClassSessions
                 .AsNoTracking()
@@ -1575,8 +1608,14 @@ namespace FcmsPortalUI.Services
             var learningPathId = GetLearningPathIdForPeriod(session.ClassLevel, currentPeriodId);
             var gradesFinalized = learningPathId.HasValue && AreLearningPathGradesFinalized(learningPathId.Value);
 
-            if (!LogicMethods.IsClassSessionRecordOpen(record?.ClosedAt, gradesFinalized))
-                throw new BusinessRuleException("This session is closed for the current term.");
+            ThrowIfSessionClosed(!LogicMethods.IsClassSessionRecordOpen(record?.ClosedAt, gradesFinalized));
+
+            return (record, currentPeriodId);
+        }
+
+        private ClassSessionRecord GetOrCreateCurrentRecord(int classSessionId)
+        {
+            var (record, currentPeriodId) = GetOpenCurrentRecord(classSessionId);
 
             if (record != null)
                 return record;
@@ -1688,6 +1727,8 @@ namespace FcmsPortalUI.Services
         {
             var homework = _context.Homework.FirstOrDefault(h => h.Id == id);
 
+            ThrowIfSessionClosed(_context.Homework.Any(h => h.Id == id && h.ClassSessionRecord!.ClosedAt != null));
+
             if (homework == null)
                 return false;
 
@@ -1713,6 +1754,8 @@ namespace FcmsPortalUI.Services
             if (homework == null)
                 return null;
 
+            ThrowIfSessionClosed(_context.Homework.Any(h => h.Id == homework.Id && h.ClassSessionRecord!.ClosedAt != null));
+
             if (homework.Submissions == null)
                 homework.Submissions = new List<HomeworkSubmission>();
 
@@ -1728,6 +1771,8 @@ namespace FcmsPortalUI.Services
         {
             if (submission == null)
                 return;
+
+            ThrowIfSessionClosed(_context.HomeworkSubmissions.Any(hs => hs.Id == submission.Id && hs.Homework!.ClassSessionRecord!.ClosedAt != null));
 
             var existingSubmission = GetHomeworkSubmissionById(submission.Id);
             if (existingSubmission != null)
@@ -1772,6 +1817,8 @@ namespace FcmsPortalUI.Services
         {
             if (string.IsNullOrWhiteSpace(comment))
                 throw new ArgumentException("Comment cannot be empty.", nameof(comment));
+
+            ThrowIfSessionClosed(await _context.DiscussionThreads.AnyAsync(t => t.Id == threadId && t.ClassSessionRecord.ClosedAt != null));
 
             var thread = await _context.DiscussionThreads
                 .Include(t => t.Replies)
@@ -2403,6 +2450,9 @@ namespace FcmsPortalUI.Services
 
         public async Task<TestGrade> AddHomeworkSubmissionGradeAsync( int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null, int? submissionId = null)
         {
+            if (submissionId.HasValue)
+                ThrowIfSessionClosed(await _context.HomeworkSubmissions.AnyAsync(hs => hs.Id == submissionId.Value && hs.Homework!.ClassSessionRecord!.ClosedAt != null));
+
             var courseGrade = await _context.CourseGrades
                 .Include(cg => cg.TestGrades)
                 .Include(cg => cg.GradingConfiguration)
@@ -3660,8 +3710,9 @@ namespace FcmsPortalUI.Services
 
             return _context.Homework
                 .AsNoTracking()
-                .Where(h => h.ClassSessionRecord!.AcademicPeriodId == student.LearningPath.AcademicPeriodId &&
+                                .Where(h => h.ClassSessionRecord!.AcademicPeriodId == student.LearningPath.AcademicPeriodId &&
                             h.ClassSessionRecord.ClassSession!.ClassLevel == student.LearningPath.ClassLevel &&
+                            h.ClassSessionRecord.ClosedAt == null &&
                             !h.Submissions.Any(sub => sub.StudentId == studentId))
                 .OrderBy(h => h.DueDate)
                 .Select(h => new PendingHomeworkItem
