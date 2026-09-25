@@ -379,7 +379,6 @@
     private bool showDailyAttendanceModal = false;
     private bool showSemesterAttendanceModal = false;
     private string selectedLearningPathName = string.Empty;
-    private List<ClassSessionReport> classSessionReports = new();
     // Attendance tab filters
     private string attendanceYear = "";
     private string attendanceSemester = "";
@@ -399,7 +398,6 @@
 
     protected override void OnInitialized()
     {
-        classSessionReports = SchoolDataService.GetClassSessionReportsForDate(sessionDate);
         LoadAvailableAcademicYears();
 
         var (defaultYear, defaultSemester) = ResolveDefaultPeriod();
@@ -559,12 +557,7 @@
         if (string.IsNullOrEmpty(sessionYear) || string.IsNullOrEmpty(sessionSemester))
             return;
 
-        var ordered = filteredSessionReports
-             .OrderByDescending(r => r.TimeSubmitted)
-             .ToList();
-
-        filteredSessionReports.Clear();
-        filteredSessionReports.AddRange(ordered);
+        filteredSessionReports.AddRange(SchoolDataService.GetClassSessionReports(sessionYear, sessionSemester, sessionDate));
     }
 
     private void OnGradesFiltersChanged()

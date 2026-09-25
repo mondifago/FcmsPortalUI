@@ -52,7 +52,6 @@ namespace FcmsPortalUI.Services
 
         #region Learning Paths
         LearningPath AddLearningPath(LearningPath learningPath);
-        int? GetCurrentLearningPathId(ClassLevel classLevel, Semester semester);
         void RemoveStudentFromLearningPath(LearningPath learningPath, Student student);
         List<LearningPath> GetLearningPathsForPeriod(int academicPeriodId);
         List<SchoolFees> GetSchoolFeesForPeriodStudents(int academicPeriodId);
@@ -63,8 +62,8 @@ namespace FcmsPortalUI.Services
         LearningPath? GetLearningPathBasicInfo(int id);
         LearningPath? GetLearningPathForAttendanceReport(int id);
         LearningPath? GetLearningPathForGradeManagement(int id);
-        LearningPath? GetLearningPathWithAttendanceByClassSessionId(int classSessionId, DateTime sessionDate);
-        int? GetLearningPathIdByClassSessionId(int classSessionId);
+        int? GetLearningPathIdForPeriod(ClassLevel classLevel, int academicPeriodId);
+        LearningPath? GetLearningPathWithAttendanceForDate(int learningPathId, DateTime sessionDate);
         void UpdateLearningPath(LearningPath learningPath);
         Task<bool> DeleteLearningPathAsync(int id);
         double AddMultipleStudentsToLearningPath(int learningPathId, List<Student> studentsToAdd);
@@ -105,8 +104,14 @@ namespace FcmsPortalUI.Services
         ClassSession AddClassSession(ClassSession classSession);
         void UpdateClassSessionDetails(ClassSession edited);
         Task DeleteClassSessionsAsync(List<int> classSessionIds);
-        List<ClassSessionReport> GetClassSessionReportsForDate(DateTime sessionDate);
+        List<ClassSessionReport> GetClassSessionReports(string academicYear, string semester, DateTime date);
         List<ClassSessionListItem> GetUnplacedSessions(ClassLevel classLevel, Semester semester);
+        #endregion
+
+        #region Class Session Records
+        ClassSessionRecord? GetCurrentClassSessionRecord(int classSessionId);
+        void SaveTeacherRemarks(int classSessionId, string remarks, string submittedByName);
+        void SaveHomework(int classSessionId, Homework homework);
         #endregion
 
         #region Homework

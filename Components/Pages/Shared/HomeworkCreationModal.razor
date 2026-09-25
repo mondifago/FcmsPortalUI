@@ -62,9 +62,6 @@
     public bool IsVisible { get; set; }
 
     [Parameter]
-    public ClassSession ClassSession { get; set; } = new ClassSession();
-
-    [Parameter]
     public Staff CurrentTeacher { get; set; } = new Staff();
 
     [Parameter]
@@ -90,8 +87,6 @@
                     Title = ExistingHomework.Title,
                     AssignedDate = ExistingHomework.AssignedDate,
                     DueDate = ExistingHomework.DueDate,
-                    ClassSessionId = ExistingHomework.ClassSessionId,
-                    ClassSession = ExistingHomework.ClassSession,
                     Question = ExistingHomework.Question ?? "",
                     Submissions = ExistingHomework.Submissions ?? new List<HomeworkSubmission>()
                 };
@@ -102,8 +97,6 @@
                 {
                     AssignedDate = DateTime.Today,
                     DueDate = DateTime.Today.AddDays(7),
-                    ClassSessionId = ClassSession?.Id ?? 0,
-                    ClassSession = ClassSession,
                     Question = "",
                     Submissions = new List<HomeworkSubmission>()
                 };
@@ -116,7 +109,6 @@
         if (!IsEditing)
         {
             homework.Id = 0;
-            homework.ClassSessionId = ClassSession.Id;
         }
 
         if (homework.AssignedDate.TimeOfDay == TimeSpan.Zero)

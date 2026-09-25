@@ -117,8 +117,8 @@
                             <h4 class="mb-0"><i class="fas fa-comments me-2"></i>Class Discussion</h4>
                         </div>
                         <div class="card-body">
-                            <DiscussionThreadComponent AllThreads="classSession.DiscussionThreads ?? new List<DiscussionThread>()"
-                                                       AllowReplies="@(!isReadOnly)"
+                            <DiscussionThreadComponent AllThreads="currentRecord?.DiscussionThreads ?? new List<DiscussionThread>()"
+                                                       AllowReplies="canEditYearActivity"
                                                        CurrentUser="currentUser"
                                                        ClassSessionId="classSession.Id" />
                         </div>
@@ -193,7 +193,7 @@
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Course Materials</h4>
-                    @if (canManageClassSession && !isReadOnly)
+                    @if (canManageClassSession)
                     {
                         <button class="btn btn-sm btn-light" @onclick="ToggleMaterialsUpload">
                             <i class="fa fa-plus"></i> Add Materials
@@ -223,7 +223,7 @@
                             <div class="pdf-viewer-placeholder">
                                 <i class="fa fa-file-pdf text-muted"></i>
                                 <p class="mt-3 text-muted">No material selected</p>
-                                @if (canManageClassSession && !isReadOnly)
+                                @if (canManageClassSession)
                                 {
                                     <p class="text-muted">Upload a PDF or add a video link</p>
                                     <button class="btn btn-primary btn-sm mt-1" @onclick="ToggleMaterialsUpload">
@@ -242,7 +242,7 @@
                                                    Category="@($"ClassSession-{classSession.Id}-Materials")"
                                                    ReferenceId="classSession.Id"
                                                    AllowUpload="true"
-                                                   AllowDelete="@(canManageClassSession && !isReadOnly)"
+                                                   AllowDelete="@(canManageClassSession)"
                                                    AllowMultiple="true"
                                                    OnAttachmentsChanged="HandleMaterialsChanged" />
 
@@ -339,7 +339,7 @@
                                                 <a href="@material.FilePath" target="_blank" class="btn btn-sm btn-outline-primary me-2" @onclick:stopPropagation>
                                                     <i class="fa fa-download"></i>
                                                 </a>
-                                                @if (canManageClassSession && !isReadOnly)
+                                                @if (canManageClassSession)
                                                 {
                                                     <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveMaterial(material)" @onclick:stopPropagation title="Delete">
                                                         <i class="fa fa-trash"></i>
@@ -364,9 +364,9 @@
                     <h4 class="mb-0">Homework</h4>
                 </div>
                 <div class="card-body">
-                    @if (classSession.HomeworkDetails == null)
+                    @if (currentHomework == null)
                     {
-                        @if (canManageClassSession && !isReadOnly)
+                        @if (canManageClassSession && canEditYearActivity)
                         {
                             <div class="text-center py-4">
                                 <p class="text-muted mb-3">No homework assigned yet.</p>
@@ -383,11 +383,11 @@
                     else
                     {
                         <div class="homework-overview mb-4">
-                            <h5>@classSession.HomeworkDetails.Title</h5>
-                            <p class="text-muted mb-2">Due: @classSession.HomeworkDetails.DueDate.ToString("MMMM d, yyyy")</p>
+                            <h5>@currentHomework.Title</h5>
+                            <p class="text-muted mb-2">Due: @currentHomework.DueDate.ToString("MMMM d, yyyy")</p>
                             <p class="mb-0">
                                 <small class="text-muted">
-                                    @(classSession.HomeworkDetails.Submissions?.Count ?? 0) submission(s) received
+                                    @(currentHomework.Submissions?.Count ?? 0) submission(s) received
                                 </small>
                             </p>
                         </div>
@@ -399,10 +399,10 @@
                                     <i class="fa fa-eye"></i> View Homework
                                 </button>
                                 <button class="btn btn-outline-success" @onclick="ViewSubmissions">
-                                    <i class="fa fa-list"></i> View Submissions (@(classSession.HomeworkDetails.Submissions?.Count ?? 0))
+                                    <i class="fa fa-list"></i> View Submissions (@(currentHomework.Submissions?.Count ?? 0))
                                 </button>
 
-                                @if (!isReadOnly && classSession.HomeworkDetails.Submissions == null || !classSession.HomeworkDetails.Submissions.Any())
+                                @if (canEditYearActivity && !currentHomework.Submissions.Any())
                                 {
                                     <button class="btn btn-outline-warning" @onclick="EditHomework">
                                         <i class="fa fa-edit"></i> Edit Homework
@@ -414,7 +414,7 @@
                             }
                             else
                             {
-                                var studentSubmission = classSession.HomeworkDetails.Submissions?.FirstOrDefault(s => s.Student?.PersonId == currentUserId);
+                                var studentSubmission = currentHomework.Submissions?.FirstOrDefault(s => s.Student?.PersonId == currentUserId);
                                 @if (studentSubmission == null)
                                 {
                                     <button class="btn btn-outline-primary" @onclick="ViewHomework">
@@ -456,7 +456,7 @@
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Lesson Plan</h4>
-                    @if (!editingLessonPlan && !string.IsNullOrEmpty(classSession.LessonPlan) && canManageClassSession && !isReadOnly)
+                    @if (!editingLessonPlan && !string.IsNullOrEmpty(classSession.LessonPlan) && canManageClassSession)
                     {
                         <button class="btn btn-sm btn-light" @onclick="EditLessonPlan">
                             <i class="fa fa-edit"></i> Edit
@@ -464,7 +464,7 @@
                     }
                 </div>
                 <div class="card-body">
-                    @if (editingLessonPlan && canManageClassSession && !isReadOnly)
+                    @if (editingLessonPlan && canManageClassSession)
                     {
                         <EditForm Model="@classSession" OnValidSubmit="SaveLessonPlan">
                             <div class="mb-3">
@@ -493,7 +493,7 @@
                                 <div class="text-center text-muted my-5">
                                     <i class="fa fa-book-open fa-3x mb-3"></i>
                                     <p>No lesson plan has been created yet.</p>
-                                    @if (canManageClassSession && !isReadOnly)
+                                    @if (canManageClassSession)
                                     {
                                         <button class="btn btn-outline-primary mt-2" @onclick="EditLessonPlan">
                                             <i class="fa fa-plus"></i> Create Lesson Plan
@@ -515,9 +515,9 @@
                     <div class="card mb-4">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">Teacher's Remarks</h4>
-                            @if (!showRemarksEditor && !string.IsNullOrEmpty(classSession.TeacherRemarks) && !isReadOnly)
+                            @if (!showRemarksEditor && !string.IsNullOrEmpty(currentRecord?.TeacherRemarks) && canEditYearActivity)
                             {
-                                <button class="btn btn-sm btn-light" @onclick="() => showRemarksEditor = true">
+                                <button class="btn btn-sm btn-light" @onclick="OpenRemarksEditor">
                                     <i class="fa fa-edit"></i> Edit
                                 </button>
                             }
@@ -525,26 +525,24 @@
                         <div class="card-body">
                             @if (showRemarksEditor)
                             {
-                                <EditForm Model="@classSession" OnValidSubmit="SaveRemarks">
-                                    <div class="mb-3">
-                                        <InputTextArea @bind-Value="classSession.TeacherRemarks" class="form-control" rows="5" placeholder="Add your remarks about this class session..." />
-                                    </div>
-                                    <div class="d-flex justify-content-end">
-                                        <button type="button" class="btn btn-secondary me-2" @onclick="() => showRemarksEditor = false">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Save</button>
-                                    </div>
-                                </EditForm>
+                                <div class="mb-3">
+                                    <textarea class="form-control" rows="5" @bind="remarksDraft" placeholder="Add your remarks about this class session..."></textarea>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="button" class="btn btn-secondary me-2" @onclick="() => showRemarksEditor = false">Cancel</button>
+                                    <button type="button" class="btn btn-primary" @onclick="SaveRemarks">Save</button>
+                                </div>
                             }
                             else
                             {
-                                @if (string.IsNullOrEmpty(classSession.TeacherRemarks))
+                                @if (string.IsNullOrEmpty(currentRecord?.TeacherRemarks))
                                 {
                                     <div class="text-center text-muted my-4">
                                         <i class="fa fa-comment-dots fa-3x mb-3"></i>
                                         <p>No remarks available yet.</p>
-                                        @if (!isReadOnly)
+                                        @if (canEditYearActivity)
                                         {
-                                            <button class="btn btn-outline-primary mt-2" @onclick="() => showRemarksEditor = true">
+                                            <button class="btn btn-outline-primary mt-2" @onclick="OpenRemarksEditor">
                                                 <i class="fa fa-plus"></i> Add Remarks
                                             </button>
                                         }
@@ -553,7 +551,7 @@
                                 else
                                 {
                                     <div class="formatted-content">
-                                        @((MarkupString)Util.FormatTextWithLinks(classSession.TeacherRemarks))
+                                        @((MarkupString)Util.FormatTextWithLinks(currentRecord.TeacherRemarks))
                                     </div>
                                 }
                             }
@@ -572,7 +570,6 @@
 @if (showHomeworkModal)
 {
     <HomeworkCreationModal IsVisible="showHomeworkModal"
-                           ClassSession="classSession"
                            CurrentTeacher="currentTeacher"
                            ExistingHomework="selectedHomework"
                            OnSave="HandleHomeworkSaved"
@@ -584,7 +581,7 @@
 @if (showHomeworkViewModal)
 {
     <HomeworkViewModal IsVisible="showHomeworkViewModal"
-                       Homework="classSession?.HomeworkDetails"
+                       Homework="currentHomework"
                        OnClose="() => showHomeworkViewModal = false" />
 }
 
@@ -593,7 +590,7 @@
 @if (showSubmissionModal)
 {
     <HomeworkSubmissionModal IsVisible="showSubmissionModal"
-                             Homework="classSession?.HomeworkDetails"
+                             Homework="currentHomework"
                              CurrentStudent="currentStudent"
                              ExistingSubmission="selectedSubmission"
                              OnSave="HandleSubmissionSaved"
@@ -605,8 +602,10 @@
 @if (showSubmissionsListModal)
 {
     <HomeworkSubmissionsListModal IsVisible="showSubmissionsListModal"
-                                  Homework="classSession?.HomeworkDetails"
+                                  Homework="currentHomework"
                                   CurrentTeacher="currentTeacher"
+                                  Course="@classSession.Course"
+                                  LearningPathId="learningPathId"
                                   OnClose="() => showSubmissionsListModal = false"
                                   OnGradeSubmission="HandleGradeSubmission" />
 }
@@ -657,7 +656,12 @@
     private bool showSubmissionsListModal = false;
     private bool showGradingModal = false;
     private bool showStudentGradeModal = false;
-    private bool isReadOnly;
+    private AcademicPeriod? currentPeriod;
+    private ClassSessionRecord? currentRecord;
+    private Homework? currentHomework => currentRecord?.HomeworkDetails;
+    private int? learningPathId;
+    private bool canEditYearActivity;
+    private string remarksDraft = string.Empty;
 
     private Person? currentUser;
     private int? currentUserId;
@@ -698,8 +702,9 @@
                     currentStudent = SchoolDataService.GetStudentByPersonId(currentUser.Id) ?? new Student();
             }
 
+            currentPeriod = SchoolDataService.GetCurrentAcademicPeriod();
             LoadEnrolledStudents();
-            isReadOnly = LogicMethods.IsLearningPathReadOnly(relatedLearningPath.ApprovalStatus);
+            LoadCurrentRecord();
             canManageClassSession = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
             isStudent = await PermissionService.IsInRoleAsync("Student");
 
@@ -708,8 +713,25 @@
 
     private void LoadEnrolledStudents()
     {
-        relatedLearningPath = SchoolDataService.GetLearningPathWithAttendanceByClassSessionId(classSession.Id, scheduleEntry.DateTime) ?? new LearningPath();
+        if (!LogicMethods.IsSessionInPeriod(classSession.Semester, currentPeriod))
+            return;
+
+        learningPathId = SchoolDataService.GetLearningPathIdForPeriod(classSession.ClassLevel, currentPeriod.Id);
+        if (!learningPathId.HasValue)
+            return;
+
+        relatedLearningPath = SchoolDataService.GetLearningPathWithAttendanceForDate(learningPathId.Value, scheduleEntry.DateTime) ?? new LearningPath();
         enrolledStudents = relatedLearningPath.Students?.ToList() ?? new List<Student>();
+    }
+
+    private void LoadCurrentRecord()
+    {
+        currentRecord = SchoolDataService.GetCurrentClassSessionRecord(classSession.Id);
+
+        var gradesFinalized = learningPathId.HasValue && SchoolDataService.AreLearningPathGradesFinalized(learningPathId.Value);
+
+        canEditYearActivity = LogicMethods.IsSessionInPeriod(classSession.Semester, currentPeriod) &&
+                              LogicMethods.IsClassSessionRecordOpen(currentRecord?.ClosedAt, gradesFinalized);
     }
 
     private void ToggleMaterialsUpload()
@@ -743,14 +765,17 @@
     }
 
 
+    private void OpenRemarksEditor()
+    {
+        remarksDraft = currentRecord?.TeacherRemarks ?? string.Empty;
+        showRemarksEditor = true;
+    }
+
     private void SaveRemarks()
     {
-        if (currentUser != null)
-        {
-            classSession.RemarksSubmittedByName = $"{currentUser.FirstName} {currentUser.LastName}";
-            classSession.RemarksSubmittedAt = DateTime.Now;
-        }
-        SchoolDataService.UpdateClassSession(classSession);
+        var submittedByName = currentUser != null ? Util.GetFullName(currentUser) : string.Empty;
+        SchoolDataService.SaveTeacherRemarks(classSession.Id, remarksDraft, submittedByName);
+        LoadCurrentRecord();
         showRemarksEditor = false;
     }
 
@@ -817,17 +842,17 @@
 
     private void EditHomework()
     {
-        selectedHomework = classSession.HomeworkDetails ?? new Homework();
+        selectedHomework = currentHomework ?? new Homework();
         showHomeworkModal = true;
     }
 
     private void DeleteHomework()
     {
-        if (classSession.HomeworkDetails != null)
-        {
-            SchoolDataService.DeleteHomework(classSession.HomeworkDetails.Id);
-            classSession.HomeworkDetails = null;
-        }
+        if (currentHomework == null)
+            return;
+
+        SchoolDataService.DeleteHomework(currentHomework.Id);
+        LoadCurrentRecord();
     }
 
     private void ViewSubmissions()
@@ -843,25 +868,21 @@
 
     private void EditMySubmission()
     {
-        selectedSubmission = classSession.HomeworkDetails?.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id)
+        selectedSubmission = currentHomework.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id)
                              ?? new HomeworkSubmission();
         showSubmissionModal = true;
     }
 
     private void HandleHomeworkSaved(Homework homework)
     {
-        classSession.HomeworkDetails = homework;
-        SchoolDataService.UpdateClassSession(classSession);
+        SchoolDataService.SaveHomework(classSession.Id, homework);
+        LoadCurrentRecord();
         showHomeworkModal = false;
     }
 
     private void HandleSubmissionSaved(HomeworkSubmission submission)
     {
-        var submissions = classSession.HomeworkDetails?.Submissions;
-        if (submissions != null && !submissions.Any(s => s.Id == submission.Id))
-        {
-            submissions.Add(submission);
-        }
+        LoadCurrentRecord();
         showSubmissionModal = false;
     }
 
@@ -873,20 +894,13 @@
 
     private void HandleGradingSaved(HomeworkSubmission gradedSubmission)
     {
-        if (classSession.HomeworkDetails?.Submissions == null)
-            return;
-
-        var submissionIndex = classSession.HomeworkDetails.Submissions.FindIndex(s => s.Id == gradedSubmission.Id);
-        if (submissionIndex >= 0)
-        {
-            classSession.HomeworkDetails.Submissions[submissionIndex] = gradedSubmission;
-        }
+        LoadCurrentRecord();
         showGradingModal = false;
     }
 
     private void ViewMyGrade()
     {
-        var studentSubmission = classSession.HomeworkDetails?.Submissions?
+        var studentSubmission = currentHomework.Submissions?
             .FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
 
         if (studentSubmission != null && studentSubmission.IsGraded)

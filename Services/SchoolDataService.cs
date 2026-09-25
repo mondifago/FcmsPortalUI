@@ -569,12 +569,11 @@ namespace FcmsPortalUI.Services
             return learningPath;
         }
 
-        public int? GetCurrentLearningPathId(ClassLevel classLevel, Semester semester)
+        public int? GetLearningPathIdForPeriod(ClassLevel classLevel, int academicPeriodId)
         {
             return _context.LearningPaths
                 .AsNoTracking()
-                .Where(lp => lp.ClassLevel == classLevel && lp.Semester == semester)
-                .OrderByDescending(lp => lp.AcademicYearStart)
+                .Where(lp => lp.ClassLevel == classLevel && lp.AcademicPeriodId == academicPeriodId)
                 .Select(lp => (int?)lp.Id)
                 .FirstOrDefault();
         }
@@ -740,13 +739,8 @@ namespace FcmsPortalUI.Services
                            lp.ClassLevel == classLevel &&
                            lp.AcademicPeriodId == academicPeriodId);
         }
-        public LearningPath? GetLearningPathWithAttendanceByClassSessionId(int classSessionId, DateTime sessionDate)
+        public LearningPath? GetLearningPathWithAttendanceForDate(int learningPathId, DateTime sessionDate)
         {
-            var learningPathId = GetLearningPathIdByClassSessionId(classSessionId);
-
-            if (learningPathId == null)
-                return null;
-
             var targetDate = sessionDate.Date;
 
             return _context.LearningPaths
@@ -759,19 +753,6 @@ namespace FcmsPortalUI.Services
                     .ThenInclude(al => al.AbsentStudents)
                 .AsSplitQuery()
                 .FirstOrDefault(lp => lp.Id == learningPathId);
-        }
-
-        public int? GetLearningPathIdByClassSessionId(int classSessionId)
-        {
-            var classSession = _context.ClassSessions
-                .AsNoTracking()
-                .Select(cs => new { cs.Id, cs.ClassLevel, cs.Semester })
-                .FirstOrDefault(cs => cs.Id == classSessionId);
-
-            if (classSession == null)
-                return null;
-
-            return GetCurrentLearningPathId(classSession.ClassLevel, classSession.Semester);
         }
 
         public async Task<bool> DeleteLearningPathAsync(int id)
@@ -1133,6 +1114,8 @@ namespace FcmsPortalUI.Services
         #region Class Schedules
         public List<ClassScheduleListItem> GetClassScheduleList(ClassLevel classLevel, Semester semester)
         {
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
+
             return _context.ClassSchedules
                 .AsNoTracking()
                 .Where(sched => sched.ClassLevel == classLevel && sched.Semester == semester)
@@ -1148,7 +1131,11 @@ namespace FcmsPortalUI.Services
                     SessionNumber = sched.ClassSession == null ? 0 : sched.ClassSession.SessionNumber,
                     Topic = sched.ClassSession == null ? string.Empty : sched.ClassSession.Topic,
                     Description = sched.ClassSession == null ? string.Empty : sched.ClassSession.Description,
-                    ClosedAt = sched.ClassSession == null ? null : sched.ClassSession.ClosedAt,
+                    ClosedAt = _context.ClassSessionRecords
+                        .Where(record => record.ClassSessionId == sched.ClassSessionId &&
+                                         record.AcademicPeriodId == currentPeriodId)
+                        .Select(record => record.ClosedAt)
+                        .FirstOrDefault(),
                     TeacherName = sched.ClassSession == null || sched.ClassSession.Teacher == null
                         ? null
                         : sched.ClassSession.Teacher.Person.FirstName + " " + sched.ClassSession.Teacher.Person.LastName
@@ -1158,6 +1145,8 @@ namespace FcmsPortalUI.Services
 
         public List<ClassScheduleListItem> GetClassSchedulesForWeek(ClassLevel classLevel, Semester semester, DateTime weekStart)
         {
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
+
             var weekEnd = weekStart.Date.AddDays(FcmsConstants.DAYS_IN_WEEK);
 
             return _context.ClassSchedules
@@ -1178,7 +1167,11 @@ namespace FcmsPortalUI.Services
                     SessionNumber = sched.ClassSession == null ? 0 : sched.ClassSession.SessionNumber,
                     Topic = sched.ClassSession == null ? string.Empty : sched.ClassSession.Topic,
                     Description = sched.ClassSession == null ? string.Empty : sched.ClassSession.Description,
-                    ClosedAt = sched.ClassSession == null ? null : sched.ClassSession.ClosedAt,
+                    ClosedAt = _context.ClassSessionRecords
+                        .Where(record => record.ClassSessionId == sched.ClassSessionId &&
+                                         record.AcademicPeriodId == currentPeriodId)
+                        .Select(record => record.ClosedAt)
+                        .FirstOrDefault(),
                     TeacherName = sched.ClassSession == null || sched.ClassSession.Teacher == null
                         ? null
                         : sched.ClassSession.Teacher.Person.FirstName + " " + sched.ClassSession.Teacher.Person.LastName
@@ -1320,20 +1313,6 @@ namespace FcmsPortalUI.Services
                 .Include(cs => cs.Teacher)
                     .ThenInclude(t => t.Person)
                 .Include(cs => cs.StudyMaterials)
-                .Include(cs => cs.HomeworkDetails)
-                    .ThenInclude(h => h.Submissions)
-                        .ThenInclude(s => s.Student)
-                            .ThenInclude(st => st.Person)
-                .Include(cs => cs.HomeworkDetails)
-                    .ThenInclude(h => h.Submissions)
-                        .ThenInclude(s => s.HomeworkGrade)
-                .Include(cs => cs.DiscussionThreads)
-                    .ThenInclude(dt => dt.FirstPost)
-                        .ThenInclude(fp => fp.Author)
-                .Include(cs => cs.DiscussionThreads)
-                    .ThenInclude(dt => dt.Replies)
-                        .ThenInclude(r => r.Author)
-                .AsSplitQuery()
                 .FirstOrDefault(cs => cs.Id == classSessionId);
         }
 
@@ -1353,6 +1332,8 @@ namespace FcmsPortalUI.Services
 
         public List<ClassSessionListItem> GetClassSessionList(ClassLevel classLevel, Semester semester)
         {
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
+
             return _context.ClassSessions
                 .AsNoTracking()
                 .Where(cs => cs.ClassLevel == classLevel && cs.Semester == semester)
@@ -1376,7 +1357,11 @@ namespace FcmsPortalUI.Services
                         .Where(sched => sched.ClassSessionId == cs.Id)
                         .Select(sched => (DateTime?)sched.DateTime.Add(sched.Duration))
                         .FirstOrDefault(),
-                    ClosedAt = cs.ClosedAt
+                    ClosedAt = _context.ClassSessionRecords
+                        .Where(record => record.ClassSessionId == cs.Id &&
+                                         record.AcademicPeriodId == currentPeriodId)
+                        .Select(record => record.ClosedAt)
+                        .FirstOrDefault()
                 })
                 .ToList();
         }
@@ -1500,36 +1485,48 @@ namespace FcmsPortalUI.Services
             }
         }
 
-        public List<ClassSessionReport> GetClassSessionReportsForDate(DateTime sessionDate)
+        public List<ClassSessionReport> GetClassSessionReports(string academicYear, string semester, DateTime date)
         {
-            var targetDate = sessionDate.Date;
+            var academicPeriod = GetAcademicPeriodByYearAndSemester(academicYear, semester);
 
-            return _context.ClassSchedules
+            if (academicPeriod == null)
+                return new List<ClassSessionReport>();
+
+            var targetDate = date.Date;
+
+            return _context.ClassSessionRecords
                 .AsNoTracking()
-                .Include(sched => sched.ClassSession)
-                    .ThenInclude(cs => cs!.Teacher)
-                        .ThenInclude(t => t!.Person)
-                .Where(sched => sched.DateTime.Date == targetDate &&
-                                sched.ClassSession != null &&
-                                sched.ClassSession.TeacherRemarks != "")
-                .OrderByDescending(sched => sched.ClassSession!.RemarksSubmittedAt)
-                .ToList()
-                .Select(sched => new ClassSessionReport
+                .Where(record => record.AcademicPeriodId == academicPeriod.Id &&
+                                 record.TeacherRemarks != "" &&
+                                 record.RemarksSubmittedAt.HasValue &&
+                                 record.RemarksSubmittedAt.Value.Date == targetDate)
+                .OrderByDescending(record => record.RemarksSubmittedAt)
+                .Select(record => new
                 {
-                    ClassSessionId = sched.ClassSession!.Id,
-                    LearningPathName = sched.ClassLevel.ToDisplayName(),
-                    Course = sched.ClassSession.Course,
-                    Topic = sched.ClassSession.Topic,
-                    SubmittedBy = !string.IsNullOrEmpty(sched.ClassSession.RemarksSubmittedByName)
-                        ? sched.ClassSession.RemarksSubmittedByName
-                        : sched.ClassSession.Teacher?.Person?.LastName ?? "Unknown",
-                    TimeSubmitted = sched.ClassSession.RemarksSubmittedAt ?? sched.DateTime
+                    record.ClassSessionId,
+                    record.ClassSession!.ClassLevel,
+                    record.ClassSession.Course,
+                    record.ClassSession.Topic,
+                    record.RemarksSubmittedByName,
+                    SubmittedAt = record.RemarksSubmittedAt!.Value
+                })
+                .ToList()
+                .Select(row => new ClassSessionReport
+                {
+                    ClassSessionId = row.ClassSessionId,
+                    LearningPathName = row.ClassLevel.ToDisplayName(),
+                    Course = row.Course,
+                    Topic = row.Topic,
+                    SubmittedBy = row.RemarksSubmittedByName,
+                    TimeSubmitted = row.SubmittedAt
                 })
                 .ToList();
         }
 
         public List<ClassSessionListItem> GetUnplacedSessions(ClassLevel classLevel, Semester semester)
         {
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
+
             return _context.ClassSessions
                 .AsNoTracking()
                 .Where(cs => cs.ClassLevel == classLevel &&
@@ -1547,9 +1544,110 @@ namespace FcmsPortalUI.Services
                     TeacherName = cs.Teacher == null
                         ? null
                         : cs.Teacher.Person.FirstName + " " + cs.Teacher.Person.LastName,
-                    ClosedAt = cs.ClosedAt
+                    ClosedAt = _context.ClassSessionRecords
+                        .Where(record => record.ClassSessionId == cs.Id &&
+                                         record.AcademicPeriodId == currentPeriodId)
+                        .Select(record => record.ClosedAt)
+                        .FirstOrDefault()
                 })
                 .ToList();
+        }
+        #endregion
+
+        #region Class Session Records
+        private ClassSessionRecord GetOrCreateCurrentRecord(int classSessionId)
+        {
+            var session = _context.ClassSessions
+                .AsNoTracking()
+                .Where(cs => cs.Id == classSessionId)
+                .Select(cs => new { cs.ClassLevel, cs.Semester })
+                .First();
+
+            var currentPeriod = GetCurrentAcademicPeriod();
+            if (!LogicMethods.IsSessionInPeriod(session.Semester, currentPeriod))
+                throw new BusinessRuleException("This session is not running in the current term.");
+
+            var currentPeriodId = currentPeriod.Id;
+
+            var record = _context.ClassSessionRecords
+                .FirstOrDefault(r => r.ClassSessionId == classSessionId && r.AcademicPeriodId == currentPeriodId);
+
+            var learningPathId = GetLearningPathIdForPeriod(session.ClassLevel, currentPeriodId);
+            var gradesFinalized = learningPathId.HasValue && AreLearningPathGradesFinalized(learningPathId.Value);
+
+            if (!LogicMethods.IsClassSessionRecordOpen(record?.ClosedAt, gradesFinalized))
+                throw new BusinessRuleException("This session is closed for the current term.");
+
+            if (record != null)
+                return record;
+
+            record = new ClassSessionRecord
+            {
+                ClassSessionId = classSessionId,
+                AcademicPeriodId = currentPeriodId
+            };
+            _context.ClassSessionRecords.Add(record);
+            return record;
+        }
+
+        public ClassSessionRecord? GetCurrentClassSessionRecord(int classSessionId)
+        {
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
+
+            return _context.ClassSessionRecords
+                .AsNoTracking()
+                .Include(r => r.HomeworkDetails)
+                    .ThenInclude(h => h.Submissions)
+                        .ThenInclude(s => s.Student)
+                            .ThenInclude(st => st.Person)
+                .Include(r => r.HomeworkDetails)
+                    .ThenInclude(h => h.Submissions)
+                        .ThenInclude(s => s.HomeworkGrade)
+                .Include(r => r.DiscussionThreads)
+                    .ThenInclude(dt => dt.FirstPost)
+                        .ThenInclude(fp => fp.Author)
+                .Include(r => r.DiscussionThreads)
+                    .ThenInclude(dt => dt.Replies)
+                        .ThenInclude(rp => rp.Author)
+                .AsSplitQuery()
+                .FirstOrDefault(r => r.ClassSessionId == classSessionId && r.AcademicPeriodId == currentPeriodId);
+        }
+
+        public void SaveTeacherRemarks(int classSessionId, string remarks, string submittedByName)
+        {
+            var record = GetOrCreateCurrentRecord(classSessionId);
+
+            record.TeacherRemarks = remarks;
+            record.RemarksSubmittedByName = submittedByName;
+            record.RemarksSubmittedAt = DateTime.Now;
+
+            _context.SaveChanges();
+        }
+
+        public void SaveHomework(int classSessionId, Homework homework)
+        {
+            var record = GetOrCreateCurrentRecord(classSessionId);
+            var existing = _context.Homework.FirstOrDefault(h => h.Id == homework.Id);
+
+            if (existing == null)
+            {
+                _context.Homework.Add(new Homework
+                {
+                    Title = homework.Title,
+                    Question = homework.Question,
+                    AssignedDate = homework.AssignedDate,
+                    DueDate = homework.DueDate,
+                    ClassSessionRecord = record
+                });
+                _context.SaveChanges();
+                return;
+            }
+
+            existing.Title = homework.Title;
+            existing.Question = homework.Question;
+            existing.AssignedDate = homework.AssignedDate;
+            existing.DueDate = homework.DueDate;
+            _context.SaveChanges();
         }
         #endregion
 
@@ -1588,19 +1686,12 @@ namespace FcmsPortalUI.Services
 
         public bool DeleteHomework(int id)
         {
-            var homework = _context.Set<Homework>()
-                .Include(h => h.ClassSession)
-                .FirstOrDefault(h => h.Id == id);
+            var homework = _context.Homework.FirstOrDefault(h => h.Id == id);
 
             if (homework == null)
                 return false;
 
-            if (homework.ClassSession != null)
-            {
-                homework.ClassSession.HomeworkDetails = null;
-            }
-
-            _context.Set<Homework>().Remove(homework);
+            _context.Homework.Remove(homework);
             _context.SaveChanges();
             return true;
         }
@@ -1657,9 +1748,11 @@ namespace FcmsPortalUI.Services
             if (firstPost == null)
                 throw new ArgumentNullException(nameof(firstPost));
 
+            var record = GetOrCreateCurrentRecord(classSessionId);
+
             var thread = new DiscussionThread
             {
-                ClassSessionId = classSessionId,
+                ClassSessionRecord = record,
                 CreatedAt = DateTime.Now,
                 LastUpdatedAt = DateTime.Now
             };
@@ -1708,8 +1801,11 @@ namespace FcmsPortalUI.Services
 
         public async Task<List<DiscussionThread>> GetThreadsForClassSessionAsync(int classSessionId)
         {
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
+
             return await _context.DiscussionThreads
-                .Where(t => t.ClassSessionId == classSessionId)
+                .Where(t => t.ClassSessionRecord.ClassSessionId == classSessionId &&
+                            t.ClassSessionRecord.AcademicPeriodId == currentPeriodId)
                 .Include(t => t.FirstPost)
                     .ThenInclude(fp => fp.Author)
                 .Include(t => t.Replies)
@@ -3562,20 +3658,19 @@ namespace FcmsPortalUI.Services
             if (student?.LearningPath == null)
                 return new List<PendingHomeworkItem>();
 
-            return _context.ClassSessions
+            return _context.Homework
                 .AsNoTracking()
-                .Where(cs => cs.ClassLevel == student.LearningPath.ClassLevel &&
-                             cs.Semester == student.LearningPath.Semester &&
-                             cs.HomeworkDetails != null &&
-                             !cs.HomeworkDetails.Submissions.Any(sub => sub.StudentId == studentId))
-                .OrderBy(cs => cs.HomeworkDetails!.DueDate)
-                .Select(cs => new PendingHomeworkItem
+                .Where(h => h.ClassSessionRecord!.AcademicPeriodId == student.LearningPath.AcademicPeriodId &&
+                            h.ClassSessionRecord.ClassSession!.ClassLevel == student.LearningPath.ClassLevel &&
+                            !h.Submissions.Any(sub => sub.StudentId == studentId))
+                .OrderBy(h => h.DueDate)
+                .Select(h => new PendingHomeworkItem
                 {
-                    HomeworkId = cs.HomeworkDetails!.Id,
-                    Title = cs.HomeworkDetails.Title,
-                    Course = cs.Course,
-                    AssignedDate = cs.HomeworkDetails.AssignedDate,
-                    DueDate = cs.HomeworkDetails.DueDate
+                    HomeworkId = h.Id,
+                    Title = h.Title,
+                    Course = h.ClassSessionRecord!.ClassSession!.Course,
+                    AssignedDate = h.AssignedDate,
+                    DueDate = h.DueDate
                 })
                 .Take(maxCount)
                 .ToList();
@@ -3634,19 +3729,19 @@ namespace FcmsPortalUI.Services
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
 
-            return _context.ClassSessions
+            return _context.ClassSessionRecords
                 .AsNoTracking()
-                .Where(cs => cs.TeacherRemarks != "" &&
-                             cs.RemarksSubmittedAt.HasValue &&
-                             cs.RemarksSubmittedAt.Value >= today &&
-                             cs.RemarksSubmittedAt.Value < tomorrow)
-                .OrderByDescending(cs => cs.RemarksSubmittedAt)
+                .Where(record => record.TeacherRemarks != "" &&
+                                 record.RemarksSubmittedAt.HasValue &&
+                                 record.RemarksSubmittedAt.Value >= today &&
+                                 record.RemarksSubmittedAt.Value < tomorrow)
+                .OrderByDescending(record => record.RemarksSubmittedAt)
                 .Take(maxCount)
-                .Select(cs => new
+                .Select(record => new
                 {
-                    cs.Course,
-                    cs.ClassLevel,
-                    Timestamp = cs.RemarksSubmittedAt!.Value
+                    record.ClassSession!.Course,
+                    record.ClassSession.ClassLevel,
+                    Timestamp = record.RemarksSubmittedAt!.Value
                 })
                 .ToList()
                 .Select(x => new ValueTuple<string, string, DateTime>(
@@ -3738,18 +3833,18 @@ namespace FcmsPortalUI.Services
 
             return _context.HomeworkSubmissions
                 .AsNoTracking()
-                .Where(hs => hs.Homework != null &&
-                             hs.Homework.ClassSession != null &&
-                             hs.Homework.ClassSession.TeacherId == teacherId &&
+                                .Where(hs => hs.Homework != null &&
+                             hs.Homework.ClassSessionRecord != null &&
+                             hs.Homework.ClassSessionRecord.AcademicPeriodId == academicPeriod.Id &&
+                             hs.Homework.ClassSessionRecord.ClassSession!.TeacherId == teacherId &&
                              hs.Student != null &&
-                             !hs.IsGraded &&
-                             hs.SubmissionDate >= academicPeriod.SemesterStartDate)
+                             !hs.IsGraded)
                 .OrderByDescending(hs => hs.SubmissionDate)
                 .Select(hs => new TeacherSubmissionItem
                 {
                     StudentName = hs.Student!.Person.FirstName + " " + hs.Student.Person.LastName,
                     ClassLevel = hs.Student.LearningPath != null ? hs.Student.LearningPath.ClassLevel : (ClassLevel?)null,
-                    Course = hs.Homework!.ClassSession!.Course,
+                    Course = hs.Homework!.ClassSessionRecord!.ClassSession!.Course,
                     Title = hs.Homework.Title,
                     AssignedDate = hs.Homework.AssignedDate,
                     DueDate = hs.Homework.DueDate,

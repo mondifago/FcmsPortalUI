@@ -100,20 +100,26 @@
 }
 
 @code {
-        [Parameter]
-        public bool IsVisible { get; set; }
+    [Parameter]
+    public bool IsVisible { get; set; }
 
-        [Parameter]
-        public HomeworkSubmission Submission { get; set; } = new HomeworkSubmission();
+    [Parameter]
+    public string Course { get; set; } = string.Empty;
 
-        [Parameter]
-        public Staff CurrentTeacher { get; set; } = new Staff();
+    [Parameter]
+    public int? LearningPathId { get; set; }
 
-        [Parameter]
-        public EventCallback<HomeworkSubmission> OnSave { get; set; }
+    [Parameter]
+    public HomeworkSubmission Submission { get; set; } = new HomeworkSubmission();
 
-        [Parameter]
-        public EventCallback OnClose { get; set; }
+    [Parameter]
+    public Staff CurrentTeacher { get; set; } = new Staff();
+
+    [Parameter]
+    public EventCallback<HomeworkSubmission> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
 
     private TestGrade testGrade = new TestGrade();
     private double maxScore = FcmsConstants.TOTAL_SCORE;
@@ -154,34 +160,22 @@
 
     private async Task HandleSubmit()
     {
-        if (!IsFormValid() || Submission == null || Submission.Student == null ||
-            Submission.Homework?.ClassSession == null)
+        if (!IsFormValid() || Submission == null || Submission.Student == null || !LearningPathId.HasValue)
             return;
 
         var finalScore = (testGrade.Score / maxScore) * FcmsConstants.TOTAL_SCORE;
         var finalScoreRounded = Math.Round(finalScore, FcmsConstants.GRADE_ROUNDING_DIGIT);
 
-        var course = Submission.Homework?.ClassSession?.Course;
-        if (!string.IsNullOrEmpty(course))
-        {
-            var learningPathId = Submission.Homework?.ClassSession?.Id != null
-                ? SchoolDataService.GetLearningPathIdByClassSessionId(Submission.Homework.ClassSession.Id)
-                : null;
-
-            if (learningPathId.HasValue)
-            {
-                var savedGrade = await SchoolDataService.AddHomeworkSubmissionGradeAsync(
-                     Submission.Student.Id,
-                     course,
-                     finalScoreRounded,
-                     CurrentTeacher.Id,
-                     testGrade.TeacherRemark,
-                     learningPathId.Value,
-                     Submission.Homework!.AssignedDate,
-                     Submission.Id
-                 );
-            }
-        }
+        await SchoolDataService.AddHomeworkSubmissionGradeAsync(
+             Submission.Student.Id,
+             Course,
+             finalScoreRounded,
+             CurrentTeacher.Id,
+             testGrade.TeacherRemark,
+             LearningPathId.Value,
+             Submission.Homework!.AssignedDate,
+             Submission.Id
+         );
 
         await OnSave.InvokeAsync(Submission);
         Close();

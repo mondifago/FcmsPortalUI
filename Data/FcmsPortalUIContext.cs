@@ -19,6 +19,7 @@ namespace FcmsPortalUI.Data
         public DbSet<ScheduleEntry> ScheduleEntries { get; set; }
         public DbSet<ClassSchedule> ClassSchedules { get; set; }
         public DbSet<ClassSession> ClassSessions { get; set; }
+        public DbSet<ClassSessionRecord> ClassSessionRecords { get; set; }
         public DbSet<DiscussionThread> DiscussionThreads { get; set; }
         public DbSet<FirstPost> FirstPosts { get; set; }
         public DbSet<Reply> Replies { get; set; }
@@ -148,6 +149,18 @@ namespace FcmsPortalUI.Data
             modelBuilder.Entity<Payment>()
                 .HasIndex(payment => payment.Reference)
                 .IsUnique();
+
+            // ---- ClassSessionRecord ----
+
+            modelBuilder.Entity<ClassSessionRecord>()
+                .HasIndex(record => new { record.ClassSessionId, record.AcademicPeriodId })
+                .IsUnique();
+
+            modelBuilder.Entity<ClassSessionRecord>()
+                .HasOne(record => record.AcademicPeriod)
+                .WithMany()
+                .HasForeignKey(record => record.AcademicPeriodId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
