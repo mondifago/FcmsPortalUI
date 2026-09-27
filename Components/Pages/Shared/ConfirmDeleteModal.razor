@@ -11,7 +11,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
-                <button type="button" class="btn btn-danger" @onclick="OnConfirm">Delete</button>
+                <button type="button" class="btn @ConfirmButtonClass" @onclick="OnConfirm">@ConfirmText</button>
             </div>
         </div>
     </div>
@@ -29,6 +29,12 @@
 
     [Parameter]
     public EventCallback OnConfirm { get; set; }
+
+    [Parameter]
+    public string ConfirmText { get; set; } = "Delete";
+
+    [Parameter]
+    public string ConfirmButtonClass { get; set; } = "btn-danger";
 
     [Parameter]
     public EventCallback OnCancel { get; set; }

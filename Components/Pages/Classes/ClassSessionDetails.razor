@@ -2,6 +2,7 @@
 @using FcmsPortalUI.Services
 @using FcmsPortal.Models
 @using FcmsPortal
+@using FcmsPortal.Enums
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject IPermissionService PermissionService
@@ -61,6 +62,40 @@
                     @(scheduleEntry != null ? scheduleEntry.Venue : "-")
                 </span>
             </div>
+
+            <div>
+                <span class="fcms-info-label">Term</span>
+                <span class="fcms-info-value">
+                    @if (isInCurrentPeriod)
+                    {
+                        @(currentPeriod?.DisplayName)
+                    }
+                    else
+                    {
+                        @($"Runs in {classSession.Semester} Term")
+                    }
+                </span>
+            </div>
+            @if (isInCurrentPeriod)
+            {
+                <div>
+                    <span class="fcms-info-label">Status</span>
+                    <div class="d-flex align-items-center flex-wrap fcms-gap-sm">
+                        <span class="@Util.GetSessionStateBadgeClass(sessionState)">@sessionState</span>
+                        @if (canManageClassSession && canEditYearActivity && sessionState == SessionState.InProgress)
+                        {
+                            <button class="btn btn-sm btn-success" @onclick="() => showCloseConfirmation = true">
+                                <i class="fa fa-check me-1"></i>Close Session
+                            </button>
+                        }
+                        @if (currentRecord?.ClosedAt != null)
+                        {
+                            <small>Closed by @currentRecord.ClosedByName on @currentRecord.ClosedAt.Value.ToString("MMM d, yyyy h:mm tt")</small>
+                        }
+                    </div>
+                </div>
+            }
+
             <div class="fcms-info-wide">
                 <span class="fcms-info-label">Description</span>
                 <span class="fcms-info-value">
@@ -415,20 +450,32 @@
                             else
                             {
                                 var studentSubmission = currentHomework.Submissions?.FirstOrDefault(s => s.Student?.PersonId == currentUserId);
+
+                                @if (canEditYearActivity)
+                                {
+                                    
+                                }
+
                                 @if (studentSubmission == null)
                                 {
                                     <button class="btn btn-outline-primary" @onclick="ViewHomework">
                                         <i class="fa fa-eye"></i> View Homework
                                     </button>
-                                    <button class="btn btn-success" @onclick="AttemptHomework">
-                                        <i class="fa fa-paper-plane"></i> Attempt Homework
-                                    </button>
+                                    @if (canEditYearActivity)
+                                    {
+                                        <button class="btn btn-success" @onclick="AttemptHomework">
+                                            <i class="fa fa-paper-plane"></i> Attempt Homework
+                                        </button>
+                                    }
                                 }
                                 else if (!studentSubmission.IsGraded)
                                 {
-                                    <button class="btn btn-outline-warning" @onclick="EditMySubmission">
-                                        <i class="fa fa-edit"></i> Edit Submission
-                                    </button>
+                                    @if (canEditYearActivity)
+                                    {
+                                        <button class="btn btn-outline-warning" @onclick="EditMySubmission">
+                                            <i class="fa fa-edit"></i> Edit Submission
+                                        </button>
+                                    }
                                 }
                                 else
                                 {
@@ -604,8 +651,7 @@
     <HomeworkSubmissionsListModal IsVisible="showSubmissionsListModal"
                                   Homework="currentHomework"
                                   CurrentTeacher="currentTeacher"
-                                  Course="@classSession.Course"
-                                  LearningPathId="learningPathId"
+                                  AllowGrading="canEditYearActivity"
                                   OnClose="() => showSubmissionsListModal = false"
                                   OnGradeSubmission="HandleGradeSubmission" />
 }
@@ -617,6 +663,8 @@
     <HomeworkGradingModal IsVisible="showGradingModal"
                           Submission="submissionToGrade"
                           CurrentTeacher="currentTeacher"
+                          Course="@classSession.Course"
+                          LearningPathId="learningPathId"
                           OnSave="HandleGradingSaved"
                           OnClose="() => showGradingModal = false" />
 }
@@ -628,6 +676,18 @@
                                    OnClose="() => showStudentGradeModal = false" />
 }
 
+<ConfirmDeleteModal IsVisible="showCloseConfirmation"
+                    Title="Close Session"
+                    Message="Close this session? Its remark, homework and discussion will be locked for the rest of this term."
+                    ConfirmText="Close Session"
+                    ConfirmButtonClass="btn-success"
+                    OnConfirm="CloseSession"
+                    OnCancel="() => showCloseConfirmation = false" />
+
+<ErrorDisplayModal IsVisible="showErrorModal"
+                   Title="Not allowed"
+                   Message="@errorMessage"
+                   OnClose="() => showErrorModal = false" />
 
 @code {
     [Parameter]
@@ -638,7 +698,7 @@
 
     private string selectedPdfUrl = string.Empty;
     private ClassSession classSession = new();
-    private ClassSchedule scheduleEntry = new();
+    private ClassSchedule? scheduleEntry;
     private LearningPath relatedLearningPath = new();
     private List<Student> enrolledStudents = new List<Student>();
     private Staff currentTeacher = new();
@@ -668,6 +728,12 @@
     private bool canManageClassSession;
     private bool isStudent;
 
+    private bool isInCurrentPeriod;
+    private bool showCloseConfirmation = false;
+    private bool showErrorModal = false;
+    private string errorMessage = string.Empty;
+    private SessionState sessionState => LogicMethods.GetSessionState(scheduleEntry?.DateTime, currentRecord?.ClosedAt, DateTime.Now);
+
     // Video management
     private bool showVideoForm = false;
     private string newVideoTitle = string.Empty;
@@ -688,7 +754,7 @@
 
         if (classSession != null)
         {
-            scheduleEntry = SchoolDataService.GetClassScheduleByClassSessionId(Id) ?? new ClassSchedule();
+            scheduleEntry = SchoolDataService.GetClassScheduleByClassSessionId(Id);
 
             currentUserId = await PermissionService.GetCurrentUserIdAsync();
             currentUser = await PermissionService.GetCurrentPersonAsync();
@@ -703,8 +769,11 @@
             }
 
             currentPeriod = SchoolDataService.GetCurrentAcademicPeriod();
+            isInCurrentPeriod = LogicMethods.IsSessionInPeriod(classSession.Semester, currentPeriod);
+
             LoadEnrolledStudents();
             LoadCurrentRecord();
+
             canManageClassSession = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
             isStudent = await PermissionService.IsInRoleAsync("Student");
 
@@ -720,7 +789,7 @@
         if (!learningPathId.HasValue)
             return;
 
-        relatedLearningPath = SchoolDataService.GetLearningPathWithAttendanceForDate(learningPathId.Value, scheduleEntry.DateTime) ?? new LearningPath();
+        relatedLearningPath = SchoolDataService.GetLearningPathWithAttendanceForDate(learningPathId.Value, scheduleEntry?.DateTime ?? DateTime.MinValue) ?? new LearningPath();
         enrolledStudents = relatedLearningPath.Students?.ToList() ?? new List<Student>();
     }
 
@@ -958,5 +1027,22 @@
     private void ClearVideoError()
     {
         videoErrorMessage = string.Empty;
+    }
+
+    private void CloseSession()
+    {
+        showCloseConfirmation = false;
+
+        try
+        {
+            var closedByName = currentUser != null ? Util.GetFullName(currentUser) : string.Empty;
+            SchoolDataService.CloseClassSession(classSession.Id, closedByName);
+            LoadCurrentRecord();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+        }
     }
 }

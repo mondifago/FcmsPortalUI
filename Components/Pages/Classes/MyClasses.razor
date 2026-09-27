@@ -190,7 +190,7 @@
                                                     }
                                                 </div>
                                                 <small class="text-muted fcms-text-sm">
-                                                    <span class="@SessionStateBadgeClass(state) ms-1">@state</span>
+                                                    <span class="@Util.GetSessionStateBadgeClass(state) ms-1">@state</span>
                                                     <i class="fa fa-location-dot me-1"></i>@entry.Venue
                                                 </small>
                                             </div>
@@ -456,17 +456,6 @@
         return !string.IsNullOrEmpty(staffEducationLevel) &&
                !string.IsNullOrEmpty(staffClassLevel) &&
                !string.IsNullOrEmpty(staffTerm);
-    }
-
-    private static string SessionStateBadgeClass(SessionState state)
-    {
-        if (state == SessionState.Completed)
-            return "badge bg-success";
-
-        if (state == SessionState.InProgress)
-            return "badge bg-primary";
-
-        return "badge bg-danger";
     }
 
     private void OpenTimetableTab()

@@ -84,7 +84,15 @@
                                                 <button class="btn btn-outline-primary btn-sm" @onclick="() => ViewSubmission(submission)" title="View Submission">
                                                     <i class="fa fa-eye"></i>
                                                 </button>
-                                                @if (!submission.IsGraded)
+
+
+                                                @if (AllowGrading)
+                                                {
+                                                    
+                                                }
+
+
+                                                @if (AllowGrading && !submission.IsGraded)
                                                 {
                                                     <button class="btn btn-outline-success btn-sm" @onclick="() => GradeSubmission(submission)" title="Grade Submission">
                                                         <i class="fa fa-check-square"></i>
@@ -172,7 +180,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CloseSubmissionView">Close</button>
-                    @if (!selectedSubmission.IsGraded)
+                    @if (AllowGrading && !selectedSubmission.IsGraded)
                     {
                         <button type="button" class="btn btn-success" @onclick="() => GradeSubmission(selectedSubmission)">
                             Grade Submission
@@ -199,6 +207,9 @@
 
     [Parameter]
     public Staff CurrentTeacher { get; set; } = new Staff();
+
+    [Parameter]
+    public bool AllowGrading { get; set; } = true;
 
     [Parameter]
     public EventCallback OnClose { get; set; }

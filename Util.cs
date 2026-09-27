@@ -180,6 +180,17 @@ namespace FcmsPortalUI
             return "Schedule";
         }
 
+        public static string GetSessionStateBadgeClass(SessionState state)
+        {
+            if (state == SessionState.Completed)
+                return "badge bg-success";
+
+            if (state == SessionState.InProgress)
+                return "badge bg-primary";
+
+            return "badge bg-danger";
+        }
+
         public static string GetPromotionStatusForArchive(LearningPath learningPath, bool isPromoted)
         {
             if (!isPromoted)
