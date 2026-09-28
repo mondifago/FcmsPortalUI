@@ -1688,6 +1688,27 @@ namespace FcmsPortalUI.Services
             existing.DueDate = homework.DueDate;
             _context.SaveChanges();
         }
+
+        public List<ClassSessionRecord> GetClassSessionRemarkRecords(int classSessionId)
+        {
+            return _context.ClassSessionRecords
+                .AsNoTracking()
+                .Include(r => r.AcademicPeriod)
+                .Where(r => r.ClassSessionId == classSessionId && r.TeacherRemarks != "")
+                .OrderByDescending(r => r.AcademicPeriod!.AcademicYearStart)
+                .ToList();
+        }
+
+        public void DeleteTeacherRemarks(int classSessionRecordId)
+        {
+            var record = _context.ClassSessionRecords.First(r => r.Id == classSessionRecordId);
+
+            record.TeacherRemarks = string.Empty;
+            record.RemarksSubmittedByName = string.Empty;
+            record.RemarksSubmittedAt = null;
+
+            _context.SaveChanges();
+        }
         #endregion
 
         #region Homework

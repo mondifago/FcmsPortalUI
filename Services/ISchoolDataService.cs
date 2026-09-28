@@ -113,6 +113,8 @@ namespace FcmsPortalUI.Services
         ClassSessionRecord? GetCurrentClassSessionRecord(int classSessionId);
         void SaveTeacherRemarks(int classSessionId, string remarks, string submittedByName);
         void SaveHomework(int classSessionId, Homework homework);
+        List<ClassSessionRecord> GetClassSessionRemarkRecords(int classSessionId);
+        void DeleteTeacherRemarks(int classSessionRecordId);
         #endregion
 
         #region Homework

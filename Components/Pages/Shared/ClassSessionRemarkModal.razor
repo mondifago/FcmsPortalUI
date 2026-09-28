@@ -1,0 +1,80 @@
+﻿@using FcmsPortal.Constants
+@using FcmsPortalUI.Components.Pages.Shared
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content fcms-modal-panel">
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center fcms-list-toolbar mb-3">
+                    <div>
+                        <h5 class="modal-title fcms-picker-title mb-0">@Title</h5>
+                        @if (!string.IsNullOrEmpty(Subtitle))
+                        {
+                            <small>@Subtitle</small>
+                        }
+                    </div>
+                    <button type="button" class="fcms-picker-close" @onclick="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                @if (IsReadOnly)
+                {
+                    <div class="formatted-content">
+                        @((MarkupString)Util.FormatTextWithLinks(Remark))
+                    </div>
+                }
+                else
+                {
+                    <CharacterCountTextArea @bind-Value="draft"
+                                            MaxLength="FcmsConstants.MAX_SESSION_REMARK_LENGTH"
+                                            Rows="8"
+                                            ShowEmojiPicker="false"
+                                            Placeholder="How did students respond to this topic, and what would help their understanding next time?" />
+                }
+
+                <div class="fcms-list-toolbar mt-3"></div>
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="button" class="btn btn-secondary me-2" @onclick="Close">@(IsReadOnly ? "Close" : "Cancel")</button>
+                    @if (!IsReadOnly)
+                    {
+                        <button type="button" class="btn btn-fcms" @onclick="Submit">Submit</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Subtitle { get; set; } = string.Empty;
+    [Parameter] public string Remark { get; set; } = string.Empty;
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public EventCallback<string> OnSubmit { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private string draft = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        draft = Remark;
+    }
+
+    private async Task Submit()
+    {
+        await OnSubmit.InvokeAsync(draft);
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
