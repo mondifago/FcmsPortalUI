@@ -129,6 +129,7 @@ namespace FcmsPortalUI.Services
         #region Discussions
         Task<DiscussionThread> AddDiscussionThreadAsync(int classSessionId, FirstPost firstPost);
         Task<Reply> AddReplyAsync(int threadId, int authorId, string comment);
+        Task ToggleThreadLikeAsync(int threadId, int personId);
         Task<List<DiscussionThread>> GetThreadsForClassSessionAsync(int classSessionId);
         #endregion
 

@@ -1648,6 +1648,8 @@ namespace FcmsPortalUI.Services
                 .Include(r => r.DiscussionThreads)
                     .ThenInclude(dt => dt.Replies)
                         .ThenInclude(rp => rp.Author)
+                .Include(r => r.DiscussionThreads)
+                    .ThenInclude(dt => dt.Likes)
                 .AsSplitQuery()
                 .FirstOrDefault(r => r.ClassSessionId == classSessionId && r.AcademicPeriodId == currentPeriodId);
         }
@@ -1867,6 +1869,28 @@ namespace FcmsPortalUI.Services
             return reply;
         }
 
+        public async Task ToggleThreadLikeAsync(int threadId, int personId)
+        {
+            ThrowIfSessionClosed(await _context.DiscussionThreads.AnyAsync(t => t.Id == threadId && t.ClassSessionRecord.ClosedAt != null));
+
+            var existing = await _context.DiscussionThreadLikes
+                .FirstOrDefaultAsync(l => l.DiscussionThreadId == threadId && l.PersonId == personId);
+
+            if (existing != null)
+            {
+                _context.DiscussionThreadLikes.Remove(existing);
+                await _context.SaveChangesAsync();
+                return;
+            }
+
+            _context.DiscussionThreadLikes.Add(new DiscussionThreadLike
+            {
+                DiscussionThreadId = threadId,
+                PersonId = personId
+            });
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<List<DiscussionThread>> GetThreadsForClassSessionAsync(int classSessionId)
         {
             var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
@@ -1878,6 +1902,7 @@ namespace FcmsPortalUI.Services
                     .ThenInclude(fp => fp.Author)
                 .Include(t => t.Replies)
                     .ThenInclude(r => r.Author)
+                .Include(t => t.Likes)
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
         }

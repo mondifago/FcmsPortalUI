@@ -144,21 +144,17 @@
         @if (activeTab == TabSession)
         {
             <div class="row">
+                <!-- Discussion Section -->
                 <div class="col-md-8">
-
-                    <!-- Discussion Section -->
-                    <div class="card mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h4 class="mb-0"><i class="fas fa-comments me-2"></i>Class Discussion</h4>
-                        </div>
-                        <div class="card-body">
-                            <DiscussionThreadComponent AllThreads="currentRecord?.DiscussionThreads ?? new List<DiscussionThread>()"
-                                                       AllowReplies="canEditYearActivity"
-                                                       CurrentUser="currentUser"
-                                                       ClassSessionId="classSession.Id" />
-                        </div>
-                    </div>  
+                    <div class="fcms-tab-card rounded-3 p-3 mb-4">
+                        <DiscussionThreadComponent AllThreads="currentRecord?.DiscussionThreads ?? new List<DiscussionThread>()"
+                                                   AllowReplies="canEditYearActivity"
+                                                   CurrentUser="currentUser"
+                                                   ClassSessionId="classSession.Id" />
+                    </div>
                 </div>
+
+                <!-- Student list Section -->
                 <div class="col-md-4">
                     <div class="card fcms-tab-card mb-4">
                         <div class="card-header">
@@ -453,7 +449,7 @@
 
                                 @if (canEditYearActivity)
                                 {
-                                    
+
                                 }
 
                                 @if (studentSubmission == null)

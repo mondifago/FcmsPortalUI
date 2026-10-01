@@ -1,10 +1,11 @@
 ﻿@using FcmsPortal.Models
+@using FcmsPortal.Constants
 @using FcmsPortalUI.Services
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
 
-<div class="card-body">
+<div>
     @if (AllThreads == null)
     {
         <p>Loading discussion threads...</p>
@@ -14,20 +15,16 @@
         <!-- New Post Form -->
         @if (AllowReplies)
         {
-            <div class="mb-4 border rounded p-3 bg-light">
-                <EditForm Model="newFirstPost" OnValidSubmit="@HandleAddFirstPost">
-                    <div class="mb-3">
-                        <CharacterCountTextArea @bind-Value="newFirstPost.Comment"
-                                                Rows="3"
-                                                Placeholder="Start a new discussion..." />
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i>Post
-                        </button>
-                    </div>
-                </EditForm>
-            </div>
+            <EditForm Model="newFirstPost" OnValidSubmit="@HandleAddFirstPost" class="mb-4">
+                <CharacterCountTextArea @bind-Value="newFirstPost.Comment"
+                                        Rows="2"
+                                        Placeholder="Start a new discussion..." />
+                <div class="d-flex justify-content-end mt-2">
+                    <button type="submit" class="btn btn-fcms fcms-btn-round" title="Post">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </EditForm>
         }
 
         <!-- List of All Discussion Threads -->
@@ -36,7 +33,9 @@
             <div class="discussion-threads-container">
                 @foreach (var thread in AllThreads.OrderByDescending(t => t.CreatedAt))
                 {
-                    <div class="discussion-thread mb-4 border-bottom pb-3">
+                    var liked = HasLiked(thread);
+
+                    <div class="discussion-thread mb-4 pb-3">
                         <!-- First Post with Author -->
                         <div class="d-flex mb-2">
                             <div class="me-3">
@@ -49,29 +48,37 @@
                                         <small class="text-muted ms-2">(@thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
                                     </div>
                                 </div>
-                                <p class="mt-2 mb-1">@thread.FirstPost.Comment</p>
-                                <div>
-                                    @if (AllowReplies)
-                                    {
-                                        <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => ToggleReplyForm(thread.Id)">
-                                            <i class="fas fa-reply me-1"></i>Reply
-                                        </button>
-                                    }
 
-                                    @if (thread.Replies.Count > 2 && !expandedThreads.Contains(thread.Id))
+                                <p class="mt-2 mb-1">@thread.FirstPost.Comment</p>
+
+                                <div class="d-flex align-items-center flex-wrap mt-2">
+                                    <button class="btn btn-outline-fcms fcms-btn-round" title="Comment"
+                                            disabled="@(!AllowReplies)" @onclick="() => ToggleReplyForm(thread.Id)">
+                                        <i class="far fa-comment"></i>
+                                    </button>
+                                    <span class="ms-1 me-3">@thread.Replies.Count</span>
+
+                                    <button class="btn @(liked ? "btn-fcms" : "btn-outline-fcms") fcms-btn-round" title="Like"
+                                            disabled="@(!AllowReplies)" @onclick="() => ToggleLike(thread)">
+                                        <i class="@(liked ? "fas" : "far") fa-thumbs-up"></i>
+                                    </button>
+                                    <span class="ms-1 me-3">@thread.Likes.Count</span>
+
+                                    @if (thread.Replies.Count > FcmsConstants.DISCUSSION_REPLY_PREVIEW_COUNT && !expandedThreads.Contains(thread.Id))
                                     {
-                                        <button class="btn btn-sm btn-link mt-2" @onclick="() => ExpandThread(thread.Id)">
+                                        <button class="btn btn-sm btn-link" @onclick="() => ExpandThread(thread.Id)">
                                             View all @thread.Replies.Count replies
                                         </button>
                                     }
                                 </div>
+
                             </div>
                         </div>
 
                         <!-- Reply Form (conditionally displayed) -->
                         @if (replyingToThreadId == thread.Id)
                         {
-                            <div class="ms-5 mb-3 mt-3 border rounded p-3 bg-light">
+                            <div class="ms-5 mb-3 mt-3">
                                 <EditForm Model="newReply" OnValidSubmit="() => HandleAddReply(thread)">
                                     <div class="mb-2">
                                         <CharacterCountTextArea @bind-Value="newReply.Comment"
@@ -92,7 +99,7 @@
                                 var replies = thread.Replies.OrderByDescending(r => r.CreatedAt).ToList();
                                 var displayReplies = expandedThreads.Contains(thread.Id)
                                 ? replies
-                                : replies.Take(2).ToList();
+                                : replies.Take(FcmsConstants.DISCUSSION_REPLY_PREVIEW_COUNT).ToList();
                             }
 
                             @foreach (var reply in displayReplies)
@@ -113,7 +120,7 @@
                                 </div>
                             }
 
-                            @if (thread.Replies.Any() && expandedThreads.Contains(thread.Id))
+                            @if (thread.Replies.Count > FcmsConstants.DISCUSSION_REPLY_PREVIEW_COUNT && expandedThreads.Contains(thread.Id))
                             {
                                 <div class="text-center mt-2">
                                     <button class="btn btn-sm btn-link" @onclick="() => CollapseThread(thread.Id)">
@@ -175,6 +182,19 @@
         replyingToThreadId = 0;
     }
 
+    private bool HasLiked(DiscussionThread thread)
+    {
+        return CurrentUser != null && thread.Likes.Any(l => l.PersonId == CurrentUser.Id);
+    }
+
+    private async Task ToggleLike(DiscussionThread thread)
+    {
+        if (CurrentUser == null)
+            return;
+
+        await SchoolDataService.ToggleThreadLikeAsync(thread.Id, CurrentUser.Id);
+        AllThreads = await SchoolDataService.GetThreadsForClassSessionAsync(ClassSessionId);
+    }
 
     private void ToggleReplyForm(int threadId)
     {

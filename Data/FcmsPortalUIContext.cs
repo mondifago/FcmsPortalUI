@@ -21,6 +21,7 @@ namespace FcmsPortalUI.Data
         public DbSet<ClassSession> ClassSessions { get; set; }
         public DbSet<ClassSessionRecord> ClassSessionRecords { get; set; }
         public DbSet<DiscussionThread> DiscussionThreads { get; set; }
+        public DbSet<DiscussionThreadLike> DiscussionThreadLikes { get; set; }
         public DbSet<FirstPost> FirstPosts { get; set; }
         public DbSet<Reply> Replies { get; set; }
         public DbSet<FileAttachment> FileAttachments { get; set; }
@@ -161,6 +162,12 @@ namespace FcmsPortalUI.Data
                 .WithMany()
                 .HasForeignKey(record => record.AcademicPeriodId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // ---- DiscussionThreadLike ----
+
+            modelBuilder.Entity<DiscussionThreadLike>()
+                .HasIndex(like => new { like.DiscussionThreadId, like.PersonId })
+                .IsUnique();
         }
     }
 }
