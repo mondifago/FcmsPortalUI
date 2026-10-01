@@ -447,11 +447,6 @@
                             {
                                 var studentSubmission = currentHomework.Submissions?.FirstOrDefault(s => s.Student?.PersonId == currentUserId);
 
-                                @if (canEditYearActivity)
-                                {
-
-                                }
-
                                 @if (studentSubmission == null)
                                 {
                                     <button class="btn btn-outline-primary" @onclick="ViewHomework">

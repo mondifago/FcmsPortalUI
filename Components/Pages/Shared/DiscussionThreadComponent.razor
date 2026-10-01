@@ -1,9 +1,7 @@
 ﻿@using FcmsPortal.Models
 @using FcmsPortal.Constants
 @using FcmsPortalUI.Services
-@using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
-@inject NavigationManager NavigationManager
 
 <div>
     @if (AllThreads == null)
@@ -45,7 +43,7 @@
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <strong>@Util.GetFullName(thread.FirstPost.Author)</strong>
-                                        <small class="text-muted ms-2">(@thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
+                                        <small class="text-muted ms-2" title="@thread.FirstPost.CreatedAt.ToString("MMM dd, yyyy HH:mm")">@Util.FormatTimeAgo(thread.FirstPost.CreatedAt, DateTime.Now)</small>
                                     </div>
                                 </div>
 
@@ -64,18 +62,12 @@
                                     </button>
                                     <span class="ms-1 me-3">@thread.Likes.Count</span>
 
-                                    @if (thread.Replies.Count > FcmsConstants.DISCUSSION_REPLY_PREVIEW_COUNT && !expandedThreads.Contains(thread.Id))
-                                    {
-                                        <button class="btn btn-sm btn-link" @onclick="() => ExpandThread(thread.Id)">
-                                            View all @thread.Replies.Count replies
-                                        </button>
-                                    }
                                 </div>
 
                             </div>
                         </div>
 
-                        <!-- Reply Form (conditionally displayed) -->
+                        <!-- Reply Form -->
                         @if (replyingToThreadId == thread.Id)
                         {
                             <div class="ms-5 mb-3 mt-3">
@@ -112,7 +104,7 @@
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
                                                 <strong>@Util.GetFullName(reply.Author)</strong>
-                                                <small class="text-muted ms-2">(@reply.CreatedAt.ToString("MMM dd, yyyy HH:mm"))</small>
+                                                <small class="text-muted ms-2" title="@reply.CreatedAt.ToString("MMM dd, yyyy HH:mm")">@Util.FormatTimeAgo(reply.CreatedAt, DateTime.Now)</small>
                                             </div>
                                         </div>
                                         <p class="mb-0 mt-1">@reply.Comment</p>
@@ -120,11 +112,11 @@
                                 </div>
                             }
 
-                            @if (thread.Replies.Count > FcmsConstants.DISCUSSION_REPLY_PREVIEW_COUNT && expandedThreads.Contains(thread.Id))
+                            @if (thread.Replies.Count > FcmsConstants.DISCUSSION_REPLY_PREVIEW_COUNT)
                             {
                                 <div class="text-center mt-2">
-                                    <button class="btn btn-sm btn-link" @onclick="() => CollapseThread(thread.Id)">
-                                        Show fewer replies
+                                    <button class="btn btn-sm btn-link" @onclick="() => ToggleThreadExpansion(thread.Id)">
+                                        @(expandedThreads.Contains(thread.Id) ? "Show fewer replies" : $"View all {thread.Replies.Count} replies")
                                     </button>
                                 </div>
                             }
@@ -151,7 +143,6 @@
 
     private FirstPost newFirstPost = new();
     private Reply newReply = new();
-    private string newFirstPostComment = string.Empty;
     private int replyingToThreadId = 0;
     private HashSet<int> expandedThreads = new HashSet<int>();
 
@@ -165,7 +156,7 @@
             Comment = newFirstPost.Comment
         };
 
-        var savedThread = await SchoolDataService.AddDiscussionThreadAsync(ClassSessionId, firstPost);
+        await SchoolDataService.AddDiscussionThreadAsync(ClassSessionId, firstPost);
         AllThreads = await SchoolDataService.GetThreadsForClassSessionAsync(ClassSessionId);
         newFirstPost = new FirstPost();
     }
@@ -205,6 +196,12 @@
             expandedThreads.Add(threadId);
         }
         newReply = new();
+    }
+
+    private void ToggleThreadExpansion(int threadId)
+    {
+        if (!expandedThreads.Remove(threadId))
+            expandedThreads.Add(threadId);
     }
 
     private void CancelReply()

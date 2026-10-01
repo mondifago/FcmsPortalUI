@@ -469,5 +469,37 @@ namespace FcmsPortalUI
         {
             return amount.ToString("C", new CultureInfo("en-NG"));
         }
+
+        public static string FormatTimeAgo(DateTime timestamp, DateTime now)
+        {
+            var elapsed = now - timestamp;
+
+            if (elapsed < TimeSpan.FromMinutes(1))
+                return "just now";
+
+            if (elapsed < TimeSpan.FromHours(1))
+                return $"{(int)elapsed.TotalMinutes} min ago";
+
+            if (elapsed < TimeSpan.FromDays(1))
+                return FormatUnitAgo((int)elapsed.TotalHours, "hour");
+
+            var days = (int)elapsed.TotalDays;
+
+            if (days < FcmsConstants.DAYS_IN_WEEK)
+                return FormatUnitAgo(days, "day");
+
+            if (days < FcmsConstants.DAYS_IN_MONTH)
+                return FormatUnitAgo(days / FcmsConstants.DAYS_IN_WEEK, "week");
+
+            if (days < FcmsConstants.DAYS_IN_YEAR)
+                return FormatUnitAgo(days / FcmsConstants.DAYS_IN_MONTH, "month");
+
+            return FormatUnitAgo(days / FcmsConstants.DAYS_IN_YEAR, "year");
+        }
+
+        private static string FormatUnitAgo(int value, string unit)
+        {
+            return value == 1 ? $"1 {unit} ago" : $"{value} {unit}s ago";
+        }
     }
 }
