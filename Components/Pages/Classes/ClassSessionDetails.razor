@@ -3,6 +3,7 @@
 @using FcmsPortal.Models
 @using FcmsPortal
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject IPermissionService PermissionService
@@ -220,23 +221,12 @@
 
         @if (activeTab == TabMaterials)
         {
-            <!-- Materials Upload Section -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Course Materials</h4>
-                    @if (canManageClassSession)
-                    {
-                        <button class="btn btn-sm btn-light" @onclick="ToggleMaterialsUpload">
-                            <i class="fa fa-plus"></i> Add Materials
-                        </button>
-                    }
-                </div>
-                <div class="card-body">
-                    <!-- Media Viewer Box -->
-                    <div class="pdf-viewer-container mb-4">
-                        @if (isVideoSelected && !string.IsNullOrEmpty(classSession.VideoUrl))
+            <div class="fcms-tab-card rounded-3 p-3 mb-4">
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        @if (isVideoSelected)
                         {
-                            <div class="ratio ratio-16x9 h-100">
+                            <div class="ratio ratio-16x9 rounded-3 overflow-hidden">
                                 <iframe src="@Util.GetYouTubeEmbedUrl(classSession.VideoUrl)"
                                         title="@(classSession.VideoTitle ?? "Video Lesson")"
                                         frameborder="0"
@@ -245,144 +235,112 @@
                                 </iframe>
                             </div>
                         }
-                        else if (!string.IsNullOrEmpty(selectedPdfUrl))
+                        @if (isPdfSelected)
                         {
-                            <embed src="@selectedPdfUrl" type="application/pdf" style="width:100%; height:100%;" />
+                            <div class="ratio ratio-4x3 rounded-3 overflow-hidden">
+                                <embed src="@selectedMaterial?.FilePath" type="application/pdf" />
+                            </div>
                         }
-                        else
+                        @if (isImageSelected)
                         {
-                            <div class="pdf-viewer-placeholder">
-                                <i class="fa fa-file-pdf text-muted"></i>
-                                <p class="mt-3 text-muted">No material selected</p>
+                            <div class="ratio ratio-4x3">
+                                <img src="@selectedMaterial?.FilePath" alt="@selectedMaterial?.FileName" class="object-fit-contain rounded-3" />
+                            </div>
+                        }
+                        @if (isOtherSelected)
+                        {
+                            <div class="text-center py-5">
+                                <i class="@Util.GetFileIcon(selectedMaterial?.FileName ?? string.Empty) fa-3x mb-3"></i>
+                                <p>@selectedMaterial?.FileName</p>
+                                <a href="@selectedMaterial?.FilePath" download="@selectedMaterial?.FileName" class="btn btn-fcms">
+                                    <i class="fa fa-download me-1"></i>Download
+                                </a>
+                            </div>
+                        }
+                        @if (!isVideoSelected && selectedMaterial == null)
+                        {
+                            <div class="text-center py-5">
+                                <i class="fa fa-folder-open fa-3x mb-3"></i>
+                                <p class="mb-0">No materials yet.</p>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-4">
+                        @if (hasMaterials || canManageClassSession)
+                        {
+                            <div class="d-flex align-items-center mb-3">
+                                @if (hasMaterials)
+                                {
+                                    <h5 class="mb-0">StudyMaterials</h5>
+                                }
                                 @if (canManageClassSession)
                                 {
-                                    <p class="text-muted">Upload a PDF or add a video link</p>
-                                    <button class="btn btn-primary btn-sm mt-1" @onclick="ToggleMaterialsUpload">
-                                        Upload Materials
+                                    <InputFile id="materialUpload" class="d-none" multiple OnChange="UploadMaterials" />
+                                    <label for="materialUpload" title="Upload files"
+                                           class="btn btn-fcms fcms-btn-round ms-auto @(isUploadingMaterials ? "disabled" : "")">
+                                        <i class="fa @(isUploadingMaterials ? "fa-spinner fa-spin" : "fa-upload")"></i>
+                                    </label>
+                                    @if (string.IsNullOrEmpty(classSession.VideoUrl))
+                                    {
+                                        <button type="button" class="btn btn-outline-fcms fcms-btn-round ms-1" title="Add YouTube video"
+                                                @onclick="() => showVideoModal = true">
+                                            <i class="fab fa-youtube"></i>
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(materialErrorMessage))
+                        {
+                            <p class="small text-danger mb-2">@materialErrorMessage</p>
+                        }
+
+                        @if (!string.IsNullOrEmpty(classSession.VideoUrl))
+                        {
+                            <div class="d-flex align-items-center mb-2">
+                                <button type="button" title="@classSession.VideoTitle"
+                                        class="btn rounded-pill text-start text-truncate flex-grow-1 me-2 @(isVideoSelected ? "btn-fcms" : "btn-outline-fcms border-0")"
+                                        @onclick="SelectVideo">
+                                    <i class="fab fa-youtube me-2"></i>@(classSession.VideoTitle ?? "Video Lesson")
+                                </button>
+                                @if (canManageClassSession)
+                                {
+                                    <button type="button" class="btn btn-outline-fcms fcms-btn-round flex-shrink-0 me-1" title="Edit"
+                                            @onclick="() => showVideoModal = true">
+                                        <i class="fa fa-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-fcms fcms-btn-round flex-shrink-0" title="Remove"
+                                            @onclick="AskDeleteVideo">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+                            </div>
+                        }
+
+                        @foreach (var material in classSession.StudyMaterials)
+                        {
+                            <div class="d-flex align-items-center mb-2" @key="material.Id">
+                                <button type="button" title="@material.FileName"
+                                        class="btn rounded-pill text-start text-truncate flex-grow-1 me-2 @(selectedMaterial == material ? "btn-fcms" : "btn-outline-fcms border-0")"
+                                        @onclick="() => SelectMaterial(material)">
+                                    <i class="@Util.GetFileIcon(material.FileName) me-2"></i>@material.FileName
+                                </button>
+                                <a href="@material.FilePath" download="@material.FileName" title="Download"
+                                   class="btn btn-outline-fcms fcms-btn-round flex-shrink-0 me-1">
+                                    <i class="fa fa-download"></i>
+                                </a>
+                                @if (canManageClassSession)
+                                {
+                                    <button type="button" class="btn btn-outline-fcms fcms-btn-round flex-shrink-0" title="Delete"
+                                            @onclick="() => AskDeleteMaterial(material)">
+                                        <i class="fa fa-trash"></i>
                                     </button>
                                 }
                             </div>
                         }
                     </div>
-
-                    @if (showMaterialsUpload)
-                    {
-                        <div class="mb-4">
-                            <h5>Upload Materials</h5>
-                            <FileAttachmentManager Title="Upload Study Materials"
-                                                   Category="@($"ClassSession-{classSession.Id}-Materials")"
-                                                   ReferenceId="classSession.Id"
-                                                   AllowUpload="true"
-                                                   AllowDelete="@(canManageClassSession)"
-                                                   AllowMultiple="true"
-                                                   OnAttachmentsChanged="HandleMaterialsChanged" />
-
-                            <hr class="my-3" />
-
-                            <!-- Video Link Section -->
-                            <h5><i class="fa fa-video me-2"></i>Video Lesson</h5>
-                            @if (string.IsNullOrEmpty(classSession.VideoUrl))
-                            {
-                                @if (showVideoForm)
-                                {
-                                    <div class="p-3 border rounded bg-light">
-                                        <div class="mb-3">
-                                            <label class="form-label">Video Title (optional)</label>
-                                            <input type="text" class="form-control" @bind="newVideoTitle" placeholder="e.g., Introduction to Fractions" />
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">YouTube URL</label>
-                                            <input type="text" class="form-control" @bind="newVideoUrl" @bind:after="ClearVideoError" placeholder="https://www.youtube.com/watch?v=..." />
-                                            <small class="text-muted">Paste any YouTube link</small>
-                                        </div>
-                                        @if (!string.IsNullOrEmpty(videoErrorMessage))
-                                        {
-                                            <div class="alert alert-danger py-2">@videoErrorMessage</div>
-                                        }
-                                        <div class="d-flex gap-2">
-                                            <button class="btn btn-secondary btn-sm" @onclick="ToggleVideoForm">Cancel</button>
-                                            <button class="btn btn-success btn-sm" @onclick="SaveVideo">Save Video</button>
-                                        </div>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <button class="btn btn-outline-primary btn-sm" @onclick="ToggleVideoForm">
-                                        <i class="fa fa-plus me-1"></i>Add YouTube Video
-                                    </button>
-                                }
-                            }
-                            else
-                            {
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="text-success"><i class="fa fa-check-circle me-1"></i>Video added: @classSession.VideoTitle</span>
-                                    <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleVideoForm">Edit</button>
-                                    <button class="btn btn-outline-danger btn-sm" @onclick="RemoveVideo">Remove</button>
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    <!-- Material Selection -->
-                    @if ((classSession.StudyMaterials != null && classSession.StudyMaterials.Any()) || !string.IsNullOrEmpty(classSession.VideoUrl))
-                    {
-                        <div class="mb-3">
-                            <h5>Available Materials</h5>
-                            <div class="list-group">
-                                @* Video Link Item *@
-                                @if (!string.IsNullOrEmpty(classSession.VideoUrl))
-                                {
-                                    <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center @(isVideoSelected ? "active" : "")"
-                                            @onclick="SelectVideo">
-                                        <div>
-                                            <i class="fa fa-video me-2 text-danger"></i>
-                                            @(classSession.VideoTitle ?? "Video Lesson")
-                                            <span class="badge bg-danger ms-2">YouTube</span>
-                                        </div>
-                                        <div>
-                                            <span class="btn btn-sm @(isVideoSelected ? "btn-light" : "btn-outline-secondary")">
-                                                <i class="fa fa-play"></i> @(isVideoSelected ? "Playing" : "Play")
-                                            </span>
-                                        </div>
-                                    </button>
-                                }
-
-                                @* PDF/File Items *@
-                                @if (classSession.StudyMaterials != null)
-                                {
-                                    @foreach (var material in classSession.StudyMaterials)
-                                    {
-                                        <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-center @(selectedPdfUrl == material.FilePath && !isVideoSelected ? "active" : "")"
-                                                @onclick="() => SelectMaterial(material)">
-
-                                            <div class="text-truncate" style="max-width: 250px;" title="@material.FileName">
-                                                <i class="@Util.GetFileIcon(material.FileName) me-2"></i>
-                                                @material.FileName
-                                            </div>
-
-                                            <div class="d-flex gap-1 flex-shrink-0">
-                                                @if (IsPdfFile(material.FileName))
-                                                {
-                                                    <span class="btn btn-sm @(selectedPdfUrl == material.FilePath && !isVideoSelected ? "btn-success" : "btn-outline-secondary")">
-                                                        <i class="fa fa-eye"></i> @(selectedPdfUrl == material.FilePath && !isVideoSelected ? "Viewing" : "View")
-                                                    </span>
-                                                }
-                                                <a href="@material.FilePath" target="_blank" class="btn btn-sm btn-outline-primary me-2" @onclick:stopPropagation>
-                                                    <i class="fa fa-download"></i>
-                                                </a>
-                                                @if (canManageClassSession)
-                                                {
-                                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveMaterial(material)" @onclick:stopPropagation title="Delete">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                }
-                                            </div>
-                                        </button>
-                                    }
-                                }
-                            </div>
-                        </div>
-                    }
                 </div>
             </div>
         }
@@ -709,6 +667,21 @@
                     OnConfirm="ConfirmDeleteRemark"
                     OnCancel="() => showDeleteRemarkConfirmation = false" />
 
+@if (showVideoModal)
+{
+    <VideoLinkModal IsVisible="showVideoModal"
+                    InitialTitle="@(classSession.VideoTitle ?? string.Empty)"
+                    InitialUrl="@(classSession.VideoUrl ?? string.Empty)"
+                    OnSave="SaveVideo"
+                    OnClose="() => showVideoModal = false" />
+}
+
+<ConfirmDeleteModal IsVisible="showDeleteMaterialConfirmation"
+                    Title="@(isDeletingVideo ? "Remove Video" : "Delete Material")"
+                    Message="@(isDeletingVideo ? "Remove the video from this session?" : $"Delete {materialToDelete?.FileName}? This can't be undone.")"
+                    OnConfirm="ConfirmDeleteMaterial"
+                    OnCancel="() => showDeleteMaterialConfirmation = false" />
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -716,7 +689,7 @@
     [SupplyParameterFromQuery(Name = "returnUrl")]
     public string? ReturnUrl { get; set; }
 
-    private string selectedPdfUrl = string.Empty;
+
     private ClassSession classSession = new();
     private ClassSchedule? scheduleEntry;
     private LearningPath relatedLearningPath = new();
@@ -727,7 +700,7 @@
     private HomeworkSubmission selectedSubmission = new();
     private HomeworkSubmission submissionToGrade = new();
     private HomeworkSubmission studentGradeSubmission = new();
-    private bool showMaterialsUpload = false;
+
     private bool showHomeworkModal = false;
     private bool showSubmissionModal = false;
     private bool editingLessonPlan = false;
@@ -752,12 +725,18 @@
     private string errorMessage = string.Empty;
     private SessionState sessionState => LogicMethods.GetSessionState(scheduleEntry?.DateTime, currentRecord?.ClosedAt, DateTime.Now);
 
-    // Video management
-    private bool showVideoForm = false;
-    private string newVideoTitle = string.Empty;
-    private string newVideoUrl = string.Empty;
-    private string videoErrorMessage = string.Empty;
+    private FileAttachment? selectedMaterial;
+    private bool isPdfSelected => selectedMaterial != null && Util.IsPdfFile(selectedMaterial.FileName);
+    private bool isImageSelected => selectedMaterial != null && Util.IsImageFile(selectedMaterial.FileName);
+    private bool isOtherSelected => selectedMaterial != null && !isPdfSelected && !isImageSelected;
+    private bool isUploadingMaterials;
+    private string materialErrorMessage = string.Empty;
+    private bool showVideoModal;
+    private bool showDeleteMaterialConfirmation;
+    private FileAttachment? materialToDelete;
+    private bool isDeletingVideo;
     private bool isVideoSelected = false;
+    private bool hasMaterials => classSession.StudyMaterials.Any() || !string.IsNullOrEmpty(classSession.VideoUrl);
 
     private const string TabSession = "session";
     private const string TabMaterials = "materials";
@@ -803,6 +782,7 @@
 
             LoadEnrolledStudents();
             LoadCurrentRecord();
+            SelectDefaultMaterial();
 
             canManageClassSession = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
             canDeletePastRemarks = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin");
@@ -832,36 +812,6 @@
 
         canEditYearActivity = LogicMethods.IsSessionInPeriod(classSession.Semester, currentPeriod) &&
                               LogicMethods.IsClassSessionRecordOpen(currentRecord?.ClosedAt, gradesFinalized);
-    }
-
-    private void ToggleMaterialsUpload()
-    {
-        showMaterialsUpload = !showMaterialsUpload;
-    }
-
-    private void HandleMaterialsChanged(List<FileAttachment> materials)
-    {
-        if (classSession.StudyMaterials == null)
-            classSession.StudyMaterials = new List<FileAttachment>();
-
-        foreach (var material in materials)
-        {
-            if (!classSession.StudyMaterials.Any(m => m.FilePath == material.FilePath))
-            {
-                classSession.StudyMaterials.Add(material);
-            }
-        }
-
-        if (string.IsNullOrEmpty(selectedPdfUrl))
-        {
-            var firstPdf = classSession.StudyMaterials.FirstOrDefault(m => IsPdfFile(m.FileName));
-            if (firstPdf != null)
-            {
-                selectedPdfUrl = firstPdf.FilePath;
-            }
-        }
-
-        SchoolDataService.UpdateClassSession(classSession);
     }
 
     private void OpenRemarksTab()
@@ -944,30 +894,6 @@
             return;
         }
         NavigationManager.NavigateTo($"/myclasses");
-    }
-
-    private void SelectMaterial(FileAttachment material)
-    {
-        if (IsPdfFile(material.FileName))
-        {
-            selectedPdfUrl = material.FilePath;
-            isVideoSelected = false;
-        }
-    }
-
-    private bool IsPdfFile(string fileName)
-    {
-        return !string.IsNullOrEmpty(fileName) && fileName.ToLower().EndsWith(".pdf");
-    }
-
-    private async Task RemoveMaterial(FileAttachment material)
-    {
-        classSession.StudyMaterials.Remove(material);
-        await SchoolDataService.DeleteFileAsync(material);
-        SchoolDataService.UpdateClassSession(classSession);
-
-        if (selectedPdfUrl == material.FilePath)
-            selectedPdfUrl = classSession.StudyMaterials.FirstOrDefault(m => IsPdfFile(m.FileName))?.FilePath;
     }
 
     private void SaveLessonPlan()
@@ -1067,54 +993,100 @@
         }
     }
 
-    private void ToggleVideoForm()
+    private void SelectDefaultMaterial()
     {
-        showVideoForm = !showVideoForm;
-        newVideoTitle = classSession.VideoTitle ?? string.Empty;
-        newVideoUrl = classSession.VideoUrl ?? string.Empty;
-        videoErrorMessage = string.Empty;
-    }
-
-    private void SaveVideo()
-    {
-        videoErrorMessage = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(newVideoUrl))
-        {
-            videoErrorMessage = "Please enter a YouTube URL.";
-            return;
-        }
-
-        if (!Util.IsValidYouTubeUrl(newVideoUrl))
-        {
-            videoErrorMessage = "Please enter a valid YouTube URL.";
-            return;
-        }
-
-        classSession.VideoUrl = newVideoUrl;
-        classSession.VideoTitle = string.IsNullOrWhiteSpace(newVideoTitle) ? "Video Lesson" : newVideoTitle;
-        SchoolDataService.UpdateClassSession(classSession);
-
-        showVideoForm = false;
-    }
-
-    private void RemoveVideo()
-    {
-        classSession.VideoUrl = null;
-        classSession.VideoTitle = null;
-        SchoolDataService.UpdateClassSession(classSession);
-        isVideoSelected = false;
+        isVideoSelected = !string.IsNullOrEmpty(classSession.VideoUrl);
+        selectedMaterial = isVideoSelected
+            ? null
+            : classSession.StudyMaterials.FirstOrDefault(m => Util.IsPdfFile(m.FileName) || Util.IsImageFile(m.FileName))
+              ?? classSession.StudyMaterials.FirstOrDefault();
     }
 
     private void SelectVideo()
     {
         isVideoSelected = true;
-        selectedPdfUrl = null;
+        selectedMaterial = null;
     }
 
-    private void ClearVideoError()
+    private void SelectMaterial(FileAttachment material)
     {
-        videoErrorMessage = string.Empty;
+        isVideoSelected = false;
+        selectedMaterial = material;
+    }
+
+    private async Task UploadMaterials(InputFileChangeEventArgs e)
+    {
+        materialErrorMessage = string.Empty;
+        isUploadingMaterials = true;
+
+        foreach (var file in e.GetMultipleFiles(FcmsConstants.MAX_FILE_UPLOAD_COUNT))
+        {
+            if (file.Size > FcmsConstants.MAX_FILE_SIZE)
+            {
+                materialErrorMessage = $"{file.Name} is larger than {FcmsConstants.MAX_FILE_SIZE_MB}MB, so it wasn't uploaded.";
+                continue;
+            }
+
+            var attachment = await SchoolDataService.UploadFileAsync(file, $"ClassSession-{classSession.Id}-Materials");
+            classSession.StudyMaterials.Add(attachment);
+        }
+
+        SchoolDataService.UpdateClassSession(classSession);
+        isUploadingMaterials = false;
+
+        if (!isVideoSelected && selectedMaterial == null)
+            SelectDefaultMaterial();
+    }
+
+    private void SaveVideo((string Title, string Url) video)
+    {
+        classSession.VideoUrl = video.Url;
+        classSession.VideoTitle = string.IsNullOrWhiteSpace(video.Title) ? "Video Lesson" : video.Title;
+        SchoolDataService.UpdateClassSession(classSession);
+        showVideoModal = false;
+        SelectVideo();
+    }
+
+    private void AskDeleteMaterial(FileAttachment material)
+    {
+        materialToDelete = material;
+        isDeletingVideo = false;
+        showDeleteMaterialConfirmation = true;
+    }
+
+    private void AskDeleteVideo()
+    {
+        materialToDelete = null;
+        isDeletingVideo = true;
+        showDeleteMaterialConfirmation = true;
+    }
+
+    private async Task ConfirmDeleteMaterial()
+    {
+        showDeleteMaterialConfirmation = false;
+
+        if (isDeletingVideo)
+        {
+            classSession.VideoUrl = null;
+            classSession.VideoTitle = null;
+            SchoolDataService.UpdateClassSession(classSession);
+
+            if (isVideoSelected)
+                SelectDefaultMaterial();
+            return;
+        }
+
+        if (materialToDelete == null)
+            return;
+
+        var wasSelected = selectedMaterial == materialToDelete;
+        classSession.StudyMaterials.Remove(materialToDelete);
+        await SchoolDataService.DeleteFileAsync(materialToDelete);
+        SchoolDataService.UpdateClassSession(classSession);
+        materialToDelete = null;
+
+        if (wasSelected)
+            SelectDefaultMaterial();
     }
 
     private void CloseSession()

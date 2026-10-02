@@ -1,44 +1,40 @@
 ﻿@using FcmsPortal.Constants
 
 <div class="character-count-textarea-container">
-    <div class="position-relative">
-        <textarea class="form-control @AdditionalCssClass"
-                  rows="@Rows"
-                  maxlength="@MaxLength"
-                  placeholder="@Placeholder"
-                  @bind:get="Value"
-                  @bind:set="HandleValueSet">
-        </textarea>
+    <textarea class="form-control @AdditionalCssClass"
+              rows="@Rows"
+              maxlength="@MaxLength"
+              placeholder="@PlaceholderWithLimit"
+              @bind:get="Value"
+              @bind:set="HandleValueSet">
+    </textarea>
 
-        @if (ShowEmojiPicker)
-        {
-            <button type="button"
-                    class="btn btn-sm btn-link position-absolute emoji-toggle-btn"
-                    @onclick="ToggleEmojiPanel"
-                    @onclick:preventDefault
-                    title="Insert emoji">
-                <i class="fa fa-smile"></i>
-            </button>
-        }
-    </div>
-
-    @if (isEmojiPanelOpen)
+    @if (ShowEmojiPicker || Actions != null)
     {
-        <div class="emoji-panel border rounded shadow-sm bg-white p-2 mt-1">
-            @foreach (var emoji in emojiSet)
+        <div class="d-flex align-items-center mt-2">
+            @if (ShowEmojiPicker)
             {
-                <span class="emoji-item" role="button" @onclick="() => InsertEmoji(emoji)" title="@emoji">
-                    @emoji
-                </span>
+                <div class="position-relative">
+                    <button type="button" class="btn btn-outline-fcms fcms-btn-round" title="Insert emoji"
+                            @onclick="ToggleEmojiPanel">
+                        <i class="far fa-face-smile"></i>
+                    </button>
+
+                    @if (isEmojiPanelOpen)
+                    {
+                        <div class="position-fixed top-0 start-0 w-100 h-100 z-2" @onclick="CloseEmojiPanel"></div>
+                        <div class="emoji-panel position-absolute top-100 start-0 z-3 mt-2 p-2 rounded-3 shadow">
+                            @foreach (var emoji in emojiSet)
+                            {
+                                <span class="emoji-item" role="button" @onclick="() => InsertEmoji(emoji)">@emoji</span>
+                            }
+                        </div>
+                    }
+                </div>
             }
+            <div class="ms-auto">@Actions</div>
         </div>
     }
-
-    <div class="d-flex justify-content-end mt-1">
-        <small class="@GetCounterCssClass()">
-            @RemainingCharacters / @MaxLength remaining
-        </small>
-    </div>
 </div>
 
 @code {
@@ -49,16 +45,19 @@
     [Parameter] public string Placeholder { get; set; } = string.Empty;
     [Parameter] public string AdditionalCssClass { get; set; } = string.Empty;
     [Parameter] public bool ShowEmojiPicker { get; set; } = true;
+    [Parameter] public RenderFragment? Actions { get; set; }
 
     private bool isEmojiPanelOpen = false;
 
-    private int RemainingCharacters => MaxLength - (Value?.Length ?? 0);
+    private string PlaceholderWithLimit => string.IsNullOrEmpty(Placeholder)
+        ? $"Up to {MaxLength} characters"
+        : $"{Placeholder} (up to {MaxLength} characters)";
 
     private readonly string[] emojiSet = new[]
     {
-        "👍", "👏", "🎉", "✅", "❌", "❓", "🤔",
-        "😊", "😂", "😢", "😮", "🙏", "💡", "📚",
-        "✏️", "📝", "⭐", "🔥", "💪", "👀"
+        "😊", "😂", "😮", "🤔", "🙏", "👏", "👍",
+        "🎉", "✅", "❓", "💡", "📚", "✏️", "📝",
+        "⭐", "🌟", "🏆", "🔥", "💪", "👀", "🥳"
     };
 
     private async Task HandleValueSet(string? newValue)
@@ -87,11 +86,8 @@
         isEmojiPanelOpen = !isEmojiPanelOpen;
     }
 
-    private string GetCounterCssClass()
+    private void CloseEmojiPanel()
     {
-        if (RemainingCharacters <= 0) return "text-danger fw-bold";
-        if (RemainingCharacters <= 50) return "text-danger";
-        if (RemainingCharacters <= 100) return "text-warning";
-        return "text-muted";
+        isEmojiPanelOpen = false;
     }
 }

@@ -142,6 +142,16 @@ namespace FcmsPortalUI
             };
         }
 
+        public static bool IsPdfFile(string fileName)
+        {
+            return System.IO.Path.GetExtension(fileName).ToLowerInvariant() == ".pdf";
+        }
+
+        public static bool IsImageFile(string fileName)
+        {
+            return System.IO.Path.GetExtension(fileName).ToLowerInvariant() is ".jpg" or ".jpeg" or ".png" or ".gif";
+        }
+
         public static string GetScheduleTitle(ScheduleEntry schedule)
         {
             if (!string.IsNullOrEmpty(schedule.Title))

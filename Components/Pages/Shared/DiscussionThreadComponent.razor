@@ -16,12 +16,13 @@
             <EditForm Model="newFirstPost" OnValidSubmit="@HandleAddFirstPost" class="mb-4">
                 <CharacterCountTextArea @bind-Value="newFirstPost.Comment"
                                         Rows="2"
-                                        Placeholder="Start a new discussion..." />
-                <div class="d-flex justify-content-end mt-2">
-                    <button type="submit" class="btn btn-fcms fcms-btn-round" title="Post">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
+                                        Placeholder="Start a new discussion">
+                    <Actions>
+                        <button type="submit" class="btn btn-fcms fcms-btn-round" title="Post">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </Actions>
+                </CharacterCountTextArea>
             </EditForm>
         }
 
@@ -72,15 +73,14 @@
                         {
                             <div class="ms-5 mb-3 mt-3">
                                 <EditForm Model="newReply" OnValidSubmit="() => HandleAddReply(thread)">
-                                    <div class="mb-2">
-                                        <CharacterCountTextArea @bind-Value="newReply.Comment"
-                                                                Rows="2"
-                                                                Placeholder="Write your reply..." />
-                                    </div>
-                                    <div class="d-flex justify-content-end">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary me-2" @onclick="CancelReply">Cancel</button>
-                                        <button type="submit" class="btn btn-sm btn-primary">Reply</button>
-                                    </div>
+                                    <CharacterCountTextArea @bind-Value="newReply.Comment"
+                                                            Rows="2"
+                                                            Placeholder="Write your reply">
+                                        <Actions>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-2" @onclick="CancelReply">Cancel</button>
+                                            <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                                        </Actions>
+                                    </CharacterCountTextArea>
                                 </EditForm>
                             </div>
                         }
