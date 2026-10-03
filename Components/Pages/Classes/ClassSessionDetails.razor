@@ -573,58 +573,47 @@
 
         @if (activeTab == TabLessonPlan)
         {
-            <!-- Lesson Plan Section -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Lesson Plan</h4>
-                    @if (!editingLessonPlan && !string.IsNullOrEmpty(classSession.LessonPlan) && canManageClassSession)
-                    {
-                        <button class="btn btn-sm btn-light" @onclick="EditLessonPlan">
-                            <i class="fa fa-edit"></i> Edit
+            <div class="fcms-tab-card rounded-3 p-3 mb-4">
+                @if (editingLessonPlan)
+                {
+                    <textarea class="form-control mb-2" rows="15" @bind="lessonPlanDraft"
+                              placeholder="Objectives, materials, activities, assessment..."></textarea>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-fcms fcms-btn-round me-1" title="Cancel" @onclick="CancelLessonPlanEdit">
+                            <i class="fa fa-times"></i>
                         </button>
-                    }
-                </div>
-                <div class="card-body">
-                    @if (editingLessonPlan && canManageClassSession)
+                        <button type="button" class="btn btn-fcms fcms-btn-round" title="Save" @onclick="SaveLessonPlan">
+                            <i class="fa fa-check"></i>
+                        </button>
+                    </div>
+                }
+                @if (!editingLessonPlan && string.IsNullOrEmpty(classSession.LessonPlan))
+                {
+                    <div class="text-center py-5">
+                        <i class="fa fa-book-open fa-3x mb-3"></i>
+                        <p class="mb-3">No lesson plan yet.</p>
+                        @if (canManageClassSession)
+                        {
+                            <button type="button" class="btn btn-fcms fcms-btn-round" title="Write lesson plan" @onclick="EditLessonPlan">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        }
+                    </div>
+                }
+                @if (!editingLessonPlan && !string.IsNullOrEmpty(classSession.LessonPlan))
+                {
+                    @if (canManageClassSession)
                     {
-                        <EditForm Model="@classSession" OnValidSubmit="SaveLessonPlan">
-                            <div class="mb-3">
-                                <InputTextArea @bind-Value="classSession.LessonPlan"
-                                               class="form-control"
-                                               rows="10"
-                                               placeholder="Enter your lesson plan content here..." />
-                            </div>
-                            <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-secondary me-2" @onclick="CancelLessonPlanEdit">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Save</button>
-                            </div>
-                        </EditForm>
-                    }
-                    else
-                    {
-                        <div class="lesson-plan-content p-3 bg-light rounded" style="min-height: 200px;">
-                            @if (!string.IsNullOrEmpty(classSession.LessonPlan))
-                            {
-                                <div class="formatted-content">
-                                    @((MarkupString)Util.FormatTextWithLinks(classSession.LessonPlan))
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="text-center text-muted my-5">
-                                    <i class="fa fa-book-open fa-3x mb-3"></i>
-                                    <p>No lesson plan has been created yet.</p>
-                                    @if (canManageClassSession)
-                                    {
-                                        <button class="btn btn-outline-primary mt-2" @onclick="EditLessonPlan">
-                                            <i class="fa fa-plus"></i> Create Lesson Plan
-                                        </button>
-                                    }
-                                </div>
-                            }
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn btn-outline-fcms fcms-btn-round" title="Edit lesson plan" @onclick="EditLessonPlan">
+                                <i class="fa fa-pencil"></i>
+                            </button>
                         </div>
                     }
-                </div>
+                    <div class="formatted-content">
+                        @((MarkupString)Util.FormatTextWithLinks(classSession.LessonPlan))
+                    </div>
+                }
             </div>
         }
 
@@ -786,6 +775,7 @@
     private Student currentStudent = new();
 
     private bool editingLessonPlan = false;
+    private string lessonPlanDraft = string.Empty;
 
     private Homework? homeworkFormSource;
     private string homeworkFormHeading = string.Empty;
@@ -1007,15 +997,17 @@
         NavigationManager.NavigateTo($"/myclasses");
     }
 
-    private void SaveLessonPlan()
-    {
-        SchoolDataService.UpdateClassSession(classSession);
-        editingLessonPlan = false;
-    }
-
     private void EditLessonPlan()
     {
+        lessonPlanDraft = classSession.LessonPlan;
         editingLessonPlan = true;
+    }
+
+    private void SaveLessonPlan()
+    {
+        classSession.LessonPlan = lessonPlanDraft;
+        SchoolDataService.UpdateClassSession(classSession);
+        editingLessonPlan = false;
     }
 
     private void CancelLessonPlanEdit()

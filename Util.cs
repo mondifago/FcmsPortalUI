@@ -4,6 +4,7 @@ using FcmsPortal.Enums;
 using FcmsPortal.Models;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Globalization;
+using System.Net;
 using System.Text.RegularExpressions;
 
 namespace FcmsPortalUI
@@ -90,7 +91,7 @@ namespace FcmsPortalUI
             if (string.IsNullOrEmpty(content))
                 return "";
 
-            string formatted = content.Replace(Environment.NewLine, "<br>").Replace("\n", "<br>");
+            string formatted = WebUtility.HtmlEncode(content).Replace(Environment.NewLine, "<br>").Replace("\n", "<br>");
 
             string urlPattern = @"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})";
             formatted = Regex.Replace(
