@@ -1765,14 +1765,6 @@ namespace FcmsPortalUI.Services
             return true;
         }
 
-        public HomeworkSubmission? GetHomeworkSubmissionById(int id)
-        {
-            return _context.HomeworkSubmissions
-                .Include(sub => sub.Student)
-                    .ThenInclude(st => st.Person)
-                .FirstOrDefault(sub => sub.Id == id);
-        }
-
         public HomeworkSubmission? AddHomeworkSubmission(HomeworkSubmission submission)
         {
             if (submission == null)

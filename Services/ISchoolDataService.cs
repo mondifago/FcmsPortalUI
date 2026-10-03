@@ -121,7 +121,6 @@ namespace FcmsPortalUI.Services
         HomeworkSubmission? SubmitHomework(int homeworkId, Student student, string answer);
         void SaveHomework(int classSessionId, Homework homework);
         bool DeleteHomework(int id);
-        HomeworkSubmission? GetHomeworkSubmissionById(int id);
         HomeworkSubmission? AddHomeworkSubmission(HomeworkSubmission submission);
         List<Homework> GetPastHomework(int classSessionId);
         void UpdateHomeworkAnswer(int submissionId, string answer);

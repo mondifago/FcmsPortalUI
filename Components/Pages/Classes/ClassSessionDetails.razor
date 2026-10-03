@@ -402,6 +402,10 @@
                                             </button>
                                         </Actions>
                                     </CharacterCountTextArea>
+                                    @if (!string.IsNullOrEmpty(answerErrorMessage))
+                                    {
+                                        <p class="small text-danger mt-1 mb-0">@answerErrorMessage</p>
+                                    }
                                 }
                                 @if (mySubmission == null && !canEditYearActivity)
                                 {
@@ -415,7 +419,7 @@
                                                             ShowEmojiPicker="false"
                                                             Placeholder="Write your answer">
                                         <Actions>
-                                            <button type="button" class="btn btn-outline-fcms fcms-btn-round me-1" title="Cancel" @onclick="() => isEditingAnswer = false">
+                                            <button type="button" class="btn btn-outline-fcms fcms-btn-round me-1" title="Cancel" @onclick="() => { isEditingAnswer = false; answerErrorMessage = string.Empty; }">
                                                 <i class="fa fa-times"></i>
                                             </button>
                                             <button type="button" class="btn btn-fcms fcms-btn-round" title="Save answer" @onclick="() => SaveAnswerEdit(mySubmission)">
@@ -423,6 +427,10 @@
                                             </button>
                                         </Actions>
                                     </CharacterCountTextArea>
+                                    @if (!string.IsNullOrEmpty(answerErrorMessage))
+                                    {
+                                        <p class="small text-danger mt-1 mb-0">@answerErrorMessage</p>
+                                    }
                                 }
                                 @if (mySubmission != null && !isEditingAnswer)
                                 {
@@ -792,6 +800,7 @@
     private bool canReuseHomework => canManageClassSession && canEditYearActivity && currentHomework == null;
     private HomeworkSubmission? MySubmission => currentHomework?.Submissions.FirstOrDefault(s => s.StudentId == currentStudent.Id);
     private record SubmissionRow(Student Student, HomeworkSubmission? Submission, HomeworkSubmissionStatus Status);
+    private string answerErrorMessage = string.Empty;
 
     private AcademicPeriod? currentPeriod;
     private ClassSessionRecord? currentRecord;
@@ -800,7 +809,6 @@
     private bool canEditYearActivity;
 
     private Person? currentUser;
-    private int? currentUserId;
     private bool canManageClassSession;
     private bool isStudent;
 
@@ -869,8 +877,6 @@
         if (classSession != null)
         {
             scheduleEntry = SchoolDataService.GetClassScheduleByClassSessionId(Id);
-
-            currentUserId = await PermissionService.GetCurrentUserIdAsync();
             currentUser = await PermissionService.GetCurrentPersonAsync();
 
             if (currentUser != null)
@@ -1096,8 +1102,16 @@
 
     private void SubmitAnswer()
     {
-        if (currentHomework == null || string.IsNullOrWhiteSpace(answerDraft))
+        if (currentHomework == null)
             return;
+
+        if (string.IsNullOrWhiteSpace(answerDraft))
+        {
+            answerErrorMessage = "Answer is required.";
+            return;
+        }
+
+        answerErrorMessage = string.Empty;
 
         SchoolDataService.SubmitHomework(currentHomework.Id, currentStudent, answerDraft);
         answerDraft = string.Empty;
@@ -1113,7 +1127,12 @@
     private void SaveAnswerEdit(HomeworkSubmission submission)
     {
         if (string.IsNullOrWhiteSpace(answerDraft))
+        {
+            answerErrorMessage = "Answer is required.";
             return;
+        }
+
+        answerErrorMessage = string.Empty;
 
         SchoolDataService.UpdateHomeworkAnswer(submission.Id, answerDraft);
         isEditingAnswer = false;
