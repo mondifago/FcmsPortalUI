@@ -1,0 +1,86 @@
+﻿@using FcmsPortal.Constants
+@using FcmsPortal.Models
+@using FcmsPortalUI.Components.Pages.Shared
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content fcms-modal-panel">
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center fcms-list-toolbar mb-3">
+                    <h5 class="modal-title fcms-picker-title mb-0">@Heading</h5>
+                    <button type="button" class="fcms-picker-close" @onclick="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-control" maxlength="@FcmsConstants.MAX_HOMEWORK_TITLE_LENGTH" @bind="homework.Title" />
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Due date</label>
+                        <input type="date" class="form-control" @bind="homework.DueDate" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Out of</label>
+                        <input type="number" class="form-control" @bind="homework.MaxScore" />
+                    </div>
+                </div>
+
+                <label class="form-label">Question</label>
+                <CharacterCountTextArea @bind-Value="homework.Question"
+                                        MaxLength="FcmsConstants.MAX_HOMEWORK_QUESTION_LENGTH"
+                                        Rows="8"
+                                        ShowEmojiPicker="false"
+                                        Placeholder="Write the homework question" />
+
+                <div class="fcms-list-toolbar mt-3"></div>
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
+                    <button type="button" class="btn btn-fcms" @onclick="Save">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Heading { get; set; } = string.Empty;
+    [Parameter] public Homework Source { get; set; } = new();
+    [Parameter] public EventCallback<Homework> OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Homework homework = new();
+
+    protected override void OnInitialized()
+    {
+        homework = new Homework
+        {
+            Id = Source.Id,
+            Title = Source.Title,
+            Question = Source.Question,
+            MaxScore = Source.MaxScore,
+            AssignedDate = Source.AssignedDate,
+            DueDate = Source.DueDate
+        };
+    }
+
+    private async Task Save()
+    {
+        await OnSave.InvokeAsync(homework);
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}

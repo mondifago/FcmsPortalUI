@@ -1665,32 +1665,6 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public void SaveHomework(int classSessionId, Homework homework)
-        {
-            var record = GetOrCreateCurrentRecord(classSessionId);
-            var existing = _context.Homework.FirstOrDefault(h => h.Id == homework.Id);
-
-            if (existing == null)
-            {
-                _context.Homework.Add(new Homework
-                {
-                    Title = homework.Title,
-                    Question = homework.Question,
-                    AssignedDate = homework.AssignedDate,
-                    DueDate = homework.DueDate,
-                    ClassSessionRecord = record
-                });
-                _context.SaveChanges();
-                return;
-            }
-
-            existing.Title = homework.Title;
-            existing.Question = homework.Question;
-            existing.AssignedDate = homework.AssignedDate;
-            existing.DueDate = homework.DueDate;
-            _context.SaveChanges();
-        }
-
         public List<ClassSessionRecord> GetClassSessionRemarkRecords(int classSessionId)
         {
             return _context.ClassSessionRecords
@@ -1746,14 +1720,45 @@ namespace FcmsPortalUI.Services
             return AddHomeworkSubmission(submission);
         }
 
+        public void SaveHomework(int classSessionId, Homework homework)
+        {
+            var record = GetOrCreateCurrentRecord(classSessionId);
+            var existing = _context.Homework.FirstOrDefault(h => h.Id == homework.Id);
+
+            if (existing == null)
+            {
+                _context.Homework.Add(new Homework
+                {
+                    Title = homework.Title,
+                    Question = homework.Question,
+                    MaxScore = homework.MaxScore,
+                    AssignedDate = homework.AssignedDate,
+                    DueDate = homework.DueDate,
+                    ClassSessionRecord = record
+                });
+                _context.SaveChanges();
+                return;
+            }
+
+            existing.Title = homework.Title;
+            existing.Question = homework.Question;
+            existing.MaxScore = homework.MaxScore;
+            existing.AssignedDate = homework.AssignedDate;
+            existing.DueDate = homework.DueDate;
+            _context.SaveChanges();
+        }
+
         public bool DeleteHomework(int id)
         {
             var homework = _context.Homework.FirstOrDefault(h => h.Id == id);
 
-            ThrowIfSessionClosed(_context.Homework.Any(h => h.Id == id && h.ClassSessionRecord!.ClosedAt != null));
-
             if (homework == null)
                 return false;
+
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
+            ThrowIfSessionClosed(_context.Homework.Any(h => h.Id == id &&
+                                                            h.ClassSessionRecord!.AcademicPeriodId == currentPeriodId &&
+                                                            h.ClassSessionRecord.ClosedAt != null));
 
             _context.Homework.Remove(homework);
             _context.SaveChanges();
@@ -1790,23 +1795,28 @@ namespace FcmsPortalUI.Services
             return submission;
         }
 
-        public void UpdateHomeworkSubmission(HomeworkSubmission submission)
+        public List<Homework> GetPastHomework(int classSessionId)
         {
-            if (submission == null)
-                return;
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
 
-            ThrowIfSessionClosed(_context.HomeworkSubmissions.Any(hs => hs.Id == submission.Id && hs.Homework!.ClassSessionRecord!.ClosedAt != null));
+            return _context.Homework
+                .AsNoTracking()
+                .Include(h => h.ClassSessionRecord)
+                    .ThenInclude(r => r!.AcademicPeriod)
+                .Where(h => h.ClassSessionRecord!.ClassSessionId == classSessionId &&
+                            h.ClassSessionRecord.AcademicPeriodId != currentPeriodId)
+                .OrderByDescending(h => h.ClassSessionRecord!.AcademicPeriod!.AcademicYearStart)
+                .ToList();
+        }
 
-            var existingSubmission = GetHomeworkSubmissionById(submission.Id);
-            if (existingSubmission != null)
-            {
-                existingSubmission.Answer = submission.Answer;
-                existingSubmission.IsGraded = submission.IsGraded;
-                existingSubmission.FeedbackComment = submission.FeedbackComment;
-                existingSubmission.HomeworkGrade = submission.HomeworkGrade;
+        public void UpdateHomeworkAnswer(int submissionId, string answer)
+        {
+            ThrowIfSessionClosed(_context.HomeworkSubmissions.Any(hs => hs.Id == submissionId && hs.Homework!.ClassSessionRecord!.ClosedAt != null));
 
-                _context.SaveChanges();
-            }
+            var submission = _context.HomeworkSubmissions.First(hs => hs.Id == submissionId);
+            submission.Answer = answer;
+            submission.SubmissionDate = DateTime.Now;
+            _context.SaveChanges();
         }
         #endregion
 
@@ -1969,45 +1979,6 @@ namespace FcmsPortalUI.Services
             {
                 _context.FileAttachments.Remove(existingAttachment);
                 await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<List<FileAttachment>> GetAttachmentsAsync(string category, int referenceId)
-        {
-            if (category == "StudyMaterials")
-            {
-                var classSession = await _context.ClassSessions
-                    .Include(cs => cs.StudyMaterials)
-                    .FirstOrDefaultAsync(cs => cs.Id == referenceId);
-
-                return classSession?.StudyMaterials ?? new List<FileAttachment>();
-            }
-            return new List<FileAttachment>();
-        }
-
-        public async Task SaveAttachmentReferenceAsync(FileAttachment attachment, string category, int referenceId)
-        {
-            if (attachment == null)
-                throw new ArgumentNullException(nameof(attachment));
-
-
-            if (category == "StudyMaterials")
-            {
-                var classSession = await _context.ClassSessions
-                    .Include(cs => cs.StudyMaterials)
-                    .FirstOrDefaultAsync(cs => cs.Id == referenceId);
-
-                if (classSession != null)
-                {
-                    if (classSession.StudyMaterials == null)
-                        classSession.StudyMaterials = new List<FileAttachment>();
-
-                    if (!classSession.StudyMaterials.Any(sm => sm.Id == attachment.Id))
-                    {
-                        classSession.StudyMaterials.Add(attachment);
-                        await _context.SaveChangesAsync();
-                    }
-                }
             }
         }
         #endregion
@@ -2494,7 +2465,7 @@ namespace FcmsPortalUI.Services
             _context.SaveChanges();
         }
 
-        public async Task<TestGrade> AddHomeworkSubmissionGradeAsync( int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null, int? submissionId = null)
+        public async Task<TestGrade> AddHomeworkSubmissionGradeAsync( int studentId, string course, double score, int? teacherId, string teacherRemark, int learningPathId, DateTime? date = null, int? submissionId = null)
         {
             if (submissionId.HasValue)
                 ThrowIfSessionClosed(await _context.HomeworkSubmissions.AnyAsync(hs => hs.Id == submissionId.Value && hs.Homework!.ClassSessionRecord!.ClosedAt != null));
@@ -2527,17 +2498,29 @@ namespace FcmsPortalUI.Services
                 await _context.SaveChangesAsync();
             }
 
-            var testGrade = new TestGrade
-            {
-                Score = score,
-                GradeType = GradeType.Homework,
-                TeacherId = teacherId,
-                Date = date ?? DateTime.Now,
-                TeacherRemark = teacherRemark,
-                CourseGradeId = courseGrade.Id
-            };
+            var existingGradeId = submissionId.HasValue
+                 ? await _context.HomeworkSubmissions
+                     .Where(hs => hs.Id == submissionId.Value)
+                     .Select(hs => hs.HomeworkGradeId)
+                     .FirstOrDefaultAsync()
+                 : null;
 
-            _context.TestGrades.Add(testGrade);
+            var testGrade = courseGrade.TestGrades.FirstOrDefault(tg => tg.Id == existingGradeId);
+
+            if (testGrade == null)
+            {
+                testGrade = new TestGrade
+                {
+                    GradeType = GradeType.Homework,
+                    CourseGradeId = courseGrade.Id
+                };
+                _context.TestGrades.Add(testGrade);
+            }
+
+            testGrade.Score = score;
+            testGrade.TeacherId = teacherId;
+            testGrade.Date = date ?? DateTime.Now;
+            testGrade.TeacherRemark = teacherRemark;
 
             if (courseGrade.GradingConfiguration != null)
             {

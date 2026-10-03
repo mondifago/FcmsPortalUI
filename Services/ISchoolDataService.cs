@@ -112,7 +112,6 @@ namespace FcmsPortalUI.Services
         void CloseClassSession(int classSessionId, string closedByName);
         ClassSessionRecord? GetCurrentClassSessionRecord(int classSessionId);
         void SaveTeacherRemarks(int classSessionId, string remarks, string submittedByName);
-        void SaveHomework(int classSessionId, Homework homework);
         List<ClassSessionRecord> GetClassSessionRemarkRecords(int classSessionId);
         void DeleteTeacherRemarks(int classSessionRecordId);
         #endregion
@@ -120,10 +119,12 @@ namespace FcmsPortalUI.Services
         #region Homework
         Homework? GetHomeworkById(int id);
         HomeworkSubmission? SubmitHomework(int homeworkId, Student student, string answer);
+        void SaveHomework(int classSessionId, Homework homework);
         bool DeleteHomework(int id);
         HomeworkSubmission? GetHomeworkSubmissionById(int id);
         HomeworkSubmission? AddHomeworkSubmission(HomeworkSubmission submission);
-        void UpdateHomeworkSubmission(HomeworkSubmission submission);
+        List<Homework> GetPastHomework(int classSessionId);
+        void UpdateHomeworkAnswer(int submissionId, string answer);
         #endregion
 
         #region Discussions
@@ -136,8 +137,6 @@ namespace FcmsPortalUI.Services
         #region File Attachments
         Task<FileAttachment> UploadFileAsync(IBrowserFile file, string category);
         Task DeleteFileAsync(FileAttachment attachment);
-        Task<List<FileAttachment>> GetAttachmentsAsync(string category, int referenceId);
-        Task SaveAttachmentReferenceAsync(FileAttachment attachment, string category, int referenceId);
         #endregion
 
         #region Payments
@@ -163,7 +162,7 @@ namespace FcmsPortalUI.Services
         void UpdateTestGradeScore(int testGradeId, double score);
         void AddTestGrade(int studentId, string course, double score, GradeType gradeType, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null);
         Dictionary<(string Course, GradeType GradeType), int> GetGradeCountsByLearningPath(int learningPathId);
-        Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int teacherId, string teacherRemark, int learningPathId, DateTime? date = null, int? submissionId = null);
+        Task<TestGrade> AddHomeworkSubmissionGradeAsync(int studentId, string course, double score, int? teacherId, string teacherRemark, int learningPathId, DateTime? date = null, int? submissionId = null);
         void SaveFinalizedGrades(LearningPath learningPath);
         Dictionary<Semester, double> GetStudentAllSemesterGrades(int studentId, EducationLevel educationLevel, ClassLevel classLevel);
         bool AreLearningPathGradesFinalized(int learningPathId);

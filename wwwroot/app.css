@@ -409,12 +409,6 @@ main {
     display: none;
 }
 
-/* Centering the text below the logo 
-.text-muted {
-    display: block;
-    margin-top: 5px;
-}*/
-
 .calendar-table th, .calendar-table td {
     text-align: center;
     padding: 5px;
@@ -434,32 +428,9 @@ main {
     margin-left: 15px;
 }
 
-
 .discussion-thread {
     border-bottom: 1px solid #5a3e2b;
 }
-
-
-/* PDF Viewer Styles */
-.pdf-viewer-container {
-    height: 500px;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.pdf-viewer-placeholder {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    background-color: #f8f9fa;
-}
-
-    .pdf-viewer-placeholder i {
-        font-size: 5rem;
-    }
 
 /* Large file icon for empty states */
 .file-icon-large {
@@ -1835,11 +1806,6 @@ main {
     --bs-table-bg-state: #fdf3e3;
 }
 
-
-
-
-
-
 .fcms-session-picker {
     background-color: #f0d5c4;
     border-radius: 12px;
@@ -1911,5 +1877,16 @@ main {
 .fcms-tile-detail {
     flex: 1 1 auto;
     min-width: 0;
+}
+
+.fcms-scroll-area {
+    max-height: 15rem;
+    overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+    .fcms-split-divider {
+        border-left: 1px solid rgba(90, 62, 43, 0.35);
+    }
 }
 

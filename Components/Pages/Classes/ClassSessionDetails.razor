@@ -120,7 +120,7 @@
             </li>
             <li class="nav-item">
                 <button class="nav-link @(activeTab == TabHomework ? "active" : "")"
-                        @onclick="() => activeTab = TabHomework">
+                        @onclick="OpenHomeworkTab">
                     Homework
                 </button>
             </li>
@@ -272,7 +272,7 @@
                             <div class="d-flex align-items-center mb-3">
                                 @if (hasMaterials)
                                 {
-                                    <h5 class="mb-0">StudyMaterials</h5>
+                                    <h5 class="mb-0">Study Materials</h5>
                                 }
                                 @if (canManageClassSession)
                                 {
@@ -347,98 +347,215 @@
 
         @if (activeTab == TabHomework)
         {
-            <!-- Homework Section -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Homework</h4>
-                </div>
-                <div class="card-body">
-                    @if (currentHomework == null)
-                    {
-                        @if (canManageClassSession && canEditYearActivity)
+            <div class="fcms-tab-card rounded-3 p-3 mb-4">
+                <div class="row">
+                    <div class="@(canManageClassSession ? "col-md-8" : "col-12") mb-3">
+                        @if (currentHomework == null)
                         {
-                            <div class="text-center py-4">
-                                <p class="text-muted mb-3">No homework assigned yet.</p>
-                                <button class="btn btn-primary" @onclick="CreateNewHomework">
-                                    <i class="fa fa-plus"></i> Create Homework
-                                </button>
+                            <div class="text-center py-5">
+                                <i class="fa fa-book-open fa-3x mb-3"></i>
+                                <p class="mb-3">No homework for this session yet.</p>
+                                @if (canManageClassSession && canEditYearActivity)
+                                {
+                                    <button type="button" class="btn btn-fcms fcms-btn-round" title="Add homework" @onclick="OpenNewHomework">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                }
                             </div>
                         }
                         else
                         {
-                            <p class="text-muted">No homework assigned yet.</p>
-                        }
-                    }
-                    else
-                    {
-                        <div class="homework-overview mb-4">
-                            <h5>@currentHomework.Title</h5>
-                            <p class="text-muted mb-2">Due: @currentHomework.DueDate.ToString("MMMM d, yyyy")</p>
-                            <p class="mb-0">
-                                <small class="text-muted">
-                                    @(currentHomework.Submissions?.Count ?? 0) submission(s) received
-                                </small>
-                            </p>
-                        </div>
+                            <div class="d-flex align-items-start mb-2">
+                                <div>
+                                    <h5 class="mb-1">@currentHomework.Title</h5>
+                                    <small>Due @currentHomework.DueDate.ToString("ddd, MMM d") · out of @currentHomework.MaxScore</small>
+                                </div>
+                                @if (canManageClassSession && canEditYearActivity && !currentHomework.Submissions.Any())
+                                {
+                                    <button type="button" class="btn btn-outline-fcms fcms-btn-round ms-auto me-1" title="Edit" @onclick="OpenEditHomework">
+                                        <i class="fa fa-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-fcms fcms-btn-round" title="Delete" @onclick="() => AskDeleteHomework(currentHomework)">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                }
+                            </div>
 
-                        <div class="homework-actions d-flex gap-2 flex-wrap">
-                            @if (canManageClassSession)
+                            <div class="formatted-content fcms-scroll-area mb-4">
+                                @((MarkupString)Util.FormatTextWithLinks(currentHomework.Question))
+                            </div>
+
+                            @if (isStudent)
                             {
-                                <button class="btn btn-outline-primary" @onclick="ViewHomework">
-                                    <i class="fa fa-eye"></i> View Homework
-                                </button>
-                                <button class="btn btn-outline-success" @onclick="ViewSubmissions">
-                                    <i class="fa fa-list"></i> View Submissions (@(currentHomework.Submissions?.Count ?? 0))
-                                </button>
+                                var mySubmission = MySubmission;
 
-                                @if (canEditYearActivity && !currentHomework.Submissions.Any())
+                                @if (mySubmission == null && canEditYearActivity)
                                 {
-                                    <button class="btn btn-outline-warning" @onclick="EditHomework">
-                                        <i class="fa fa-edit"></i> Edit Homework
-                                    </button>
-                                    <button class="btn btn-outline-danger" @onclick="DeleteHomework">
-                                        <i class="fa fa-trash"></i> Delete
-                                    </button>
+                                    <CharacterCountTextArea @bind-Value="answerDraft"
+                                                            MaxLength="FcmsConstants.MAX_HOMEWORK_ANSWER_LENGTH"
+                                                            Rows="5"
+                                                            ShowEmojiPicker="false"
+                                                            Placeholder="Write your answer">
+                                        <Actions>
+                                            <button type="button" class="btn btn-fcms fcms-btn-round" title="Submit answer" @onclick="SubmitAnswer">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </Actions>
+                                    </CharacterCountTextArea>
                                 }
-                            }
-                            else
-                            {
-                                var studentSubmission = currentHomework.Submissions?.FirstOrDefault(s => s.Student?.PersonId == currentUserId);
-
-                                @if (studentSubmission == null)
+                                @if (mySubmission == null && !canEditYearActivity)
                                 {
-                                    <button class="btn btn-outline-primary" @onclick="ViewHomework">
-                                        <i class="fa fa-eye"></i> View Homework
-                                    </button>
-                                    @if (canEditYearActivity)
-                                    {
-                                        <button class="btn btn-success" @onclick="AttemptHomework">
-                                            <i class="fa fa-paper-plane"></i> Attempt Homework
-                                        </button>
-                                    }
+                                    <p class="mb-0">Submissions are closed for this session.</p>
                                 }
-                                else if (!studentSubmission.IsGraded)
+                                @if (mySubmission != null && isEditingAnswer)
                                 {
-                                    @if (canEditYearActivity)
-                                    {
-                                        <button class="btn btn-outline-warning" @onclick="EditMySubmission">
-                                            <i class="fa fa-edit"></i> Edit Submission
-                                        </button>
-                                    }
+                                    <CharacterCountTextArea @bind-Value="answerDraft"
+                                                            MaxLength="FcmsConstants.MAX_HOMEWORK_ANSWER_LENGTH"
+                                                            Rows="5"
+                                                            ShowEmojiPicker="false"
+                                                            Placeholder="Write your answer">
+                                        <Actions>
+                                            <button type="button" class="btn btn-outline-fcms fcms-btn-round me-1" title="Cancel" @onclick="() => isEditingAnswer = false">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-fcms fcms-btn-round" title="Save answer" @onclick="() => SaveAnswerEdit(mySubmission)">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </Actions>
+                                    </CharacterCountTextArea>
                                 }
-                                else
+                                @if (mySubmission != null && !isEditingAnswer)
                                 {
-                                    <button class="btn btn-success" @onclick="ViewMyGrade">
-                                        <i class="fa fa-star"></i> View My Grade
-                                    </button>
-                                    <div class="ms-2 d-flex align-items-center">
-                                        <span class="badge bg-success me-2">Graded</span>
-                                        @if (studentSubmission.HomeworkGrade != null)
+                                    <div class="d-flex align-items-center mb-2">
+                                        <h6 class="mb-0">Your answer</h6>
+                                        <small class="ms-2" title="@mySubmission.SubmissionDate.ToString("MMM dd, yyyy HH:mm")">
+                                            Submitted @Util.FormatTimeAgo(mySubmission.SubmissionDate, DateTime.Now)
+                                        </small>
+                                        @if (!mySubmission.IsGraded && canEditYearActivity)
                                         {
-                                            <small class="text-success fw-bold">Score: @studentSubmission.HomeworkGrade.Score/100</small>
+                                            <button type="button" class="btn btn-outline-fcms fcms-btn-round ms-auto" title="Edit answer" @onclick="() => StartEditAnswer(mySubmission)">
+                                                <i class="fa fa-pencil"></i>
+                                            </button>
                                         }
                                     </div>
+                                    <div class="formatted-content fcms-scroll-area mb-3">
+                                        @((MarkupString)Util.FormatTextWithLinks(mySubmission.Answer))
+                                    </div>
+                                    @if (mySubmission.IsGraded && mySubmission.HomeworkGrade != null)
+                                    {
+                                        <div class="d-flex align-items-center">
+                                            <span class="btn btn-fcms rounded-pill pe-none">
+                                                @LogicMethods.ToHomeworkScale(mySubmission.HomeworkGrade.Score, currentHomework.MaxScore) / @currentHomework.MaxScore
+                                            </span>
+                                            @if (!string.IsNullOrWhiteSpace(mySubmission.FeedbackComment))
+                                            {
+                                                <span class="ms-3">@mySubmission.FeedbackComment</span>
+                                            }
+                                        </div>
+                                    }
                                 }
+                            }
+
+                            @if (canManageClassSession)
+                            {
+                                var rows = SubmissionRows;
+
+                                <div class="d-flex flex-wrap fcms-gap-sm mb-3">
+                                    <button type="button" class="btn btn-sm rounded-pill @SubmissionFilterClass(null)"
+                                            @onclick="() => submissionFilter = null">
+                                        All @rows.Count
+                                    </button>
+                                    <button type="button" class="btn btn-sm rounded-pill @SubmissionFilterClass(HomeworkSubmissionStatus.ToGrade)"
+                                            @onclick="() => submissionFilter = HomeworkSubmissionStatus.ToGrade">
+                                        To grade @(rows.Count(r => r.Status == HomeworkSubmissionStatus.ToGrade))
+                                    </button>
+                                    <button type="button" class="btn btn-sm rounded-pill @SubmissionFilterClass(HomeworkSubmissionStatus.Graded)"
+                                            @onclick="() => submissionFilter = HomeworkSubmissionStatus.Graded">
+                                        Graded @(rows.Count(r => r.Status == HomeworkSubmissionStatus.Graded))
+                                    </button>
+                                    <button type="button" class="btn btn-sm rounded-pill @SubmissionFilterClass(HomeworkSubmissionStatus.NotSubmitted)"
+                                            @onclick="() => submissionFilter = HomeworkSubmissionStatus.NotSubmitted">
+                                        Not submitted @(rows.Count(r => r.Status == HomeworkSubmissionStatus.NotSubmitted))
+                                    </button>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover fcms-grid">
+                                        <thead>
+                                            <tr>
+                                                <th>Student</th>
+                                                <th>Submitted</th>
+                                                <th>Status</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var row in rows.Where(r => submissionFilter == null || r.Status == submissionFilter))
+                                            {
+                                                <tr @key="row.Student.Id">
+                                                    <td>@Util.GetFullName(row.Student.Person)</td>
+                                                    <td>
+                                                        @if (row.Submission != null)
+                                                        {
+                                                            <span title="@row.Submission.SubmissionDate.ToString("MMM dd, yyyy HH:mm")">
+                                                                @Util.FormatTimeAgo(row.Submission.SubmissionDate, DateTime.Now)
+                                                            </span>
+                                                            @if (LogicMethods.IsLateSubmission(row.Submission.SubmissionDate, currentHomework.DueDate))
+                                                            {
+                                                                <span class="text-danger ms-1">Late</span>
+                                                            }
+                                                        }
+                                                    </td>
+                                                    <td>@SubmissionStatusText(row)</td>
+                                                    <td class="text-end">
+                                                        @if (row.Submission != null)
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-warning" title="@(canEditYearActivity ? "Grade" : "View")"
+                                                                    @onclick="() => gradingSubmission = row.Submission">
+                                                                <i class="fa @(canEditYearActivity ? "fa-pencil" : "fa-eye")"></i>
+                                                            </button>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    @if (canManageClassSession)
+                    {
+                        <div class="col-md-4 fcms-split-divider ps-md-4">
+                            <h5 class="mb-3">Homework History</h5>
+                            @if (!pastHomework.Any())
+                            {
+                                <p class="mb-0">No past homework yet.</p>
+                            }
+                            @foreach (var past in pastHomework)
+                            {
+                                <div class="d-flex align-items-center mb-2" @key="past.Id">
+                                    <button type="button" title="@past.Title"
+                                            class="btn btn-outline-fcms border-0 rounded-pill text-start text-truncate flex-grow-1 me-2"
+                                            @onclick="() => ViewPastHomework(past)">
+                                        <small class="me-2">@past.ClassSessionRecord?.AcademicPeriod?.AcademicYear</small>@past.Title
+                                    </button>
+                                    @if (canReuseHomework)
+                                    {
+                                        <button type="button" class="btn btn-outline-fcms fcms-btn-round flex-shrink-0 me-1" title="Use this question"
+                                                @onclick="() => OpenReuseHomework(past)">
+                                            <i class="fa fa-rotate-left"></i>
+                                        </button>
+                                    }
+                                    @if (canDeletePastRecords)
+                                    {
+                                        <button type="button" class="btn btn-outline-fcms fcms-btn-round flex-shrink-0" title="Delete"
+                                                @onclick="() => AskDeleteHomework(past)">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    }
+                                </div>
                             }
                         </div>
                     }
@@ -552,7 +669,7 @@
                                                                 <i class="fa fa-pencil"></i>
                                                             </button>
                                                         }
-                                                        @if (isCurrentEditable || canDeletePastRemarks)
+                                                        @if (isCurrentEditable || canDeletePastRecords)
                                                         {
                                                             <button class="btn btn-sm btn-outline-danger" title="Delete"
                                                                     @onclick="() => AskDeleteRemark(remarkRecord)">
@@ -575,67 +692,31 @@
 </div>
 
 <!-- Homework Modal -->
-@if (showHomeworkModal)
+@if (homeworkFormSource != null)
 {
-    <HomeworkCreationModal IsVisible="showHomeworkModal"
-                           CurrentTeacher="currentTeacher"
-                           ExistingHomework="selectedHomework"
-                           OnSave="HandleHomeworkSaved"
-                           OnClose="() => showHomeworkModal = false" />
+    <HomeworkCreationModal IsVisible="true"
+                           Heading="@homeworkFormHeading"
+                           Source="homeworkFormSource"
+                           OnSave="SaveHomework"
+                           OnClose="() => homeworkFormSource = null" />
 }
 
-
-<!-- Homework View Modal -->
-@if (showHomeworkViewModal)
+@if (gradingSubmission != null && currentHomework != null)
 {
-    <HomeworkViewModal IsVisible="showHomeworkViewModal"
-                       Homework="currentHomework"
-                       OnClose="() => showHomeworkViewModal = false" />
+    <HomeworkGradingModal IsVisible="true"
+                          Submission="gradingSubmission"
+                          MaxScore="currentHomework.MaxScore"
+                          DueDate="currentHomework.DueDate"
+                          IsReadOnly="!canEditYearActivity"
+                          OnSave="SaveGrade"
+                          OnClose="() => gradingSubmission = null" />
 }
 
-
-<!-- Homework Submission Modal -->
-@if (showSubmissionModal)
-{
-    <HomeworkSubmissionModal IsVisible="showSubmissionModal"
-                             Homework="currentHomework"
-                             CurrentStudent="currentStudent"
-                             ExistingSubmission="selectedSubmission"
-                             OnSave="HandleSubmissionSaved"
-                             OnClose="() => showSubmissionModal = false" />
-}
-
-
-<!-- Homework Submissions List Modal -->
-@if (showSubmissionsListModal)
-{
-    <HomeworkSubmissionsListModal IsVisible="showSubmissionsListModal"
-                                  Homework="currentHomework"
-                                  CurrentTeacher="currentTeacher"
-                                  AllowGrading="canEditYearActivity"
-                                  OnClose="() => showSubmissionsListModal = false"
-                                  OnGradeSubmission="HandleGradeSubmission" />
-}
-
-
-<!-- Homework Grading Modal -->
-@if (showGradingModal)
-{
-    <HomeworkGradingModal IsVisible="showGradingModal"
-                          Submission="submissionToGrade"
-                          CurrentTeacher="currentTeacher"
-                          Course="@classSession.Course"
-                          LearningPathId="learningPathId"
-                          OnSave="HandleGradingSaved"
-                          OnClose="() => showGradingModal = false" />
-}
-
-@if (showStudentGradeModal)
-{
-    <StudentHomeworkGradeViewModal IsVisible="showStudentGradeModal"
-                                   Submission="studentGradeSubmission"
-                                   OnClose="() => showStudentGradeModal = false" />
-}
+<ConfirmDeleteModal IsVisible="showDeleteHomeworkConfirmation"
+                    Title="Delete Homework"
+                    Message="@($"Delete {homeworkToDelete?.Title}? Any answers submitted to it are deleted too. This can't be undone.")"
+                    OnConfirm="ConfirmDeleteHomework"
+                    OnCancel="() => showDeleteHomeworkConfirmation = false" />
 
 <ConfirmDeleteModal IsVisible="showCloseConfirmation"
                     Title="Close Session"
@@ -689,25 +770,29 @@
     [SupplyParameterFromQuery(Name = "returnUrl")]
     public string? ReturnUrl { get; set; }
 
-
     private ClassSession classSession = new();
     private ClassSchedule? scheduleEntry;
     private LearningPath relatedLearningPath = new();
     private List<Student> enrolledStudents = new List<Student>();
-    private Staff currentTeacher = new();
+    private Staff? currentTeacher;
     private Student currentStudent = new();
-    private Homework? selectedHomework;
-    private HomeworkSubmission selectedSubmission = new();
-    private HomeworkSubmission submissionToGrade = new();
-    private HomeworkSubmission studentGradeSubmission = new();
 
-    private bool showHomeworkModal = false;
-    private bool showSubmissionModal = false;
     private bool editingLessonPlan = false;
-    private bool showHomeworkViewModal = false;
-    private bool showSubmissionsListModal = false;
-    private bool showGradingModal = false;
-    private bool showStudentGradeModal = false;
+
+    private Homework? homeworkFormSource;
+    private string homeworkFormHeading = string.Empty;
+    private HomeworkSubmission? gradingSubmission;
+    private Homework? homeworkToDelete;
+    private bool showDeleteHomeworkConfirmation;
+    private List<Homework> pastHomework = new();
+    private bool pastHomeworkLoaded;
+    private HomeworkSubmissionStatus? submissionFilter;
+    private string answerDraft = string.Empty;
+    private bool isEditingAnswer;
+    private bool canReuseHomework => canManageClassSession && canEditYearActivity && currentHomework == null;
+    private HomeworkSubmission? MySubmission => currentHomework?.Submissions.FirstOrDefault(s => s.StudentId == currentStudent.Id);
+    private record SubmissionRow(Student Student, HomeworkSubmission? Submission, HomeworkSubmissionStatus Status);
+
     private AcademicPeriod? currentPeriod;
     private ClassSessionRecord? currentRecord;
     private Homework? currentHomework => currentRecord?.HomeworkDetails;
@@ -747,7 +832,7 @@
 
     private List<ClassSessionRecord> remarkRecords = new();
     private bool remarksLoaded;
-    private bool canDeletePastRemarks;
+    private bool canDeletePastRecords;
     private bool showRemarkModal;
     private bool isRemarkReadOnly;
     private string remarkModalTitle = string.Empty;
@@ -756,6 +841,26 @@
     private bool showDeleteRemarkConfirmation;
     private ClassSessionRecord? remarkToDelete;
     private bool canAddRemark => canEditYearActivity && string.IsNullOrEmpty(currentRecord?.TeacherRemarks);
+
+    private List<SubmissionRow> SubmissionRows
+    {
+        get
+        {
+            var submissions = currentHomework?.Submissions ?? new List<HomeworkSubmission>();
+
+            var submitted = submissions
+                .Where(sub => sub.Student != null)
+                .Select(sub => new SubmissionRow(sub.Student!, sub, LogicMethods.GetHomeworkSubmissionStatus(sub)));
+
+            var notSubmitted = enrolledStudents
+                .Where(student => submissions.All(sub => sub.StudentId != student.Id))
+                .Select(student => new SubmissionRow(student, null, HomeworkSubmissionStatus.NotSubmitted));
+
+            return submitted.Concat(notSubmitted)
+                .OrderBy(row => row.Student.Person.LastName)
+                .ToList();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -770,8 +875,8 @@
 
             if (currentUser != null)
             {
-                if (await PermissionService.IsInRoleAsync("Teacher"))
-                    currentTeacher = SchoolDataService.GetStaffByPersonId(currentUser.Id) ?? new Staff();
+                if (await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher"))
+                    currentTeacher = SchoolDataService.GetStaffByPersonId(currentUser.Id);
 
                 if (await PermissionService.IsInRoleAsync("Student"))
                     currentStudent = SchoolDataService.GetStudentByPersonId(currentUser.Id) ?? new Student();
@@ -785,7 +890,7 @@
             SelectDefaultMaterial();
 
             canManageClassSession = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin", "Teacher");
-            canDeletePastRemarks = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin");
+            canDeletePastRecords = await PermissionService.IsInAnyRoleAsync("Developer", "Principal", "Admin");
             isStudent = await PermissionService.IsInRoleAsync("Student");
 
         }
@@ -912,85 +1017,143 @@
         editingLessonPlan = false;
     }
 
-    private void CreateNewHomework()
+    private void OpenHomeworkTab()
     {
-        selectedHomework = null;
-        showHomeworkModal = true;
+        activeTab = TabHomework;
+
+        if (canManageClassSession && !pastHomeworkLoaded)
+            LoadPastHomework();
     }
 
-    private void ViewHomework()
+    private void LoadPastHomework()
     {
-        showHomeworkViewModal = true;
+        pastHomework = SchoolDataService.GetPastHomework(classSession.Id);
+        pastHomeworkLoaded = true;
     }
 
-    private void EditHomework()
+    private void OpenNewHomework()
     {
-        selectedHomework = currentHomework ?? new Homework();
-        showHomeworkModal = true;
+        homeworkFormHeading = "Add Homework";
+        homeworkFormSource = new Homework
+        {
+            AssignedDate = DateTime.Now,
+            DueDate = DateTime.Today.AddDays(FcmsConstants.DEFAULT_HOMEWORK_DUE_DAYS)
+        };
     }
 
-    private void DeleteHomework()
+    private void OpenEditHomework()
     {
-        if (currentHomework == null)
-            return;
-
-        SchoolDataService.DeleteHomework(currentHomework.Id);
-        LoadCurrentRecord();
+        homeworkFormHeading = "Edit Homework";
+        homeworkFormSource = currentHomework;
     }
 
-    private void ViewSubmissions()
+    private void OpenReuseHomework(Homework past)
     {
-        showSubmissionsListModal = true;
+        homeworkFormHeading = "Use Past Question";
+        homeworkFormSource = new Homework
+        {
+            Title = past.Title,
+            Question = past.Question,
+            MaxScore = past.MaxScore,
+            AssignedDate = DateTime.Now,
+            DueDate = DateTime.Today.AddDays(FcmsConstants.DEFAULT_HOMEWORK_DUE_DAYS)
+        };
     }
 
-    private void AttemptHomework()
-    {
-        selectedSubmission = new HomeworkSubmission();
-        showSubmissionModal = true;
-    }
-
-    private void EditMySubmission()
-    {
-        selectedSubmission = currentHomework.Submissions?.FirstOrDefault(s => s.Student?.Id == currentStudent?.Id)
-                             ?? new HomeworkSubmission();
-        showSubmissionModal = true;
-    }
-
-    private void HandleHomeworkSaved(Homework homework)
+    private void SaveHomework(Homework homework)
     {
         SchoolDataService.SaveHomework(classSession.Id, homework);
+        homeworkFormSource = null;
         LoadCurrentRecord();
-        showHomeworkModal = false;
     }
 
-    private void HandleSubmissionSaved(HomeworkSubmission submission)
+    private void ViewPastHomework(Homework past)
     {
+        var subtitle = $"{past.ClassSessionRecord?.AcademicPeriod?.DisplayName} · out of {past.MaxScore}";
+        OpenRemarkModal(past.Title, subtitle, past.Question, true);
+    }
+
+    private void AskDeleteHomework(Homework homework)
+    {
+        homeworkToDelete = homework;
+        showDeleteHomeworkConfirmation = true;
+    }
+
+    private void ConfirmDeleteHomework()
+    {
+        showDeleteHomeworkConfirmation = false;
+
+        if (homeworkToDelete == null)
+            return;
+
+        SchoolDataService.DeleteHomework(homeworkToDelete.Id);
+        homeworkToDelete = null;
         LoadCurrentRecord();
-        showSubmissionModal = false;
+
+        if (pastHomeworkLoaded)
+            LoadPastHomework();
     }
 
-    private void HandleGradeSubmission(HomeworkSubmission submission)
+    private void SubmitAnswer()
     {
-        submissionToGrade = submission;
-        showGradingModal = true;
-    }
+        if (currentHomework == null || string.IsNullOrWhiteSpace(answerDraft))
+            return;
 
-    private void HandleGradingSaved(HomeworkSubmission gradedSubmission)
-    {
+        SchoolDataService.SubmitHomework(currentHomework.Id, currentStudent, answerDraft);
+        answerDraft = string.Empty;
         LoadCurrentRecord();
-        showGradingModal = false;
     }
 
-    private void ViewMyGrade()
+    private void StartEditAnswer(HomeworkSubmission submission)
     {
-        var studentSubmission = currentHomework.Submissions?
-            .FirstOrDefault(s => s.Student?.Id == currentStudent?.Id);
+        answerDraft = submission.Answer;
+        isEditingAnswer = true;
+    }
 
-        if (studentSubmission != null && studentSubmission.IsGraded)
-        {
-            studentGradeSubmission = studentSubmission;
-            showStudentGradeModal = true;
-        }
+    private void SaveAnswerEdit(HomeworkSubmission submission)
+    {
+        if (string.IsNullOrWhiteSpace(answerDraft))
+            return;
+
+        SchoolDataService.UpdateHomeworkAnswer(submission.Id, answerDraft);
+        isEditingAnswer = false;
+        answerDraft = string.Empty;
+        LoadCurrentRecord();
+    }
+
+    private async Task SaveGrade((double Score, string Feedback) grade)
+    {
+        if (gradingSubmission == null || currentHomework == null || !learningPathId.HasValue)
+            return;
+
+        await SchoolDataService.AddHomeworkSubmissionGradeAsync(
+            gradingSubmission.StudentId,
+            classSession.Course,
+            LogicMethods.NormalizeHomeworkScore(grade.Score, currentHomework.MaxScore),
+            currentTeacher?.Id,
+            grade.Feedback,
+            learningPathId.Value,
+            currentHomework.AssignedDate,
+            gradingSubmission.Id);
+
+        gradingSubmission = null;
+        LoadCurrentRecord();
+    }
+
+    private string SubmissionFilterClass(HomeworkSubmissionStatus? status)
+    {
+        return submissionFilter == status ? "btn-fcms" : "btn-outline-fcms";
+    }
+
+    private string SubmissionStatusText(SubmissionRow row)
+    {
+        if (row.Status == HomeworkSubmissionStatus.NotSubmitted)
+            return "Not submitted";
+
+        if (row.Status == HomeworkSubmissionStatus.ToGrade)
+            return "To grade";
+
+        return $"{LogicMethods.ToHomeworkScale(row.Submission!.HomeworkGrade?.Score ?? 0, currentHomework!.MaxScore)} / {currentHomework.MaxScore}";
     }
 
     private void SelectDefaultMaterial()

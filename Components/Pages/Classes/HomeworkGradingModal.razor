@@ -1,0 +1,94 @@
+﻿@using FcmsPortal
+@using FcmsPortal.Constants
+@using FcmsPortal.Models
+@using FcmsPortalUI.Components.Pages.Shared
+
+<div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content fcms-modal-panel">
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center fcms-list-toolbar mb-3">
+                    <div>
+                        <h5 class="modal-title fcms-picker-title mb-0">@Submission.Student?.Person.FirstName @Submission.Student?.Person.LastName</h5>
+                        <small title="@Submission.SubmissionDate.ToString("MMM dd, yyyy HH:mm")">
+                            Submitted @Util.FormatTimeAgo(Submission.SubmissionDate, DateTime.Now)@(LogicMethods.IsLateSubmission(Submission.SubmissionDate, DueDate) ? " · Late" : "")
+                        </small>
+                    </div>
+                    <button type="button" class="fcms-picker-close" @onclick="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="formatted-content fcms-scroll-area mb-3">
+                    @((MarkupString)Util.FormatTextWithLinks(Submission.Answer))
+                </div>
+
+                <div class="fcms-list-toolbar mb-3"></div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Score (out of @MaxScore)</label>
+                        <input type="number" class="form-control" step="any" @bind="score" disabled="@IsReadOnly" />
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Feedback</label>
+                        @if (IsReadOnly)
+                        {
+                            <p class="mb-0">@feedback</p>
+                        }
+                        else
+                        {
+                            <CharacterCountTextArea @bind-Value="feedback"
+                                                    MaxLength="FcmsConstants.MAX_GRADE_REMARK_LENGTH"
+                                                    Rows="2"
+                                                    ShowEmojiPicker="false"
+                                                    Placeholder="Optional feedback" />
+                        }
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-secondary me-2" @onclick="Close">@(IsReadOnly ? "Close" : "Cancel")</button>
+                    @if (!IsReadOnly)
+                    {
+                        <button type="button" class="btn btn-fcms" disabled="@(score < 0 || score > MaxScore)" @onclick="Save">Save Grade</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (IsVisible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public HomeworkSubmission Submission { get; set; } = new();
+    [Parameter] public int MaxScore { get; set; }
+    [Parameter] public DateTime DueDate { get; set; }
+    [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public EventCallback<(double Score, string Feedback)> OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private double score;
+    private string feedback = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        score = Submission.HomeworkGrade == null ? 0 : LogicMethods.ToHomeworkScale(Submission.HomeworkGrade.Score, MaxScore);
+        feedback = Submission.FeedbackComment ?? string.Empty;
+    }
+
+    private async Task Save()
+    {
+        await OnSave.InvokeAsync((score, feedback));
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync();
+    }
+}
