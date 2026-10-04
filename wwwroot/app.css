@@ -1594,8 +1594,14 @@ main {
     padding-bottom: 0.75rem;
 }
 
+.fcms-surface-light {
+    background-color: #fdf6f0;
+    color: #5a3e2b;
+    border-radius: 8px;
+    padding: 1rem;
+}
 
-/* ===== Reusable tabs ===== */
+/* ===== Reusable surfaces ===== */
 .fcms-tabs {
     border-bottom: var(--bs-border-width) solid var(--bs-border-color-translucent);
     gap: 0.25rem;
@@ -1639,15 +1645,8 @@ main {
         color: #5a3e2b !important;
     }
 
-/* ===== Tab content card ===== */
-.fcms-tab-card {
-    background-color: #f0d5c4;
-    color: #5a3e2b;
-}
 
-    .fcms-tab-card .text-muted {
-        color: #5a3e2b !important;
-    }
+
 
 /* ===== Reusable fold (collapsible sections) ===== */
 .fcms-fold-header {
@@ -1766,6 +1765,26 @@ main {
     }
 
 
+/* ===== Reusable pop-up (modal) ===== */
+.fcms-modal-panel {
+    background-color: #f0d5c4;
+    color: #5a3e2b;
+}
+
+.fcms-picker-title {
+    color: #5a3e2b;
+}
+
+.fcms-picker-close {
+    background: none;
+    border: none;
+    color: #5a3e2b;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0 0.25rem;
+}
+
+
 
 /* ===== Payments page ===== */
 .fcms-figure-label {
@@ -1845,23 +1864,7 @@ main {
     cursor: default;
 }
 
-.fcms-modal-panel {
-    background-color: #f0d5c4;
-    color: #5a3e2b;
-}
 
-.fcms-picker-title {
-    color: #5a3e2b;
-}
-
-.fcms-picker-close {
-    background: none;
-    border: none;
-    color: #5a3e2b;
-    font-size: 1.25rem;
-    line-height: 1;
-    padding: 0 0.25rem;
-}
 
 .fcms-tile-code,
 .fcms-tile-topic,
