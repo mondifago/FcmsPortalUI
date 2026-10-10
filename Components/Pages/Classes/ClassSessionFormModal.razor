@@ -5,14 +5,17 @@
 
 <div class="modal fade show" style="display: @(IsVisible ? "block" : "none");" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">@(ClassSessionId > 0 ? "Edit Session" : "Add Session")</h5>
-                <button type="button" class="btn-close" @onclick="Close"></button>
-            </div>
+        <div class="modal-content fcms-modal-panel">
             <div class="modal-body">
-                <p class="text-muted mb-3">@ClassLevel.ToDisplayName() · @Term.ToTermDisplay()</p>
-
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="modal-title fcms-picker-title mb-0">@(ClassSessionId > 0 ? "Edit Session" : "Add Session")</h5>
+                        <small>@ClassLevel.ToDisplayName() · @Term.ToTermDisplay()</small>
+                    </div>
+                    <button type="button" class="fcms-picker-close" @onclick="Close">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
                 <EditForm Model="classSession" OnValidSubmit="HandleValidSubmit">
                     <DataAnnotationsValidator />
 
@@ -58,7 +61,7 @@
                         </InputSelect>
                     </div>
 
-                    <div class="d-flex justify-content-end mt-4">
+                    <div class="d-flex justify-content-end mt-3">
                         <button type="button" class="btn btn-secondary me-2" @onclick="Close">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save</button>
                     </div>

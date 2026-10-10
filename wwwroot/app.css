@@ -1577,7 +1577,7 @@ main {
     justify-content: center;
 }
 
-/* ===== Tab / list content card ===== */
+/* ===== Reusable surfaces ===== */
 .fcms-tab-card,
 .fcms-list-card {
     background-color: #f0d5c4;
@@ -1601,7 +1601,7 @@ main {
     padding: 1rem;
 }
 
-/* ===== Reusable surfaces ===== */
+/* ===== Reusable tabs ===== */
 .fcms-tabs {
     border-bottom: var(--bs-border-width) solid var(--bs-border-color-translucent);
     gap: 0.25rem;
@@ -1825,16 +1825,7 @@ main {
     --bs-table-bg-state: #fdf3e3;
 }
 
-.fcms-session-picker {
-    background-color: #f0d5c4;
-    border-radius: 12px;
-    padding: 1rem;
-}
-
 .fcms-session-picker-list {
-    background-color: #fdf6f0;
-    border-radius: 12px;
-    padding: 0.75rem;
     min-height: 140px;
 }
 

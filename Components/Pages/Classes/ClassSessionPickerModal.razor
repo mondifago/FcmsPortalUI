@@ -9,66 +9,64 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content fcms-modal-panel">
             <div class="modal-body">
-                <div class="fcms-session-picker">
-                    <div class="d-flex justify-content-between align-items-center fcms-list-toolbar mb-3">
-                        <h5 class="modal-title fcms-picker-title mb-0">Insert Session</h5>
-                        <button type="button" class="fcms-picker-close" @onclick="Cancel">
-                            <i class="fa fa-times"></i>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="modal-title fcms-picker-title mb-0">Insert Session</h5>
+                    <button type="button" class="fcms-picker-close" @onclick="Cancel">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex align-items-center flex-wrap mb-3 fcms-gap-sm">
+                    <strong>@FilteredSessions.Count unplaced session(s)</strong>
+                    <select class="form-select form-select-sm w-auto ms-auto" @bind="courseFilter" @bind:after="ResetPage">
+                        <option value="">All courses</option>
+                        @foreach (var option in CourseOptions)
+                        {
+                            <option value="@option.Course">@option.Course (@option.Count)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="fcms-surface-light fcms-session-picker-list">
+                    @if (!PagedSessions.Any())
+                    {
+                        <p class="text-muted mb-0">No unplaced sessions for this selection.</p>
+                    }
+                    else
+                    {
+                        @foreach (var session in PagedSessions)
+                        {
+                            <div class="fcms-session-tile @(selectedSessionId == session.Id ? "fcms-session-tile-selected" : "")"
+                                 @key="session.Id"
+                                 @onclick="() => selectedSessionId = session.Id">
+                                <strong class="fcms-text-sm fcms-tile-code">@Util.GetClassSessionCode(ClassLevel, Term, session.Course, session.SessionNumber)</strong>
+                                <span class="fcms-text-xs fcms-tile-topic">@session.Topic</span>
+                                <span class="fcms-text-xs fcms-tile-dot">·</span>
+                                <span class="fcms-text-xs fcms-tile-detail text-truncate">@session.Description</span>
+                            </div>
+                        }
+                    }
+                </div>
+
+                @if (PageCount > 1)
+                {
+                    <div class="d-flex align-items-center justify-content-between mt-3">
+                        <button class="btn btn-sm btn-fcms" disabled="@(page == 0)" @onclick="PreviousPage">
+                            <i class="fa fa-arrow-left"></i>
+                        </button>
+                        <span class="fcms-text-xs">Page @(page + 1) of @PageCount</span>
+                        <button class="btn btn-sm btn-fcms" disabled="@(page >= PageCount - 1)" @onclick="NextPage">
+                            <i class="fa fa-arrow-right"></i>
                         </button>
                     </div>
+                }
 
-                    <div class="d-flex align-items-center flex-wrap mb-3 fcms-gap-sm">
-                        <strong>@FilteredSessions.Count unplaced session(s)</strong>
-                        <select class="form-select form-select-sm w-auto ms-auto" @bind="courseFilter" @bind:after="ResetPage">
-                            <option value="">All courses</option>
-                            @foreach (var option in CourseOptions)
-                            {
-                                <option value="@option.Course">@option.Course (@option.Count)</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="fcms-session-picker-list">
-                        @if (!PagedSessions.Any())
-                        {
-                            <p class="text-muted mb-0">No unplaced sessions for this selection.</p>
-                        }
-                        else
-                        {
-                            @foreach (var session in PagedSessions)
-                            {
-                                <div class="fcms-session-tile @(selectedSessionId == session.Id ? "fcms-session-tile-selected" : "")"
-                                     @key="session.Id"
-                                     @onclick="() => selectedSessionId = session.Id">
-                                    <strong class="fcms-text-sm fcms-tile-code">@Util.GetClassSessionCode(ClassLevel, Term, session.Course, session.SessionNumber)</strong>
-                                    <span class="fcms-text-xs fcms-tile-topic">@session.Topic</span>
-                                    <span class="fcms-text-xs fcms-tile-dot">·</span>
-                                    <span class="fcms-text-xs fcms-tile-detail text-truncate">@session.Description</span>
-                                </div>
-                            }
-                        }
-                    </div>
-
-                    @if (PageCount > 1)
-                    {
-                        <div class="d-flex align-items-center justify-content-between mt-3">
-                            <button class="btn btn-sm btn-fcms" disabled="@(page == 0)" @onclick="PreviousPage">
-                                <i class="fa fa-arrow-left"></i>
-                            </button>
-                            <span class="fcms-text-xs">Page @(page + 1) of @PageCount</span>
-                            <button class="btn btn-sm btn-fcms" disabled="@(page >= PageCount - 1)" @onclick="NextPage">
-                                <i class="fa fa-arrow-right"></i>
-                            </button>
-                        </div>
-                    }
-
-                    <div class="fcms-list-toolbar mt-3"></div>
-
-                    <div class="d-flex justify-content-end mt-3">
-                        <button type="button" class="btn btn-secondary me-2" @onclick="Cancel">Cancel</button>
-                        <button type="button" class="btn btn-primary" disabled="@(selectedSessionId == 0)" @onclick="Insert">Insert</button>
-                    </div>
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="button" class="btn btn-secondary me-2" @onclick="Cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" disabled="@(selectedSessionId == 0)" @onclick="Insert">Insert</button>
                 </div>
+
             </div>
         </div>
     </div>

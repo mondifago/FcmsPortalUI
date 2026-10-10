@@ -18,7 +18,6 @@
             </button>
         </div>
     </div>
-
     @if (classSession == null)
     {
         <div class="d-flex justify-content-center">
@@ -63,7 +62,6 @@
                     @(scheduleEntry != null ? scheduleEntry.Venue : "-")
                 </span>
             </div>
-
             <div>
                 <span class="fcms-info-label">Term</span>
                 <span class="fcms-info-value">
@@ -96,7 +94,6 @@
                     </div>
                 </div>
             }
-
             <div class="fcms-info-wide">
                 <span class="fcms-info-label">Description</span>
                 <span class="fcms-info-value">
@@ -104,7 +101,6 @@
                 </span>
             </div>
         </div>
-
         <ul class="nav fcms-tabs mb-3">
             <li class="nav-item">
                 <button class="nav-link @(activeTab == TabSession ? "active" : "")"
@@ -141,7 +137,6 @@
                 </Authorized>
             </AuthorizeView>
         </ul>
-
         @if (activeTab == TabSession)
         {
             <div class="row">
@@ -154,7 +149,6 @@
                                                    ClassSessionId="classSession.Id" />
                     </div>
                 </div>
-
                 <!-- Student list Section -->
                 <div class="col-md-4">
                     <div class="card fcms-tab-card mb-4">
@@ -265,7 +259,6 @@
                             </div>
                         }
                     </div>
-
                     <div class="col-md-4">
                         @if (hasMaterials || canManageClassSession)
                         {
@@ -291,12 +284,10 @@
                                 }
                             </div>
                         }
-
                         @if (!string.IsNullOrEmpty(materialErrorMessage))
                         {
                             <p class="small text-danger mb-2">@materialErrorMessage</p>
                         }
-
                         @if (!string.IsNullOrEmpty(classSession.VideoUrl))
                         {
                             <div class="d-flex align-items-center mb-2">
@@ -318,7 +309,6 @@
                                 }
                             </div>
                         }
-
                         @foreach (var material in classSession.StudyMaterials)
                         {
                             <div class="d-flex align-items-center mb-2" @key="material.Id">
@@ -380,11 +370,9 @@
                                     </button>
                                 }
                             </div>
-
                             <div class="formatted-content fcms-scroll-area mb-4">
                                 @((MarkupString)Util.FormatTextWithLinks(currentHomework.Question))
                             </div>
-
                             @if (isStudent)
                             {
                                 var mySubmission = MySubmission;
@@ -486,7 +474,6 @@
                                         Not submitted @(rows.Count(r => r.Status == HomeworkSubmissionStatus.NotSubmitted))
                                     </button>
                                 </div>
-
                                 <div class="table-responsive">
                                     <table class="table table-striped table-hover fcms-grid">
                                         <thead>
@@ -624,18 +611,26 @@
                 <Authorized Context="auth">
                     <div class="card fcms-tab-card mb-4">
                         <div class="card-body">
-                            @if (canAddRemark)
+                            @if (canAddRemark && remarkRecords.Any())
                             {
                                 <div class="d-flex justify-content-end mb-3">
-                                    <button class="btn btn-sm btn-fcms" @onclick="OpenAddRemark">
-                                        <i class="fa fa-plus me-1"></i>Add Remark
+                                    <button type="button" class="btn btn-fcms fcms-btn-round" title="Add remark" @onclick="OpenAddRemark">
+                                        <i class="fa fa-plus"></i>
                                     </button>
                                 </div>
                             }
-
                             @if (!remarkRecords.Any())
                             {
-                                <p class="text-muted mb-0">No remarks yet.</p>
+                                <div class="text-center py-5">
+                                    <i class="fa fa-clipboard-list fa-3x mb-3"></i>
+                                    <p class="mb-3">No remarks yet.</p>
+                                    @if (canAddRemark)
+                                    {
+                                        <button type="button" class="btn btn-fcms fcms-btn-round" title="Add remark" @onclick="OpenAddRemark">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    }
+                                </div>
                             }
                             else
                             {
@@ -689,7 +684,23 @@
     }
 </div>
 
-<!-- Homework Modal -->
+<!-- Study Material Modals -->
+@if (showVideoModal)
+{
+    <VideoLinkModal IsVisible="showVideoModal"
+                    InitialTitle="@(classSession.VideoTitle ?? string.Empty)"
+                    InitialUrl="@(classSession.VideoUrl ?? string.Empty)"
+                    OnSave="SaveVideo"
+                    OnClose="() => showVideoModal = false" />
+}
+
+<ConfirmDeleteModal IsVisible="showDeleteMaterialConfirmation"
+                    Title="@(isDeletingVideo ? "Remove Video" : "Delete Material")"
+                    Message="@(isDeletingVideo ? "Remove the video from this session?" : $"Delete {materialToDelete?.FileName}? This can't be undone.")"
+                    OnConfirm="ConfirmDeleteMaterial"
+                    OnCancel="() => showDeleteMaterialConfirmation = false" />
+
+<!-- Homework Modals -->
 @if (homeworkFormSource != null)
 {
     <HomeworkCreationModal IsVisible="true"
@@ -729,6 +740,7 @@
                    Message="@errorMessage"
                    OnClose="() => showErrorModal = false" />
 
+<!-- Teacher Remark Modals -->
 @if (showRemarkModal)
 {
     <ClassSessionRemarkModal IsVisible="showRemarkModal"
@@ -746,101 +758,91 @@
                     OnConfirm="ConfirmDeleteRemark"
                     OnCancel="() => showDeleteRemarkConfirmation = false" />
 
-@if (showVideoModal)
-{
-    <VideoLinkModal IsVisible="showVideoModal"
-                    InitialTitle="@(classSession.VideoTitle ?? string.Empty)"
-                    InitialUrl="@(classSession.VideoUrl ?? string.Empty)"
-                    OnSave="SaveVideo"
-                    OnClose="() => showVideoModal = false" />
-}
 
-<ConfirmDeleteModal IsVisible="showDeleteMaterialConfirmation"
-                    Title="@(isDeletingVideo ? "Remove Video" : "Delete Material")"
-                    Message="@(isDeletingVideo ? "Remove the video from this session?" : $"Delete {materialToDelete?.FileName}? This can't be undone.")"
-                    OnConfirm="ConfirmDeleteMaterial"
-                    OnCancel="() => showDeleteMaterialConfirmation = false" />
 
 @code {
+    //Parameters
     [Parameter]
     public int Id { get; set; }
 
     [SupplyParameterFromQuery(Name = "returnUrl")]
     public string? ReturnUrl { get; set; }
 
+    //Page Fields
     private ClassSession classSession = new();
     private ClassSchedule? scheduleEntry;
+    private AcademicPeriod? currentPeriod;
+    private ClassSessionRecord? currentRecord;
     private LearningPath relatedLearningPath = new();
     private List<Student> enrolledStudents = new List<Student>();
     private Staff? currentTeacher;
     private Student currentStudent = new();
-
-    private bool editingLessonPlan = false;
-    private string lessonPlanDraft = string.Empty;
-
-    private Homework? homeworkFormSource;
-    private string homeworkFormHeading = string.Empty;
-    private HomeworkSubmission? gradingSubmission;
-    private Homework? homeworkToDelete;
-    private bool showDeleteHomeworkConfirmation;
-    private List<Homework> pastHomework = new();
-    private bool pastHomeworkLoaded;
-    private HomeworkSubmissionStatus? submissionFilter;
-    private string answerDraft = string.Empty;
-    private bool isEditingAnswer;
-    private bool canReuseHomework => canManageClassSession && canEditYearActivity && currentHomework == null;
-    private HomeworkSubmission? MySubmission => currentHomework?.Submissions.FirstOrDefault(s => s.StudentId == currentStudent.Id);
-    private record SubmissionRow(Student Student, HomeworkSubmission? Submission, HomeworkSubmissionStatus Status);
-    private string answerErrorMessage = string.Empty;
-
-    private AcademicPeriod? currentPeriod;
-    private ClassSessionRecord? currentRecord;
-    private Homework? currentHomework => currentRecord?.HomeworkDetails;
     private int? learningPathId;
-    private bool canEditYearActivity;
-
-    private Person? currentUser;
-    private bool canManageClassSession;
-    private bool isStudent;
-
-    private bool isInCurrentPeriod;
-    private bool showCloseConfirmation = false;
-    private bool showErrorModal = false;
+    private string activeTab = TabSession;
     private string errorMessage = string.Empty;
-    private SessionState sessionState => LogicMethods.GetSessionState(scheduleEntry?.DateTime, currentRecord?.ClosedAt, DateTime.Now);
-
-    private FileAttachment? selectedMaterial;
-    private bool isPdfSelected => selectedMaterial != null && Util.IsPdfFile(selectedMaterial.FileName);
-    private bool isImageSelected => selectedMaterial != null && Util.IsImageFile(selectedMaterial.FileName);
-    private bool isOtherSelected => selectedMaterial != null && !isPdfSelected && !isImageSelected;
-    private bool isUploadingMaterials;
-    private string materialErrorMessage = string.Empty;
-    private bool showVideoModal;
-    private bool showDeleteMaterialConfirmation;
-    private FileAttachment? materialToDelete;
-    private bool isDeletingVideo;
-    private bool isVideoSelected = false;
-    private bool hasMaterials => classSession.StudyMaterials.Any() || !string.IsNullOrEmpty(classSession.VideoUrl);
-
     private const string TabSession = "session";
     private const string TabMaterials = "materials";
     private const string TabHomework = "homework";
     private const string TabLessonPlan = "lessonplan";
     private const string TabRemarks = "remarks";
-    private string activeTab = TabSession;
+    private bool isInCurrentPeriod;
+    private bool showCloseConfirmation = false;
+    private bool showErrorModal = false;
+    private SessionState sessionState => LogicMethods.GetSessionState(scheduleEntry?.DateTime, currentRecord?.ClosedAt, DateTime.Now);
 
+    //User Identity and Permissions Fields
+    private Person? currentUser;
+    private bool canManageClassSession;
+    private bool canEditYearActivity;
+    private bool isStudent;
+
+    //Study Materials Fields
+    private FileAttachment? selectedMaterial;
+    private FileAttachment? materialToDelete;
+    private string materialErrorMessage = string.Empty;
+    private bool isPdfSelected => selectedMaterial != null && Util.IsPdfFile(selectedMaterial.FileName);
+    private bool isImageSelected => selectedMaterial != null && Util.IsImageFile(selectedMaterial.FileName);
+    private bool isOtherSelected => selectedMaterial != null && !isPdfSelected && !isImageSelected;
+    private bool isUploadingMaterials;
+    private bool showVideoModal;
+    private bool showDeleteMaterialConfirmation;
+    private bool isDeletingVideo;
+    private bool isVideoSelected = false;
+    private bool hasMaterials => classSession.StudyMaterials.Any() || !string.IsNullOrEmpty(classSession.VideoUrl);
+
+    //Homework Fields
+    private Homework? homeworkFormSource;
+    private Homework? homeworkToDelete;
+    private Homework? currentHomework => currentRecord?.HomeworkDetails;
+    private List<Homework> pastHomework = new();
+    private HomeworkSubmission? gradingSubmission;
+    private HomeworkSubmission? MySubmission => currentHomework?.Submissions.FirstOrDefault(s => s.StudentId == currentStudent.Id);
+    private record SubmissionRow(Student Student, HomeworkSubmission? Submission, HomeworkSubmissionStatus Status);
+    private HomeworkSubmissionStatus? submissionFilter;
+    private string homeworkFormHeading = string.Empty;
+    private string answerDraft = string.Empty;
+    private string answerErrorMessage = string.Empty;
+    private bool canReuseHomework => canManageClassSession && canEditYearActivity && currentHomework == null;
+    private bool showDeleteHomeworkConfirmation;
+    private bool pastHomeworkLoaded;
+    private bool isEditingAnswer;
+
+    //Lesson Plan Fields
+    private bool editingLessonPlan = false;
+    private string lessonPlanDraft = string.Empty;
+
+    //Teacher Remarks Fields
     private List<ClassSessionRecord> remarkRecords = new();
+    private ClassSessionRecord? remarkToDelete;
+    private string remarkModalTitle = string.Empty;
+    private string remarkModalSubtitle = string.Empty;
+    private string remarkModalText = string.Empty;
     private bool remarksLoaded;
     private bool canDeletePastRecords;
     private bool showRemarkModal;
     private bool isRemarkReadOnly;
-    private string remarkModalTitle = string.Empty;
-    private string remarkModalSubtitle = string.Empty;
-    private string remarkModalText = string.Empty;
     private bool showDeleteRemarkConfirmation;
-    private ClassSessionRecord? remarkToDelete;
     private bool canAddRemark => canEditYearActivity && string.IsNullOrEmpty(currentRecord?.TeacherRemarks);
-
     private List<SubmissionRow> SubmissionRows
     {
         get
@@ -916,6 +918,34 @@
                               LogicMethods.IsClassSessionRecordOpen(currentRecord?.ClosedAt, gradesFinalized);
     }
 
+    private void CloseSession()
+    {
+        showCloseConfirmation = false;
+
+        try
+        {
+            var closedByName = currentUser != null ? Util.GetFullName(currentUser) : string.Empty;
+            SchoolDataService.CloseClassSession(classSession.Id, closedByName);
+            LoadCurrentRecord();
+        }
+        catch (BusinessRuleException ex)
+        {
+            errorMessage = ex.Message;
+            showErrorModal = true;
+        }
+    }
+
+    private void GoBack()
+    {
+        if (!string.IsNullOrEmpty(ReturnUrl))
+        {
+            NavigationManager.NavigateTo(ReturnUrl);
+            return;
+        }
+        NavigationManager.NavigateTo($"/myclasses");
+    }
+
+    //Teacher Remarks Methods
     private void OpenRemarksTab()
     {
         activeTab = TabRemarks;
@@ -988,16 +1018,7 @@
         LoadRemarkRecords();
     }
 
-    private void GoBack()
-    {
-        if (!string.IsNullOrEmpty(ReturnUrl))
-        {
-            NavigationManager.NavigateTo(ReturnUrl);
-            return;
-        }
-        NavigationManager.NavigateTo($"/myclasses");
-    }
-
+    //Lesson Plan Methods
     private void EditLessonPlan()
     {
         lessonPlanDraft = classSession.LessonPlan;
@@ -1016,6 +1037,7 @@
         editingLessonPlan = false;
     }
 
+    //Homework Methods
     private void OpenHomeworkTab()
     {
         activeTab = TabHomework;
@@ -1168,6 +1190,7 @@
         return $"{LogicMethods.ToHomeworkScale(row.Submission!.HomeworkGrade?.Score ?? 0, currentHomework!.MaxScore)} / {currentHomework.MaxScore}";
     }
 
+    //Study Materials Methods
     private void SelectDefaultMaterial()
     {
         isVideoSelected = !string.IsNullOrEmpty(classSession.VideoUrl);
@@ -1262,22 +1285,5 @@
 
         if (wasSelected)
             SelectDefaultMaterial();
-    }
-
-    private void CloseSession()
-    {
-        showCloseConfirmation = false;
-
-        try
-        {
-            var closedByName = currentUser != null ? Util.GetFullName(currentUser) : string.Empty;
-            SchoolDataService.CloseClassSession(classSession.Id, closedByName);
-            LoadCurrentRecord();
-        }
-        catch (BusinessRuleException ex)
-        {
-            errorMessage = ex.Message;
-            showErrorModal = true;
-        }
     }
 }
