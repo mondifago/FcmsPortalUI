@@ -35,7 +35,7 @@
                 {
                     var liked = HasLiked(thread);
 
-                    <div class="discussion-thread mb-4 pb-3">
+                    <div class="discussion-thread fcms-surface-light mb-3">
                         <!-- First Post with Author -->
                         <div class="d-flex mb-2">
                             <div class="me-3">
@@ -139,14 +139,15 @@
 
 @code {
     [Parameter] public List<DiscussionThread>? AllThreads { get; set; }
-    [Parameter] public bool AllowReplies { get; set; } = true;
+    [Parameter] public EventCallback<List<DiscussionThread>> OnThreadsChanged { get; set; }
     [Parameter] public Person? CurrentUser { get; set; }
+    [Parameter] public bool AllowReplies { get; set; } = true;
     [Parameter] public int ClassSessionId { get; set; }
-
+   
     private FirstPost newFirstPost = new();
     private Reply newReply = new();
-    private int replyingToThreadId = 0;
     private HashSet<int> expandedThreads = new HashSet<int>();
+    private int replyingToThreadId = 0;
 
     private async Task HandleAddFirstPost()
     {
@@ -159,7 +160,7 @@
         };
 
         await SchoolDataService.AddDiscussionThreadAsync(ClassSessionId, firstPost);
-        AllThreads = await SchoolDataService.GetThreadsForClassSessionAsync(ClassSessionId);
+        await RefreshThreads();
         newFirstPost = new FirstPost();
     }
 
@@ -170,7 +171,7 @@
 
         await SchoolDataService.AddReplyAsync(thread.Id, CurrentUser.Id, newReply.Comment);
 
-        AllThreads = await SchoolDataService.GetThreadsForClassSessionAsync(ClassSessionId);
+        await RefreshThreads();
         newReply = new Reply();
         replyingToThreadId = 0;
     }
@@ -186,7 +187,13 @@
             return;
 
         await SchoolDataService.ToggleThreadLikeAsync(thread.Id, CurrentUser.Id);
-        AllThreads = await SchoolDataService.GetThreadsForClassSessionAsync(ClassSessionId);
+        await RefreshThreads();
+    }
+
+    private async Task RefreshThreads()
+    {
+        var threads = await SchoolDataService.GetThreadsForClassSessionAsync(ClassSessionId);
+        await OnThreadsChanged.InvokeAsync(threads);
     }
 
     private void ToggleReplyForm(int threadId)

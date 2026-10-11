@@ -77,7 +77,7 @@
             </div>
             @if (isInCurrentPeriod)
             {
-                <div>
+                <div class="ms-auto">
                     <span class="fcms-info-label">Status</span>
                     <div class="d-flex align-items-center flex-wrap fcms-gap-sm">
                         <span class="@Util.GetSessionStateBadgeClass(sessionState)">@sessionState</span>
@@ -86,10 +86,6 @@
                             <button class="btn btn-sm btn-success" @onclick="() => showCloseConfirmation = true">
                                 <i class="fa fa-check me-1"></i>Close Session
                             </button>
-                        }
-                        @if (currentRecord?.ClosedAt != null)
-                        {
-                            <small>Closed by @currentRecord.ClosedByName on @currentRecord.ClosedAt.Value.ToString("MMM d, yyyy h:mm tt")</small>
                         }
                     </div>
                 </div>
@@ -146,7 +142,8 @@
                         <DiscussionThreadComponent AllThreads="currentRecord?.DiscussionThreads ?? new List<DiscussionThread>()"
                                                    AllowReplies="canEditYearActivity"
                                                    CurrentUser="currentUser"
-                                                   ClassSessionId="classSession.Id" />
+                                                   ClassSessionId="classSession.Id"
+                                                   OnThreadsChanged="HandleThreadsChanged" />
                     </div>
                 </div>
                 <!-- Student list Section -->
@@ -370,7 +367,7 @@
                                     </button>
                                 }
                             </div>
-                            <div class="formatted-content fcms-scroll-area mb-4">
+                            <div class="formatted-content fcms-scroll-area fcms-surface-light mb-4">
                                 @((MarkupString)Util.FormatTextWithLinks(currentHomework.Question))
                             </div>
                             @if (isStudent)
@@ -381,7 +378,7 @@
                                 {
                                     <CharacterCountTextArea @bind-Value="answerDraft"
                                                             MaxLength="FcmsConstants.MAX_HOMEWORK_ANSWER_LENGTH"
-                                                            Rows="5"
+                                                            Rows="15"
                                                             ShowEmojiPicker="false"
                                                             Placeholder="Write your answer">
                                         <Actions>
@@ -403,7 +400,7 @@
                                 {
                                     <CharacterCountTextArea @bind-Value="answerDraft"
                                                             MaxLength="FcmsConstants.MAX_HOMEWORK_ANSWER_LENGTH"
-                                                            Rows="5"
+                                                            Rows="15"
                                                             ShowEmojiPicker="false"
                                                             Placeholder="Write your answer">
                                         <Actions>
@@ -434,7 +431,7 @@
                                             </button>
                                         }
                                     </div>
-                                    <div class="formatted-content fcms-scroll-area mb-3">
+                                    <div class="formatted-content fcms-surface-light mb-3">
                                         @((MarkupString)Util.FormatTextWithLinks(mySubmission.Answer))
                                     </div>
                                     @if (mySubmission.IsGraded && mySubmission.HomeworkGrade != null)
@@ -597,7 +594,7 @@
                             </button>
                         </div>
                     }
-                    <div class="formatted-content">
+                    <div class="formatted-content fcms-surface-light">
                         @((MarkupString)Util.FormatTextWithLinks(classSession.LessonPlan))
                     </div>
                 }
@@ -916,6 +913,17 @@
 
         canEditYearActivity = LogicMethods.IsSessionInPeriod(classSession.Semester, currentPeriod) &&
                               LogicMethods.IsClassSessionRecordOpen(currentRecord?.ClosedAt, gradesFinalized);
+    }
+
+    private void HandleThreadsChanged(List<DiscussionThread> threads)
+    {
+        if (currentRecord == null)
+        {
+            LoadCurrentRecord();
+            return;
+        }
+
+        currentRecord.DiscussionThreads = threads;
     }
 
     private void CloseSession()
