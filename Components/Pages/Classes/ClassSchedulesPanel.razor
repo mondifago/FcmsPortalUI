@@ -18,18 +18,23 @@ else
 {
     <div class="card fcms-tab-card mb-4">
         <div class="card-body">
-            <div class="d-flex align-items-center flex-wrap mb-3 fcms-gap-sm">
-                <button class="btn btn-sm btn-outline-secondary" @onclick="PreviousWeek">
-                    <i class="fa fa-chevron-left"></i>
-                </button>
-                <span class="fcms-text-sm">@currentWeekStart.ToString("MMM d") - @currentWeekStart.AddDays(6).ToString("MMM d, yyyy")</span>
-                <button class="btn btn-sm btn-outline-secondary" @onclick="NextWeek">
-                    <i class="fa fa-chevron-right"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-secondary" @onclick="GoToToday">Today</button>
-                <button class="btn btn-sm btn-primary ms-auto" @onclick="OpenCreate">
-                    <i class="fa fa-plus me-1"></i>Add Schedule
-                </button>
+            <div class="row align-items-center g-2 mb-3">
+                <div class="col d-none d-md-block"></div>
+                <div class="col-auto d-flex align-items-center fcms-gap-sm">
+                    <button class="btn btn-sm btn-fcms" @onclick="PreviousWeek">
+                        <i class="fa fa-arrow-left"></i>
+                    </button>
+                    <strong>@currentWeekStart.ToString("MMM d") - @currentWeekStart.AddDays(6).ToString("MMM d, yyyy")</strong>
+                    <button class="btn btn-sm btn-fcms" @onclick="NextWeek">
+                        <i class="fa fa-arrow-right"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="GoToToday">Today</button>
+                </div>
+                <div class="col text-end">
+                    <button class="btn btn-sm btn-primary" @onclick="OpenCreate">
+                        <i class="fa fa-plus me-1"></i>Add Schedule
+                    </button>
+                </div>
             </div>
 
             @if (!schedules.Any())

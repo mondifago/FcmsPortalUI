@@ -86,18 +86,21 @@
                 Timetable
             </button>
         </li>
-        <li class="nav-item">
-            <button class="nav-link @(activeTab == TabSessions ? "active" : "")"
-                    @onclick="() => activeTab = TabSessions">
-                Class Sessions
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link @(activeTab == TabSchedules ? "active" : "")"
-                    @onclick="() => activeTab = TabSchedules">
-                Class Schedule
-            </button>
-        </li>
+        @if (canManageSessions)
+        {
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == TabSessions ? "active" : "")"
+                        @onclick="() => activeTab = TabSessions">
+                    Class Sessions
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == TabSchedules ? "active" : "")"
+                        @onclick="() => activeTab = TabSchedules">
+                    Class Schedule
+                </button>
+            </li>
+        }
     </ul>
 
     @if (activeTab == TabTimetable)
@@ -207,41 +210,19 @@
         }
     }
 
-    @if (activeTab == TabSessions)
+    @if (activeTab == TabSessions && canManageSessions)
     {
-        @if (canManageSessions)
-        {
-            <ClassSessionsPanel SelectedEducationLevel="SelectedEducationLevel"
-                                SelectedClassLevel="SelectedClassLevel"
-                                SelectedTerm="SelectedTerm" />
-        }
-        else
-        {
-            <div class="text-center text-muted py-4">
-                <i class="fa fa-hourglass-half fa-2x mb-2 fcms-icon-soft"></i>
-                <p class="mb-0">Coming soon</p>
-            </div>
-        }
+        <ClassSessionsPanel SelectedEducationLevel="SelectedEducationLevel"
+                            SelectedClassLevel="SelectedClassLevel"
+                            SelectedTerm="SelectedTerm" />
     }
 
-    @if (activeTab == TabSchedules)
+    @if (activeTab == TabSchedules && canManageSessions)
     {
-        @if (canManageSessions)
-        {
-            <ClassSchedulesPanel SelectedClassLevel="SelectedClassLevel"
-                                 SelectedTerm="SelectedTerm" />
-        }
-        else
-        {
-            <div class="text-center text-muted py-4">
-                <i class="fa fa-hourglass-half fa-2x mb-2 fcms-icon-soft"></i>
-                <p class="mb-0">Coming soon</p>
-            </div>
-        }
+        <ClassSchedulesPanel SelectedClassLevel="SelectedClassLevel"
+                             SelectedTerm="SelectedTerm" />
     }
 </div>
-
-
 
 @code {
     private const string TabTimetable = "timetable";

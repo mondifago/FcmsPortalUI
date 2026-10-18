@@ -1702,10 +1702,6 @@ main {
     font-size: 0.8rem;
 }
 
-.fcms-icon-soft {
-    color: #f0d5c4;
-}
-
 /* ===== Reusable info strip (page identity band) ===== */
 .fcms-info-strip {
     background-color: #f0d5c4;
