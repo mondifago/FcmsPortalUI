@@ -1501,25 +1501,19 @@ namespace FcmsPortalUI.Services
                                  record.RemarksSubmittedAt.HasValue &&
                                  record.RemarksSubmittedAt.Value.Date == targetDate)
                 .OrderByDescending(record => record.RemarksSubmittedAt)
-                .Select(record => new
-                {
-                    record.ClassSessionId,
-                    record.ClassSession!.ClassLevel,
-                    record.ClassSession.Course,
-                    record.ClassSession.Topic,
-                    record.RemarksSubmittedByName,
-                    SubmittedAt = record.RemarksSubmittedAt!.Value
-                })
-                .ToList()
-                .Select(row => new ClassSessionReport
-                {
-                    ClassSessionId = row.ClassSessionId,
-                    LearningPathName = row.ClassLevel.ToDisplayName(),
-                    Course = row.Course,
-                    Topic = row.Topic,
-                    SubmittedBy = row.RemarksSubmittedByName,
-                    TimeSubmitted = row.SubmittedAt
-                })
+                                .Select(record => new ClassSessionReport
+                                {
+                                    ClassSessionId = record.ClassSessionId,
+                                    ClassLevel = record.ClassSession!.ClassLevel,
+                                    Semester = record.ClassSession.Semester,
+                                    SessionNumber = record.ClassSession.SessionNumber,
+                                    Course = record.ClassSession.Course,
+                                    Topic = record.ClassSession.Topic,
+                                    Description = record.ClassSession.Description,
+                                    TeacherRemarks = record.TeacherRemarks,
+                                    SubmittedBy = record.RemarksSubmittedByName,
+                                    TimeSubmitted = record.RemarksSubmittedAt!.Value
+                                })
                 .ToList();
         }
 

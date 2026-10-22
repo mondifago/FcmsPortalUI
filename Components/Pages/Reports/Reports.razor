@@ -27,13 +27,13 @@
         <li class="nav-item">
             <button class="nav-link @(activeReportTab == TabSessions ? "active" : "")"
                     @onclick="() => activeReportTab = TabSessions">
-                Class Sessions
+                Class Sessions Reports
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link @(activeReportTab == TabGrades ? "active" : "")"
                     @onclick="() => activeReportTab = TabGrades">
-                Grades
+                Submitted Classes
             </button>
         </li>
     </ul>
@@ -208,13 +208,13 @@
                                     @foreach (var report in filteredSessionReports)
                                     {
                                         <tr>
-                                            <td>@report.LearningPathName</td>
+                                            <td>@report.ClassLevel.ToDisplayName()</td>
                                             <td>@report.Course</td>
                                             <td>@report.Topic</td>
                                             <td>@report.TimeSubmitted.ToString("hh:mm tt")</td>
                                             <td>@report.SubmittedBy</td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewClassSession(report.ClassSessionId)">
+                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => selectedSessionReport = report">
                                                     <i class="fa fa-eye me-1"></i> View
                                                 </button>
                                             </td>
@@ -330,9 +330,9 @@
                     {
                         <div class="text-center py-4">
                             <i class="fa fa-chart-bar fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No grades reports found</h5>
+                            <h5 class="text-muted">No submitted classes found</h5>
                             <p class="text-muted">
-                                <span>No grades reports found for @gradesYear @gradesSemester.ToTermDisplay().</span>
+                                <span>No submitted classes found for @gradesYear @gradesSemester.ToTermDisplay().</span>
                             </p>
                         </div>
                     }
@@ -341,7 +341,7 @@
                 {
                     <div class="text-center py-4">
                         <i class="fa fa-filter fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">Select filters to view grades reports</h5>
+                        <h5 class="text-muted">Select filters to view submitted classes</h5>
                         <p class="text-muted">Please select Academic Year and Term to continue.</p>
                     </div>
                 }
@@ -361,6 +361,20 @@
                              LearningPathName="@(selectedLearningPath != null ? Util.GetLearningPathName(selectedLearningPath) : string.Empty)"
                              AttendanceReport="semesterAttendanceReport"
                              OnClose="CloseSemesterAttendanceModal" />
+
+@if (selectedSessionReport != null)
+{
+    <ClassSessionRemarkModal IsVisible="true"
+                             Title="@($"{selectedSessionReport.Course} · {selectedSessionReport.Topic}")"
+                             Description="@selectedSessionReport.Description"
+                             Subtitle="@SessionReportSubtitle(selectedSessionReport)"
+                             Byline="@SessionReportByline(selectedSessionReport)"
+                             Remark="@selectedSessionReport.TeacherRemarks"
+                             IsReadOnly="true"
+                             OnOpenSession="OpenSelectedSession"
+                             OnClose="() => selectedSessionReport = null" />
+}
+
 @code {
     private const string TabAttendance = "attendance";
     private const string TabSessions = "sessions";
@@ -372,6 +386,7 @@
     private DailyAttendanceLogEntry dailyAttendanceData = new();
     private SemesterAttendanceReport semesterAttendanceReport = new();
     private List<ClassSessionReport> filteredSessionReports = new List<ClassSessionReport>();
+    private ClassSessionReport? selectedSessionReport;
     private List<GradesReport> filteredGradesReports = new List<GradesReport>();
     private List<LearningPathListItem> filteredLearningPaths = new();
     private List<string> availableAcademicYears = new();
@@ -595,8 +610,22 @@
         NavigationManager.NavigateTo($"/learningpaths/details/{learningPathId}");
     }
 
-    private void ViewClassSession(int classSessionId)
+    private string SessionReportSubtitle(ClassSessionReport report)
     {
-        NavigationManager.NavigateTo($"/classsession/details/{classSessionId}");
+        var code = Util.GetClassSessionCode(report.ClassLevel, report.Semester, report.Course, report.SessionNumber);
+        return $"{code} · {report.ClassLevel.ToDisplayName()} · {report.Semester.ToTermDisplay()} {sessionYear}";
+    }
+
+    private string SessionReportByline(ClassSessionReport report)
+    {
+        return $"Submitted by {report.SubmittedBy} · {report.TimeSubmitted:MMM d, yyyy, h:mm tt}";
+    }
+
+    private void OpenSelectedSession()
+    {
+        if (selectedSessionReport == null)
+            return;
+
+        NavigationManager.NavigateTo($"/classsession/details/{selectedSessionReport.ClassSessionId}?returnUrl=/reports");
     }
 }

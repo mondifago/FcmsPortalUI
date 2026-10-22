@@ -6,13 +6,23 @@
         <div class="modal-content fcms-modal-panel">
             <div class="modal-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
+                   
                     <div>
                         <h5 class="modal-title fcms-picker-title mb-0">@Title</h5>
+                        @if (!string.IsNullOrEmpty(Description))
+                        {
+                            <div>@Description</div>
+                        }
                         @if (!string.IsNullOrEmpty(Subtitle))
                         {
-                            <small>@Subtitle</small>
+                            <small class="d-block">@Subtitle</small>
+                        }
+                        @if (!string.IsNullOrEmpty(Byline))
+                        {
+                            <small class="d-block">@Byline</small>
                         }
                     </div>
+
                     <button type="button" class="fcms-picker-close" @onclick="Close">
                         <i class="fa fa-times"></i>
                     </button>
@@ -34,6 +44,10 @@
                 }
 
                 <div class="d-flex justify-content-end mt-3">
+                    @if (OnOpenSession.HasDelegate)
+                    {
+                        <button type="button" class="btn btn-outline-fcms me-2" @onclick="OpenSession">Open session</button>
+                    }
                     <button type="button" class="btn btn-secondary me-2" @onclick="Close">@(IsReadOnly ? "Close" : "Cancel")</button>
                     @if (!IsReadOnly)
                     {
@@ -56,6 +70,9 @@
     [Parameter] public string Subtitle { get; set; } = string.Empty;
     [Parameter] public string Remark { get; set; } = string.Empty;
     [Parameter] public bool IsReadOnly { get; set; }
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public string Byline { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnOpenSession { get; set; }
     [Parameter] public EventCallback<string> OnSubmit { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
@@ -69,6 +86,11 @@
     private async Task Submit()
     {
         await OnSubmit.InvokeAsync(draft);
+    }
+
+    private async Task OpenSession()
+    {
+        await OnOpenSession.InvokeAsync();
     }
 
     private async Task Close()
