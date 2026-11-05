@@ -155,7 +155,7 @@ else
     private List<ClassScheduleListItem> schedules = new();
     private ClassScheduleListItem? editingSchedule;
 
-    private DateTime currentWeekStart = GetWeekStart(DateTime.Today);
+    private DateTime currentWeekStart = LogicMethods.GetWeekStart(DateTime.Today);
     private bool showFormModal = false;
    
     private bool showDeleteConfirmation = false;
@@ -188,11 +188,6 @@ else
         schedules = SchoolDataService.GetClassSchedulesForWeek(SelectedClassLevel, SelectedTerm.Value, currentWeekStart);
     }
 
-    private static DateTime GetWeekStart(DateTime date)
-    {
-        return date.AddDays(-(((int)date.DayOfWeek + 6) % 7)).Date;
-    }
-
     private void PreviousWeek()
     {
         currentWeekStart = currentWeekStart.AddDays(-FcmsConstants.DAYS_IN_WEEK);
@@ -207,7 +202,7 @@ else
 
     private void GoToToday()
     {
-        currentWeekStart = GetWeekStart(DateTime.Today);
+        currentWeekStart = LogicMethods.GetWeekStart(DateTime.Today);
         LoadData();
     }
 
@@ -296,18 +291,7 @@ else
         if (schedule.ClassSessionId == null)
             return;
 
-        detailSession = new ClassSessionListItem
-        {
-            Id = schedule.ClassSessionId.Value,
-            SessionNumber = schedule.SessionNumber,
-            Course = schedule.Course,
-            Topic = schedule.Topic,
-            Description = schedule.Description,
-            TeacherName = schedule.TeacherName,
-            ScheduledAt = schedule.DateTime,
-            ScheduledEnd = schedule.DateTime.Add(schedule.Duration)
-        };
-
+        detailSession = schedule.ToClassSessionListItem();
         showDetailModal = true;
     }
 }

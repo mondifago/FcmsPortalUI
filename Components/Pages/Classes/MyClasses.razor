@@ -334,19 +334,14 @@
         GoToToday();
     }
 
-    private static DateTime GetWeekStart(DateTime date)
-    {
-        return date.AddDays(-(((int)date.DayOfWeek + 6) % 7)).Date;
-    }
-
     private bool IsCurrentWeek()
     {
-        return currentWeekStart == GetWeekStart(DateTime.Today);
+        return currentWeekStart == LogicMethods.GetWeekStart(DateTime.Today);
     }
 
     private void GoToToday()
     {
-        currentWeekStart = GetWeekStart(DateTime.Today);
+        currentWeekStart = LogicMethods.GetWeekStart(DateTime.Today);
         expandedDays = new HashSet<DateTime> { DateTime.Today };
     }
 

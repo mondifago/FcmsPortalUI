@@ -6,6 +6,7 @@ using FcmsPortalUI.Data;
 using FcmsPortalUI.DTOs;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 
 namespace FcmsPortalUI.Services
@@ -958,12 +959,6 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Calendar & Scheduling
-        public IEnumerable<ScheduleEntry> GetAllSchoolCalendarSchedules()
-        {
-            return _context.ScheduleEntries
-                .AsNoTracking()
-                .ToList();
-        }
 
         public async Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync()
         {
@@ -975,110 +970,23 @@ namespace FcmsPortalUI.Services
                 .ToListAsync();
         }
 
-        public ScheduleEntry? AddGeneralScheduleEntry(ScheduleEntry scheduleEntry)
+        public async Task<List<ScheduleEntry>> GetScheduleEntriesInRangeAsync(DateTime start, DateTime end)
         {
-            var school = _context.School
-                .Include(s => s.SchoolCalendar)
-                    .ThenInclude(c => c.ScheduleEntries)
-                .FirstOrDefault();
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-            if (school == null)
-                return null;
-
-            var mainCalendar = school.SchoolCalendar.FirstOrDefault();
-            if (mainCalendar == null)
-            {
-                mainCalendar = new CalendarModel
-                {
-                    Name = "Main School Calendar",
-                    ScheduleEntries = new List<ScheduleEntry>()
-                };
-                school.SchoolCalendar.Add(mainCalendar);
-            }
-
-            if (mainCalendar.ScheduleEntries == null)
-            {
-                mainCalendar.ScheduleEntries = new List<ScheduleEntry>();
-            }
-
-            if (scheduleEntry.Id > 0)
-            {
-                var existingSchedule = mainCalendar.ScheduleEntries.FirstOrDefault(s => s.Id == scheduleEntry.Id);
-                if (existingSchedule == null)
-                {
-                    mainCalendar.ScheduleEntries.Add(scheduleEntry);
-                }
-                _context.SaveChanges();
-                return scheduleEntry;
-            }
-
-            if (scheduleEntry.IsRecurring)
-            {
-                var recurringEntries = LogicMethods.GenerateRecurringSchedules(scheduleEntry);
-                foreach (var entry in recurringEntries)
-                {
-                    mainCalendar.ScheduleEntries.Add(entry);
-                }
-                _context.SaveChanges();
-                return recurringEntries.FirstOrDefault();
-            }
-            else
-            {
-                mainCalendar.ScheduleEntries.Add(scheduleEntry);
-                _context.SaveChanges();
-                return scheduleEntry;
-            }
+            return await context.ScheduleEntries
+                .AsNoTracking()
+                .Where(se => se.DateTime >= start && se.DateTime < end)
+                .OrderBy(se => se.DateTime)
+                .ToListAsync();
         }
 
-        public void UpdateScheduleInSchoolCalendar(ScheduleEntry scheduleEntry)
+        public void AddGeneralScheduleEntry(ScheduleEntry scheduleEntry)
         {
-            var school = _context.School
-                .Include(s => s.SchoolCalendar)
-                    .ThenInclude(c => c.ScheduleEntries)
-                .FirstOrDefault();
+            using var context = _contextFactory.CreateDbContext();
 
-            if (school?.SchoolCalendar == null)
-                return;
-
-            foreach (var calendar in school.SchoolCalendar)
-            {
-                if (calendar.ScheduleEntries != null)
-                {
-                    var existingIndex = calendar.ScheduleEntries.FindIndex(s => s.Id == scheduleEntry.Id);
-                    if (existingIndex >= 0)
-                    {
-                        calendar.ScheduleEntries[existingIndex] = scheduleEntry;
-                        _context.SaveChanges();
-                        break;
-                    }
-                }
-            }
-        }
-
-
-        public void RemoveScheduleFromSchoolCalendar(ScheduleEntry scheduleEntry)
-        {
-            var school = _context.School
-                .Include(s => s.SchoolCalendar)
-                    .ThenInclude(c => c.ScheduleEntries)
-                .FirstOrDefault();
-
-            if (school?.SchoolCalendar == null)
-                return;
-
-            foreach (var calendar in school.SchoolCalendar)
-            {
-                if (calendar.ScheduleEntries != null)
-                {
-                    var scheduleToRemove = calendar.ScheduleEntries.FirstOrDefault(s => s.Id == scheduleEntry.Id);
-                    if (scheduleToRemove != null)
-                    {
-                        calendar.ScheduleEntries.Remove(scheduleToRemove);
-                        _context.SaveChanges();
-                        break;
-                    }
-                }
-            }
+            context.ScheduleEntries.AddRange(LogicMethods.GenerateRecurringSchedules(scheduleEntry));
+            context.SaveChanges();
         }
 
         public bool UpdateGeneralCalendarScheduleEntry(ScheduleEntry scheduleEntry)
@@ -1120,26 +1028,7 @@ namespace FcmsPortalUI.Services
                 .AsNoTracking()
                 .Where(sched => sched.ClassLevel == classLevel && sched.Semester == semester)
                 .OrderBy(sched => sched.DateTime)
-                .Select(sched => new ClassScheduleListItem
-                {
-                    Id = sched.Id,
-                    DateTime = sched.DateTime,
-                    Duration = sched.Duration,
-                    Venue = sched.Venue,
-                    ClassSessionId = sched.ClassSessionId,
-                    Course = sched.ClassSession == null ? string.Empty : sched.ClassSession.Course,
-                    SessionNumber = sched.ClassSession == null ? 0 : sched.ClassSession.SessionNumber,
-                    Topic = sched.ClassSession == null ? string.Empty : sched.ClassSession.Topic,
-                    Description = sched.ClassSession == null ? string.Empty : sched.ClassSession.Description,
-                    ClosedAt = _context.ClassSessionRecords
-                        .Where(record => record.ClassSessionId == sched.ClassSessionId &&
-                                         record.AcademicPeriodId == currentPeriodId)
-                        .Select(record => record.ClosedAt)
-                        .FirstOrDefault(),
-                    TeacherName = sched.ClassSession == null || sched.ClassSession.Teacher == null
-                        ? null
-                        : sched.ClassSession.Teacher.Person.FirstName + " " + sched.ClassSession.Teacher.Person.LastName
-                })
+                .Select(ToClassScheduleListItem(_context, currentPeriodId))
                 .ToList();
         }
 
@@ -1156,27 +1045,53 @@ namespace FcmsPortalUI.Services
                                 sched.DateTime >= weekStart.Date &&
                                 sched.DateTime < weekEnd)
                 .OrderBy(sched => sched.DateTime)
-                .Select(sched => new ClassScheduleListItem
-                {
-                    Id = sched.Id,
-                    DateTime = sched.DateTime,
-                    Duration = sched.Duration,
-                    Venue = sched.Venue,
-                    ClassSessionId = sched.ClassSessionId,
-                    Course = sched.ClassSession == null ? string.Empty : sched.ClassSession.Course,
-                    SessionNumber = sched.ClassSession == null ? 0 : sched.ClassSession.SessionNumber,
-                    Topic = sched.ClassSession == null ? string.Empty : sched.ClassSession.Topic,
-                    Description = sched.ClassSession == null ? string.Empty : sched.ClassSession.Description,
-                    ClosedAt = _context.ClassSessionRecords
-                        .Where(record => record.ClassSessionId == sched.ClassSessionId &&
-                                         record.AcademicPeriodId == currentPeriodId)
-                        .Select(record => record.ClosedAt)
-                        .FirstOrDefault(),
-                    TeacherName = sched.ClassSession == null || sched.ClassSession.Teacher == null
-                        ? null
-                        : sched.ClassSession.Teacher.Person.FirstName + " " + sched.ClassSession.Teacher.Person.LastName
-                })
-                .ToList();
+               .Select(ToClassScheduleListItem(_context, currentPeriodId))
+               .ToList();
+        }
+
+        public async Task<List<ClassScheduleListItem>> GetClassSchedulesInRangeAsync(DateTime start, DateTime end, ClassLevel? classLevel)
+        {
+            var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var query = context.ClassSchedules
+                .AsNoTracking()
+                .Where(sched => sched.DateTime >= start && sched.DateTime < end);
+
+            if (classLevel.HasValue)
+                query = query.Where(sched => sched.ClassLevel == classLevel.Value);
+
+            return await query
+                .OrderBy(sched => sched.DateTime)
+                .Select(ToClassScheduleListItem(context, currentPeriodId))
+                .ToListAsync();
+        }
+
+        private static Expression<Func<ClassSchedule, ClassScheduleListItem>> ToClassScheduleListItem(FcmsPortalUIContext context, int? currentPeriodId)
+        {
+            return sched => new ClassScheduleListItem
+            {
+                Id = sched.Id,
+                ClassLevel = sched.ClassLevel,
+                Semester = sched.Semester,
+                DateTime = sched.DateTime,
+                Duration = sched.Duration,
+                Venue = sched.Venue,
+                ClassSessionId = sched.ClassSessionId,
+                Course = sched.ClassSession == null ? string.Empty : sched.ClassSession.Course,
+                SessionNumber = sched.ClassSession == null ? 0 : sched.ClassSession.SessionNumber,
+                Topic = sched.ClassSession == null ? string.Empty : sched.ClassSession.Topic,
+                Description = sched.ClassSession == null ? string.Empty : sched.ClassSession.Description,
+                ClosedAt = context.ClassSessionRecords
+                    .Where(record => record.ClassSessionId == sched.ClassSessionId &&
+                                     record.AcademicPeriodId == currentPeriodId)
+                    .Select(record => record.ClosedAt)
+                    .FirstOrDefault(),
+                TeacherName = sched.ClassSession == null || sched.ClassSession.Teacher == null
+                    ? null
+                    : sched.ClassSession.Teacher.Person.FirstName + " " + sched.ClassSession.Teacher.Person.LastName
+            };
         }
 
         public ClassSchedule? GetClassScheduleByClassSessionId(int classSessionId)

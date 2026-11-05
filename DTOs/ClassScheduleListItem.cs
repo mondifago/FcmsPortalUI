@@ -1,8 +1,12 @@
-﻿namespace FcmsPortalUI.DTOs
+﻿using FcmsPortal.Enums;
+
+namespace FcmsPortalUI.DTOs
 {
     public class ClassScheduleListItem
     {
         public int Id { get; set; }
+        public ClassLevel ClassLevel { get; set; }
+        public Semester Semester { get; set; }
         public DateTime DateTime { get; set; }
         public TimeSpan Duration { get; set; }
         public string Venue { get; set; } = string.Empty;

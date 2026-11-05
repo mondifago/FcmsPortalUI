@@ -2,6 +2,7 @@
 using FcmsPortal.Constants;
 using FcmsPortal.Enums;
 using FcmsPortal.Models;
+using FcmsPortalUI.DTOs;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Globalization;
 using System.Net;
@@ -386,6 +387,22 @@ namespace FcmsPortalUI
             return $"{classLevel.ToCode()}-T{(int)semester}-{GetCourseCode(course)}-{sessionNumber:D3}";
         }
 
+        public static ClassSessionListItem ToClassSessionListItem(this ClassScheduleListItem schedule)
+        {
+            return new ClassSessionListItem
+            {
+                Id = schedule.ClassSessionId.GetValueOrDefault(),
+                SessionNumber = schedule.SessionNumber,
+                Course = schedule.Course,
+                Topic = schedule.Topic,
+                Description = schedule.Description,
+                TeacherName = schedule.TeacherName,
+                ScheduledAt = schedule.DateTime,
+                ScheduledEnd = schedule.DateTime.Add(schedule.Duration),
+                ClosedAt = schedule.ClosedAt
+            };
+        }
+
         public static string ToCode(this ClassLevel classLevel)
         {
             return classLevel switch
@@ -411,7 +428,7 @@ namespace FcmsPortalUI
             };
         }
 
-        private static string GetCourseCode(string course)
+        public static string GetCourseCode(string course)
         {
             var letters = new string(course.Where(char.IsLetter).ToArray());
 
