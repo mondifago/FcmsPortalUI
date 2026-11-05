@@ -3723,6 +3723,9 @@ namespace FcmsPortalUI.Services
             if (student?.LearningPath == null)
                 return new List<PendingHomeworkItem>();
 
+            if (AreLearningPathGradesFinalized(student.LearningPath.Id))
+                return new List<PendingHomeworkItem>();
+
             return _context.Homework
                 .AsNoTracking()
                                 .Where(h => h.ClassSessionRecord!.AcademicPeriodId == student.LearningPath.AcademicPeriodId &&

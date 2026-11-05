@@ -187,7 +187,7 @@
                                             <div class="hbar-row">
                                                 <i class="fa fa-pen-to-square hbar-row-icon"></i>
                                                 <span>
-                                                    <strong>@homework.Course:</strong>@homework.Title
+                                                    <strong>@homework.Course:</strong> @homework.Title
                                                     <small class="text-muted d-block">
                                                         (Assigned: @homework.AssignedDate.ToString("MMM d"), Due: @homework.DueDate.ToString("MMM d"))
                                                     </small>
@@ -229,7 +229,7 @@
                                                 <i class="fa fa-trophy hbar-row-icon"></i>
                                                 <span>
                                                     <strong>@grade.Course</strong>
-                                                    @grade.GradeType: @grade.Score
+                                                    @grade.GradeType: @(grade.Score)%
                                                 </span>
                                             </div>
                                         }
@@ -338,7 +338,7 @@
                                                 <i class="fa fa-trophy hbar-row-icon"></i>
                                                 <span>
                                                     <strong>@grade.WardName:</strong>
-                                                    @grade.Course @grade.GradeType: @grade.Score
+                                                    @grade.Course @grade.GradeType: @(grade.Score)%
                                                 </span>
                                             </div>
                                         }
