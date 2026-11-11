@@ -68,15 +68,6 @@ namespace FcmsPortalUI.Services
 
         public School AddSchool(School school)
         {
-            if (!school.SchoolCalendar.Any())
-            {
-                school.SchoolCalendar.Add(new CalendarModel
-                {
-                    Name = $"{DateTime.Now.Year} School Calendar",
-                    ScheduleEntries = new List<ScheduleEntry>()
-                });
-            }
-
             _context.School.Add(school);
             _context.SaveChanges();
             return school;

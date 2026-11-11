@@ -650,29 +650,6 @@ namespace FcmsPortalUI.Migrations
                     b.ToTable("AttendanceArchives");
                 });
 
-            modelBuilder.Entity("FcmsPortal.Models.CalendarModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("varchar(30)");
-
-                    b.Property<int?>("SchoolId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SchoolId");
-
-                    b.ToTable("CalendarModel");
-                });
-
             modelBuilder.Entity("FcmsPortal.Models.ClassSchedule", b =>
                 {
                     b.Property<int>("Id")
@@ -1451,9 +1428,6 @@ namespace FcmsPortalUI.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CalendarModelId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime(6)");
 
@@ -1498,8 +1472,6 @@ namespace FcmsPortalUI.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CalendarModelId");
 
                     b.HasIndex("DateTime");
 
@@ -1993,15 +1965,6 @@ namespace FcmsPortalUI.Migrations
                     b.Navigation("ArchivedCourseGrade");
                 });
 
-            modelBuilder.Entity("FcmsPortal.Models.CalendarModel", b =>
-                {
-                    b.HasOne("FcmsPortal.Models.School", "School")
-                        .WithMany("SchoolCalendar")
-                        .HasForeignKey("SchoolId");
-
-                    b.Navigation("School");
-                });
-
             modelBuilder.Entity("FcmsPortal.Models.ClassSchedule", b =>
                 {
                     b.HasOne("FcmsPortal.Models.ClassSession", "ClassSession")
@@ -2314,13 +2277,6 @@ namespace FcmsPortalUI.Migrations
                     b.Navigation("DiscussionThread");
                 });
 
-            modelBuilder.Entity("FcmsPortal.Models.ScheduleEntry", b =>
-                {
-                    b.HasOne("FcmsPortal.Models.CalendarModel", null)
-                        .WithMany("ScheduleEntries")
-                        .HasForeignKey("CalendarModelId");
-                });
-
             modelBuilder.Entity("FcmsPortal.Models.School", b =>
                 {
                     b.HasOne("FcmsPortal.Models.AcademicPeriod", "CurrentAcademicPeriod")
@@ -2553,11 +2509,6 @@ namespace FcmsPortalUI.Migrations
                     b.Navigation("PaymentDetails");
                 });
 
-            modelBuilder.Entity("FcmsPortal.Models.CalendarModel", b =>
-                {
-                    b.Navigation("ScheduleEntries");
-                });
-
             modelBuilder.Entity("FcmsPortal.Models.ClassSession", b =>
                 {
                     b.Navigation("StudyMaterials");
@@ -2611,8 +2562,6 @@ namespace FcmsPortalUI.Migrations
                     b.Navigation("Guardians");
 
                     b.Navigation("LearningPaths");
-
-                    b.Navigation("SchoolCalendar");
 
                     b.Navigation("Staff");
 
