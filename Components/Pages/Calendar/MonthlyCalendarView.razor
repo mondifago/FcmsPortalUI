@@ -1,6 +1,8 @@
-﻿@using FcmsPortal.Models
+﻿@using FcmsPortal
+@using FcmsPortal.Models
 @using FcmsPortal.Enums
 @using FcmsPortal.Constants
+@using FcmsPortalUI.DTOs
 
 <div class="card mb-4">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -20,13 +22,13 @@
             <table class="table table-bordered calendar-table">
                 <thead>
                     <tr>
-                        <th>Sun</th>
                         <th>Mon</th>
                         <th>Tue</th>
                         <th>Wed</th>
                         <th>Thu</th>
                         <th>Fri</th>
                         <th>Sat</th>
+                        <th>Sun</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -39,10 +41,11 @@
                                 bool isCurrentMonth = displayDay > 0 && displayDay <= DaysInMonth;
                                 var date = new DateTime(CurrentDate.Year, CurrentDate.Month, isCurrentMonth ? displayDay : 1);
                                 var sessionsOnDay = isCurrentMonth ? GetSchedulesForDate(date) : new List<ScheduleEntry>();
+                                var classesOnDay = isCurrentMonth ? GetClassSchedulesForDate(date) : new List<ClassScheduleListItem>();
 
                                 <td class="@(!isCurrentMonth ? "bg-light" : "") @(IsToday(date) ? "bg-info-subtle" : "")"
                                     @onclick="() => OnDateSelected.InvokeAsync(date)">
-                                    @if (isCurrentMonth)
+                                    @if (sessionsOnDay.Any() || classesOnDay.Any())
                                     {
                                         <div class="d-flex justify-content-end">
                                             <span class="badge bg-secondary">@displayDay</span>
@@ -78,6 +81,23 @@
                                                         </div>
                                                     </div>
                                                 }
+
+                                                @foreach (var classSchedule in classesOnDay)
+                                                {
+                                                    if (classSchedule.ClassSessionId == null)
+                                                    {
+                                                        <span class="badge bg-secondary me-1 mb-1" title="Unassigned · @classSchedule.DateTime.ToString("h:mm tt")">—</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge text-bg-info me-1 mb-1" role="button"
+                                                              title="@classSchedule.Course · @classSchedule.Topic · @classSchedule.DateTime.ToString("h:mm tt")"
+                                                              @onclick:stopPropagation
+                                                              @onclick="() => OnClassScheduleClicked.InvokeAsync(classSchedule)">
+                                                            @Util.GetCourseCode(classSchedule.Course)
+                                                        </span>
+                                                    }
+                                                }
                                             </div>
                                         }
                                     }
@@ -100,9 +120,18 @@
     [Parameter] public string ScheduleTypeLabel { get; set; } = "Event";
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Events";
     [Parameter] public EventCallback<(DateTime date, ScheduleType? type)> OnScheduleTypeClicked { get; set; }
+    [Parameter] public Func<DateTime, List<ClassScheduleListItem>> GetClassSchedulesForDate { get; set; } = _ => new List<ClassScheduleListItem>();
+    [Parameter] public EventCallback<ClassScheduleListItem> OnClassScheduleClicked { get; set; }
 
     private int DaysInMonth => DateTime.DaysInMonth(CurrentDate.Year, CurrentDate.Month);
-    private int FirstDayOfMonth => (int)new DateTime(CurrentDate.Year, CurrentDate.Month, 1).DayOfWeek;
+    private int FirstDayOfMonth
+    {
+        get
+        {
+            var monthStart = new DateTime(CurrentDate.Year, CurrentDate.Month, 1);
+            return (monthStart - LogicMethods.GetWeekStart(monthStart)).Days;
+        }
+    }
 
     private void PreviousMonth()
     {

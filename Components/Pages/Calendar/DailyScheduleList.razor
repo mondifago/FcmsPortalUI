@@ -1,7 +1,7 @@
-﻿@using FcmsPortal.Models
+﻿@using FcmsPortal
+@using FcmsPortal.Models
 @using FcmsPortal.Enums
-@using FcmsPortalUI.Services
-@inject ISchoolDataService SchoolDataService
+@using FcmsPortalUI.DTOs
 
 <div class="card">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -17,17 +17,23 @@
         </div>
     </div>
     <div class="card-body">
-        @if (!Schedules.Any())
+        @{
+            var filteredSchedules = GetFilteredSchedules();
+            var classSchedulesToShow = FilterByType == null ? ClassSchedules : new List<ClassScheduleListItem>();
+        }
+
+        @if (!filteredSchedules.Any() && !classSchedulesToShow.Any())
         {
             <div class="alert alert-info">
                 <i class="fa fa-info-circle me-2"></i>
                 No @(ScheduleTypesLabel.ToLower()) found for this date.
             </div>
         }
-        else
+
+        @if (filteredSchedules.Any())
         {
             <div class="list-group">
-                @foreach (var schedule in GetFilteredSchedules().OrderBy(s => s.DateTime.TimeOfDay))
+                @foreach (var schedule in filteredSchedules.OrderBy(s => s.DateTime.TimeOfDay))
                 {
                     <div class="list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-between align-items-center">
@@ -71,6 +77,59 @@
                 }
             </div>
         }
+        @if (classSchedulesToShow.Any())
+        {
+            <h6 class="@(filteredSchedules.Any() ? "mt-3" : "") mb-2">@classSchedulesToShow.First().ClassLevel.ToDisplayName() classes</h6>
+            <div class="list-group">
+                @foreach (var classSchedule in classSchedulesToShow)
+                {
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div>
+                                @if (classSchedule.ClassSessionId == null)
+                                {
+                                    <h6 class="mb-1 text-muted">Unassigned</h6>
+                                }
+                                else
+                                {
+                                    <h6 class="mb-1">
+                                        @Util.GetClassSessionCode(classSchedule.ClassLevel, classSchedule.Semester, classSchedule.Course, classSchedule.SessionNumber) · @classSchedule.Topic
+                                    </h6>
+                                }
+                                <p class="mb-1">
+                                    <small>
+                                        <i class="fa fa-clock me-1"></i>
+                                        @classSchedule.DateTime.ToString("h:mm tt") - @classSchedule.DateTime.Add(classSchedule.Duration).ToString("h:mm tt")
+                                    </small>
+                                    <small class="ms-3">
+                                        <i class="fa fa-map-marker-alt me-1"></i>
+                                        @classSchedule.Venue
+                                    </small>
+                                    @if (!string.IsNullOrEmpty(classSchedule.TeacherName))
+                                    {
+                                        <small class="ms-3">
+                                            <i class="fa fa-user me-1"></i>
+                                            @classSchedule.TeacherName
+                                        </small>
+                                    }
+                                </p>
+                            </div>
+                            @if (classSchedule.ClassSessionId != null)
+                            {
+                                var state = LogicMethods.GetSessionState(classSchedule.DateTime, classSchedule.ClosedAt, DateTime.Now);
+
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="@Util.GetSessionStateBadgeClass(state)">@state</span>
+                                    <button class="btn btn-sm btn-info" @onclick="() => OnViewClassSchedule.InvokeAsync(classSchedule)">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>
 
@@ -87,6 +146,8 @@
     [Parameter] public EventCallback<DateTime> SelectedDateChanged { get; set; }
     [Parameter] public ScheduleType? FilterByType { get; set; }
     [Parameter] public bool IsGeneralCalendar { get; set; } = false;
+    [Parameter] public List<ClassScheduleListItem> ClassSchedules { get; set; } = new List<ClassScheduleListItem>();
+    [Parameter] public EventCallback<ClassScheduleListItem> OnViewClassSchedule { get; set; }
   
     private async Task PreviousDay()
     {

@@ -951,16 +951,6 @@ namespace FcmsPortalUI.Services
 
         #region Calendar & Scheduling
 
-        public async Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync()
-        {
-            await using var context = await _contextFactory.CreateDbContextAsync();
-
-            return await context.ScheduleEntries
-                .AsNoTracking()
-                .OrderBy(se => se.DateTime)
-                .ToListAsync();
-        }
-
         public async Task<List<ScheduleEntry>> GetScheduleEntriesInRangeAsync(DateTime start, DateTime end)
         {
             await using var context = await _contextFactory.CreateDbContextAsync();
@@ -1040,20 +1030,17 @@ namespace FcmsPortalUI.Services
                .ToList();
         }
 
-        public async Task<List<ClassScheduleListItem>> GetClassSchedulesInRangeAsync(DateTime start, DateTime end, ClassLevel? classLevel)
+        public async Task<List<ClassScheduleListItem>> GetClassSchedulesInRangeAsync(DateTime start, DateTime end, ClassLevel classLevel)
         {
             var currentPeriodId = GetCurrentAcademicPeriod()?.Id;
 
             await using var context = await _contextFactory.CreateDbContextAsync();
 
-            var query = context.ClassSchedules
+            return await context.ClassSchedules
                 .AsNoTracking()
-                .Where(sched => sched.DateTime >= start && sched.DateTime < end);
-
-            if (classLevel.HasValue)
-                query = query.Where(sched => sched.ClassLevel == classLevel.Value);
-
-            return await query
+                .Where(sched => sched.ClassLevel == classLevel &&
+                                sched.DateTime >= start &&
+                                sched.DateTime < end)
                 .OrderBy(sched => sched.DateTime)
                 .Select(ToClassScheduleListItem(context, currentPeriodId))
                 .ToListAsync();

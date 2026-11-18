@@ -1,5 +1,7 @@
-﻿@using FcmsPortal.Models
+﻿@using FcmsPortal
+@using FcmsPortal.Models
 @using FcmsPortal.Constants
+@using FcmsPortalUI.DTOs
 
 <div class="card mb-4">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -43,6 +45,7 @@
                                 var startTime = new DateTime(date.Year, date.Month, date.Day, hour, 0, 0);
                                 var endTime = startTime.AddHours(1);
                                 var events = GetSchedulesForTimeSlot(date, startTime, endTime);
+                                var classesInSlot = GetClassSchedulesForHour(date, hour);
 
                                 <td class="position-relative @(IsToday(date) ? "bg-info-subtle" : "")"
                                     @onclick="() => OnDateSelected.InvokeAsync(date)">
@@ -63,6 +66,27 @@
                                             </div>
                                         }
                                     }
+                                    @foreach (var classSchedule in classesInSlot)
+                                    {
+                                        if (classSchedule.ClassSessionId == null)
+                                        {
+                                            <div class="calendar-event-weekly bg-secondary text-white">
+                                                <div class="small text-truncate">
+                                                    @classSchedule.DateTime.ToString("h:mm") - Unassigned
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="calendar-event-weekly text-bg-info" role="button"
+                                                 @onclick:stopPropagation
+                                                 @onclick="() => OnClassScheduleClicked.InvokeAsync(classSchedule)">
+                                                <div class="small text-truncate">
+                                                    @classSchedule.DateTime.ToString("h:mm") - @Util.GetCourseCode(classSchedule.Course) · @classSchedule.Topic
+                                                </div>
+                                            </div>
+                                        }
+                                    }
                                 </td>
                             }
                         </tr>
@@ -78,8 +102,10 @@
     [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
     [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
     [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; } = _ => new List<ScheduleEntry>();
+    [Parameter] public Func<DateTime, List<ClassScheduleListItem>> GetClassSchedulesForDate { get; set; } = _ => new List<ClassScheduleListItem>();
+    [Parameter] public EventCallback<ClassScheduleListItem> OnClassScheduleClicked { get; set; }
 
-    private DateTime StartOfWeek => CurrentDate.AddDays(-(int)CurrentDate.DayOfWeek);
+    private DateTime StartOfWeek => LogicMethods.GetWeekStart(CurrentDate);
 
     private void PreviousWeek()
     {
@@ -99,6 +125,13 @@
         return daySchedules
             .Where(s => s.DateTime.TimeOfDay >= startTime.TimeOfDay &&
                        s.DateTime.TimeOfDay < endTime.TimeOfDay)
+            .ToList();
+    }
+
+    private List<ClassScheduleListItem> GetClassSchedulesForHour(DateTime date, int hour)
+    {
+        return GetClassSchedulesForDate(date)
+            .Where(c => c.DateTime.Hour == hour)
             .ToList();
     }
 

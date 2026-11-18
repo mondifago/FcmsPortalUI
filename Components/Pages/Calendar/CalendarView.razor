@@ -1,7 +1,10 @@
 ﻿@page "/calendar"
-@using FcmsPortalUI.Services
+@using FcmsPortal
 @using FcmsPortal.Models
 @using FcmsPortal.Enums
+@using FcmsPortal.Constants
+@using FcmsPortalUI.DTOs
+@using FcmsPortalUI.Services
 @using FcmsPortalUI.Components.Pages.Shared
 @inject ISchoolDataService SchoolDataService
 @inject NavigationManager NavigationManager
@@ -57,6 +60,22 @@
                                 </span>
                             </label>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="classLevelFilter" class="form-label">Class Schedules</label>
+                        <select id="classLevelFilter" class="form-select" @bind="selectedClassLevel" @bind:after="LoadVisibleRangeAsync">
+                            <option value="@ClassLevel.None">None</option>
+                            @foreach (var educationLevel in Enum.GetValues<EducationLevel>().Where(l => l != EducationLevel.None))
+                            {
+                                <optgroup label="@educationLevel.ToDisplayName()">
+                                    @foreach (var classLevel in LogicMethods.GetAvailableClassLevels(educationLevel))
+                                    {
+                                        <option value="@classLevel">@classLevel.ToDisplayName()</option>
+                                    }
+                                </optgroup>
+                            }
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -190,12 +209,24 @@
                           OnClose="CloseScheduleDetailsModal" />
 }
 
+@if (selectedClassSchedule != null)
+{
+    <ClassSessionDetailModal IsVisible="true"
+                             Session="selectedClassSchedule.ToClassSessionListItem()"
+                             ClassLevel="selectedClassSchedule.ClassLevel"
+                             Term="selectedClassSchedule.Semester"
+                             OnClose="CloseClassScheduleDetails" />
+}
+
 @code {
-    private List<ScheduleEntry> allSchedules = new(); 
+    private List<ScheduleEntry> scheduleEntries = new();
+    private List<ClassScheduleListItem> classSchedules = new();
 
     private ScheduleEntry? scheduleToDelete = null;
     private ScheduleEntry? selectedSchedule = null;
+    private ClassScheduleListItem? selectedClassSchedule = null;
     private ScheduleType? selectedScheduleType = null;
+    private ClassLevel selectedClassLevel = ClassLevel.None;
     private DateTime currentDate = DateTime.Now;
     private DateTime? selectedDate = null;
     private string viewMode = "month";
@@ -210,25 +241,57 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await RefreshSchedulesAsync();
+        await LoadVisibleRangeAsync();
     }
 
-    private async Task RefreshSchedulesAsync()
+    private async Task LoadVisibleRangeAsync()
     {
-        allSchedules = await SchoolDataService.GetAllSchoolCalendarSchedulesAsync();
-        StateHasChanged();
+        var range = GetVisibleRange();
+        var classLevel = selectedClassLevel;
+
+        var entries = await SchoolDataService.GetScheduleEntriesInRangeAsync(range.Start, range.End);
+        var classes = classLevel == ClassLevel.None
+            ? new List<ClassScheduleListItem>()
+            : await SchoolDataService.GetClassSchedulesInRangeAsync(range.Start, range.End, classLevel);
+
+        if (range != GetVisibleRange() || classLevel != selectedClassLevel)
+            return;
+
+        scheduleEntries = entries;
+        classSchedules = classes;
+    }
+
+    private (DateTime Start, DateTime End) GetVisibleRange()
+    {
+        if (viewMode == "month")
+        {
+            var monthStart = new DateTime(currentDate.Year, currentDate.Month, 1);
+            return (monthStart, monthStart.AddMonths(1));
+        }
+
+        if (viewMode == "week")
+        {
+            var weekStart = LogicMethods.GetWeekStart(currentDate);
+            return (weekStart, weekStart.AddDays(FcmsConstants.DAYS_IN_WEEK));
+        }
+
+        return (currentDate.Date, currentDate.Date.AddDays(1));
     }
 
     private List<ScheduleEntry> GetFilteredSchedules(DateTime date)
     {
-        var schedulesForDay = allSchedules
+        return scheduleEntries
             .Where(s => s.DateTime.Date == date.Date)
+            .Where(s => (showMeetings && !string.IsNullOrWhiteSpace(s.Meeting)) ||
+                        (showEvents && !string.IsNullOrWhiteSpace(s.Event)))
             .ToList();
+    }
 
-        return schedulesForDay.Where(s =>
-            (showMeetings && !string.IsNullOrWhiteSpace(s.Meeting)) ||
-            (showEvents && !string.IsNullOrWhiteSpace(s.Event))
-        ).ToList();
+    private List<ClassScheduleListItem> GetClassSchedulesForDate(DateTime date)
+    {
+        return classSchedules
+            .Where(c => c.DateTime.Date == date.Date)
+            .ToList();
     }
 
     private async Task ApplyFilters()
@@ -241,7 +304,7 @@
         showDailyView = false;
         selectedDate = null;
         selectedScheduleType = null;
-        await InvokeAsync(StateHasChanged);
+        await LoadVisibleRangeAsync();
     }
 
     private async Task ShowDateDetails(DateTime date)
@@ -255,7 +318,17 @@
     private async Task HandleCurrentDateChanged(DateTime date)
     {
         currentDate = date;
-        await InvokeAsync(StateHasChanged);
+        showDailyView = false;
+        selectedDate = null;
+        selectedScheduleType = null;
+        await LoadVisibleRangeAsync();
+    }
+
+    private async Task HandleDateChanged(DateTime newDate)
+    {
+        currentDate = newDate;
+        selectedDate = newDate;
+        await LoadVisibleRangeAsync();
     }
 
     private void ViewScheduleDetails(ScheduleEntry schedule)
@@ -263,6 +336,13 @@
         selectedSchedule = schedule;
         showScheduleDetailsModal = true;
     }
+
+    private void ViewClassSchedule(ClassScheduleListItem classSchedule)
+    {
+        selectedClassSchedule = classSchedule;
+    }
+
+    private void CloseClassScheduleDetails() => selectedClassSchedule = null;
 
     private void EditSchedule(ScheduleEntry schedule)
     {
@@ -288,11 +368,10 @@
         if (scheduleToDelete != null)
         {
             SchoolDataService.DeleteGeneralCalendarScheduleEntry(scheduleToDelete.Id);
-            await RefreshSchedulesAsync();
+            await LoadVisibleRangeAsync();
         }
         showDeleteConfirmation = false;
         scheduleToDelete = null;
-        StateHasChanged();
     }
 
     private void ShowAddEventModal() => showAddEventModal = true;
@@ -300,32 +379,19 @@
     private void CloseEditModal() { showEditModal = false; selectedSchedule = null; }
     private void CloseScheduleDetailsModal() { showScheduleDetailsModal = false; selectedSchedule = null; }
 
-    private async Task HandleDateChanged(DateTime newDate)
-    {
-        currentDate = newDate;
-        selectedDate = newDate;
-        await InvokeAsync(StateHasChanged);
-    }
-
     private async Task SaveScheduleEntryAsync(ScheduleEntry scheduleEntry)
     {
-        if (scheduleEntry.Id ==0)
-            SchoolDataService.AddGeneralScheduleEntry(scheduleEntry);
-        else
-            SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
-
-        await RefreshSchedulesAsync();
+        SchoolDataService.AddGeneralScheduleEntry(scheduleEntry);
+        await LoadVisibleRangeAsync();
         showAddEventModal = false;
-        StateHasChanged();
     }
 
     private async Task UpdateScheduleEntryAsync(ScheduleEntry scheduleEntry)
     {
         SchoolDataService.UpdateGeneralCalendarScheduleEntry(scheduleEntry);
-        await RefreshSchedulesAsync();
+        await LoadVisibleRangeAsync();
         showEditModal = false;
         selectedSchedule = null;
-        StateHasChanged();
     }
 
     private async Task HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)

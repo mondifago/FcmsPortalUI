@@ -72,7 +72,6 @@ namespace FcmsPortalUI.Services
         #endregion
 
         #region Calendar & Scheduling
-        Task<List<ScheduleEntry>> GetAllSchoolCalendarSchedulesAsync();
         Task<List<ScheduleEntry>> GetScheduleEntriesInRangeAsync(DateTime start, DateTime end);
         void AddGeneralScheduleEntry(ScheduleEntry scheduleEntry);
         bool UpdateGeneralCalendarScheduleEntry(ScheduleEntry scheduleEntry);
@@ -82,7 +81,7 @@ namespace FcmsPortalUI.Services
         #region Class Schedules
         List<ClassScheduleListItem> GetClassScheduleList(ClassLevel classLevel, Semester semester);
         List<ClassScheduleListItem> GetClassSchedulesForWeek(ClassLevel classLevel, Semester semester, DateTime weekStart);
-        Task<List<ClassScheduleListItem>> GetClassSchedulesInRangeAsync(DateTime start, DateTime end, ClassLevel? classLevel);
+        Task<List<ClassScheduleListItem>> GetClassSchedulesInRangeAsync(DateTime start, DateTime end, ClassLevel classLevel);
         ClassSchedule? GetClassScheduleByClassSessionId(int classSessionId);
         ClassSchedule CreateClassSchedule(ClassSchedule classSchedule);
         public List<ClassSchedule> CreateClassSchedules(ClassSchedule template, List<DateTime> occurrences);
