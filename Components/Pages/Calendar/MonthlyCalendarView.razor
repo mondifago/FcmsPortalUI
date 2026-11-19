@@ -45,12 +45,12 @@
 
                                 <td class="@(!isCurrentMonth ? "bg-light" : "") @(IsToday(date) ? "bg-info-subtle" : "")"
                                     @onclick="() => OnDateSelected.InvokeAsync(date)">
-                                    @if (sessionsOnDay.Any() || classesOnDay.Any())
+                                    @if (isCurrentMonth)
                                     {
                                         <div class="d-flex justify-content-end">
                                             <span class="badge bg-secondary">@displayDay</span>
                                         </div>
-                                        @if (sessionsOnDay.Any())
+                                        @if (sessionsOnDay.Any() || classesOnDay.Any())
                                         {
                                             <div class="calendar-events">
                                                 @{
@@ -112,16 +112,17 @@
 </div>
 
 @code {
-    [Parameter] public string Title { get; set; } = "Calendar";
+
     [Parameter] public DateTime CurrentDate { get; set; } = DateTime.Now;
+    [Parameter] public Func<DateTime, List<ClassScheduleListItem>> GetClassSchedulesForDate { get; set; } = _ => new List<ClassScheduleListItem>();
+    [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; } = _ => new List<ScheduleEntry>();
     [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
     [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
-    [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; } = _ => new List<ScheduleEntry>();
+    [Parameter] public EventCallback<(DateTime date, ScheduleType? type)> OnScheduleTypeClicked { get; set; }
+    [Parameter] public EventCallback<ClassScheduleListItem> OnClassScheduleClicked { get; set; }
     [Parameter] public string ScheduleTypeLabel { get; set; } = "Event";
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Events";
-    [Parameter] public EventCallback<(DateTime date, ScheduleType? type)> OnScheduleTypeClicked { get; set; }
-    [Parameter] public Func<DateTime, List<ClassScheduleListItem>> GetClassSchedulesForDate { get; set; } = _ => new List<ClassScheduleListItem>();
-    [Parameter] public EventCallback<ClassScheduleListItem> OnClassScheduleClicked { get; set; }
+    [Parameter] public string Title { get; set; } = "Calendar";
 
     private int DaysInMonth => DateTime.DaysInMonth(CurrentDate.Year, CurrentDate.Month);
     private int FirstDayOfMonth

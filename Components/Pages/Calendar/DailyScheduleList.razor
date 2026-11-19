@@ -134,20 +134,21 @@
 </div>
 
 @code {
-    [Parameter] public string Title { get; set; } = "Schedules";
+
     [Parameter] public DateTime SelectedDate { get; set; }
     [Parameter] public List<ScheduleEntry> Schedules { get; set; } = new List<ScheduleEntry>();
+    [Parameter] public List<ClassScheduleListItem> ClassSchedules { get; set; } = new List<ClassScheduleListItem>();
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<ScheduleEntry> OnView { get; set; }
     [Parameter] public EventCallback<ScheduleEntry> OnEdit { get; set; }
     [Parameter] public EventCallback<ScheduleEntry> OnDelete { get; set; }
-    [Parameter] public int ReferenceId { get; set; } = 0;
-    [Parameter] public string ScheduleTypesLabel { get; set; } = "Schedules";
+    [Parameter] public EventCallback<ClassScheduleListItem> OnViewClassSchedule { get; set; }
     [Parameter] public EventCallback<DateTime> SelectedDateChanged { get; set; }
     [Parameter] public ScheduleType? FilterByType { get; set; }
+    [Parameter] public int ReferenceId { get; set; } = 0;
     [Parameter] public bool IsGeneralCalendar { get; set; } = false;
-    [Parameter] public List<ClassScheduleListItem> ClassSchedules { get; set; } = new List<ClassScheduleListItem>();
-    [Parameter] public EventCallback<ClassScheduleListItem> OnViewClassSchedule { get; set; }
+    [Parameter] public string ScheduleTypesLabel { get; set; } = "Schedules";
+    [Parameter] public string Title { get; set; } = "Schedules";
   
     private async Task PreviousDay()
     {

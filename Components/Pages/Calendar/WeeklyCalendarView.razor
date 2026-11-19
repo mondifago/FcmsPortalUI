@@ -99,10 +99,10 @@
 
 @code {
     [Parameter] public DateTime CurrentDate { get; set; }
-    [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
-    [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
     [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; } = _ => new List<ScheduleEntry>();
     [Parameter] public Func<DateTime, List<ClassScheduleListItem>> GetClassSchedulesForDate { get; set; } = _ => new List<ClassScheduleListItem>();
+    [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
+    [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
     [Parameter] public EventCallback<ClassScheduleListItem> OnClassScheduleClicked { get; set; }
 
     private DateTime StartOfWeek => LogicMethods.GetWeekStart(CurrentDate);
