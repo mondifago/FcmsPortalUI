@@ -86,45 +86,6 @@
                     </div>
                 </div>
             </div>
-
-            @if (selectedDate != null)
-            {
-                var filteredForSelectedDate = GetFilteredSchedules(selectedDate.Value);
-                
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">@selectedDate.Value.ToString("MMMM d, yyyy")</h5>
-                    </div>
-                    <div class="card-body">
-                        @if (!filteredForSelectedDate.Any())
-                        {
-                            <p class="text-muted">No events scheduled for this date.</p>
-                        }
-                        else
-                        {
-                            <div class="list-group">
-                                @foreach (var schedule in filteredForSelectedDate.OrderBy(s => s.DateTime.TimeOfDay))
-                                {
-                                    <div class="list-group-item p-2">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-2">
-                                                <span class="badge @Util.GetScheduleTypeColor(schedule)">
-                                                    <i class="fa fa-@Util.GetScheduleTypeIcon(schedule) me-1"></i>
-                                                    @Util.GetScheduleTypeDisplayName(schedule)
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">@Util.GetScheduleTitle(schedule)</h6>
-                                                <small>@schedule.DateTime.ToString("h:mm tt") - @schedule.DateTime.Add(schedule.Duration).ToString("h:mm tt")</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
         </div>
 
         <div class="col-md-9">
@@ -134,12 +95,8 @@
                                      CurrentDate="@currentDate"
                                      CurrentDateChanged="HandleCurrentDateChanged"
                                      OnDateSelected="ShowDateDetails"
-                                     OnScheduleTypeClicked="HandleScheduleTypeClicked"
                                      GetSchedulesForDate="date => GetFilteredSchedules(date)"
-                                     GetClassSchedulesForDate="date => GetClassSchedulesForDate(date)"
-                                     OnClassScheduleClicked="ViewClassSchedule"
-                                     ScheduleTypeLabel="Event"
-                                     ScheduleTypesLabel="Events" />
+                                     GetClassSchedulesForDate="date => GetClassSchedulesForDate(date)" />
             }
 
             @if (viewMode == "week")
@@ -160,14 +117,13 @@
                                    Schedules="GetFilteredSchedules(currentDate)"
                                    ClassSchedules="GetClassSchedulesForDate(currentDate)"
                                    OnViewClassSchedule="ViewClassSchedule"
-                                   FilterByType="selectedScheduleType"
                                    IsGeneralCalendar="true"
                                    OnView="ViewScheduleDetails"
                                    OnEdit="EditSchedule"
                                    OnDelete="DeleteSchedule" />
             }
 
-            @if (showDailyView && selectedDate.HasValue && viewMode != "day" && viewMode != "week")
+            @if (showDailyView && selectedDate.HasValue && viewMode != "day")
             {
                 <div class="mt-4">
                     <DailyScheduleList Title="Schedule for"
@@ -228,7 +184,6 @@
     private ScheduleEntry? scheduleToDelete = null;
     private ScheduleEntry? selectedSchedule = null;
     private ClassScheduleListItem? selectedClassSchedule = null;
-    private ScheduleType? selectedScheduleType = null;
     private ClassLevel selectedClassLevel = ClassLevel.None;
     private DateTime currentDate = DateTime.Now;
     private DateTime? selectedDate = null;
@@ -250,7 +205,6 @@
     {
         var range = GetVisibleRange();
         var classLevel = selectedClassLevel;
-
         var entries = await SchoolDataService.GetScheduleEntriesInRangeAsync(range.Start, range.End);
         var classes = classLevel == ClassLevel.None
             ? new List<ClassScheduleListItem>()
@@ -305,14 +259,12 @@
     {
         showDailyView = false;
         selectedDate = null;
-        selectedScheduleType = null;
         await LoadVisibleRangeAsync();
     }
 
     private async Task ShowDateDetails(DateTime date)
     {
         selectedDate = date;
-        selectedScheduleType = null;
         showDailyView = true;
         await InvokeAsync(StateHasChanged);
     }
@@ -322,7 +274,6 @@
         currentDate = date;
         showDailyView = false;
         selectedDate = null;
-        selectedScheduleType = null;
         await LoadVisibleRangeAsync();
     }
 
@@ -394,13 +345,5 @@
         await LoadVisibleRangeAsync();
         showEditModal = false;
         selectedSchedule = null;
-    }
-
-    private async Task HandleScheduleTypeClicked((DateTime date, ScheduleType? type) data)
-    {
-        selectedDate = data.date;
-        selectedScheduleType = data.type;
-        showDailyView = true;
-        await InvokeAsync(StateHasChanged);
     }
 }

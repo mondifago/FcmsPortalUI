@@ -58,45 +58,31 @@
                                                     var meetings = sessionsOnDay.Where(s => !string.IsNullOrEmpty(s.Meeting)).ToList();
                                                 }
 
-                                                @if (events.Any())
-                                                {
-                                                    <div class="calendar-event mb-1" @onclick:stopPropagation
-                                                         @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.Event)">
-                                                        <div class="card bg-success text-white px-1 py-0 small-badge">
-                                                            <small>
-                                                                @events.Count Events
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                }
-
                                                 @if (meetings.Any())
                                                 {
-                                                    <div class="calendar-event" @onclick:stopPropagation
-                                                         @onclick="() => HandleScheduleTypeClicked(date, ScheduleType.Meeting)">
+                                                    <div class="calendar-event mb-1">
                                                         <div class="card bg-warning text-white px-1 py-0 small-badge">
-                                                            <small>
-                                                                @meetings.Count Meetings
-                                                            </small>
+                                                            <small>@meetings.Count Meetings</small>
                                                         </div>
                                                     </div>
                                                 }
 
-                                                @foreach (var classSchedule in classesOnDay)
+                                                @if (events.Any())
                                                 {
-                                                    if (classSchedule.ClassSessionId == null)
-                                                    {
-                                                        <span class="badge bg-secondary me-1 mb-1" title="Unassigned · @classSchedule.DateTime.ToString("h:mm tt")">—</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge text-bg-info me-1 mb-1" role="button"
-                                                              title="@classSchedule.Course · @classSchedule.Topic · @classSchedule.DateTime.ToString("h:mm tt")"
-                                                              @onclick:stopPropagation
-                                                              @onclick="() => OnClassScheduleClicked.InvokeAsync(classSchedule)">
-                                                            @Util.GetCourseCode(classSchedule.Course)
-                                                        </span>
-                                                    }
+                                                    <div class="calendar-event mb-1">
+                                                        <div class="card bg-success text-white px-1 py-0 small-badge">
+                                                            <small>@events.Count Events</small>
+                                                        </div>
+                                                    </div>
+                                                }
+
+                                                @if (classesOnDay.Any())
+                                                {
+                                                    <div class="calendar-event mb-1">
+                                                        <div class="card bg-info text-white px-1 py-0 small-badge">
+                                                            <small>@classesOnDay.Count Classes</small>
+                                                        </div>
+                                                    </div>
                                                 }
                                             </div>
                                         }
@@ -112,16 +98,11 @@
 </div>
 
 @code {
-
     [Parameter] public DateTime CurrentDate { get; set; } = DateTime.Now;
     [Parameter] public Func<DateTime, List<ClassScheduleListItem>> GetClassSchedulesForDate { get; set; } = _ => new List<ClassScheduleListItem>();
     [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; } = _ => new List<ScheduleEntry>();
     [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
     [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
-    [Parameter] public EventCallback<(DateTime date, ScheduleType? type)> OnScheduleTypeClicked { get; set; }
-    [Parameter] public EventCallback<ClassScheduleListItem> OnClassScheduleClicked { get; set; }
-    [Parameter] public string ScheduleTypeLabel { get; set; } = "Event";
-    [Parameter] public string ScheduleTypesLabel { get; set; } = "Events";
     [Parameter] public string Title { get; set; } = "Calendar";
 
     private int DaysInMonth => DateTime.DaysInMonth(CurrentDate.Year, CurrentDate.Month);
@@ -150,10 +131,5 @@
     {
         var today = DateTime.Today;
         return date.Year == today.Year && date.Month == today.Month && date.Day == today.Day;
-    }
-
-    private void HandleScheduleTypeClicked(DateTime date, ScheduleType type)
-    {
-        OnScheduleTypeClicked.InvokeAsync((date, type));
     }
 }
