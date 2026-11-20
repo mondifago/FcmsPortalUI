@@ -30,7 +30,7 @@
     </div>
 
     <div class="row mb-3">
-        <div class="col-md-3">
+        <div class="col-lg-4">
             <div class="card mb-3">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">Filters</h5>
@@ -86,9 +86,15 @@
                     </div>
                 </div>
             </div>
+            @if (ShowSelectedDayList)
+            {
+                <div class="d-none d-lg-block">
+                    @SelectedDayList(true)
+                </div>
+            }
         </div>
 
-        <div class="col-md-9">
+        <div class="col-lg-8">
             @if (viewMode == "month")
             {
                 <MonthlyCalendarView Title="Calendar"
@@ -123,19 +129,10 @@
                                    OnDelete="DeleteSchedule" />
             }
 
-            @if (showDailyView && selectedDate.HasValue && viewMode != "day")
+            @if (ShowSelectedDayList)
             {
-                <div class="mt-4">
-                    <DailyScheduleList Title="Schedule for"
-                                       SelectedDate="selectedDate.Value"
-                                       SelectedDateChanged="HandleDateChanged"
-                                       Schedules="GetFilteredSchedules(selectedDate.Value)"
-                                       ClassSchedules="GetClassSchedulesForDate(selectedDate.Value)"
-                                       OnViewClassSchedule="ViewClassSchedule"
-                                       IsGeneralCalendar="true"
-                                       OnView="ViewScheduleDetails"
-                                       OnEdit="EditSchedule"
-                                       OnDelete="DeleteSchedule" />
+                <div class="mt-4 d-lg-none">
+                    @SelectedDayList(false)
                 </div>
             }
         </div>
@@ -296,6 +293,21 @@
     }
 
     private void CloseClassScheduleDetails() => selectedClassSchedule = null;
+
+    
+    private bool ShowSelectedDayList => showDailyView && selectedDate.HasValue && viewMode != "day";
+
+    private RenderFragment SelectedDayList(bool isCompact) => @<DailyScheduleList Title="Schedule for"
+                                                                                  SelectedDate="selectedDate.GetValueOrDefault()"
+                                                                                  SelectedDateChanged="HandleDateChanged"
+                                                                                  Schedules="GetFilteredSchedules(selectedDate.GetValueOrDefault())"
+                                                                                  ClassSchedules="GetClassSchedulesForDate(selectedDate.GetValueOrDefault())"
+                                                                                  OnViewClassSchedule="ViewClassSchedule"
+                                                                                  IsGeneralCalendar="true"
+                                                                                  IsCompact="isCompact"
+                                                                                  OnView="ViewScheduleDetails"
+                                                                                  OnEdit="EditSchedule"
+                                                                                  OnDelete="DeleteSchedule" />;
 
     private void EditSchedule(ScheduleEntry schedule)
     {

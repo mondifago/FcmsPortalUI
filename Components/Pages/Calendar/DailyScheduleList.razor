@@ -4,16 +4,22 @@
 @using FcmsPortalUI.DTOs
 
 <div class="card">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h4 class="mb-0">@Title for @SelectedDate.ToString("MMMM d, yyyy")</h4>
         <div>
-            <button class="btn btn-sm btn-light me-2" @onclick="PreviousDay">
-                <i class="fa fa-chevron-left"></i>
-            </button>
+            @if (!IsCompact)
+            {
+                <button class="btn btn-sm btn-light me-2" @onclick="PreviousDay">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+            }
             <span class="text-white">@SelectedDate.ToString("dddd")</span>
-            <button class="btn btn-sm btn-light ms-2" @onclick="NextDay">
-                <i class="fa fa-chevron-right"></i>
-            </button>
+            @if (!IsCompact)
+            {
+                <button class="btn btn-sm btn-light ms-2" @onclick="NextDay">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+            }
         </div>
     </div>
     <div class="card-body">
@@ -41,10 +47,13 @@
                                         <i class="fa fa-clock me-1"></i>
                                         @schedule.DateTime.ToString("h:mm tt") - @schedule.DateTime.Add(schedule.Duration).ToString("h:mm tt")
                                     </small>
-                                    <small class="ms-3">
-                                        <i class="fa fa-map-marker-alt me-1"></i>
-                                        @schedule.Venue
-                                    </small>
+                                    @if (!IsCompact)
+                                    {
+                                        <small class="ms-3">
+                                            <i class="fa fa-map-marker-alt me-1"></i>
+                                            @schedule.Venue
+                                        </small>
+                                    }
                                 </p>
                             </div>
                             <div class="btn-group">
@@ -96,11 +105,14 @@
                                         <i class="fa fa-clock me-1"></i>
                                         @classSchedule.DateTime.ToString("h:mm tt") - @classSchedule.DateTime.Add(classSchedule.Duration).ToString("h:mm tt")
                                     </small>
-                                    <small class="ms-3">
-                                        <i class="fa fa-map-marker-alt me-1"></i>
-                                        @classSchedule.Venue
-                                    </small>
-                                    @if (!string.IsNullOrEmpty(classSchedule.TeacherName))
+                                    @if (!IsCompact)
+                                    {
+                                        <small class="ms-3">
+                                            <i class="fa fa-map-marker-alt me-1"></i>
+                                            @classSchedule.Venue
+                                        </small>
+                                    }
+                                    @if (!IsCompact && !string.IsNullOrEmpty(classSchedule.TeacherName))
                                     {
                                         <small class="ms-3">
                                             <i class="fa fa-user me-1"></i>
@@ -139,9 +151,9 @@
     [Parameter] public EventCallback<ScheduleEntry> OnDelete { get; set; }
     [Parameter] public EventCallback<ClassScheduleListItem> OnViewClassSchedule { get; set; }
     [Parameter] public EventCallback<DateTime> SelectedDateChanged { get; set; }
-
     [Parameter] public int ReferenceId { get; set; } = 0;
     [Parameter] public bool IsGeneralCalendar { get; set; } = false;
+    [Parameter] public bool IsCompact { get; set; } = false;
     [Parameter] public string ScheduleTypesLabel { get; set; } = "Schedules";
     [Parameter] public string Title { get; set; } = "Schedules";
   
