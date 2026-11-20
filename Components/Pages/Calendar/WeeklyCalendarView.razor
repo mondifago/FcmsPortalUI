@@ -47,22 +47,16 @@
                                 var events = GetSchedulesForTimeSlot(date, startTime, endTime);
                                 var classesInSlot = GetClassSchedulesForHour(date, hour);
 
-                                <td class="position-relative @(IsToday(date) ? "bg-info-subtle" : "")"
-                                    @onclick="() => OnDateSelected.InvokeAsync(date)">
+                                <td class="position-relative @(IsToday(date) ? "bg-info-subtle" : "")">
                                     @if (events.Any())
                                     {
-                                        @foreach (var evt in events.Take(FcmsConstants.MAX_CALENDAR_EVENTS_PER_SLOT))
+                                        @foreach (var evt in events)
                                         {
-                                            <div class="calendar-event-weekly @Util.GetScheduleTypeColor(evt)">
+                                            <div class="calendar-event-weekly @Util.GetScheduleTypeColor(evt)" role="button"
+                                                 @onclick="() => OnScheduleClicked.InvokeAsync(evt)">
                                                 <div class="small text-truncate">
                                                     @evt.DateTime.ToString("h:mm") - @Util.GetScheduleTitle(evt)
                                                 </div>
-                                            </div>
-                                        }
-                                        @if (events.Count > FcmsConstants.MAX_CALENDAR_EVENTS_PER_SLOT)
-                                        {
-                                            <div class="text-center small">
-                                                <span class="badge bg-secondary">+@(events.Count - FcmsConstants.MAX_CALENDAR_EVENTS_PER_SLOT) more</span>
                                             </div>
                                         }
                                     }
@@ -79,7 +73,6 @@
                                         else
                                         {
                                             <div class="calendar-event-weekly text-bg-info" role="button"
-                                                 @onclick:stopPropagation
                                                  @onclick="() => OnClassScheduleClicked.InvokeAsync(classSchedule)">
                                                 <div class="small text-truncate">
                                                     @classSchedule.DateTime.ToString("h:mm") - @Util.GetCourseCode(classSchedule.Course) · @classSchedule.Topic
@@ -102,7 +95,7 @@
     [Parameter] public Func<DateTime, List<ScheduleEntry>> GetSchedulesForDate { get; set; } = _ => new List<ScheduleEntry>();
     [Parameter] public Func<DateTime, List<ClassScheduleListItem>> GetClassSchedulesForDate { get; set; } = _ => new List<ClassScheduleListItem>();
     [Parameter] public EventCallback<DateTime> CurrentDateChanged { get; set; }
-    [Parameter] public EventCallback<DateTime> OnDateSelected { get; set; }
+    [Parameter] public EventCallback<ScheduleEntry> OnScheduleClicked { get; set; }
     [Parameter] public EventCallback<ClassScheduleListItem> OnClassScheduleClicked { get; set; }
 
     private DateTime StartOfWeek => LogicMethods.GetWeekStart(CurrentDate);
